@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Figures Composées — Périmètres & Aires</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Caveat:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg:         #F7F6F2;
+    --surface:    #FFFFFF;
+    --border:     #E2E0D8;
+    --border2:    #C8C6BC;
+    --text:       #1E1D1A;
+    --muted:      #6B6A64;
+    --accent:     #2D6BE4;
+    --success:    #1A7A50;
+    --success-bg: #E6F5EE;
+    --danger:     #B83030;
+    --danger-bg:  #FDEAEA;
+    --radius:     12px;
+    --radius-sm:  7px;
+  }
+  body { font-family: 'Nunito', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 0 0 3rem; }
+
+  header {
+    background: var(--surface); border-bottom: 1px solid var(--border);
+    padding: 1.25rem 2rem; display: flex; align-items: center;
+    justify-content: space-between; flex-wrap: wrap; gap: 12px;
+    position: sticky; top: 0; z-index: 100; box-shadow: 0 1px 8px rgba(0,0,0,.04);
+  }
+  .header-title { font-family: 'Caveat', cursive; font-size: 26px; font-weight: 700; color: var(--text); }
+  .header-title span { color: var(--accent); }
+  .score-pill {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 999px; padding: 6px 16px 6px 10px;
+    font-size: 14px; font-weight: 700; color: var(--muted);
+  }
+  .score-pill .dots { display: flex; gap: 5px; }
+  .score-dot { width: 11px; height: 11px; border-radius: 50%; background: var(--border2); transition: background .35s, transform .25s; }
+  .score-dot.done { background: var(--success); transform: scale(1.15); }
+  .score-num { color: var(--text); min-width: 32px; text-align: right; }
+  .progress-bar-wrap { height: 3px; background: var(--border); }
+  .progress-bar-fill { height: 100%; background: var(--accent); transition: width .5s cubic-bezier(.4,0,.2,1); width: 0%; }
+
+  main { max-width: 1100px; margin: 0 auto; padding: 2rem 1.25rem 0; }
+  .intro { text-align: center; margin-bottom: 2rem; }
+  .intro h2 { font-family: 'Caveat', cursive; font-size: 22px; font-weight: 600; color: var(--muted); }
+  .intro p  { font-size: 13px; color: var(--muted); margin-top: 6px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 18px; }
+
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); overflow: hidden;
+    display: flex; flex-direction: column;
+    transition: box-shadow .2s, border-color .2s;
+  }
+  .card:hover { box-shadow: 0 4px 18px rgba(0,0,0,.07); border-color: var(--border2); }
+  .card.solved { border-color: #86c9a8; }
+  .card-top { padding: .85rem 1rem .6rem; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid var(--border); }
+  .card-num { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; flex-shrink: 0; }
+  .card-name { font-size: 16px; font-weight: 800; color: var(--text); }
+  .card-check { margin-left: auto; font-size: 18px; opacity: 0; transition: opacity .3s; }
+  .card.solved .card-check { opacity: 1; }
+  .sketch-area { display: flex; justify-content: center; align-items: center; padding: 1rem 1rem .8rem; background: #FAFAF8; border-bottom: 1px solid var(--border); }
+  .exercise { padding: .75rem 1rem 1rem; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+  .ex-label { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+  .ex-q { font-size: 13px; line-height: 1.6; color: var(--text); }
+  .ex-q strong { color: var(--accent); }
+  .decomp { font-size: 12px; color: var(--muted); background: var(--bg); border-left: 3px solid var(--border2); padding: 6px 10px; border-radius: 0 var(--radius-sm) var(--radius-sm) 0; line-height: 1.5; }
+  .decomp:empty { display: none; }
+  .answer-row { display: flex; align-items: center; gap: 7px; font-size: 13px; }
+  .answer-lbl { font-weight: 700; color: var(--muted); min-width: 42px; }
+  .answer-input {
+    flex: 1; height: 32px; border: 1px solid var(--border2); border-radius: var(--radius-sm);
+    background: var(--surface); color: var(--text);
+    padding: 0 9px; font-size: 13px; font-family: 'Nunito', sans-serif; font-weight: 600;
+    outline: none; transition: border-color .15s, box-shadow .15s;
+  }
+  .answer-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(45,107,228,.12); }
+  .answer-unit { font-size: 12px; color: var(--muted); min-width: 32px; }
+  .verify-btn {
+    margin-top: 4px; width: 100%; height: 34px;
+    border: 1px solid var(--border2); border-radius: var(--radius-sm);
+    background: transparent; color: var(--text);
+    font-family: 'Nunito', sans-serif; font-size: 13px; font-weight: 700;
+    cursor: pointer; transition: background .15s;
+  }
+  .verify-btn:hover { background: var(--bg); }
+  .verify-btn:active { transform: scale(.98); }
+  .feedback { font-size: 13px; font-weight: 600; padding: 7px 10px; border-radius: var(--radius-sm); display: none; line-height: 1.7; }
+  .feedback.correct { display: block; background: var(--success-bg); color: var(--success); border: 1px solid #a8dfc0; }
+  .feedback.wrong   { display: block; background: var(--danger-bg);  color: var(--danger);  border: 1px solid #f0b8b8; }
+  #finish-banner {
+    display: none; max-width: 500px; margin: 2.5rem auto 0;
+    background: var(--surface); border: 1px solid #86c9a8;
+    border-radius: var(--radius); padding: 1.5rem 2rem; text-align: center;
+    box-shadow: 0 4px 24px rgba(26,122,80,.08);
+  }
+  #finish-banner.show { display: block; }
+  #finish-banner .trophy { font-size: 40px; margin-bottom: .5rem; }
+  #finish-banner h3 { font-family: 'Caveat', cursive; font-size: 26px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+  #finish-banner p { font-size: 15px; color: var(--muted); }
+  .c1 { background:#DBEAFE; color:#1D4ED8; }
+  .c2 { background:#DCFCE7; color:#166534; }
+  .c3 { background:#FEF3C7; color:#92400E; }
+  .c4 { background:#EDE9FE; color:#5B21B6; }
+  @media (max-width: 600px) { header { padding: 1rem; } main { padding: 1.25rem .75rem 0; } }
+
+  /* ── Modale nom ── */
+  #name-modal {
+    position: fixed; inset: 0; z-index: 200;
+    background: rgba(0,0,0,.35);
+    display: flex; align-items: center; justify-content: center;
+    padding: 1rem;
+  }
+  #name-modal.hidden { display: none; }
+  .modal-box {
+    background: var(--surface); border-radius: var(--radius);
+    border: 1px solid var(--border); padding: 2rem 2rem 1.5rem;
+    max-width: 360px; width: 100%; text-align: center;
+    box-shadow: 0 8px 32px rgba(0,0,0,.12);
+  }
+  .modal-box .modal-icon { font-size: 36px; margin-bottom: .75rem; }
+  .modal-box h2 { font-family: 'Caveat', cursive; font-size: 24px; font-weight: 700; margin-bottom: .4rem; color: var(--text); }
+  .modal-box p  { font-size: 13px; color: var(--muted); margin-bottom: 1.25rem; }
+  .modal-box input {
+    width: 100%; height: 38px; border: 1px solid var(--border2);
+    border-radius: var(--radius-sm); padding: 0 12px;
+    font-size: 15px; font-family: 'Nunito', sans-serif; font-weight: 600;
+    color: var(--text); background: var(--bg); outline: none;
+    margin-bottom: 1rem; text-align: center;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .modal-box input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(45,107,228,.12); }
+  .modal-box .start-btn {
+    width: 100%; height: 38px;
+    background: var(--accent); color: #fff;
+    border: none; border-radius: var(--radius-sm);
+    font-family: 'Nunito', sans-serif; font-size: 14px; font-weight: 800;
+    cursor: pointer; transition: opacity .15s;
+  }
+  .modal-box .start-btn:hover { opacity: .88; }
+  .modal-box .start-btn:disabled { opacity: .4; cursor: not-allowed; }
+
+  /* ── Bouton classement ── */
+  .lb-btn {
+    height: 34px; padding: 0 14px;
+    border: 1px solid var(--border2); border-radius: var(--radius-sm);
+    background: transparent; color: var(--text);
+    font-family: 'Nunito', sans-serif; font-size: 13px; font-weight: 700;
+    cursor: pointer; transition: background .15s;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .lb-btn:hover { background: var(--bg); }
+
+  /* ── Page classement ── */
+  #leaderboard-page {
+    display: none; position: fixed; inset: 0; z-index: 150;
+    background: var(--bg); overflow-y: auto; padding: 0 0 3rem;
+  }
+  #leaderboard-page.show { display: block; }
+  .lb-header {
+    background: var(--surface); border-bottom: 1px solid var(--border);
+    padding: 1.25rem 2rem; display: flex; align-items: center;
+    justify-content: space-between; gap: 12px;
+    position: sticky; top: 0; z-index: 10;
+    box-shadow: 0 1px 8px rgba(0,0,0,.04);
+  }
+  .lb-header h1 { font-family: 'Caveat', cursive; font-size: 26px; font-weight: 700; color: var(--text); }
+  .lb-close {
+    height: 34px; padding: 0 14px;
+    border: 1px solid var(--border2); border-radius: var(--radius-sm);
+    background: transparent; color: var(--text);
+    font-family: 'Nunito', sans-serif; font-size: 13px; font-weight: 700;
+    cursor: pointer; transition: background .15s;
+  }
+  .lb-close:hover { background: var(--bg); }
+  .lb-content { max-width: 600px; margin: 2rem auto; padding: 0 1.25rem; }
+  .lb-empty { text-align: center; color: var(--muted); font-size: 14px; margin-top: 3rem; }
+  .lb-table { width: 100%; border-collapse: collapse; }
+  .lb-table th {
+    text-align: left; font-size: 11px; font-weight: 800;
+    text-transform: uppercase; letter-spacing: .08em; color: var(--muted);
+    padding: 0 12px 10px; border-bottom: 1px solid var(--border);
+  }
+  .lb-table th:last-child { text-align: right; }
+  .lb-table td {
+    padding: 10px 12px; font-size: 14px; font-weight: 600;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+  }
+  .lb-table td:last-child { text-align: right; }
+  .lb-table tr:first-child td { padding-top: 14px; }
+  .lb-rank { color: var(--muted); font-size: 13px; font-weight: 700; min-width: 28px; }
+  .lb-rank.gold   { color: #D4AF37; }
+  .lb-rank.silver { color: #9E9E9E; }
+  .lb-rank.bronze { color: #CD7F32; }
+  .lb-score-bar-wrap { display: flex; align-items: center; gap: 10px; justify-content: flex-end; }
+  .lb-score-bar { height: 6px; border-radius: 3px; background: var(--border); flex: 1; max-width: 100px; }
+  .lb-score-bar-fill { height: 100%; border-radius: 3px; background: var(--success); transition: width .4s; }
+  .lb-score-val { font-size: 14px; font-weight: 800; color: var(--success); min-width: 36px; text-align: right; }
+  .lb-date { font-size: 12px; color: var(--muted); font-weight: 400; }
+</style>
+</head>
+<body>
+
+<!-- Modale saisie nom -->
+<div id="name-modal">
+  <div class="modal-box">
+    <div class="modal-icon">✏️</div>
+    <h2>Bienvenue !</h2>
+    <p>Entre ton prénom pour commencer l'exercice.</p>
+    <input type="text" id="student-name" placeholder="Ton prénom…" maxlength="30" autocomplete="off">
+    <button class="start-btn" id="start-btn" onclick="startExercise()" disabled>Commencer →</button>
+  </div>
+</div>
+
+<!-- Page classement -->
+<div id="leaderboard-page">
+  <div class="lb-header">
+    <h1>🏆 Classement</h1>
+    <button class="lb-close" onclick="closeLB()">← Retour</button>
+  </div>
+  <div class="lb-content" id="lb-content"></div>
+</div>
+
+<header>
+  <div class="header-title">Figures <span>composées</span> — Périmètres &amp; Aires</div>
+  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+    <span id="student-tag" style="font-size:13px;font-weight:700;color:var(--muted);"></span>
+    <button class="lb-btn" onclick="openLB()">🏆 Classement</button>
+    <div class="score-pill">
+      <div class="dots" id="score-dots"></div>
+      <span class="score-num" id="score-text">0 / 8</span>
+    </div>
+  </div>
+</header>
+<div class="progress-bar-wrap"><div class="progress-bar-fill" id="progress-bar"></div></div>
+
+<main>
+  <div class="intro">
+    <h2>Calcule le périmètre et l'aire de chaque figure composée</h2>
+    <p>Identifie les parties de la figure, calcule séparément, puis combine.</p>
+  </div>
+  <div class="grid" id="shapes-grid"></div>
+  <div id="finish-banner">
+    <div class="trophy">🏆</div>
+    <h3>Félicitations !</h3>
+    <p>Tu as réussi toutes les figures composées. Excellent travail !</p>
+  </div>
+</main>
+
+<script>
+const C  = 14;
+const CL = 12;
+const W  = 700;
+const F  = "Caveat, cursive";
+
+function t(x, y, txt, anchor, col, size) {
+  return `<text x="${x}" y="${y}" text-anchor="${anchor||'middle'}" fill="${col}" font-size="${size||C}" font-family="${F}" font-weight="${W}">${txt}</text>`;
+}
+function dk(x1,y1,x2,y2,col) {
+  return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${col}" stroke-width="1" stroke-dasharray="4,3"/>`;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// FIGURE 1 — Rectangle 12×8 avec encoche 4×3 retirée en haut à droite
+// Périmètre : 12 + 8 + 8 + 3 + 4 + 5 = 40 cm
+// Aire      : 12×8 − 4×3 = 96 − 12 = 84 cm²
+//
+// Échelle : 1 cm = 17 px
+// Grand rect : x=30..234 (w=204=12cm), y=28..164 (h=136=8cm)
+// Encoche retirée en haut à droite : x=166..234 (w=68=4cm), y=28..79 (h=51=3cm)
+// Contour (sens horaire depuis bas-gauche) :
+//   BG(30,164) → BD(234,164) → (234,79) → (166,79) → (166,28) → (30,28) → ferme
+// ═══════════════════════════════════════════════════════════════════════════
+const fig1 = (() => {
+  const col = '#1D4ED8';
+  // contour — décalé de 25px vers la droite pour laisser place à la cote gauche
+  const pts = "55,164 259,164 259,79 191,79 191,28 55,28";
+  return `
+    <polygon points="${pts}" fill="#DBEAFE" fill-opacity=".5" stroke="${col}" stroke-width="2" stroke-linejoin="round"/>
+    ${dk(55,182,259,182,col)}
+    ${t(157,196,'12 cm','middle',col)}
+    ${dk(36,28,36,164,col)}
+    ${t(28,96,'8 cm','end',col,C)}
+    ${dk(55,14,191,14,col)}
+    ${t(123,9,'8 cm','middle',col)}
+    ${dk(275,79,275,164,col)}
+    ${t(283,124,'5 cm','start',col)}
+  `;
+})();
+
+// ═══════════════════════════════════════════════════════════════════════════
+// FIGURE 2 — Rectangle 10×6 + triangle isocèle posé sur le dessus
+// Rectangle base 10, hauteur 6 cm
+// Triangle base 10, hauteur 4 cm → hyp = √(5²+4²) = √41 ≈ 6,40 cm
+// Périmètre : bas(10) + gauche(6) + hyp(6,40) + hyp(6,40) + droite(6) = 34,81 cm
+// Aire      : 10×6 + (10×4)/2 = 60 + 20 = 80 cm²
+//
+// Échelle : 1 cm = 20 px
+// Rectangle : x=30..230 (w=200=10cm), y=110..230 (h=120=6cm)
+// Sommet triangle : (130, 30) — hauteur = 80px = 4cm
+// ═══════════════════════════════════════════════════════════════════════════
+const fig2 = (() => {
+  const col = '#166534';
+  const hyp = Math.sqrt(5*5+4*4).toFixed(2);
+  return `
+    <polygon points="155,30 255,110 255,230 55,230 55,110" fill="#DCFCE7" fill-opacity=".5" stroke="${col}" stroke-width="2" stroke-linejoin="round"/>
+    <!-- hauteur triangle (tiret intérieur) -->
+    <line x1="155" y1="30" x2="155" y2="110" stroke="${col}" stroke-width="1" stroke-dasharray="4,3" opacity=".5"/>
+    <rect x="151" y="106" width="8" height="8" fill="none" stroke="${col}" stroke-width="1.2"/>
+    <!-- bas -->
+    ${dk(55,248,255,248,col)}
+    ${t(155,262,'10 cm','middle',col)}
+    <!-- droite -->
+    ${dk(273,110,273,230,col)}
+    ${t(281,170,'6 cm','start',col)}
+    <!-- hyp gauche -->
+    ${t(78,52,'≈ 6,40 cm','middle',col,CL)}
+    <!-- hyp droite -->
+    ${t(228,52,'≈ 6,40 cm','middle',col,CL)}
+    <!-- hauteur totale 10 cm à gauche -->
+    ${dk(36,30,36,230,col)}
+    ${t(28,130,'10 cm','end',col,C)}
+  `;
+})();
+
+// ═══════════════════════════════════════════════════════════════════════════
+// FIGURE 3 — Rectangle 10×6 + demi-disque r=3 collé à droite
+// Le demi-disque sort du côté droit (x=220), centré verticalement à y=84
+// Périmètre : bas(10) + gauche(6) + haut(10) + demi-cercle(π×3) = 35,42 cm
+// Aire      : 10×6 + π×3²/2 = 60 + 14,13 = 74,13 cm²
+//
+// Échelle : 1 cm = 20 px
+// Rectangle : x=20..220 (w=200=10cm), y=24..144 (h=120=6cm)
+// Demi-cercle : centre (220,84), r=60px=3cm, arc vers la droite (0,1 flag)
+// Contour : M20,144 L20,24 L220,24 A60,60 0 0,1 220,144 Z
+// ═══════════════════════════════════════════════════════════════════════════
+const fig3 = (() => {
+  const col = '#92400E';
+  return `
+    <!-- figure : rect + demi-disque à droite -->
+    <path d="M50,144 L50,24 L250,24 A60,60 0 0,1 250,144 Z"
+          fill="#FEF3C7" fill-opacity=".55" stroke="${col}" stroke-width="2" stroke-linejoin="round"/>
+    <!-- ligne de séparation rect / demi-disque (tiret) -->
+    <line x1="250" y1="24" x2="250" y2="144" stroke="${col}" stroke-width="1" stroke-dasharray="5,3" opacity=".5"/>
+    <!-- bas : 10 cm -->
+    ${dk(50,162,250,162,col)}
+    ${t(150,176,'10 cm','middle',col)}
+    <!-- gauche : 6 cm -->
+    ${dk(32,24,32,144,col)}
+    ${t(24,84,'6 cm','end',col,C)}
+  `;
+})();
+
+// ═══════════════════════════════════════════════════════════════════════════
+// FIGURE 4 — Croix : longueur totale 10 cm, largeur bras 3 cm
+// Bras latéraux = (10−3)/2 = 3,5 cm de long
+// Périmètre : 4×3 + 8×3,5 = 12 + 28 = 40 cm
+// Aire      : rect horiz (10×3) + 2 rect vert (3×3,5) = 30 + 21 = 51 cm²
+//
+// Échelle : 1 cm = 20 px
+// origine cx=20, cy=20
+// u=3cm=60px, bras=3.5cm=70px
+// pts (sens horaire depuis haut du bras gauche du bras haut) :
+//   (90,20) → (150,20) → (150,90) → (220,90) → (220,150) → (150,150)
+//   → (150,220) → (90,220) → (90,150) → (20,150) → (20,90) → (90,90)
+// ═══════════════════════════════════════════════════════════════════════════
+const fig4 = (() => {
+  const col = '#5B21B6';
+  const pts = "90,20 150,20 150,90 220,90 220,150 150,150 150,220 90,220 90,150 20,150 20,90 90,90";
+  return `
+    <polygon points="${pts}" fill="#EDE9FE" fill-opacity=".6" stroke="${col}" stroke-width="2" stroke-linejoin="round"/>
+    <!-- bras droit : 3 cm -->
+    ${dk(236,90,236,150,col)}
+    ${t(242,122,'3 cm','start',col,C)}
+    <!-- total largeur : 10 cm -->
+    ${dk(20,238,220,238,col)}
+    ${t(120,252,'10 cm','middle',col)}
+  `;
+})();
+
+// ═══════════════════════════════════════════════════════════════════════════
+const shapes = [
+  {
+    id: 1, name: "Rectangle avec encoche", accent: "c1",
+    svgW: 310, svgH: 210,
+    svg: fig1,
+    q: "Un rectangle de <strong>12 × 8 cm</strong> dont on a retiré un coin rectangulaire.",
+    decomp: "",
+    fields: [
+      { label: "P =", unit: "cm",  key: "p", answer: 40   },
+      { label: "A =", unit: "cm²", key: "a", answer: 84   }
+    ],
+    correction: "P = 12 + 8 + 8 + 3 + 4 + 5 = 40 cm\nA = 12×8 − 4×3 = 96 − 12 = 84 cm²"
+  },
+  {
+    id: 2, name: "Rectangle + triangle", accent: "c2",
+    svgW: 310, svgH: 280,
+    svg: fig2,
+    q: "Un rectangle de <strong>10 × 6 cm</strong> surmonté d'un triangle isocèle.",
+    decomp: "",
+    fields: [
+      { label: "P =", unit: "cm",  key: "p", answer: 34.81 },
+      { label: "A =", unit: "cm²", key: "a", answer: 80    }
+    ],
+    correction: "Hyp = √(5²+4²) = √41 ≈ 6,40 cm\nP = 10 + 6 + 6 + 6,40 + 6,40 ≈ 34,81 cm\nA = 10×6 + (10×4)/2 = 60 + 20 = 80 cm²"
+  },
+  {
+    id: 3, name: "Rectangle + demi-disque", accent: "c3",
+    svgW: 340, svgH: 195,
+    svg: fig3,
+    q: "Un rectangle de <strong>10 × 6 cm</strong> avec un demi-disque. Utilise π ≈ 3,14.",
+    decomp: "",
+    fields: [
+      { label: "P =", unit: "cm",  key: "p", answer: 35.42 },
+      { label: "A =", unit: "cm²", key: "a", answer: 74.13 }
+    ],
+    correction: "P = 10 + 6 + 10 + π×3 = 26 + 9,42 = 35,42 cm\nA = 10×6 + π×3²/2 = 60 + 14,13 = 74,13 cm²"
+  },
+  {
+    id: 4, name: "Croix régulière", accent: "c4",
+    svgW: 290, svgH: 270,
+    svg: fig4,
+    q: "Une croix régulière de longueur totale <strong>10 cm</strong> et de largeur de bras <strong>3 cm</strong>.",
+    decomp: "",
+    fields: [
+      { label: "P =", unit: "cm",  key: "p", answer: 40 },
+      { label: "A =", unit: "cm²", key: "a", answer: 51 }
+    ],
+    correction: "Bras latéraux = (10−3)/2 = 3,5 cm\nP = 4×3 + 8×3,5 = 12 + 28 = 40 cm\nA = 10×3 + 2×(3×3,5) = 30 + 21 = 51 cm²"
+  }
+];
+
+// ─── Nom & classement ────────────────────────────────────────────────────────
+let studentName = '';
+let scores = []; // { name, score, date }
+let solvedFields = new Set(); // stocke "id-key" pour chaque bonne réponse
+
+// Activer le bouton dès qu'il y a un prénom
+document.getElementById('student-name').addEventListener('input', function() {
+  document.getElementById('start-btn').disabled = this.value.trim().length === 0;
+});
+document.getElementById('student-name').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && this.value.trim().length > 0) startExercise();
+});
+
+function startExercise() {
+  studentName = document.getElementById('student-name').value.trim();
+  if (!studentName) return;
+  document.getElementById('name-modal').classList.add('hidden');
+  document.getElementById('student-tag').textContent = '👤 ' + studentName;
+}
+
+function saveScore(n) {
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('fr-FR', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
+  // Cherche si ce nom existe déjà et améliore son score
+  const existing = scores.find(s => s.name === studentName);
+  if (existing) {
+    if (n > existing.score) { existing.score = n; existing.date = dateStr; }
+  } else {
+    scores.push({ name: studentName, score: n, date: dateStr });
+  }
+  scores.sort((a,b) => b.score - a.score);
+}
+
+function openLB() {
+  const page = document.getElementById('leaderboard-page');
+  const content = document.getElementById('lb-content');
+  page.classList.add('show');
+  if (scores.length === 0) {
+    content.innerHTML = '<p class="lb-empty">Aucun score enregistré pour l\'instant.</p>';
+    return;
+  }
+  const rankClass = i => i===0?'gold':i===1?'silver':i===2?'bronze':'';
+  const rankSymbol = i => i===0?'🥇':i===1?'🥈':i===2?'🥉':`${i+1}.`;
+  content.innerHTML = `
+    <table class="lb-table">
+      <thead><tr>
+        <th style="width:40px"></th>
+        <th>Élève</th>
+        <th>Score</th>
+      </tr></thead>
+      <tbody>
+        ${scores.map((s,i) => `
+          <tr>
+            <td><span class="lb-rank ${rankClass(i)}">${rankSymbol(i)}</span></td>
+            <td>
+              <div style="font-weight:700">${s.name}</div>
+              <div class="lb-date">${s.date}</div>
+            </td>
+            <td>
+              <div class="lb-score-bar-wrap">
+                <div class="lb-score-bar"><div class="lb-score-bar-fill" style="width:${(s.score/8)*100}%"></div></div>
+                <div class="lb-score-val">${s.score} / 8</div>
+              </div>
+            </td>
+          </tr>`).join('')}
+      </tbody>
+    </table>`;
+}
+
+function closeLB() {
+  document.getElementById('leaderboard-page').classList.remove('show');
+}
+
+// Hook : sauvegarder le score à chaque point gagné
+// On redéfinit updateScore pour aussi sauvegarder le score
+function updateScore() {
+  const n = solvedFields.size;
+  document.getElementById('score-text').textContent = `${n} / 8`;
+  document.getElementById('progress-bar').style.width = `${(n/8)*100}%`;
+  if (studentName) saveScore(n);
+  if (n === 8) {
+    document.getElementById('finish-banner').classList.add('show');
+    document.getElementById('finish-banner').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+}
+
+
+const dotsEl = document.getElementById('score-dots');
+shapes.forEach(s => {
+  s.fields.forEach(f => {
+    const d = document.createElement('div');
+    d.className = 'score-dot';
+    d.id = `dot-${s.id}-${f.key}`;
+    d.title = `Figure ${s.id} — ${f.label}`;
+    dotsEl.appendChild(d);
+  });
+});
+
+// ─── Build cards ─────────────────────────────────────────────────────────────
+const grid = document.getElementById('shapes-grid');
+shapes.forEach(s => {
+  const card = document.createElement('div');
+  card.className = 'card'; card.id = `card-${s.id}`;
+  card.innerHTML = `
+    <div class="card-top">
+      <div class="card-num ${s.accent}">${s.id}</div>
+      <div class="card-name">${s.name}</div>
+      <div class="card-check">✓</div>
+    </div>
+    <div class="sketch-area">
+      <svg width="${s.svgW}" height="${s.svgH}" viewBox="0 0 ${s.svgW} ${s.svgH}">${s.svg}</svg>
+    </div>
+    <div class="exercise">
+      <div class="ex-label">Exercice</div>
+      <div class="ex-q">${s.q}</div>
+      <div class="decomp">${s.decomp}</div>
+      ${s.fields.map(f => `
+        <div class="answer-row">
+          <span class="answer-lbl">${f.label}</span>
+          <input class="answer-input" type="number" step="0.01" placeholder="?" id="inp-${s.id}-${f.key}">
+          <span class="answer-unit">${f.unit}</span>
+        </div>`).join('')}
+      <button class="verify-btn" onclick="check(${s.id})">Vérifier →</button>
+      <div class="feedback" id="fb-${s.id}"></div>
+    </div>`;
+  grid.appendChild(card);
+  s.fields.forEach(f => {
+    document.getElementById(`inp-${s.id}-${f.key}`)
+      .addEventListener('keydown', e => { if (e.key === 'Enter') check(s.id); });
+  });
+});
+
+// ─── Check ───────────────────────────────────────────────────────────────────
+function check(id) {
+  const s    = shapes.find(x => x.id === id);
+  const fb   = document.getElementById(`fb-${id}`);
+  const card = document.getElementById(`card-${id}`);
+  let allCorrect = true, msgs = [];
+
+  s.fields.forEach(f => {
+    const val = parseFloat(document.getElementById(`inp-${id}-${f.key}`).value);
+    const tol = f.unit === 'cm' ? 0.05 : 0.1;
+    const fieldKey = `${id}-${f.key}`;
+    if (isNaN(val) || Math.abs(val - f.answer) > tol) {
+      allCorrect = false;
+      msgs.push(`${f.label} réponse attendue : <strong>${f.answer} ${f.unit}</strong>`);
+    } else if (!solvedFields.has(fieldKey)) {
+      solvedFields.add(fieldKey);
+      document.getElementById(`dot-${id}-${f.key}`).classList.add('done');
+      updateScore();
+    }
+  });
+
+  // Bloquer les champs et le bouton après vérification
+  s.fields.forEach(f => {
+    const inp = document.getElementById(`inp-${id}-${f.key}`);
+    inp.disabled = true;
+    inp.style.opacity = '.6';
+    inp.style.cursor = 'not-allowed';
+  });
+  const btn = card.querySelector('.verify-btn');
+  btn.disabled = true;
+  btn.style.opacity = '.4';
+  btn.style.cursor = 'not-allowed';
+
+  if (allCorrect) {
+    fb.className = 'feedback correct';
+    fb.innerHTML = '✓ Parfait !<br><span style="font-weight:400;white-space:pre-line">' + s.correction + '</span>';
+    card.classList.add('solved');
+  } else {
+    fb.className = 'feedback wrong';
+    fb.innerHTML = msgs.join('<br>');
+  }
+}
+</script>
+</body>
+</html>
