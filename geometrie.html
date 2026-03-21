@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Géométrie — Exercices interactifs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Caveat:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg:#F7F6F2; --surface:#FFFFFF; --border:#E2E0D8; --border2:#C8C6BC;
+    --text:#1E1D1A; --muted:#6B6A64; --accent:#2D6BE4;
+    --success:#1A7A50; --success-bg:#E6F5EE; --danger:#B83030; --danger-bg:#FDEAEA;
+    --radius:14px;
+  }
+  body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; padding:0 0 4rem; }
+
+  /* HEADER */
+  .main-header {
+    background:var(--surface); border-bottom:1px solid var(--border);
+    padding:1rem 1.5rem; display:flex; align-items:center; justify-content:space-between;
+    flex-wrap:wrap; gap:10px; position:sticky; top:0; z-index:200;
+    box-shadow:0 1px 8px rgba(0,0,0,.04);
+  }
+  .header-brand { display:flex; align-items:center; gap:10px; }
+  .header-title { font-size:20px; font-weight:900; }
+  .header-title span { color:var(--accent); }
+  .nav-tabs { display:flex; gap:4px; background:var(--bg); border:1px solid var(--border); border-radius:999px; padding:3px; }
+  .nav-tab { height:30px; padding:0 12px; border-radius:999px; border:none; background:transparent; font-family:'Nunito',sans-serif; font-size:12px; font-weight:700; color:var(--muted); cursor:pointer; transition:background .15s,color .15s; white-space:nowrap; }
+  .nav-tab:hover { background:var(--surface); color:var(--text); }
+  .nav-tab.active { background:var(--surface); color:var(--accent); box-shadow:0 1px 4px rgba(0,0,0,.08); }
+
+  /* PAGES */
+  .page { display:none; }
+  .page.active { display:block; }
+
+  /* INDEX */
+  .index-main { max-width:1100px; margin:0 auto; padding:2.5rem 1.25rem 0; }
+  .section-title { font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:.1em; color:var(--muted); margin-bottom:1rem; }
+  .exercises-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:16px; }
+  .ex-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; display:flex; flex-direction:column; transition:box-shadow .2s,border-color .2s,transform .15s; cursor:pointer; }
+  .ex-card:hover { box-shadow:0 6px 24px rgba(0,0,0,.09); border-color:var(--border2); transform:translateY(-2px); }
+  .ex-card-top { padding:1.1rem 1.1rem .8rem; display:flex; align-items:flex-start; gap:12px; }
+  .ex-card-icon { width:44px; height:44px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:20px; flex-shrink:0; }
+  .ex-card-name { font-size:15px; font-weight:800; margin-bottom:3px; }
+  .ex-card-desc { font-size:12px; color:var(--muted); line-height:1.5; }
+  .ex-card-footer { padding:.65rem 1.1rem; border-top:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+  .ex-card-badge { font-size:11px; font-weight:700; padding:2px 9px; border-radius:999px; background:var(--bg); border:1px solid var(--border); }
+  .ex-card-open { font-size:12px; font-weight:700; color:var(--accent); }
+
+  /* EXERCISE SUB-HEADER */
+  .ex-subheader { background:var(--surface); border-bottom:1px solid var(--border); padding:.75rem 1.5rem; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; position:sticky; top:53px; z-index:150; }
+  .ex-subheader-title { font-size:18px; font-weight:800; }
+  .ex-subheader-title span { color:var(--accent); }
+  .score-pill { display:flex; align-items:center; gap:8px; background:var(--bg); border:1px solid var(--border); border-radius:999px; padding:5px 14px 5px 8px; font-size:13px; font-weight:700; color:var(--muted); }
+  .score-dots { display:flex; gap:4px; }
+  .score-dot { width:10px; height:10px; border-radius:50%; background:var(--border2); transition:background .35s,transform .25s; }
+  .score-dot.done { background:var(--success); transform:scale(1.15); }
+  .score-num { color:var(--text); min-width:28px; text-align:right; }
+
+  .progress-bar-wrap { height:3px; background:var(--border); }
+  .progress-bar-fill { height:100%; background:var(--accent); transition:width .5s cubic-bezier(.4,0,.2,1); width:0%; }
+
+  /* EXERCISE CONTENT */
+  .ex-main { max-width:1100px; margin:0 auto; padding:1.75rem 1.25rem 0; }
+  .intro { text-align:center; margin-bottom:1.75rem; }
+  .intro h2 { font-size:18px; font-weight:700; color:var(--muted); }
+  .intro p  { font-size:13px; color:var(--muted); margin-top:5px; }
+  .shapes-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(285px,1fr)); gap:16px; }
+
+  .card { background:var(--surface); border:1px solid var(--border); border-radius:12px; overflow:hidden; display:flex; flex-direction:column; transition:box-shadow .2s,border-color .2s; }
+  .card:hover { box-shadow:0 4px 18px rgba(0,0,0,.07); border-color:var(--border2); }
+  .card.solved { border-color:#86c9a8; }
+  .card-top { padding:.8rem .9rem .55rem; display:flex; align-items:center; gap:9px; border-bottom:1px solid var(--border); }
+  .card-num { width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:800; flex-shrink:0; }
+  .card-name { font-size:15px; font-weight:800; }
+  .card-check { margin-left:auto; font-size:17px; opacity:0; transition:opacity .3s; }
+  .card.solved .card-check { opacity:1; }
+  .sketch-area { display:flex; justify-content:center; align-items:center; padding:.9rem .9rem .7rem; background:#FAFAF8; border-bottom:1px solid var(--border); }
+  .exercise { padding:.7rem .9rem .9rem; display:flex; flex-direction:column; gap:7px; flex:1; }
+  .ex-label { font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); }
+  .ex-q { font-size:12.5px; line-height:1.55; }
+  .ex-q strong { color:var(--accent); }
+  .decomp { font-size:11.5px; color:var(--muted); background:var(--bg); border-left:3px solid var(--border2); padding:5px 9px; border-radius:0 6px 6px 0; line-height:1.5; }
+  .decomp:empty { display:none; }
+  .answer-row { display:flex; align-items:center; gap:6px; font-size:13px; }
+  .answer-lbl { font-weight:700; color:var(--muted); min-width:38px; }
+  .answer-input { flex:1; height:30px; border:1px solid var(--border2); border-radius:6px; background:var(--surface); color:var(--text); padding:0 8px; font-size:13px; font-family:'Nunito',sans-serif; font-weight:600; outline:none; transition:border-color .15s,box-shadow .15s; }
+  .answer-input:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(45,107,228,.12); }
+  .answer-unit { font-size:12px; color:var(--muted); min-width:34px; }
+  .verify-btn { margin-top:3px; width:100%; height:32px; border:1px solid var(--border2); border-radius:6px; background:transparent; font-family:'Nunito',sans-serif; font-size:13px; font-weight:700; cursor:pointer; transition:background .15s; }
+  .verify-btn:hover { background:var(--bg); }
+  .verify-btn:active { transform:scale(.98); }
+  .feedback { font-size:12.5px; font-weight:600; padding:6px 9px; border-radius:6px; display:none; line-height:1.5; }
+  .feedback.correct { display:block; background:var(--success-bg); color:var(--success); border:1px solid #a8dfc0; }
+  .feedback.wrong   { display:block; background:var(--danger-bg);  color:var(--danger);  border:1px solid #f0b8b8; }
+
+  .finish-banner { display:none; max-width:480px; margin:2rem auto 0; background:var(--surface); border:1px solid #86c9a8; border-radius:12px; padding:1.25rem 1.75rem; text-align:center; box-shadow:0 4px 24px rgba(26,122,80,.08); }
+  .finish-banner.show { display:block; }
+  .finish-banner .trophy { font-size:36px; margin-bottom:.4rem; }
+  .finish-banner h3 { font-family:'Caveat',cursive; font-size:24px; font-weight:700; margin-bottom:5px; }
+  .finish-banner p { font-size:14px; color:var(--muted); }
+
+  .c1{background:#DBEAFE;color:#1D4ED8} .c2{background:#DCFCE7;color:#166534} .c3{background:#FEF3C7;color:#92400E}
+  .c4{background:#EDE9FE;color:#5B21B6} .c5{background:#CCFBF1;color:#0F766E} .c6{background:#FFE4E6;color:#9F1239} .c7{background:#FCE7F3;color:#9D174D}
+
+  @media(max-width:600px){.main-header{padding:.75rem 1rem} .ex-main,.index-main{padding:1rem .75rem 0} th,td{padding:.45rem .65rem}}
+</style>
+</head>
+<body>
+
+<header class="main-header">
+  <div class="header-brand">
+    <span style="font-size:24px">🔢</span>
+    <div class="header-title">Calcul de <span>périmètres - aires - volumes</span></div>
+  </div>
+  <nav class="nav-tabs">
+    <button class="nav-tab active" onclick="showPage('accueil')">Accueil</button>
+    <button class="nav-tab" onclick="showPage('perimetres')">
+      <svg width="13" height="13" viewBox="0 0 28 28" fill="none" style="vertical-align:-2px;margin-right:4px"><rect x="4" y="4" width="20" height="20" rx="1.5" fill="#BFDBFE" stroke="#1D4ED8" stroke-width="2"/></svg>Périmètres &amp; Aires
+    </button>
+    <button class="nav-tab" onclick="showPage('figures')">
+      <svg width="13" height="13" viewBox="0 0 28 28" fill="none" style="vertical-align:-2px;margin-right:4px"><path d="M14,3 L25,13 L25,25 L3,25 L3,13 Z" fill="#DDD6FE" stroke="#5B21B6" stroke-width="2" stroke-linejoin="round"/></svg>Figures composées
+    </button>
+    <button class="nav-tab" onclick="showPage('volumes')">
+      <svg width="13" height="13" viewBox="0 0 28 28" fill="none" style="vertical-align:-2px;margin-right:4px"><polygon points="14,3 25,9 14,15 3,9" fill="#BBF7D0" stroke="#166534" stroke-width="2" stroke-linejoin="round"/><polygon points="3,9 14,15 14,27 3,21" fill="#86EFAC" stroke="#166534" stroke-width="2" stroke-linejoin="round"/><polygon points="14,15 25,9 25,21 14,27" fill="#DCFCE7" stroke="#166534" stroke-width="2" stroke-linejoin="round"/></svg>Volumes
+    </button>
+  </nav>
+</header>
+
+<!-- ══ PAGE ACCUEIL ══════════════════════════════════════════ -->
+<div id="page-accueil" class="page active">
+<div class="index-main">
+  <div class="section-title">Exercices</div>
+  <div class="exercises-grid">
+    <div class="ex-card" onclick="showPage('perimetres')">
+      <div class="ex-card-top">
+        <div class="ex-card-icon" style="background:#DBEAFE"><svg width="24" height="24" viewBox="0 0 28 28" fill="none"><rect x="4" y="4" width="20" height="20" rx="1.5" fill="#BFDBFE" stroke="#1D4ED8" stroke-width="2"/></svg></div>
+        <div><div class="ex-card-name">Périmètres &amp; Aires</div><div class="ex-card-desc">Carré, rectangle, triangle, parallélogramme, trapèze, losange, disque — 7 figures, 14 réponses.</div></div>
+      </div>
+      <div class="ex-card-footer">
+        <span class="ex-card-badge">14 points</span>
+        <span id="acc-score-perimetres" style="display:none;font-size:12px;font-weight:700"></span>
+        <button onclick="event.stopPropagation(); downloadPdf('perimetres')" style="height:26px;padding:0 10px;border-radius:999px;border:1px solid var(--border2);background:transparent;font-family:'Nunito',sans-serif;font-size:11px;font-weight:700;cursor:pointer;color:var(--muted);display:flex;align-items:center;gap:4px;" title="Télécharger l'exercice en PDF">📄 PDF</button>
+        <span class="ex-card-open">Ouvrir →</span>
+      </div>
+    </div>
+    <div class="ex-card" onclick="showPage('figures')">
+      <div class="ex-card-top">
+        <div class="ex-card-icon" style="background:#EDE9FE"><svg width="24" height="24" viewBox="0 0 28 28" fill="none"><path d="M14,3 L25,13 L25,25 Q25,25 25,25 L3,25 Q3,25 3,25 L3,13 Z" fill="#DDD6FE" stroke="#5B21B6" stroke-width="1.8" stroke-linejoin="round"/></svg></div>
+        <div><div class="ex-card-name">Figures composées</div><div class="ex-card-desc">Rectangle avec encoche, rectangle+triangle, rectangle+demi-disque, croix — 4 figures, 8 réponses.</div></div>
+      </div>
+      <div class="ex-card-footer"><span class="ex-card-badge">16 points</span><span id="acc-score-figures" style="display:none;font-size:12px;font-weight:700"></span><span class="ex-card-open">Ouvrir →</span></div>
+    </div>
+    <div class="ex-card" onclick="showPage('volumes')">
+      <div class="ex-card-top">
+        <div class="ex-card-icon" style="background:#DCFCE7"><svg width="24" height="24" viewBox="0 0 28 28" fill="none"><polygon points="14,3 25,9 14,15 3,9" fill="#BBF7D0" stroke="#166534" stroke-width="1.8" stroke-linejoin="round"/><polygon points="3,9 14,15 14,27 3,21" fill="#86EFAC" stroke="#166534" stroke-width="1.8" stroke-linejoin="round"/><polygon points="14,15 25,9 25,21 14,27" fill="#DCFCE7" stroke="#166534" stroke-width="1.8" stroke-linejoin="round"/></svg></div>
+        <div><div class="ex-card-name">Volumes</div><div class="ex-card-desc">Cube, pavé droit, cylindre, prisme triangulaire, prisme en T — 5 solides, 5 réponses.<br>&nbsp;</div></div>
+      </div>
+      <div class="ex-card-footer"><span class="ex-card-badge">10 points</span><span id="acc-score-volumes" style="display:none;font-size:12px;font-weight:700"></span><span class="ex-card-open">Ouvrir →</span></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ══ PAGE PÉRIMÈTRES & AIRES ═══════════════════════════════ -->
+<div id="page-perimetres" class="page">
+  <div class="ex-subheader">
+    <div class="ex-subheader-title">Périmètres <span>&amp;</span> Aires</div>
+    <div class="score-pill"><div class="score-dots" id="sd-perimetres"></div><span class="score-num" id="sn-perimetres">0 / 14</span></div>
+  </div>
+  <div class="progress-bar-wrap"><div class="progress-bar-fill" id="pb-perimetres"></div></div>
+  <div class="ex-main">
+    <div class="intro"><h2>Pour chaque figure, calcule le périmètre et l'aire avec les mesures données</h2></div>
+    <div class="shapes-grid" id="grid-perimetres"></div>
+    <div class="finish-banner" id="fb-banner-perimetres"><div class="trophy">🏆</div><h3>Félicitations !</h3><p>Tu as réussi toutes les figures. Excellent travail !</p></div>
+  </div>
+</div>
+
+<!-- ══ PAGE FIGURES COMPOSÉES ════════════════════════════════ -->
+<div id="page-figures" class="page">
+  <div class="ex-subheader">
+    <div class="ex-subheader-title">Figures <span>composées</span></div>
+    <div class="score-pill"><div class="score-dots" id="sd-figures"></div><span class="score-num" id="sn-figures">0 / 16</span></div>
+  </div>
+  <div class="progress-bar-wrap"><div class="progress-bar-fill" id="pb-figures"></div></div>
+  <div class="ex-main">
+    <div class="intro"><h2>Calcule le périmètre et l'aire de chaque figure composée</h2><p>Identifie les parties, calcule séparément, puis combine.</p></div>
+    <div class="shapes-grid" id="grid-figures"></div>
+    <div class="finish-banner" id="fb-banner-figures"><div class="trophy">🏆</div><h3>Félicitations !</h3><p>Tu as réussi toutes les figures composées. Excellent travail !</p></div>
+  </div>
+</div>
+
+<!-- ══ PAGE VOLUMES ══════════════════════════════════════════ -->
+<div id="page-volumes" class="page">
+  <div class="ex-subheader">
+    <div class="ex-subheader-title"><span>Volumes</span></div>
+    <div class="score-pill"><div class="score-dots" id="sd-volumes"></div><span class="score-num" id="sn-volumes">0 / 10</span></div>
+  </div>
+  <div class="progress-bar-wrap"><div class="progress-bar-fill" id="pb-volumes"></div></div>
+  <div class="ex-main">
+    <div class="intro"><h2>Calcule le volume de chaque solide</h2><p>Utilise les mesures indiquées. Pour le cylindre, π ≈ 3,14.</p></div>
+    <div class="shapes-grid" id="grid-volumes"></div>
+    <div class="finish-banner" id="fb-banner-volumes"><div class="trophy">🏆</div><h3>Félicitations !</h3><p>Tu as calculé tous les volumes. Excellent travail !</p></div>
+  </div>
+</div>
+
+<script>
+// ═══ TÉLÉCHARGEMENT PDF ═══════════════════════════════════════
+const PDF_BASE = "https://raw.githubusercontent.com/VOTRE-COMPTE/VOTRE-REPO/main/pdfs/";
+function downloadPdf(exercise) {
+  const files = { perimetres: "exercice_perimetres_aires.pdf" };
+  window.open(PDF_BASE + files[exercise], '_blank');
+}
+
+// ═══ NAVIGATION ═══════════════════════════════════════════════
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  const map={accueil:0,perimetres:1,figures:2,volumes:3};
+  document.querySelectorAll('.nav-tab')[map[id]].classList.add('active');
+  window.scrollTo(0,0);
+  if(id==='accueil') updateAccueilScores();
+}
+
+function updateAccueilScores() {
+  const configs = [
+    { id:'perimetres', score: pSolvedCount,              total: 14 },
+    { id:'figures',    score: fSolvedFields.size * 2,    total: 16 },
+    { id:'volumes',    score: vSolvedFields.size * 2,    total: 10 },
+  ];
+  configs.forEach(({id, score, total}) => {
+    const el = document.getElementById('acc-score-' + id);
+    if (score > 0) {
+      const pct = Math.round(score / total * 100);
+      const col = pct === 100 ? 'var(--success)' : pct >= 50 ? 'var(--accent)' : 'var(--danger)';
+      el.style.display = 'inline';
+      el.style.color = col;
+      el.textContent = `✓ ${score} / ${total}`;
+    } else {
+      el.style.display = 'none';
+    }
+  });
+}
+
+// ═══ EXERCISE 1 — PÉRIMÈTRES & AIRES ═════════════════════════
+const W=700;
+const shapesP=[
+  {id:1,name:"Carré",accent:"c1",svgW:210,svgH:195,
+   svg:`<rect x="50" y="22" width="115" height="115" fill="#BFDBFE" fill-opacity=".5" stroke="#1D4ED8" stroke-width="1.8" rx="2"/><text x="107" y="158" text-anchor="middle" fill="#1D4ED8" font-size="17" font-family="Caveat,cursive" font-weight="${W}">c = 7 cm</text>`,
+   q:"Un carré a un côté <strong>c = 7 cm</strong>.",
+   fields:[{label:"P =",unit:"cm",key:"p",answer:28},{label:"A =",unit:"cm²",key:"a",answer:49}]},
+  {id:2,name:"Rectangle",accent:"c2",svgW:270,svgH:180,
+   svg:`<rect x="18" y="22" width="175" height="105" fill="#BBF7D0" fill-opacity=".5" stroke="#166534" stroke-width="1.8" rx="2"/><text x="105" y="152" text-anchor="middle" fill="#166534" font-size="17" font-family="Caveat,cursive" font-weight="${W}">L = 8 cm</text><text x="200" y="78" text-anchor="start" fill="#166534" font-size="17" font-family="Caveat,cursive" font-weight="${W}">l = 5 cm</text>`,
+   q:"Un rectangle <strong>L = 8 cm</strong> et <strong>l = 5 cm</strong>.",
+   fields:[{label:"P =",unit:"cm",key:"p",answer:26},{label:"A =",unit:"cm²",key:"a",answer:40}]},
+  {id:3,name:"Triangle",accent:"c3",svgW:265,svgH:205,
+   svg:`<polygon points="145,18 230,158 60,158" fill="#FDE68A" fill-opacity=".5" stroke="#92400E" stroke-width="1.8"/><line x1="145" y1="18" x2="145" y2="158" stroke="#92400E" stroke-width="1" stroke-dasharray="4,3"/><line x1="145" y1="148" x2="155" y2="148" stroke="#92400E" stroke-width="1.5"/><line x1="155" y1="148" x2="155" y2="158" stroke="#92400E" stroke-width="1.5"/><text x="145" y="182" text-anchor="middle" fill="#92400E" font-size="17" font-family="Caveat,cursive" font-weight="${W}">b = 10 cm</text><text x="148" y="125" fill="#92400E" font-size="17" font-family="Caveat,cursive" font-weight="${W}">h = 6 cm</text><text x="78" y="115" text-anchor="end" fill="#92400E" font-size="17" font-family="Caveat,cursive" font-weight="${W}">a = 8 cm</text><text x="216" y="115" text-anchor="start" fill="#92400E" font-size="17" font-family="Caveat,cursive" font-weight="${W}">c = 9 cm</text>`,
+   q:"Côtés <strong>a=8, b=10, c=9 cm</strong> et hauteur <strong>h=6 cm</strong> (relative à b).",
+   fields:[{label:"P =",unit:"cm",key:"p",answer:27},{label:"A =",unit:"cm²",key:"a",answer:30}]},
+  {id:4,name:"Parallélogramme",accent:"c4",svgW:290,svgH:195,
+   svg:`<polygon points="100,138 233,138 206,22 73,22" fill="#DDD6FE" fill-opacity=".5" stroke="#5B21B6" stroke-width="1.8"/><line x1="100" y1="22" x2="100" y2="138" stroke="#5B21B6" stroke-width="1" stroke-dasharray="4,3"/><line x1="100" y1="128" x2="110" y2="128" stroke="#5B21B6" stroke-width="1.5"/><line x1="110" y1="128" x2="110" y2="138" stroke="#5B21B6" stroke-width="1.5"/><text x="166" y="158" text-anchor="middle" fill="#5B21B6" font-size="17" font-family="Caveat,cursive" font-weight="${W}">b = 9 cm</text><text x="106" y="86" text-anchor="start" fill="#5B21B6" font-size="17" font-family="Caveat,cursive" font-weight="${W}">h = 7 cm</text><text x="228" y="86" text-anchor="start" fill="#5B21B6" font-size="17" font-family="Caveat,cursive" font-weight="${W}">a = 8 cm</text>`,
+   q:"Base <strong>b=9 cm</strong>, côté <strong>a=8 cm</strong>, hauteur <strong>h=7 cm</strong>.",
+   fields:[{label:"P =",unit:"cm",key:"p",answer:34},{label:"A =",unit:"cm²",key:"a",answer:63}]},
+  {id:5,name:"Trapèze",accent:"c5",svgW:270,svgH:205,
+   svg:`<polygon points="65,142 211,142 185,22 101,22" fill="#99F6E4" fill-opacity=".5" stroke="#0F766E" stroke-width="1.8"/><line x1="143" y1="22" x2="143" y2="142" stroke="#0F766E" stroke-width="1" stroke-dasharray="4,3"/><line x1="143" y1="132" x2="153" y2="132" stroke="#0F766E" stroke-width="1.5"/><line x1="153" y1="132" x2="153" y2="142" stroke="#0F766E" stroke-width="1.5"/><text x="138" y="162" text-anchor="middle" fill="#0F766E" font-size="17" font-family="Caveat,cursive" font-weight="${W}">B = 12 cm</text><text x="143" y="14" text-anchor="middle" fill="#0F766E" font-size="17" font-family="Caveat,cursive" font-weight="${W}">b = 6 cm</text><text x="148" y="118" text-anchor="start" fill="#0F766E" font-size="17" font-family="Caveat,cursive" font-weight="${W}">h = 6 cm</text><text x="22" y="90" text-anchor="start" fill="#0F766E" font-size="17" font-family="Caveat,cursive" font-weight="${W}">c = 7 cm</text><text x="218" y="90" text-anchor="start" fill="#0F766E" font-size="17" font-family="Caveat,cursive" font-weight="${W}">d = 7 cm</text>`,
+   q:"<strong>B=12, b=6 cm</strong>, côtés <strong>c=d=7 cm</strong>, hauteur <strong>h=6 cm</strong>.",
+   fields:[{label:"P =",unit:"cm",key:"p",answer:32},{label:"A =",unit:"cm²",key:"a",answer:54}]},
+  {id:6,name:"Losange",accent:"c6",svgW:240,svgH:170,
+   svg:`<polygon points="120,18 210,85 120,152 30,85" fill="#FECDD3" fill-opacity=".5" stroke="#9F1239" stroke-width="1.8"/><line x1="120" y1="18" x2="120" y2="152" stroke="#9F1239" stroke-width="1" stroke-dasharray="4,3"/><line x1="30" y1="85" x2="210" y2="85" stroke="#9F1239" stroke-width="1" stroke-dasharray="4,3"/><line x1="130" y1="75" x2="130" y2="85" stroke="#9F1239" stroke-width="1.5"/><line x1="120" y1="75" x2="130" y2="75" stroke="#9F1239" stroke-width="1.5"/><text x="120" y="68" text-anchor="middle" fill="#9F1239" font-size="17" font-family="Caveat,cursive" font-weight="${W}">d₁ = 11 cm</text><text x="120" y="112" text-anchor="middle" fill="#9F1239" font-size="17" font-family="Caveat,cursive" font-weight="${W}">d₂ = 14 cm</text><text x="14" y="50" fill="#9F1239" font-size="17" font-family="Caveat,cursive" font-weight="${W}">c = 9 cm</text>`,
+   q:"Côté <strong>c=9 cm</strong>, diagonales <strong>d₁=11 cm</strong> et <strong>d₂=14 cm</strong>.",
+   fields:[{label:"P =",unit:"cm",key:"p",answer:36},{label:"A =",unit:"cm²",key:"a",answer:77}]},
+  {id:7,name:"Disque",accent:"c7",svgW:195,svgH:185,
+   svg:`<circle cx="97" cy="90" r="70" fill="#FBCFE8" fill-opacity=".5" stroke="#9D174D" stroke-width="1.8"/><defs><marker id="arr7" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#9D174D" stroke-width="1.5"/></marker></defs><line x1="97" y1="90" x2="164" y2="90" stroke="#9D174D" stroke-width="1.4" stroke-dasharray="5,3" marker-end="url(#arr7)"/><circle cx="97" cy="90" r="4" fill="#9D174D"/><text x="130" y="79" text-anchor="middle" fill="#9D174D" font-size="17" font-family="Caveat,cursive" font-weight="${W}">r = 5 cm</text>`,
+   q:"Rayon <strong>r=5 cm</strong>. Utilise π ≈ 3,14.",
+   fields:[{label:"C =",unit:"cm",key:"p",answer:31.4},{label:"A =",unit:"cm²",key:"a",answer:78.5}]}
+];
+
+(()=>{
+  const dotsEl=document.getElementById('sd-perimetres');
+  shapesP.forEach(s=>{const d=document.createElement('div');d.className='score-dot';d.id=`pdot-${s.id}`;dotsEl.appendChild(d);});
+  const grid=document.getElementById('grid-perimetres');
+  shapesP.forEach(s=>{
+    const card=document.createElement('div');card.className='card';card.id=`pcard-${s.id}`;
+    card.innerHTML=`<div class="card-top"><div class="card-num ${s.accent}">${s.id}</div><div class="card-name">${s.name}</div><div class="card-check">✓</div></div>
+      <div class="sketch-area"><svg width="${s.svgW}" height="${s.svgH}" viewBox="0 0 ${s.svgW} ${s.svgH}">${s.svg}</svg></div>
+      <div class="exercise"><div class="ex-label">Exercice</div><div class="ex-q">${s.q}</div>
+      ${s.fields.map(f=>`<div class="answer-row"><span class="answer-lbl">${f.label}</span><input class="answer-input" type="number" step="0.1" placeholder="?" id="pi-${s.id}-${f.key}"><span class="answer-unit">${f.unit}</span></div>`).join('')}
+      <button class="verify-btn" onclick="checkP(${s.id})">Vérifier →</button><div class="feedback" id="pfb-${s.id}"></div></div>`;
+    grid.appendChild(card);
+    s.fields.forEach(f=>{document.getElementById(`pi-${s.id}-${f.key}`).addEventListener('keydown',e=>{if(e.key==='Enter')checkP(s.id);});});
+  });
+})();
+
+let pSolvedCount=0, pSolvedCards=new Set();
+function checkP(id){
+  const s=shapesP.find(x=>x.id===id),fb=document.getElementById(`pfb-${id}`),card=document.getElementById(`pcard-${id}`);
+  if(!s.fields.every(f=>document.getElementById(`pi-${id}-${f.key}`).value.trim()!=='')){fb.className='feedback wrong';fb.innerHTML='Saisis une réponse avant de vérifier.';return;}
+  let ok=true,msgs=[];
+  s.fields.forEach(f=>{
+    const inp=document.getElementById(`pi-${id}-${f.key}`),val=parseFloat(inp.value);
+    if(isNaN(val)||Math.abs(val-f.answer)>0.2){ok=false;msgs.push(`${f.label} réponse attendue : <strong>${f.answer} ${f.unit}</strong>`);inp.style.borderColor='var(--danger)';inp.style.background='var(--danger-bg)';}
+    else{inp.style.borderColor='var(--success)';inp.style.background='var(--success-bg)';pSolvedCount++;document.getElementById('sn-perimetres').textContent=`${pSolvedCount} / 14`;document.getElementById('pb-perimetres').style.width=`${(pSolvedCount/14)*100}%`;}
+  });
+  s.fields.forEach(f=>{const inp=document.getElementById(`pi-${id}-${f.key}`);inp.disabled=true;inp.style.opacity='.6';inp.style.cursor='not-allowed';});
+  card.querySelector('.verify-btn').disabled=true;card.querySelector('.verify-btn').style.opacity='.4';card.querySelector('.verify-btn').style.cursor='not-allowed';
+  if(ok){
+    fb.className='feedback correct';fb.innerHTML='✓ Parfait ! Les deux réponses sont correctes.';
+    if(!pSolvedCards.has(id)){pSolvedCards.add(id);card.classList.add('solved');document.getElementById(`pdot-${id}`).classList.add('done');}
+    if(pSolvedCards.size===7){document.getElementById('fb-banner-perimetres').classList.add('show');document.getElementById('fb-banner-perimetres').scrollIntoView({behavior:'smooth',block:'nearest'});}
+  } else {fb.className='feedback wrong';fb.innerHTML=msgs.join('<br>');}
+}
+
+// ═══ EXERCISE 2 — FIGURES COMPOSÉES ══════════════════════════
+const WF=700,FF="Caveat, cursive";
+function ft(x,y,txt,anchor,col,sz){return `<text x="${x}" y="${y}" text-anchor="${anchor||'middle'}" fill="${col}" font-size="${sz||14}" font-family="${FF}" font-weight="${WF}">${txt}</text>`;}
+function fdk(x1,y1,x2,y2,col){return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${col}" stroke-width="1" stroke-dasharray="4,3"/>`;}
+
+const fig1F=(()=>{const c='#1D4ED8';return`<polygon points="55,164 259,164 259,79 191,79 191,28 55,28" fill="#DBEAFE" fill-opacity=".5" stroke="${c}" stroke-width="2" stroke-linejoin="round"/>${fdk(55,182,259,182,c)}${ft(157,196,'12 cm','middle',c)}${fdk(36,28,36,164,c)}${ft(28,96,'8 cm','end',c)}${fdk(55,14,191,14,c)}${ft(123,9,'8 cm','middle',c)}${fdk(275,79,275,164,c)}${ft(283,124,'5 cm','start',c)}`;})();
+const fig2F=(()=>{const c='#166534';return`<polygon points="155,30 255,110 255,230 55,230 55,110" fill="#DCFCE7" fill-opacity=".5" stroke="${c}" stroke-width="2" stroke-linejoin="round"/><line x1="155" y1="30" x2="155" y2="110" stroke="${c}" stroke-width="1" stroke-dasharray="4,3" opacity=".5"/><rect x="151" y="106" width="8" height="8" fill="none" stroke="${c}" stroke-width="1.2"/>${fdk(55,248,255,248,c)}${ft(155,262,'10 cm','middle',c)}${fdk(273,110,273,230,c)}${ft(281,170,'6 cm','start',c)}${ft(78,52,'≈ 6,40 cm','middle',c)}${ft(228,52,'≈ 6,40 cm','middle',c)}${fdk(36,30,36,230,c)}${ft(28,130,'10 cm','end',c)}`;})();
+const fig3F=(()=>{const c='#92400E';return`<path d="M50,144 L50,24 L250,24 A60,60 0 0,1 250,144 Z" fill="#FEF3C7" fill-opacity=".55" stroke="${c}" stroke-width="2" stroke-linejoin="round"/><line x1="250" y1="24" x2="250" y2="144" stroke="${c}" stroke-width="1" stroke-dasharray="5,3" opacity=".5"/>${fdk(50,162,250,162,c)}${ft(150,176,'10 cm','middle',c)}${fdk(32,24,32,144,c)}${ft(24,84,'6 cm','end',c)}`;})();
+const fig4F=(()=>{const c='#5B21B6';return`<polygon points="90,20 150,20 150,90 220,90 220,150 150,150 150,220 90,220 90,150 20,150 20,90 90,90" fill="#EDE9FE" fill-opacity=".6" stroke="${c}" stroke-width="2" stroke-linejoin="round"/>${fdk(236,90,236,150,c)}${ft(242,122,'3 cm','start',c)}${fdk(20,238,220,238,c)}${ft(120,252,'10 cm','middle',c)}`;})();
+
+const shapesF=[
+  {id:1,name:"Rectangle avec encoche",accent:"c1",svgW:310,svgH:210,svg:fig1F,q:"Un rectangle de <strong>12 × 8 cm</strong> dont on a retiré un coin rectangulaire.",decomp:"",fields:[{label:"P =",unit:"cm",key:"p",answer:40},{label:"A =",unit:"cm²",key:"a",answer:84}],correction:"P = 12 + 8 + 8 + 3 + 4 + 5 = 40 cm\nA = 12×8 − 4×3 = 84 cm²"},
+  {id:2,name:"Rectangle + triangle",accent:"c2",svgW:310,svgH:280,svg:fig2F,q:"Un rectangle de <strong>10 × 6 cm</strong> surmonté d'un triangle isocèle.",decomp:"",fields:[{label:"P =",unit:"cm",key:"p",answer:34.81},{label:"A =",unit:"cm²",key:"a",answer:80}],correction:"Hyp = √(5²+4²) ≈ 6,40 cm\nP ≈ 34,81 cm\nA = 80 cm²"},
+  {id:3,name:"Rectangle + demi-disque",accent:"c3",svgW:340,svgH:195,svg:fig3F,q:"Un rectangle de <strong>10 × 6 cm</strong> avec un demi-disque. π ≈ 3,14.",decomp:"",fields:[{label:"P =",unit:"cm",key:"p",answer:35.42},{label:"A =",unit:"cm²",key:"a",answer:74.13}],correction:"P ≈ 35,42 cm\nA ≈ 74,13 cm²"},
+  {id:4,name:"Croix régulière",accent:"c4",svgW:290,svgH:270,svg:fig4F,q:"Croix de longueur totale <strong>10 cm</strong> et largeur de bras <strong>3 cm</strong>.",decomp:"",fields:[{label:"P =",unit:"cm",key:"p",answer:40},{label:"A =",unit:"cm²",key:"a",answer:51}],correction:"P = 40 cm\nA = 51 cm²"}
+];
+
+(()=>{
+  const dotsEl=document.getElementById('sd-figures');
+  shapesF.forEach(s=>s.fields.forEach(f=>{const d=document.createElement('div');d.className='score-dot';d.id=`fdot-${s.id}-${f.key}`;dotsEl.appendChild(d);}));
+  const grid=document.getElementById('grid-figures');
+  shapesF.forEach(s=>{
+    const card=document.createElement('div');card.className='card';card.id=`fcard-${s.id}`;
+    card.innerHTML=`<div class="card-top"><div class="card-num ${s.accent}">${s.id}</div><div class="card-name">${s.name}</div><div class="card-check">✓</div></div>
+      <div class="sketch-area"><svg width="${s.svgW}" height="${s.svgH}" viewBox="0 0 ${s.svgW} ${s.svgH}">${s.svg}</svg></div>
+      <div class="exercise"><div class="ex-label">Exercice</div><div class="ex-q">${s.q}</div><div class="decomp">${s.decomp}</div>
+      ${s.fields.map(f=>`<div class="answer-row"><span class="answer-lbl">${f.label}</span><input class="answer-input" type="number" step="0.01" placeholder="?" id="fi-${s.id}-${f.key}"><span class="answer-unit">${f.unit}</span></div>`).join('')}
+      <button class="verify-btn" onclick="checkF(${s.id})">Vérifier →</button><div class="feedback" id="ffb-${s.id}"></div></div>`;
+    grid.appendChild(card);
+    s.fields.forEach(f=>{document.getElementById(`fi-${s.id}-${f.key}`).addEventListener('keydown',e=>{if(e.key==='Enter')checkF(s.id);});});
+  });
+})();
+
+const fSolvedFields=new Set();
+function checkF(id){
+  const s=shapesF.find(x=>x.id===id),fb=document.getElementById(`ffb-${id}`),card=document.getElementById(`fcard-${id}`);
+  if(!s.fields.every(f=>document.getElementById(`fi-${id}-${f.key}`).value.trim()!=='')){fb.className='feedback wrong';fb.innerHTML='Saisis une réponse avant de vérifier.';return;}
+  let ok=true,msgs=[];
+  s.fields.forEach(f=>{
+    const inp=document.getElementById(`fi-${id}-${f.key}`),val=parseFloat(inp.value),tol=f.unit==='cm'?0.05:0.1,fk=`${id}-${f.key}`;
+    if(isNaN(val)||Math.abs(val-f.answer)>tol){ok=false;msgs.push(`${f.label} réponse attendue : <strong>${f.answer} ${f.unit}</strong>`);inp.style.borderColor='var(--danger)';inp.style.background='var(--danger-bg)';}
+    else{inp.style.borderColor='var(--success)';inp.style.background='var(--success-bg)';if(!fSolvedFields.has(fk)){fSolvedFields.add(fk);document.getElementById(`fdot-${id}-${f.key}`).classList.add('done');const n=fSolvedFields.size;document.getElementById('sn-figures').textContent=`${n*2} / 16`;document.getElementById('pb-figures').style.width=`${(n/8)*100}%`;}}
+  });
+  s.fields.forEach(f=>{const inp=document.getElementById(`fi-${id}-${f.key}`);inp.disabled=true;inp.style.opacity='.6';inp.style.cursor='not-allowed';});
+  card.querySelector('.verify-btn').disabled=true;card.querySelector('.verify-btn').style.opacity='.4';card.querySelector('.verify-btn').style.cursor='not-allowed';
+  if(ok){
+    fb.className='feedback correct';fb.innerHTML='✓ Parfait !<br><span style="font-weight:400;white-space:pre-line">'+s.correction+'</span>';
+    card.classList.add('solved');
+    if(fSolvedFields.size===8){document.getElementById('fb-banner-figures').classList.add('show');document.getElementById('fb-banner-figures').scrollIntoView({behavior:'smooth',block:'nearest'});}
+  } else {fb.className='feedback wrong';fb.innerHTML=msgs.join('<br>');}
+}
+
+// ═══ EXERCISE 3 — VOLUMES ════════════════════════════════════
+const WV=700,FV="Caveat, cursive";
+function vt(x,y,txt,anchor,col,sz){return `<text x="${x}" y="${y}" text-anchor="${anchor||'middle'}" fill="${col}" font-size="${sz||17}" font-family="${FV}" font-weight="${WV}">${txt}</text>`;}
+function vdk(x1,y1,x2,y2,col){return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${col}" stroke-width="1" stroke-dasharray="4,3"/>`;}
+function vdkg(x1,y1,x2,y2){return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#9CA3AF" stroke-width="1" stroke-dasharray="4,3" opacity=".7"/>`;}
+
+const figV1=(()=>{const c='#1D4ED8';return`<polygon points="60,80 160,80 160,180 60,180" fill="#DBEAFE" fill-opacity=".6" stroke="${c}" stroke-width="1.8"/><polygon points="60,80 100,60 200,60 160,80" fill="#BFDBFE" fill-opacity=".7" stroke="${c}" stroke-width="1.8"/><polygon points="160,80 200,60 200,160 160,180" fill="#93C5FD" fill-opacity=".6" stroke="${c}" stroke-width="1.8"/>${vdkg(60,180,100,160)}${vdkg(100,160,200,160)}${vdkg(100,160,100,60)}${vdk(60,196,160,196,c)}${vt(110,210,'5 cm','middle',c)}`;})();
+const figV2=(()=>{const c='#166534';return`<polygon points="65,110 209,110 209,164 65,164" fill="#DCFCE7" fill-opacity=".6" stroke="${c}" stroke-width="1.8"/><polygon points="65,110 100,93 244,93 209,110" fill="#BBF7D0" fill-opacity=".7" stroke="${c}" stroke-width="1.8"/><polygon points="209,110 244,93 244,147 209,164" fill="#86EFAC" fill-opacity=".6" stroke="${c}" stroke-width="1.8"/>${vdkg(65,164,100,147)}${vdkg(100,147,244,147)}${vdkg(100,147,100,93)}${vdk(44,110,44,164,c)}${vt(36,137,'3 cm','end',c)}${vdk(65,180,202,180,c)}${vt(137,194,'8 cm','middle',c)}${vdk(212,177,244,160,c)}${vt(252,171,'5 cm','start',c)}`;})();
+const figV3=(()=>{const c='#92400E';return`<path d="M85,70 L85,190 A60,18 0 0,0 205,190 L205,70" fill="#FEF3C7" fill-opacity=".6" stroke="${c}" stroke-width="1.8"/><ellipse cx="145" cy="190" rx="60" ry="18" fill="#FDE68A" fill-opacity=".7" stroke="none"/><path d="M85,190 A60,18 0 0,0 205,190" fill="none" stroke="${c}" stroke-width="1.8"/><path d="M85,190 A60,18 0 0,1 205,190" fill="none" stroke="#9CA3AF" stroke-width="1" stroke-dasharray="4,3" opacity=".7"/><ellipse cx="145" cy="70" rx="60" ry="18" fill="#FEF9C3" fill-opacity=".8" stroke="${c}" stroke-width="1.8"/>${vdk(62,70,62,190,c)}${vt(54,130,'6 cm','end',c)}<line x1="145" y1="70" x2="205" y2="70" stroke="${c}" stroke-width="1"/>${vt(148,83,'r = 4 cm','middle',c)}<circle cx="145" cy="70" r="2.5" fill="${c}"/>`;})();
+const figV4=(()=>{const c='#5B21B6';return`<polygon points="120,100 200,160 120,160" fill="#C4B5FD" fill-opacity=".35" stroke="none"/><polygon points="50,195 130,195 200,160 120,160" fill="#DDD6FE" fill-opacity=".5" stroke="none"/><polygon points="50,195 50,135 120,100 120,160" fill="#EDE9FE" fill-opacity=".6" stroke="none"/><polygon points="50,195 130,195 50,135" fill="#DDD6FE" fill-opacity=".65" stroke="none"/>${vdkg(50,195,120,160)}${vdkg(50,135,120,100)}${vdkg(120,160,120,100)}${vdkg(120,100,200,160)}${vdkg(120,160,200,160)}<line x1="50" y1="195" x2="130" y2="195" stroke="${c}" stroke-width="1.8"/><line x1="50" y1="195" x2="50" y2="135" stroke="${c}" stroke-width="1.8"/><line x1="50" y1="135" x2="130" y2="195" stroke="${c}" stroke-width="1.8"/><line x1="130" y1="195" x2="200" y2="160" stroke="${c}" stroke-width="1.8"/><line x1="50" y1="135" x2="120" y2="100" stroke="${c}" stroke-width="1.8"/><line x1="120" y1="100" x2="200" y2="160" stroke="${c}" stroke-width="1.8"/><line x1="50" y1="185" x2="60" y2="185" stroke="${c}" stroke-width="1.5"/><line x1="60" y1="185" x2="60" y2="195" stroke="${c}" stroke-width="1.5"/>${vdk(50,212,130,212,c)}${vt(90,226,'4 cm','middle',c)}${vdk(33,135,33,195,c)}${vt(25,165,'3 cm','end',c)}${vdk(152,202,222,167,c)}${vt(216,185,'7 cm','start',c)}`;})();
+const figV5=(()=>{const c='#0F766E',Tb="100,9 260,9 260,41 197,41 197,121 165,121 165,41 100,41",Tf="58,30 218,30 218,62 155,62 155,142 123,142 123,62 58,62";return`<polygon points="${Tb}" fill="none" stroke="#9CA3AF" stroke-width="1" stroke-dasharray="4,3" opacity=".7"/><polygon points="58,30 218,30 260,9 100,9" fill="#5EEAD4" fill-opacity=".45" stroke="${c}" stroke-width="1.8" stroke-linejoin="round"/><polygon points="218,30 218,62 260,41 260,9" fill="#2DD4BF" fill-opacity=".4" stroke="${c}" stroke-width="1.8" stroke-linejoin="round"/><polygon points="155,62 155,142 197,121 197,41" fill="#99F6E4" fill-opacity=".45" stroke="none"/><line x1="155" y1="142" x2="197" y2="121" stroke="${c}" stroke-width="1.8"/><line x1="197" y1="121" x2="197" y2="41" stroke="${c}" stroke-width="1.8"/>${vdkg(155,62,197,41)}${vdkg(155,62,155,142)}<polygon points="123,142 155,142 197,121 165,121" fill="#CCFBF1" fill-opacity=".5" stroke="none"/><line x1="155" y1="142" x2="197" y2="121" stroke="${c}" stroke-width="1.8"/><line x1="123" y1="142" x2="155" y2="142" stroke="${c}" stroke-width="1.8"/>${vdkg(165,121,197,121)}${vdkg(123,142,165,121)}<polygon points="${Tf}" fill="#CCFBF1" fill-opacity=".65" stroke="none"/><line x1="58" y1="30" x2="218" y2="30" stroke="${c}" stroke-width="1.8"/><line x1="218" y1="30" x2="218" y2="62" stroke="${c}" stroke-width="1.8"/><line x1="218" y1="62" x2="155" y2="62" stroke="${c}" stroke-width="1.8"/><line x1="123" y1="62" x2="58" y2="62" stroke="${c}" stroke-width="1.8"/><line x1="58" y1="62" x2="58" y2="30" stroke="${c}" stroke-width="1.8"/><line x1="155" y1="62" x2="155" y2="142" stroke="${c}" stroke-width="1.8"/><line x1="123" y1="142" x2="123" y2="62" stroke="${c}" stroke-width="1.8"/>${vdkg(58,62,100,41)}${vdkg(123,62,165,41)}${vdk(58,155,218,155,c)}${vt(138,169,'10 cm','middle',c)}${vdk(38,30,38,58,c)}${vt(30,44,'2 cm','end',c)}${vdk(38,66,38,142,c)}${vt(30,104,'5 cm','end',c)}${vdk(218,72,260,51,c)}${vt(256,68,'6 cm','start',c)}`;})();
+
+const shapesV=[
+  {id:1,name:"Cube",accent:"c1",svgW:240,svgH:230,svg:figV1,q:"Un cube d'arête <strong>c = 5 cm</strong>.",fields:[{label:"V =",unit:"cm³",key:"v",answer:125}],correction:"V = 5³ = 125 cm³"},
+  {id:2,name:"Pavé droit",accent:"c2",svgW:295,svgH:215,svg:figV2,q:"Longueur <strong>L=8 cm</strong>, largeur <strong>l=5 cm</strong>, hauteur <strong>h=3 cm</strong>.",fields:[{label:"V =",unit:"cm³",key:"v",answer:120}],correction:"V = 8 × 5 × 3 = 120 cm³"},
+  {id:3,name:"Cylindre",accent:"c3",svgW:260,svgH:235,svg:figV3,q:"Rayon <strong>r=4 cm</strong>, hauteur <strong>h=6 cm</strong>. π ≈ 3,14.",fields:[{label:"V =",unit:"cm³",key:"v",answer:301.44}],correction:"V = 3,14 × 4² × 6 = 301,44 cm³"},
+  {id:4,name:"Prisme triangulaire",accent:"c4",svgW:250,svgH:250,svg:figV4,q:"Cathètes <strong>a=4 cm, b=3 cm</strong>, longueur <strong>h=7 cm</strong>.",fields:[{label:"V =",unit:"cm³",key:"v",answer:42}],correction:"V = (4×3/2) × 7 = 42 cm³"},
+  {id:5,name:"Prisme en T",accent:"c5",svgW:310,svgH:200,svg:figV5,q:"Base en T : barre <strong>10×2 cm</strong>, montant <strong>2×5 cm</strong>. Hauteur <strong>h=6 cm</strong>.",fields:[{label:"V =",unit:"cm³",key:"v",answer:180}],correction:"Aire base = 30 cm²\nV = 30 × 6 = 180 cm³"}
+];
+
+(()=>{
+  const dotsEl=document.getElementById('sd-volumes');
+  shapesV.forEach(s=>s.fields.forEach(f=>{const d=document.createElement('div');d.className='score-dot';d.id=`vdot-${s.id}-${f.key}`;dotsEl.appendChild(d);}));
+  const grid=document.getElementById('grid-volumes');
+  shapesV.forEach(s=>{
+    const card=document.createElement('div');card.className='card';card.id=`vcard-${s.id}`;
+    card.innerHTML=`<div class="card-top"><div class="card-num ${s.accent}">${s.id}</div><div class="card-name">${s.name}</div><div class="card-check">✓</div></div>
+      <div class="sketch-area"><svg width="${s.svgW}" height="${s.svgH}" viewBox="0 0 ${s.svgW} ${s.svgH}">${s.svg}</svg></div>
+      <div class="exercise"><div class="ex-label">Exercice</div><div class="ex-q">${s.q}</div>
+      ${s.fields.map(f=>`<div class="answer-row"><span class="answer-lbl">${f.label}</span><input class="answer-input" type="number" step="0.01" placeholder="?" id="vi-${s.id}-${f.key}"><span class="answer-unit">${f.unit}</span></div>`).join('')}
+      <button class="verify-btn" onclick="checkV(${s.id})">Vérifier →</button><div class="feedback" id="vfb-${s.id}"></div></div>`;
+    grid.appendChild(card);
+    s.fields.forEach(f=>{document.getElementById(`vi-${s.id}-${f.key}`).addEventListener('keydown',e=>{if(e.key==='Enter')checkV(s.id);});});
+  });
+})();
+
+const vSolvedFields=new Set();
+function checkV(id){
+  const s=shapesV.find(x=>x.id===id),fb=document.getElementById(`vfb-${id}`),card=document.getElementById(`vcard-${id}`);
+  if(!s.fields.every(f=>document.getElementById(`vi-${id}-${f.key}`).value.trim()!=='')){fb.className='feedback wrong';fb.innerHTML='Saisis une réponse avant de vérifier.';return;}
+  let ok=true,msgs=[];
+  s.fields.forEach(f=>{
+    const val=parseFloat(document.getElementById(`vi-${id}-${f.key}`).value),fk=`${id}-${f.key}`;
+    if(isNaN(val)||Math.abs(val-f.answer)>0.05){ok=false;msgs.push(`${f.label} réponse attendue : <strong>${f.answer} ${f.unit}</strong>`);}
+    else if(!vSolvedFields.has(fk)){vSolvedFields.add(fk);document.getElementById(`vdot-${id}-${f.key}`).classList.add('done');const n=vSolvedFields.size;document.getElementById('sn-volumes').textContent=`${n*2} / 10`;document.getElementById('pb-volumes').style.width=`${(n/5)*100}%`;}
+  });
+  s.fields.forEach(f=>{const inp=document.getElementById(`vi-${id}-${f.key}`);inp.disabled=true;inp.style.opacity='.6';inp.style.cursor='not-allowed';});
+  card.querySelector('.verify-btn').disabled=true;card.querySelector('.verify-btn').style.opacity='.4';card.querySelector('.verify-btn').style.cursor='not-allowed';
+  if(ok){
+    fb.className='feedback correct';fb.innerHTML='✓ Parfait !<br><span style="font-weight:400;white-space:pre-line">'+s.correction+'</span>';
+    card.classList.add('solved');
+    if(vSolvedFields.size===5){document.getElementById('fb-banner-volumes').classList.add('show');document.getElementById('fb-banner-volumes').scrollIntoView({behavior:'smooth',block:'nearest'});}
+  } else {fb.className='feedback wrong';fb.innerHTML=msgs.join('<br>');}
+}
+</script>
+</body>
+</html>
