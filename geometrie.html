@@ -113,7 +113,7 @@
 <header class="main-header">
   <div class="header-brand">
     <span style="font-size:24px">🔢</span>
-    <div class="header-title">Calcul de <span>périmètres - aires - volumes</span></div>
+    <div class="header-title">Calcul de <span>périmètres - aires - volumes</span> <span style="font-weight:600;color:var(--muted);font-size:15px">(série 1)</span></div>
   </div>
   <nav class="nav-tabs">
     <button class="nav-tab active" onclick="showPage('accueil')">Accueil</button>
@@ -151,14 +151,24 @@
         <div class="ex-card-icon" style="background:#EDE9FE"><svg width="24" height="24" viewBox="0 0 28 28" fill="none"><path d="M14,3 L25,13 L25,25 Q25,25 25,25 L3,25 Q3,25 3,25 L3,13 Z" fill="#DDD6FE" stroke="#5B21B6" stroke-width="1.8" stroke-linejoin="round"/></svg></div>
         <div><div class="ex-card-name">Figures composées</div><div class="ex-card-desc">Rectangle avec encoche, rectangle+triangle, rectangle+demi-disque, croix — 4 figures, 8 réponses.</div></div>
       </div>
-      <div class="ex-card-footer"><span class="ex-card-badge">16 points</span><span id="acc-score-figures" style="display:none;font-size:12px;font-weight:700"></span><span class="ex-card-open">Ouvrir →</span></div>
+      <div class="ex-card-footer">
+        <span class="ex-card-badge">16 points</span>
+        <span id="acc-score-figures" style="display:none;font-size:12px;font-weight:700"></span>
+        <button onclick="event.stopPropagation(); downloadPdf('figures')" style="height:26px;padding:0 10px;border-radius:999px;border:1px solid var(--border2);background:transparent;font-family:'Nunito',sans-serif;font-size:11px;font-weight:700;cursor:pointer;color:var(--muted);display:flex;align-items:center;gap:4px;" title="Télécharger l'exercice en PDF">📄 PDF</button>
+        <span class="ex-card-open">Ouvrir →</span>
+      </div>
     </div>
     <div class="ex-card" onclick="showPage('volumes')">
       <div class="ex-card-top">
         <div class="ex-card-icon" style="background:#DCFCE7"><svg width="24" height="24" viewBox="0 0 28 28" fill="none"><polygon points="14,3 25,9 14,15 3,9" fill="#BBF7D0" stroke="#166534" stroke-width="1.8" stroke-linejoin="round"/><polygon points="3,9 14,15 14,27 3,21" fill="#86EFAC" stroke="#166534" stroke-width="1.8" stroke-linejoin="round"/><polygon points="14,15 25,9 25,21 14,27" fill="#DCFCE7" stroke="#166534" stroke-width="1.8" stroke-linejoin="round"/></svg></div>
-        <div><div class="ex-card-name">Volumes</div><div class="ex-card-desc">Cube, pavé droit, cylindre, prisme triangulaire, prisme en T — 5 solides, 5 réponses.<br>&nbsp;</div></div>
+        <div><div class="ex-card-name">Volumes <span style="font-weight:600;color:var(--muted);font-size:13px">(série 1)</span></div><div class="ex-card-desc">Cube, pavé droit, cylindre, prisme triangulaire, prisme en T — 5 solides, 5 réponses.<br>&nbsp;</div></div>
       </div>
-      <div class="ex-card-footer"><span class="ex-card-badge">10 points</span><span id="acc-score-volumes" style="display:none;font-size:12px;font-weight:700"></span><span class="ex-card-open">Ouvrir →</span></div>
+      <div class="ex-card-footer">
+        <span class="ex-card-badge">10 points</span>
+        <span id="acc-score-volumes" style="display:none;font-size:12px;font-weight:700"></span>
+        <button onclick="event.stopPropagation(); downloadPdf('volumes')" style="height:26px;padding:0 10px;border-radius:999px;border:1px solid var(--border2);background:transparent;font-family:'Nunito',sans-serif;font-size:11px;font-weight:700;cursor:pointer;color:var(--muted);display:flex;align-items:center;gap:4px;" title="Télécharger l'exercice en PDF">📄 PDF</button>
+        <span class="ex-card-open">Ouvrir →</span>
+      </div>
     </div>
   </div>
 </div>
@@ -195,7 +205,7 @@
 <!-- ══ PAGE VOLUMES ══════════════════════════════════════════ -->
 <div id="page-volumes" class="page">
   <div class="ex-subheader">
-    <div class="ex-subheader-title"><span>Volumes</span></div>
+    <div class="ex-subheader-title"><span>Volumes</span> <span style="font-weight:600;color:var(--muted);font-size:14px">(série 1)</span></div>
     <div class="score-pill"><div class="score-dots" id="sd-volumes"></div><span class="score-num" id="sn-volumes">0 / 10</span></div>
   </div>
   <div class="progress-bar-wrap"><div class="progress-bar-fill" id="pb-volumes"></div></div>
@@ -208,9 +218,13 @@
 
 <script>
 // ═══ TÉLÉCHARGEMENT PDF ═══════════════════════════════════════
-const PDF_BASE = "https://raw.githubusercontent.com/Aureliohub/Aureliohub.github.io/main/";
+const PDF_BASE = "https://aureliohub.github.io/";
 function downloadPdf(exercise) {
-  const files = { perimetres: "exercice_perimetres_aires.pdf" };
+  const files = {
+    perimetres: "exercice_perimetres_aires.pdf",
+    figures:    "exercice_figures_composees.pdf",
+    volumes:    "exercice_volumes.pdf",
+  };
   window.open(PDF_BASE + files[exercise], '_blank');
 }
 
