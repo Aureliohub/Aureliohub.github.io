@@ -257,7 +257,17 @@ function solveO(target,startO,startA,startB,startC){const dBC=sub(startC,startB)
 function solve(key,target,di){const{startPts,startCenter}=di;const[sA,sB,sC]=startPts;const B={...sB},Cv={...sC};if(key==='G'){const nA={x:3*target.x-B.x-Cv.x,y:3*target.y-B.y-Cv.y};return[{...nA,label:'A'},{...B,label:'B'},{...Cv,label:'C'}];}if(key==='O'){const r=solveO(target,startCenter,sA,sB,sC);return[{...r.A,label:'A'},{...r.B,label:'B'},{...r.C,label:'C'}];}if(key==='H'){const p=perp(sub(Cv,B)),HmB=sub(target,B),CmH=sub(Cv,target),denom=dot2(HmB,p);const nA=Math.abs(denom)<1e-10?add(sA,sub(target,startCenter)):add(target,sc(p,dot2(HmB,CmH)/denom));return[{...nA,label:'A'},{...B,label:'B'},{...Cv,label:'C'}];}if(key==='I'){let A={...sA};for(let i=0;i<5;i++){const a=vlen(sub(Cv,B)),b=vlen(sub(Cv,A)),cc=vlen(sub(B,A)),s=a+b+cc,wA=a/s;const Ic={x:(a*A.x+b*B.x+cc*Cv.x)/s,y:(a*A.y+b*B.y+cc*Cv.y)/s};A=add(A,sc(sub(target,Ic),1/wA));}return[{...A,label:'A'},{...B,label:'B'},{...Cv,label:'C'}];}return pts;}
 const z=()=>view.zoom;
 function seg(P,Q,col,lw,dash=[]){ctx.save();ctx.strokeStyle=col;ctx.lineWidth=lw;ctx.setLineDash(dash);ctx.beginPath();ctx.moveTo(P.x,P.y);ctx.lineTo(Q.x,Q.y);ctx.stroke();ctx.setLineDash([]);ctx.restore();}
-function drawLine(P,d,col,A,B,Cv){const b=clipTri(P,d,A,B,Cv),[cA,cB]=clipCV(P,add(P,d));if(!b){seg(cA,cB,col,1.5/z(),[7/z(),5/z()]);return;}const[bA,bB]=b;seg(cA,bA,col,1.5/z(),[7/z(),5/z()]);seg(bA,bB,col,2/z(),[]);seg(bB,cB,col,1.5/z(),[7/z(),5/z()]);}
+function drawLine(P,d,col,A,B,Cv){
+  const b=clipTri(P,d,A,B,Cv),[cA,cB]=clipCV(P,add(P,d));
+  if(!b){seg(cA,cB,col,1.5/z(),[7/z(),5/z()]);return;}
+  const[bA,bB]=b;
+  const ov=22/z(); // dépassement côté opposé uniquement
+  const dn=norm(sub(bB,bA));
+  const bBx=add(bB,sc(dn,ov)); // étendre seulement le côté opposé
+  seg(cA,bA,col,1.5/z(),[7/z(),5/z()]);
+  seg(bA,bBx,col,2/z(),[]);
+  seg(bBx,cB,col,1.5/z(),[7/z(),5/z()]);
+}
 function ra(corner,p1,p2,col){const s=10/z(),d1=norm(sub(p1,corner)),d2=norm(sub(p2,corner)),q1=add(corner,sc(d1,s)),q2=add(corner,sc(d2,s)),qc=add(q1,sub(q2,corner));ctx.save();ctx.strokeStyle=col;ctx.lineWidth=1.2/z();ctx.setLineDash([]);ctx.beginPath();ctx.moveTo(q1.x,q1.y);ctx.lineTo(qc.x,qc.y);ctx.lineTo(q2.x,q2.y);ctx.stroke();ctx.restore();}
 function tickMid(M,dir,col){const s=6/z(),n=norm(dir);ctx.save();ctx.strokeStyle=col;ctx.lineWidth=1.5/z();ctx.setLineDash([]);ctx.beginPath();ctx.moveTo(M.x-n.y*s,M.y+n.x*s);ctx.lineTo(M.x+n.y*s,M.y-n.x*s);ctx.stroke();ctx.restore();}
 function dblTick(M,sD,col){const sz=7/z(),g=4/z(),n=norm(sD),p2={x:-n.y,y:n.x};for(const o of[-g/2,g/2]){const c={x:M.x+n.x*o,y:M.y+n.y*o};ctx.save();ctx.strokeStyle=col;ctx.lineWidth=1.5/z();ctx.setLineDash([]);ctx.beginPath();ctx.moveTo(c.x-p2.x*sz,c.y-p2.y*sz);ctx.lineTo(c.x+p2.x*sz,c.y+p2.y*sz);ctx.stroke();ctx.restore();}}
@@ -309,17 +319,17 @@ function draw(){
     const c=C('mediatrices');
     const MAB=mid(A,B),MBC=mid(B,Cv),MAC=mid(A,Cv);
     if(comp.O){
-      // Chaque médiatrice : trait plein de son milieu jusqu'à O, pointillé au-delà vers l'infini
+      const ov=22/z();
       [[MAB,norm(perp(sub(B,A)))],[MBC,norm(perp(sub(Cv,B)))],[MAC,norm(perp(sub(Cv,A)))]].forEach(([P,d])=>{
-        // segment plein : P → O
-        seg(P,comp.O,c.line,2/z());
-        // prolongement pointillé depuis O vers l'infini (côté opposé à P)
         const dFromP=norm(sub(comp.O,P));
-        const far=add(comp.O,sc(dFromP,2000));
-        seg(comp.O,far,c.line,1.5/z(),[7/z(),5/z()]);
-        // prolongement pointillé aussi de l'autre côté (depuis P vers l'infini opposé)
-        const farOpp=add(P,sc(sc(dFromP,-1),2000));
-        seg(P,farOpp,c.line,1.5/z(),[7/z(),5/z()]);
+        const Pext=sub(P,sc(dFromP,ov));  // dépasse le milieu côté opposé à O
+        const Oext=add(comp.O,sc(dFromP,ov)); // dépasse O du même côté
+        // trait plein de Pext à Oext
+        seg(Pext,Oext,c.line,2/z());
+        // pointillés au-delà de Oext
+        seg(Oext,add(Oext,sc(dFromP,2000)),c.line,1.5/z(),[7/z(),5/z()]);
+        // pointillés au-delà de Pext
+        seg(Pext,add(Pext,sc(dFromP,-2000)),c.line,1.5/z(),[7/z(),5/z()]);
       });
     } else {
       [[MAB,norm(perp(sub(B,A)))],[MBC,norm(perp(sub(Cv,B)))],[MAC,norm(perp(sub(Cv,A)))]].forEach(([P,d])=>drawLine(P,d,c.line,A,B,Cv));
