@@ -145,8 +145,13 @@
     html,body{overflow:auto;height:auto;}
     .page{height:auto;min-height:0;}
     .page.active{display:flex;flex-direction:column;}
-    main#page-anim,main#page-traces{padding:.4rem;min-height:0;}
-    #canvas-wrap,#canvas-wrap-traces{height:58vw;min-height:220px;position:relative;}
+    main#page-anim,main#page-traces{padding:.4rem;min-height:0;flex:1;}
+    /* Canvas occupe toute la hauteur disponible en portrait */
+    #canvas-wrap,#canvas-wrap-traces{
+      height:calc(100svh - 54px - 50px - 50px);
+      min-height:240px;max-height:70vw;
+      position:relative;
+    }
     canvas,#c2{position:absolute;}
     .qcm-grid{grid-template-columns:1fr 1fr;}
     .qcm-inner{flex-direction:column;}
@@ -164,10 +169,16 @@
     .place-grid{grid-template-columns:1fr;}
     .vf-grid{grid-template-columns:1fr;}
     main#page-ex{padding:.4rem;}
-    /* Barre tracés sur mobile : wrap */
     #traces-bar{flex-wrap:wrap;gap:5px;padding:.35rem .5rem;}
     .traces-fam-btn{padding:4px 8px;font-size:11px;}
     .btn-valider{padding:4px 10px;font-size:11px;}
+  }
+  /* Paysage mobile : revenir au comportement desktop */
+  @media(max-width:600px) and (orientation:landscape){
+    html,body{overflow:hidden;height:100%;}
+    .page{height:auto;}
+    main#page-anim,main#page-traces{flex:1;min-height:0;}
+    #canvas-wrap,#canvas-wrap-traces{height:auto;max-height:none;flex:1;min-height:0;}
   }
 
   /* Très petit (≤400px) */
@@ -411,7 +422,7 @@ function defaultPts(){
 }
 function defaultView(){return{panX:0,panY:0,zoom:1};}
 function isDark(){return window.matchMedia('(prefers-color-scheme: dark)').matches;}
-function getT(){const d=isDark();return{triF:d?'rgba(200,200,200,0.06)':'rgba(136,135,128,0.07)',triS:d?'#e0e0e0':'#1a1a1a',vxF:d?'#2a2a2a':'#fff',vxS:d?'#e0e0e0':'#1a1a1a',vxT:d?'#e0e0e0':'#1a1a1a',gray:d?'#888':'#888780'};}
+function getT(){const d=isDark();return{triF:d?'rgba(200,200,200,0.06)':'rgba(136,135,128,0.07)',triS:d?'#e0e0e0':'#1a1a1a',vxF:'#ffffff',vxS:'#1a1a1a',vxT:'#1a1a1a',gray:d?'#888':'#888780'};}
 
 let view=defaultView();
 const CS={hauteurs:{line:'#7bc950',fill:'#3B6D11',dL:'#8dde5a',dF:'#5a9e1f'},mediatrices:{line:'#f08050',fill:'#993C1D',dL:'#ff9966',dF:'#c04d28'},bisectrices:{line:'#5aabf5',fill:'#185FA5',dL:'#74bbff',dF:'#2278cc'},medianes:{line:'#a898ee',fill:'#534AB7',dL:'#bbb0ff',dF:'#6e64d0'}};
