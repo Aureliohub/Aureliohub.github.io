@@ -142,22 +142,26 @@
 
   /* Mobile (≤600px) */
   @media(max-width:600px){
-    html,body{height:100dvh;overflow:hidden;display:flex;flex-direction:column;}
-    body{flex:1;min-height:0;}
-    .page{display:none;position:fixed;inset:0;top:54px;flex-direction:column;}
+    html,body{height:100dvh;max-height:100dvh;overflow:hidden;}
+    body{display:flex;flex-direction:column;}
+    header{flex-shrink:0;}
+    .page{display:none;flex-direction:column;flex:1;min-height:0;overflow:hidden;}
     .page.active{display:flex;}
-    main#page-anim,main#page-traces{padding:.4rem;flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden;}
-    .anim-card{flex:1;min-height:0;overflow:hidden;}
+    main#page-anim,main#page-traces{
+      padding:.4rem;flex:1;min-height:0;
+      display:flex;flex-direction:column;overflow:hidden;
+    }
+    main#page-ex{padding:.4rem;flex:1;overflow-y:auto;}
+    .anim-card{flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden;}
     #canvas-wrap,#canvas-wrap-traces{flex:1;min-height:0;position:relative;}
-    canvas,#c2{position:absolute;width:100%;height:100%;}
-    main#page-ex{padding:.4rem;overflow-y:auto;flex:1;}
-    .controls{gap:4px;padding:.35rem .5rem;flex-wrap:wrap;}
+    canvas,#c2{position:absolute;inset:0;width:100%;height:100%;}
+    .controls{gap:4px;padding:.35rem .5rem;flex-wrap:wrap;flex-shrink:0;}
     .btn-toggle{padding:5px 8px;font-size:11px;gap:4px;}
     .info-btns{gap:3px;}
     .info-label{display:none;}
     .btn-info{padding:5px 8px;font-size:11px;}
     .header-title{font-size:13px;}
-    header{padding:.4rem .6rem;gap:6px;position:fixed;top:0;left:0;right:0;z-index:100;}
+    header{padding:.4rem .6rem;gap:6px;}
     .nav-btn{padding:4px 10px;font-size:11px;}
     .qcm-grid{grid-template-columns:1fr 1fr;}
     .qcm-inner{flex-direction:column;}
@@ -166,7 +170,7 @@
     .qcm-opt{text-align:left;}
     .place-grid{grid-template-columns:1fr;}
     .vf-grid{grid-template-columns:1fr;}
-    #traces-bar{flex-wrap:wrap;gap:5px;padding:.35rem .5rem;}
+    #traces-bar{flex-wrap:wrap;gap:5px;padding:.35rem .5rem;flex-shrink:0;}
     .traces-fam-btn{padding:4px 8px;font-size:11px;}
     .btn-valider{padding:4px 10px;font-size:11px;}
   }
@@ -283,11 +287,6 @@
 /* ═══════════════════════════════════════════════════
    NAVIGATION
 ═══════════════════════════════════════════════════ */
-function adjustMobilePages(){
-  if(window.innerWidth>600)return;
-  const hh=document.querySelector('header').offsetHeight;
-  document.querySelectorAll('.page').forEach(p=>p.style.top=hh+'px');
-}
 function showPage(p){
   document.querySelectorAll('.page').forEach(el=>el.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(el=>el.classList.remove('active'));
@@ -866,29 +865,49 @@ canvasT.addEventListener('mouseup',e=>{
 },{capture:true});
 let tracesPinch=null; // {si, startAngle, sx1,sy1,sx2,sy2, mx,my}
 
+let tracesPanStart=null;
+let tracesZoomStart=null;
+
+function getCanvasPos2(e,touch){
+  const r=canvasT.getBoundingClientRect(),t=touch||e;
+  return{x:(t.clientX-r.left)*(canvasT.width/dpr/r.width),y:(t.clientY-r.top)*(canvasT.height/dpr/r.height)};
+}
+
 canvasT.addEventListener('touchstart',e=>{
   if(!tracesMode)return;
   e.preventDefault();e.stopPropagation();
   if(e.touches.length===2){
-    // Deux doigts : trouver le segment le plus proche du centre des deux touches
+    tracesDrag=null;
+    // Vérifier si le centre des 2 doigts est proche d'un segment
     const t0=getWorldPos(e,e.touches[0]),t1=getWorldPos(e,e.touches[1]);
     const midW={x:(t0.x+t1.x)/2,y:(t0.y+t1.y)/2};
     let best=-1,bestD=Infinity;
     tracesSegs.forEach((s,si)=>{
-      const mx=(s.x1+s.x2)/2,my=(s.y1+s.y2)/2;
-      const d=Math.hypot(midW.x-mx,midW.y-my);
-      if(d<bestD){bestD=d;best=si;}
+      const d=Math.hypot(midW.x-(s.x1+s.x2)/2,midW.y-(s.y1+s.y2)/2);
+      if(d<50/view.zoom&&d<bestD){bestD=d;best=si;}
     });
     if(best>=0){
+      // Rotation du segment
       const s=tracesSegs[best];
       tracesPinch={si:best,startAngle:Math.atan2(t1.y-t0.y,t1.x-t0.x),
         sx1:s.x1,sy1:s.y1,sx2:s.x2,sy2:s.y2,
         mx:(s.x1+s.x2)/2,my:(s.y1+s.y2)/2};
+      tracesZoomStart=null;tracesPanStart=null;
+    } else {
+      // Zoom/pan
+      tracesPinch=null;
+      const cp0=getCanvasPos2(e,e.touches[0]),cp1=getCanvasPos2(e,e.touches[1]);
+      tracesZoomStart={dist:Math.hypot(cp1.x-cp0.x,cp1.y-cp0.y),
+        px:(cp0.x+cp1.x)/2,py:(cp0.y+cp1.y)/2,
+        startZoom:view.zoom,startPanX:view.panX,startPanY:view.panY};
     }
-    tracesDrag=null;
   } else {
-    tracesPinch=null;
-    tracesStartDrag(getWorldPos(e,e.touches[0]));
+    tracesPinch=null;tracesZoomStart=null;
+    const pos=getWorldPos(e,e.touches[0]);
+    if(!tracesStartDrag(pos)){
+      // Pan si aucun segment touché
+      tracesPanStart={cp:getCanvasPos2(e,e.touches[0]),panX:view.panX,panY:view.panY};
+    }
   }
 },{capture:true,passive:false});
 
@@ -896,30 +915,50 @@ canvasT.addEventListener('touchmove',e=>{
   if(!tracesMode)return;
   e.preventDefault();e.stopPropagation();
   if(e.touches.length===2&&tracesPinch){
+    // Rotation segment
     const t0=getWorldPos(e,e.touches[0]),t1=getWorldPos(e,e.touches[1]);
     const angle=Math.atan2(t1.y-t0.y,t1.x-t0.x);
     const da=angle-tracesPinch.startAngle;
     const s=tracesSegs[tracesPinch.si];
-    const mx=tracesPinch.mx,my=tracesPinch.my;
     const len=Math.hypot(tracesPinch.sx2-tracesPinch.sx1,tracesPinch.sy2-tracesPinch.sy1)/2;
-    const origAngle=Math.atan2(tracesPinch.sy2-tracesPinch.sy1,tracesPinch.sx2-tracesPinch.sx1);
-    const newAngle=origAngle+da;
-    s.x1=mx-Math.cos(newAngle)*len;s.y1=my-Math.sin(newAngle)*len;
-    s.x2=mx+Math.cos(newAngle)*len;s.y2=my+Math.sin(newAngle)*len;
-    s.result=null;
+    const na=Math.atan2(tracesPinch.sy2-tracesPinch.sy1,tracesPinch.sx2-tracesPinch.sx1)+da;
+    s.x1=tracesPinch.mx-Math.cos(na)*len;s.y1=tracesPinch.my-Math.sin(na)*len;
+    s.x2=tracesPinch.mx+Math.cos(na)*len;s.y2=tracesPinch.my+Math.sin(na)*len;
+    s.result=null;drawTraces();
+  } else if(e.touches.length===2&&tracesZoomStart){
+    // Zoom/pan
+    const cp0=getCanvasPos2(e,e.touches[0]),cp1=getCanvasPos2(e,e.touches[1]);
+    const dist=Math.hypot(cp1.x-cp0.x,cp1.y-cp0.y);
+    const f=dist/tracesZoomStart.dist;
+    const nz=Math.min(Math.max(tracesZoomStart.startZoom*f,0.1),10);
+    const px=(cp0.x+cp1.x)/2,py=(cp0.y+cp1.y)/2;
+    view.zoom=nz;
+    view.panX=px-(tracesZoomStart.px-tracesZoomStart.startPanX)*nz/tracesZoomStart.startZoom;
+    view.panY=py-(tracesZoomStart.py-tracesZoomStart.startPanY)*nz/tracesZoomStart.startZoom;
     drawTraces();
   } else if(e.touches.length===1){
-    tracesMoveDir(getWorldPos(e,e.touches[0]));
+    if(tracesDrag){
+      tracesMoveDir(getWorldPos(e,e.touches[0]));
+    } else if(tracesPanStart){
+      const cp=getCanvasPos2(e,e.touches[0]);
+      view.panX=tracesPanStart.panX+(cp.x-tracesPanStart.cp.x);
+      view.panY=tracesPanStart.panY+(cp.y-tracesPanStart.cp.y);
+      drawTraces();
+    }
   }
 },{capture:true,passive:false});
 
 canvasT.addEventListener('touchend',e=>{
-  if(tracesMode){e.stopPropagation();tracesDrag=null;if(e.touches.length<2)tracesPinch=null;}
+  if(tracesMode){
+    e.stopPropagation();
+    if(e.touches.length===0){tracesDrag=null;tracesPinch=null;tracesZoomStart=null;tracesPanStart=null;}
+    else if(e.touches.length<2){tracesPinch=null;tracesZoomStart=null;}
+  }
 },{capture:true});
 let firstResize=true;
 function resize(){const wrap=document.getElementById('canvas-wrap');const cw=wrap.clientWidth,ch=wrap.clientHeight;if(cw<1||ch<1)return;const oldW=W,oldH=H;W=cw;H=ch;canvas.width=Math.round(W*dpr);canvas.height=Math.round(H*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);if(firstResize){pts=defaultPts();view=defaultView();firstResize=false;}else if(oldW>0&&oldH>0){const sx=W/oldW,sy=H/oldH;pts=pts.map(p=>({...p,x:p.x*sx,y:p.y*sy}));view.panX*=sx;view.panY*=sy;}updateBtns();draw();}
-window.addEventListener('resize',()=>{resize();adjustMobilePages();});
-requestAnimationFrame(()=>requestAnimationFrame(()=>{resize();adjustMobilePages();}));
+window.addEventListener('resize',resize);
+requestAnimationFrame(()=>requestAnimationFrame(resize));
 document.querySelectorAll('.btn-info').forEach(btn=>{
   const tip=btn.querySelector('.tip');
   if(!tip)return;
