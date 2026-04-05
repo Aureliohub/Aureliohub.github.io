@@ -17,12 +17,12 @@
   body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);display:flex;flex-direction:column;}
 
   /* ── Header ── */
-  header{background:var(--surface);border-bottom:1px solid var(--border);padding:.75rem 1.25rem;display:flex;align-items:center;gap:12px;box-shadow:0 1px 8px rgba(0,0,0,.04);flex-shrink:0;}
-  .header-icon{width:32px;height:32px;background:#EEF4FF;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;}
-  .header-title{font-size:16px;font-weight:800;}
+  header{background:var(--surface);border-bottom:1px solid var(--border);padding:.6rem 1rem;display:flex;align-items:center;gap:10px;box-shadow:0 1px 8px rgba(0,0,0,.04);flex-shrink:0;}
+  .header-icon{width:30px;height:30px;background:#EEF4FF;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+  .header-title{font-size:15px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .header-title span{color:var(--accent);}
-  .header-nav{display:flex;align-items:center;gap:8px;margin-left:auto;}
-  .nav-btn{padding:6px 16px;border-radius:20px;border:1.5px solid var(--border);background:transparent;font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;cursor:pointer;color:var(--muted);transition:all .18s;}
+  .header-nav{display:flex;align-items:center;gap:6px;margin-left:auto;flex-shrink:0;}
+  .nav-btn{padding:5px 14px;border-radius:20px;border:1.5px solid var(--border);background:transparent;font-family:'Nunito',sans-serif;font-size:12px;font-weight:700;cursor:pointer;color:var(--muted);transition:all .18s;white-space:nowrap;}
   .nav-btn.active{background:var(--accent);border-color:var(--accent);color:#fff;}
   .nav-btn:not(.active):hover{background:var(--bg);}
 
@@ -35,19 +35,19 @@
   .anim-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);flex:1;display:flex;flex-direction:column;min-height:0;overflow:hidden;}
   .card-header{padding:.35rem .9rem;display:flex;align-items:center;gap:6px;border-bottom:1px solid var(--border);background:#FAFAF8;flex-shrink:0;flex-wrap:nowrap;overflow:hidden;}
   .card-header-title{font-size:11px;font-weight:700;color:var(--muted);flex-shrink:0;}
-  .info-btns{display:flex;align-items:center;gap:8px;flex-shrink:0;}
-  .info-label{font-size:13px;font-weight:700;color:var(--muted);flex-shrink:0;}
-  .btn-info{position:relative;padding:7px 14px;border-radius:20px;border:1.5px solid;background:transparent;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;font-family:'Nunito',sans-serif;flex-shrink:0;transition:background .15s;white-space:nowrap;}
+  .info-btns{display:flex;align-items:center;gap:6px;flex-shrink:0;}
+  .info-label{font-size:12px;font-weight:700;color:var(--muted);flex-shrink:0;}
+  .btn-info{position:relative;padding:6px 12px;border-radius:20px;border:1.5px solid;background:transparent;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;font-family:'Nunito',sans-serif;flex-shrink:0;transition:background .15s;white-space:nowrap;}
   .btn-info:hover{background:var(--bg);}
   .tip{display:none;position:fixed;width:260px;white-space:normal;word-wrap:break-word;background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:12px;padding:.8rem 1rem;font-size:12.5px;font-weight:600;line-height:1.65;box-shadow:0 6px 24px rgba(0,0,0,.12);z-index:9999;pointer-events:none;}
   .tip strong{font-weight:800;}
   .tip-title{font-size:13px;font-weight:800;margin-bottom:.4rem;display:flex;align-items:center;gap:6px;padding-bottom:.35rem;border-bottom:1px solid var(--border);}
   .tip-dot{width:9px;height:9px;border-radius:50%;display:inline-block;flex-shrink:0;}
-  .controls{display:flex;flex-wrap:nowrap;gap:8px;padding:.55rem .9rem;border-bottom:1px solid var(--border);background:#FAFAF8;flex-shrink:0;align-items:center;}
-  .btn-toggle{display:inline-flex;align-items:center;gap:7px;padding:7px 16px;border-radius:20px;cursor:pointer;font-size:13px;font-weight:700;border:1.5px solid;background:transparent;transition:all .18s;user-select:none;font-family:'Nunito',sans-serif;white-space:nowrap;flex-shrink:0;}
-  .dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
-  #btn-reset{width:34px;height:34px;border-radius:50%;cursor:pointer;border:1.5px solid var(--border);background:transparent;color:var(--muted);display:inline-flex;align-items:center;justify-content:center;font-size:26px;line-height:1;transition:transform .3s;flex-shrink:0;padding:0;font-family:'Nunito',sans-serif;}
-  #btn-reset:hover{transform:rotate(-40deg);}
+  .controls{display:flex;flex-wrap:wrap;gap:6px;padding:.5rem .9rem;border-bottom:1px solid var(--border);background:#FAFAF8;flex-shrink:0;align-items:center;}
+  .btn-toggle{display:inline-flex;align-items:center;gap:6px;padding:6px 13px;border-radius:20px;cursor:pointer;font-size:12px;font-weight:700;border:1.5px solid;background:transparent;transition:all .18s;user-select:none;font-family:'Nunito',sans-serif;white-space:nowrap;flex-shrink:0;}
+  .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+  #btn-reset{width:34px;height:34px;border-radius:50%;cursor:pointer;border:1.5px solid var(--border);background:transparent;color:var(--muted);display:inline-flex;align-items:center;justify-content:center;transition:transform .35s;flex-shrink:0;padding:0;}
+  #btn-reset:hover{transform:rotate(-45deg);}
   #canvas-wrap{flex:1;position:relative;min-height:0;}
   canvas{position:absolute;inset:0;width:100%;height:100%;cursor:default;display:block;touch-action:none;}
   #point-name{display:none;}
@@ -55,15 +55,15 @@
   /* ── Page 2 exercices ── */
   main#page-ex{padding:.75rem;overflow-y:auto;gap:.75rem;}
 
-  .ex-header{display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+  .ex-header{display:flex;align-items:center;justify-content:space-between;flex-shrink:0;flex-wrap:wrap;gap:.5rem;}
   .score-pill{background:var(--surface);border:1px solid var(--border);border-radius:999px;padding:.35rem 1rem;font-size:13px;font-weight:800;color:var(--accent);}
   .btn-check{height:36px;padding:0 22px;border-radius:999px;border:none;background:var(--accent);color:#fff;font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:opacity .18s;}
   .btn-check:disabled{opacity:.4;cursor:not-allowed;}
   .btn-check.retry{background:#1E1D1A;}
 
-  .section-title{font-size:13px;font-weight:800;color:var(--muted);margin:.25rem 0 .5rem;letter-spacing:.04em;text-transform:uppercase;}
+  .section-title{font-size:12px;font-weight:800;color:var(--muted);margin:.25rem 0 .5rem;letter-spacing:.04em;text-transform:uppercase;}
 
-  /* Grille QCM */
+  /* Grille QCM — 4 colonnes sur grand écran, 2 sur tablette, 1 sur mobile */
   .qcm-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem;}
   .qcm-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:.4rem .5rem;cursor:pointer;transition:border-color .18s,background .18s;}
   .qcm-card:hover:not(.locked){border-color:#B4B2A9;}
@@ -88,7 +88,7 @@
   .tri-svg{display:block;overflow:visible;}
 
   /* VF grid */
-  .vf-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:.6rem;}
+  .vf-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:.6rem;}
   .vf-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:.75rem 1rem;}
   .vf-q{font-size:13px;font-weight:700;margin-bottom:.5rem;line-height:1.4;}
   .vf-opts{display:flex;gap:.5rem;}
@@ -103,7 +103,7 @@
   .vf-feedback.ko{color:#991B1B;}
 
   /* Placement */
-  .place-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:.6rem;}
+  .place-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:.6rem;}
   .place-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:.75rem 1rem;display:flex;flex-direction:column;align-items:flex-start;}
   .place-q{font-size:13px;font-weight:700;margin-bottom:.5rem;line-height:1.4;}
   .place-canvas-wrap{position:relative;border-radius:8px;overflow:hidden;background:#FAFAF8;border:1px solid var(--border);cursor:crosshair;}
@@ -112,6 +112,47 @@
   .place-feedback.show{display:block;}
   .place-feedback.ok{color:#166534;}
   .place-feedback.ko{color:#991B1B;}
+
+  /* ── Media queries ── */
+
+  /* Tablette (≤900px) */
+  @media(max-width:900px){
+    .qcm-grid{grid-template-columns:repeat(2,1fr);}
+    .header-title span{display:none;}
+    .info-label{display:none;}
+    .btn-info{padding:5px 10px;font-size:11px;}
+    .btn-toggle{padding:5px 10px;font-size:11px;}
+  }
+
+  /* Mobile (≤600px) */
+  @media(max-width:600px){
+    html,body{overflow:auto;height:auto;}
+    .page{height:auto;min-height:0;}
+    .page.active{display:flex;flex-direction:column;}
+    main#page-anim{padding:.5rem;min-height:0;}
+    #canvas-wrap{height:55vw;min-height:200px;position:relative;}
+    canvas{position:absolute;}
+    .qcm-grid{grid-template-columns:1fr 1fr;}
+    .qcm-inner{flex-direction:column;}
+    .qcm-svg-wrap{justify-content:center;}
+    .qcm-opts{align-items:flex-start;}
+    .qcm-opt{text-align:left;}
+    .controls{gap:5px;padding:.4rem .6rem;}
+    .btn-toggle{padding:5px 9px;font-size:11px;gap:5px;}
+    .info-btns{gap:4px;}
+    .btn-info{padding:5px 8px;font-size:11px;}
+    .header-title{font-size:13px;}
+    header{padding:.5rem .75rem;gap:8px;}
+    .place-grid{grid-template-columns:1fr;}
+    .vf-grid{grid-template-columns:1fr;}
+    main#page-ex{padding:.5rem;}
+  }
+
+  /* Très petit (≤380px) */
+  @media(max-width:380px){
+    .qcm-grid{grid-template-columns:1fr;}
+    .header-title{display:none;}
+  }
 </style>
 </head>
 <body>
@@ -133,7 +174,7 @@
       <button class="btn-toggle"        id="btn-mediatrices" style="color:var(--c-m);border-color:var(--c-m);"><span class="dot" style="background:var(--c-m);"></span>Médiatrices</button>
       <button class="btn-toggle"        id="btn-bisectrices" style="color:var(--c-b);border-color:var(--c-b);"><span class="dot" style="background:var(--c-b);"></span>Bissectrices</button>
       <button class="btn-toggle"        id="btn-medianes"    style="color:var(--c-g);border-color:var(--c-g);"><span class="dot" style="background:var(--c-g);"></span>Médianes</button>
-      <button id="btn-reset" title="Réinitialiser">↺</button>
+      <button id="btn-reset" title="Réinitialiser"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.1-5.8"/><polyline points="21 3 21 9 15 9"/></svg></button>
       <div style="flex:1;"></div>
       <div class="info-btns">
         <span class="info-label">Définitions :</span>
@@ -350,7 +391,11 @@ function draw(){
   pts.forEach(p=>{const r=9/z();ctx.save();ctx.fillStyle=T.vxF;ctx.strokeStyle=T.vxS;ctx.lineWidth=2/z();ctx.beginPath();ctx.arc(p.x,p.y,r,0,2*Math.PI);ctx.fill();ctx.stroke();ctx.restore();const off=norm(sub(p,G0));ctx.save();ctx.fillStyle=T.vxT;ctx.font=`700 ${14/z()}px 'Nunito',sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(p.label,p.x+off.x*22/z(),p.y+off.y*22/z());ctx.restore();});
   ctx.restore();
 }
-function doReset(){pts=defaultPts();view=defaultView();dragging=null;panning=null;pinchStart=null;activeTouches={};draw();}
+function doReset(){
+  pts=defaultPts();view=defaultView();dragging=null;panning=null;pinchStart=null;activeTouches={};
+  state.hauteurs=true;state.mediatrices=false;state.bisectrices=false;state.medianes=false;
+  updateBtns();draw();
+}
 function applyZoom(f,piv){view.panX=piv.x+(view.panX-piv.x)*f;view.panY=piv.y+(view.panY-piv.y)*f;view.zoom=Math.min(Math.max(view.zoom*f,0.1),10);}
 function startDrag(cp){const hit=nearestDraggable(cp);if(hit){const comp=computeCenters(pts[0],pts[1],pts[2]);const sc2=hit.type==='center'?{...comp[hit.key]}:null;const go=sc2?sub(c2w(cp),sc2):{x:0,y:0};dragging={hit,startCP:{...cp},startPts:pts.map(p=>({...p})),startCenter:sc2,grabOffset:go};canvas.style.cursor='grabbing';}else{panning={startCP:{...cp},startPan:{x:view.panX,y:view.panY}};canvas.style.cursor='move';}}
 function applyDrag(cp){const cw=c2w(cp);if(dragging.hit.type==='vertex'){const delta=sub(cw,c2w(dragging.startCP));const i=dragging.hit.idx,sp=dragging.startPts[i];pts[i]={...sp,x:sp.x+delta.x,y:sp.y+delta.y};document.getElementById('point-name').textContent=`Sommet ${pts[i].label}`;}else{const target=sub(cw,dragging.grabOffset);pts=solve(dragging.hit.key,target,dragging);document.getElementById('point-name').textContent=`Centre ${dragging.hit.key}`;}}
