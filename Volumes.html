@@ -1,0 +1,1925 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Volumes</title>
+<!-- fichier : Volumes.html -->
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  :root{
+    --bg:#F7F6F2;--surface:#FFFFFF;--border:#E2E0D8;
+    --text:#1E1D1A;--muted:#6B6A64;--accent:#2D6BE4;--radius:14px;
+  }
+
+  html,body{height:100%;height:100dvh;overflow:hidden;}
+  body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);display:flex;flex-direction:column;}
+
+  /* ── Header ── */
+  header{
+    background:var(--surface);border-bottom:1px solid var(--border);
+    padding:.6rem 1rem;display:flex;align-items:center;gap:10px;
+    box-shadow:0 1px 8px rgba(0,0,0,.04);flex-shrink:0;
+  }
+  .header-icon{
+    width:30px;height:30px;background:#EEF4FF;border-radius:8px;
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  }
+  /* Prisme SVG inline dans l'icône */
+  .header-icon svg{display:block;}
+  .header-title{font-size:15px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .header-title span{color:var(--accent);}
+  /* Formule à droite du titre */
+  .header-formula{
+    font-size:13px;font-weight:700;color:var(--muted);
+    white-space:nowrap;padding:3px 12px;
+    border:1.5px solid var(--border);border-radius:20px;
+    background:var(--bg);flex-shrink:0;
+  }
+  .header-nav{display:flex;align-items:center;gap:6px;margin-left:auto;flex-shrink:0;}
+  .nav-btn{
+    padding:5px 14px;border-radius:20px;border:1.5px solid var(--border);
+    background:transparent;font-family:'Nunito',sans-serif;font-size:12px;font-weight:700;
+    cursor:pointer;color:var(--muted);transition:all .18s;white-space:nowrap;
+  }
+  .nav-btn.active{background:var(--accent);border-color:var(--accent);color:#fff;}
+  .nav-btn:not(.active):hover{background:var(--bg);}
+
+  /* ── Pages ── */
+  .page{display:none;flex:1;min-height:0;flex-direction:column;overflow:hidden;}
+  .page.active{display:flex;}
+
+  /* ── Layout principal atelier ── */
+  main:not(.ex-main){
+    flex:1;min-height:0;padding:.75rem;
+    display:flex;flex-direction:column;overflow:hidden;
+  }
+  .anim-card{
+    background:var(--surface);border:1px solid var(--border);
+    border-radius:var(--radius);flex:1;display:flex;flex-direction:column;
+    min-height:0;overflow:hidden;
+  }
+
+  /* ── Barre de contrôles ── */
+  .controls{
+    display:flex;flex-wrap:wrap;gap:6px;
+    padding:.5rem .9rem;border-bottom:1px solid var(--border);
+    background:#FAFAF8;flex-shrink:0;align-items:center;
+  }
+  /* Bouton icône (effacer) */
+  .btn-icon{
+    width:34px;height:34px;border-radius:50%;cursor:pointer;
+    border:1.5px solid var(--border);background:transparent;color:var(--muted);
+    display:inline-flex;align-items:center;justify-content:center;
+    transition:transform .35s;flex-shrink:0;padding:0;
+  }
+  .btn-icon:hover{transform:rotate(-45deg);}
+  /* Boutons toggle style pill */
+  .btn-toggle{
+    display:inline-flex;align-items:center;gap:6px;
+    padding:6px 13px;border-radius:20px;cursor:pointer;
+    font-size:12px;font-weight:700;border:1.5px solid var(--border);
+    background:transparent;transition:all .18s;user-select:none;
+    font-family:'Nunito',sans-serif;white-space:nowrap;flex-shrink:0;
+    color:var(--muted);
+  }
+  .btn-toggle:hover{background:var(--bg);}
+  .btn-toggle.active{
+    background:var(--accent);border-color:var(--accent);color:#fff;
+  }
+  .btn-toggle:disabled{opacity:.35;cursor:default;pointer-events:none;}
+  /* Largeur fixe pour éviter le saut layout quand le texte change */
+  #btn-mesures{min-width:90px;justify-content:center;}
+  /* Bouton + */
+  .btn-plus{
+    width:28px;height:28px;border-radius:50%;cursor:pointer;
+    border:1.5px solid var(--border);background:transparent;
+    color:var(--muted);font-size:18px;font-weight:700;line-height:1;
+    display:inline-flex;align-items:center;justify-content:center;
+    flex-shrink:0;transition:all .18s;font-family:'Nunito',sans-serif;
+    padding:0;
+  }
+  .btn-plus:hover{background:var(--bg);}
+  .btn-plus.active{background:var(--bg);border-color:var(--border);color:var(--text);}
+  /* Séparateur vertical */
+  .sep{width:1px;height:22px;background:var(--border);flex-shrink:0;margin:0 2px;}
+  /* Slider Hauteur */
+  .slider-wrap{display:flex;align-items:center;gap:8px;}
+  .slider-wrap label{font-size:12px;font-weight:700;color:var(--muted);white-space:nowrap;}
+  .slider-wrap input[type=range]{
+    width:90px;accent-color:var(--accent);cursor:pointer;
+  }
+  .slider-val{
+    font-size:12px;font-weight:700;color:var(--text);
+    min-width:38px;text-align:right;
+  }
+
+  /* ── Tooltips personnalisés ── */
+  .has-tip{position:relative;}
+  .has-tip .tip-bubble{
+    display:none;position:absolute;bottom:calc(100% + 8px);left:50%;
+    transform:translateX(-50%);
+    background:var(--surface);color:var(--text);
+    border:1.5px solid var(--border);
+    font-size:11.5px;font-weight:600;font-family:'Nunito',sans-serif;
+    line-height:1.5;white-space:normal;width:220px;
+    padding:.5rem .75rem;border-radius:10px;
+    box-shadow:0 4px 16px rgba(0,0,0,.12);
+    pointer-events:none;z-index:100;
+    text-align:left;
+  }
+  .has-tip .tip-bubble::after{
+    content:'';position:absolute;top:100%;left:50%;
+    transform:translateX(-50%);
+    border:6px solid transparent;
+    border-top-color:var(--border);
+  }
+  .has-tip:hover .tip-bubble{display:block;}
+  /* Tooltip du bouton + : en dessous, centré, largeur auto */
+  .tip-below{
+    bottom:auto!important;top:calc(100% + 8px)!important;
+    left:50%!important;transform:translateX(-50%)!important;
+    width:auto!important;white-space:nowrap!important;text-align:center!important;
+  }
+  .tip-below::after{
+    top:auto!important;bottom:100%!important;left:50%!important;
+    transform:translateX(-50%)!important;right:auto!important;
+    border-top-color:transparent!important;
+    border-bottom-color:var(--border)!important;
+    border-right-color:transparent!important;
+  }
+
+  /* ── Canvas ── */
+  #canvas-wrap{flex:1;position:relative;min-height:0;}
+  #cv{
+    position:absolute;inset:0;width:100%;height:100%;
+    display:block;touch-action:none;cursor:crosshair;
+  }
+  /* Boutons overlay sur le canvas (haut gauche) */
+  #canvas-overlay{
+    position:absolute;top:12px;left:12px;
+    display:flex;flex-direction:column;gap:6px;
+    pointer-events:none;z-index:20;
+  }
+  #canvas-overlay .btn-toggle{
+    pointer-events:all;
+    position:relative;
+  }
+  /* Bulles définition : position fixed, indépendantes du layout */
+  .def-bubble{
+    display:none;position:fixed;
+    width:220px;white-space:normal;
+    background:var(--surface);color:var(--text);
+    border:1.5px solid var(--border);
+    font-size:11.5px;font-weight:600;font-family:'Nunito',sans-serif;
+    line-height:1.6;padding:.55rem .8rem;border-radius:10px;
+    box-shadow:0 4px 16px rgba(0,0,0,.12);
+    pointer-events:none;z-index:9999;
+  }
+
+  /* ── Page Exercices ── */
+  .ex-main{flex:1;min-height:0;padding:.75rem;display:flex;flex-direction:column;overflow-y:auto;}
+  .ex-container{max-width:680px;width:100%;margin:0 auto;display:flex;flex-direction:column;gap:.8rem;}
+  .ex-header{display:flex;align-items:center;justify-content:space-between;gap:.5rem;flex-wrap:wrap;flex-shrink:0;}
+  .ex-progress-wrap{display:flex;align-items:center;gap:10px;flex:1;min-width:160px;}
+  .ex-progress-bar{flex:1;height:6px;background:var(--border);border-radius:999px;overflow:hidden;}
+  .ex-progress-fill{height:100%;background:var(--accent);border-radius:999px;width:0%;transition:width .4s ease;}
+  .ex-progress-label{font-size:12px;font-weight:700;color:var(--muted);white-space:nowrap;}
+  .ex-score-wrap{display:flex;align-items:center;gap:8px;}
+  .score-pill{background:var(--surface);border:1px solid var(--border);border-radius:999px;padding:.3rem .9rem;font-size:13px;font-weight:800;color:var(--accent);}
+  .btn-restart{padding:5px 14px;border-radius:20px;border:1.5px solid var(--border);background:transparent;font-family:'Nunito',sans-serif;font-size:12px;font-weight:700;cursor:pointer;color:var(--muted);transition:all .18s;}
+  .btn-restart:hover{background:var(--bg);}
+  .btn-restart.active{background:var(--accent);border-color:var(--accent);color:#fff;}
+
+  /* Carte exercice */
+  .ex-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.2rem 1.4rem;display:flex;flex-direction:column;gap:1rem;}
+  .ex-card.locked{opacity:.35;pointer-events:none;user-select:none;}
+  .ex-num{font-size:10px;font-weight:800;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;}
+  .ex-question{font-size:14px;font-weight:700;line-height:1.55;color:var(--text);}
+  .ex-figure{display:flex;justify-content:center;margin:.25rem 0;}
+
+  /* QCM */
+  .ex-opts{display:flex;flex-direction:column;gap:.45rem;}
+  .ex-opt{padding:.55rem 1rem;border-radius:10px;border:1.5px solid var(--border);background:transparent;font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;cursor:pointer;text-align:left;transition:all .15s;color:var(--text);}
+  .ex-opt:hover:not(.locked){background:var(--bg);border-color:#B4B2A9;}
+  .ex-opt.sel{border-color:var(--accent);background:#EEF4FF;color:var(--accent);}
+  .ex-opt.ok{border-color:#22C55E;background:#F0FDF4;color:#166534;}
+  .ex-opt.ko{border-color:#EF4444;background:#FEF2F2;color:#991B1B;}
+
+  /* VF */
+  .ex-vf{display:flex;gap:.6rem;}
+  .ex-vf-btn{flex:1;padding:.55rem;border-radius:10px;border:1.5px solid var(--border);background:transparent;font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;cursor:pointer;text-align:center;transition:all .15s;color:var(--text);}
+  .ex-vf-btn:hover:not(.locked){background:var(--bg);}
+  .ex-vf-btn.sel{border-color:var(--accent);background:#EEF4FF;color:var(--accent);}
+  .ex-vf-btn.ok{border-color:#22C55E;background:#F0FDF4;color:#166534;}
+  .ex-vf-btn.ko{border-color:#EF4444;background:#FEF2F2;color:#991B1B;}
+
+  /* Input numérique */
+  .ex-input-wrap{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;}
+  .ex-input{width:100px;padding:.5rem .8rem;border-radius:10px;border:1.5px solid var(--border);font-family:'Nunito',sans-serif;font-size:14px;font-weight:700;color:var(--text);background:var(--surface);outline:none;transition:border-color .15s;}
+  .ex-input:focus{border-color:var(--accent);}
+  .ex-input.ok{border-color:#22C55E;background:#F0FDF4;color:#166534;}
+  .ex-input.ko{border-color:#EF4444;background:#FEF2F2;color:#991B1B;}
+  .ex-unit{font-size:13px;font-weight:700;color:var(--muted);}
+
+  /* Feedback */
+  .ex-feedback{font-size:13px;font-weight:700;line-height:1.5;padding:.6rem .9rem;border-radius:10px;display:none;}
+  .ex-feedback.ok{display:block;background:#F0FDF4;color:#166534;border:1px solid #BBF7D0;}
+  .ex-feedback.ko{display:block;background:#FEF2F2;color:#991B1B;border:1px solid #FECACA;}
+
+  /* Footer */
+  .ex-footer{display:flex;justify-content:flex-end;}
+  .btn-valider-ex{height:38px;padding:0 24px;border-radius:999px;border:none;background:var(--accent);color:#fff;font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:opacity .18s;}
+  .btn-valider-ex:hover{opacity:.88;}
+  .btn-valider-ex:disabled{opacity:.35;cursor:default;}
+  .btn-valider-ex.next{background:#1E1D1A;}
+
+  /* ── Media queries ── */
+  @media(max-width:900px){
+    .header-title span{display:none;}
+    .header-formula{font-size:11px;padding:2px 9px;}
+    .btn-toggle{padding:5px 10px;font-size:11px;}
+    .slider-wrap input[type=range]{width:70px;}
+  }
+  @media(max-width:600px){
+    html,body{height:100dvh;max-height:100dvh;}
+    header{padding:.4rem .6rem;gap:6px;}
+    .header-title{font-size:13px;}
+    .header-formula{display:none;}
+    .nav-btn{padding:4px 10px;font-size:11px;}
+    main:not(.ex-main){padding:.4rem;}
+    .controls{gap:4px;padding:.4rem .6rem;flex-wrap:wrap;}
+    .btn-toggle{padding:5px 8px;font-size:11px;gap:4px;}
+    .btn-icon{width:30px;height:30px;}
+    .slider-wrap input[type=range]{width:60px;}
+    .slider-val{min-width:30px;}
+    .ex-main{padding:.4rem;}
+    .ex-card{padding:.9rem 1rem;}
+    .ex-question{font-size:13px;}
+  }
+  @media(max-width:400px){
+    .header-title{display:none;}
+    .nav-btn{padding:4px 8px;font-size:10px;}
+    .btn-toggle{padding:4px 7px;font-size:10px;}
+    .slider-wrap label{display:none;}
+    .score-pill{font-size:11px;padding:.2rem .6rem;}
+  }
+  /* Grands écrans */
+  @media(min-width:1200px){
+    .ex-container{max-width:780px;}
+  }
+  /* Hauteur réduite (paysage mobile) */
+  @media(max-height:500px){
+    header{padding:.3rem .8rem;}
+    main:not(.ex-main){padding:.3rem;}
+    .controls{padding:.3rem .6rem;}
+  }
+  /* Touch : agrandir les zones cliquables */
+  @media(hover:none) and (pointer:coarse){
+    .btn-toggle{padding:8px 14px;}
+    .btn-icon{width:38px;height:38px;}
+    .nav-btn{padding:7px 14px;}
+    .slider-wrap input[type=range]{height:28px;}
+    .ex-opt{padding:.75rem 1rem;}
+    .ex-vf-btn{padding:.75rem;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <!-- Icône : prisme à base triangulaire centré -->
+  <div class="header-icon">
+    <svg width="30" height="30" viewBox="140 140 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <polygon points="325,247 220,477 400,477" fill="#DDEAFF" stroke="#2D6BE4" stroke-width="8" stroke-linejoin="round"/>
+      <line x1="325" y1="247" x2="385" y2="203" stroke="#2D6BE4" stroke-width="8" stroke-linecap="round"/>
+      <line x1="220" y1="477" x2="280" y2="433" stroke="#2D6BE4" stroke-width="8" stroke-linecap="round"/>
+      <line x1="400" y1="477" x2="460" y2="433" stroke="#2D6BE4" stroke-width="8" stroke-linecap="round"/>
+      <polygon points="385,203 280,433 460,433" fill="none" stroke="#2D6BE4" stroke-width="8" stroke-linejoin="round" stroke-linecap="round"/>
+    </svg>
+  </div>
+  <div class="header-title"><span>Volumes</span> <span style="color:var(--muted);font-weight:400;">&nbsp;–&nbsp;</span> <span style="color:var(--text);font-weight:700;">V = Aire de la base × hauteur</span></div>
+  <div class="header-nav">
+    <button class="nav-btn active" id="nav-atelier" onclick="showPage('atelier')">Prisme</button>
+    <button class="nav-btn" id="nav-cylindre" onclick="showPage('cylindre')">Cylindre</button>
+    <button class="nav-btn" id="nav-ex" onclick="showPage('ex')">Exercices</button>
+  </div>
+</header>
+
+<div id="page-atelier" class="page active">
+<main>
+  <div class="anim-card">
+
+    <!-- Barre de contrôles -->
+    <div class="controls">
+
+      <!-- Reset : flèche circulaire -->
+      <button class="btn-icon" id="btn-clear" title="Recommencer">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+          <polyline points="3 3 3 8 8 8"/>
+        </svg>
+      </button>
+
+      <!-- Aire / Valeurs -->
+      <button class="btn-toggle" id="btn-mesures" disabled>⊹ Aire</button>
+
+      <!-- Slider Hauteur — après le bouton Aire -->
+      <div class="slider-wrap" id="slider-wrap" style="display:none;">
+        <div class="sep"></div>
+        <label for="slider-h">Hauteur</label>
+        <input type="range" id="slider-h" min="0" max="200" value="0" step="1">
+      </div>
+
+      <!-- Bouton + avec tooltip en dessous -->
+      <div class="has-tip" id="btn-plus-wrap" style="display:none;flex-shrink:0;">
+        <button class="btn-plus" id="btn-plus">+<span class="tip-bubble tip-below">Faces latérales · Arêtes</span></button>
+      </div>
+
+      <!-- Bouton Développement prisme -->
+      <div class="sep" id="prisme-dev-sep" style="display:none;"></div>
+      <button class="btn-toggle" id="prisme-dev-btn" style="display:none;" onclick="prismeToggleDev()">Développement</button>
+
+    </div>
+
+    <!-- Canvas unique -->
+    <div id="canvas-wrap">
+      <canvas id="cv"></canvas>
+      <!-- Overlay boutons canvas haut gauche -->
+      <div id="canvas-overlay">
+        <button class="btn-toggle" id="btn-faces" style="display:none;">Faces latérales</button>
+        <button class="btn-toggle" id="btn-arets" style="display:none;">Arêtes</button>
+      </div>
+      <!-- Bulles définition hors du canvas (évite overflow:hidden) -->
+      <div class="def-bubble" id="bubble-faces" style="display:none;">Dans un prisme, toutes les faces autres que les 2 bases sont des <strong>faces latérales</strong>.</div>
+      <div class="def-bubble" id="bubble-arets" style="display:none;">Une <strong>arête</strong> est le bord commun entre deux faces.</div>
+    </div>
+
+  </div>
+</main>
+</div><!-- /page-atelier -->
+
+<!-- ══════════════ PAGE CYLINDRE ══════════════ -->
+<div id="page-cylindre" class="page">
+<main>
+  <div class="anim-card">
+
+    <div class="controls">
+      <!-- Reset -->
+      <button class="btn-icon" id="cyl-clear" title="Recommencer">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><polyline points="3 3 3 8 8 8"/>
+        </svg>
+      </button>
+
+      <!-- Aire -->
+      <button class="btn-toggle" id="cyl-mesures" disabled style="min-width:90px;justify-content:center;">⊹ Aire</button>
+
+      <!-- Slider hauteur -->
+      <div class="slider-wrap" id="cyl-slider-wrap" style="display:none;">
+        <div class="sep"></div>
+        <label for="cyl-slider">Hauteur</label>
+        <input type="range" id="cyl-slider" min="0" max="200" value="0" step="1">
+      </div>
+
+      <!-- Bouton + avec bulle définition, mots cliquables -->
+      <div class="has-tip" id="cyl-plus-wrap" style="display:none;flex-shrink:0;">
+        <button class="btn-plus" id="cyl-plus">+
+          <span class="tip-bubble tip-below" style="pointer-events:all;">Un cylindre possède une <strong id="cyl-word-face" style="cursor:pointer;color:var(--accent);">face latérale</strong> et deux <strong id="cyl-word-arets" style="cursor:pointer;color:var(--accent);">arêtes</strong>.</span>
+        </button>
+      </div>
+
+      <!-- Bouton Développement -->
+      <div class="sep" id="cyl-dev-sep" style="display:none;"></div>
+      <button class="btn-toggle" id="cyl-dev-btn" style="display:none;" onclick="cylToggleDev()">Développement</button>
+
+    </div>
+
+    <div id="cyl-canvas-wrap" style="flex:1;position:relative;min-height:0;">
+      <canvas id="cyl-cv" style="position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:crosshair;"></canvas>
+    </div>
+
+  </div>
+</main>
+</div><!-- /page-cylindre -->
+
+<!-- ══════════════ PAGE EXERCICES ══════════════ -->
+<div id="page-ex" class="page">
+<main class="ex-main">
+  <div class="ex-container">
+
+    <!-- En-tête progression -->
+    <div class="ex-header">
+      <div class="ex-progress-wrap">
+        <div class="ex-progress-bar"><div class="ex-progress-fill" id="ex-progress-fill"></div></div>
+        <span class="ex-progress-label" id="ex-progress-label">0 / 14</span>
+      </div>
+      <div class="ex-score-wrap">
+        <span class="score-pill" id="ex-score">0 ✓</span>
+        <button class="btn-restart" id="btn-restart" onclick="restartEx()">↺ Recommencer</button>
+      </div>
+    </div>
+
+    <!-- Toutes les cartes exercices -->
+    <div id="ex-wrap"></div>
+
+    <!-- Score final -->
+    <div id="ex-score-card" style="display:none;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:2rem 1.4rem;text-align:center;display:none;flex-direction:column;align-items:center;gap:1.2rem;">
+      <div style="font-size:13px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;">Résultat final</div>
+      <div id="ex-score-big" style="font-size:52px;font-weight:800;"></div>
+      <div id="ex-score-msg" style="font-size:15px;font-weight:700;"></div>
+      <button class="btn-valider-ex" onclick="restartEx()">↺ Recommencer</button>
+    </div>
+
+  </div>
+</main>
+</div><!-- /page-ex -->
+
+<script>
+(function(){
+'use strict';
+
+const cv   = document.getElementById('cv');
+const ctx  = cv.getContext('2d');
+const dpr  = window.devicePixelRatio || 1;
+
+let CW = 0, CH = 0; // dimensions logiques du canvas
+
+/* Couleurs (charte graphique) */
+const COL_DRAW   = '#185FA5';
+const COL_FILL   = 'rgba(197,220,151,0.80)';
+const COL_BACK   = 'rgba(160,195,100,0.25)';
+const COL_SIDE   = 'rgba(160,195,100,0.50)';
+const COL_EDGE   = '#3B6D11';
+const COL_RED_F  = 'rgba(245,150,140,0.85)';
+const COL_RED_E  = '#a32d2d';
+const COL_HEIGHT = '#e05c00'; // arête hauteur orange
+
+const PX   = 0.55;   // direction oblique X (perspective cavalière)
+const PY   = -0.45;  // direction oblique Y
+const PPCM = 96 / 2.54; // pixels par cm (96 dpi)
+
+/* Phase : 'draw' | 'shape' */
+let phase    = 'draw';
+let pressing = false;
+let rawPts   = [];
+let startT   = null;
+
+let lastVerts    = null; // sommets de la figure plane
+let currentDepth = 0;
+let showMeasures = false;
+let frontRed     = false;
+let backRed      = false;
+let showFacesHL  = false; // surbrillance faces latérales
+let showAretsHL  = false; // surbrillance arêtes
+let prDevActif=false, prDevT=0, prDevRaf=null;
+const PR_DEV_STEPS=80;
+let volLabelX    = null;
+let volLabelY    = null;
+let frontPath    = null;
+let backPath     = null;
+
+/* ── Boutons ── */
+const btnClear    = document.getElementById('btn-clear');
+const btnMesures  = document.getElementById('btn-mesures');
+const btnFaces    = document.getElementById('btn-faces');
+const btnArets    = document.getElementById('btn-arets');
+const btnPlus     = document.getElementById('btn-plus');
+const btnPlusWrap = document.getElementById('btn-plus-wrap');
+const sliderWrap  = document.getElementById('slider-wrap');
+const sliderH     = document.getElementById('slider-h');
+
+function resize(){
+  const wrap = document.getElementById('canvas-wrap');
+  const w = wrap.clientWidth, h = wrap.clientHeight;
+  if(w < 1 || h < 1) return;
+  CW = w; CH = h;
+  cv.width  = Math.round(CW * dpr);
+  cv.height = Math.round(CH * dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  redraw();
+}
+window.addEventListener('resize', resize);
+window._atelierResize = resize;
+
+function svgpt(e){
+  const r  = cv.getBoundingClientRect();
+  const sx = CW / r.width, sy = CH / r.height;
+  const src = e.touches ? e.touches[0] : e;
+  return { x:(src.clientX - r.left)*sx, y:(src.clientY - r.top)*sy };
+}
+function dist(a,b){ return Math.hypot(a.x-b.x, a.y-b.y); }
+function pxToCm(px){ return Math.round(px / PPCM); }
+function pxToCm2(px2){ return Math.round(px2 / (PPCM*PPCM)); }
+function polyArea(v){
+  let a = 0;
+  for(let i=0, j=v.length-1; i<v.length; j=i++)
+    a += v[j].x*v[i].y - v[i].x*v[j].y;
+  return Math.abs(a/2);
+}
+function isClockwise(v){
+  let s = 0;
+  for(let i=0, j=v.length-1; i<v.length; j=i++)
+    s += (v[i].x-v[j].x)*(v[i].y+v[j].y);
+  return s > 0;
+}
+function pointInPoly(px, py, poly){
+  let inside = false;
+  for(let i=0, j=poly.length-1; i<poly.length; j=i++){
+    const xi=poly[i].x, yi=poly[i].y, xj=poly[j].x, yj=poly[j].y;
+    if(((yi>py)!==(yj>py)) && (px < (xj-xi)*(py-yi)/(yj-yi)+xi))
+      inside = !inside;
+  }
+  return inside;
+}
+
+function smooth(pts, k=5){
+  return pts.map((pt,i) => {
+    const s = Math.max(0,i-k), e = Math.min(pts.length-1,i+k);
+    let sx=0, sy=0, n=0;
+    for(let j=s; j<=e; j++){ sx+=pts[j].x; sy+=pts[j].y; n++; }
+    return {x:sx/n, y:sy/n};
+  });
+}
+function dpDist(p,a,b){
+  const dx=b.x-a.x, dy=b.y-a.y, l=Math.hypot(dx,dy);
+  if(l<1e-6) return dist(p,a);
+  return Math.abs(dx*(a.y-p.y) - dy*(a.x-p.x)) / l;
+}
+function rdp(pts, eps){
+  if(pts.length < 3) return pts;
+  let maxD=0, idx=0;
+  for(let i=1; i<pts.length-1; i++){
+    const d = dpDist(pts[i], pts[0], pts[pts.length-1]);
+    if(d > maxD){ maxD=d; idx=i; }
+  }
+  if(maxD > eps){
+    const l = rdp(pts.slice(0,idx+1), eps);
+    const r = rdp(pts.slice(idx),     eps);
+    return [...l.slice(0,-1), ...r];
+  }
+  return [pts[0], pts[pts.length-1]];
+}
+function mergeCollinear(verts, deg=28){
+  const th = deg * Math.PI/180;
+  let changed = true;
+  while(changed && verts.length > 3){
+    changed = false; const keep = [];
+    for(let i=0; i<verts.length; i++){
+      const pv = verts[(i-1+verts.length)%verts.length];
+      const cu = verts[i];
+      const nx = verts[(i+1)%verts.length];
+      const ax=cu.x-pv.x, ay=cu.y-pv.y;
+      const bx=nx.x-cu.x, by=nx.y-cu.y;
+      const la=Math.hypot(ax,ay), lb=Math.hypot(bx,by);
+      if(la<1||lb<1){ changed=true; continue; }
+      const dot=(ax*bx+ay*by)/(la*lb);
+      if(Math.acos(Math.max(-1,Math.min(1,dot))) < th) changed=true;
+      else keep.push(cu);
+    }
+    verts = keep;
+  }
+  return verts;
+}
+function closePolygon(verts){
+  if(verts.length < 3) return verts;
+  const first = verts[0], last = verts[verts.length-1];
+  const perim = verts.reduce((a,v,i) => i ? a+dist(v,verts[i-1]) : a, 0);
+  if(dist(first,last) < perim*0.05){
+    const mid = {x:(first.x+last.x)/2, y:(first.y+last.y)/2};
+    return [mid, ...verts.slice(1,-1)];
+  }
+  return verts;
+}
+function detectShape(pts){
+  if(pts.length < 8) return null;
+  const sm = smooth(pts, 5);
+  const step = Math.max(1, Math.floor(sm.length/300));
+  const sub  = sm.filter((_,i) => i%step===0);
+  const raw  = rdp(sub, 10);
+  const open = raw.slice(0,-1);
+  const closed = closePolygon(open);
+  const verts  = mergeCollinear(closed, 28);
+  if(verts.length < 3 || verts.length > 12) return null;
+  return verts;
+}
+
+function drawAire(v){
+  const cx = v.reduce((a,p)=>a+p.x,0)/v.length;
+  const cy = v.reduce((a,p)=>a+p.y,0)/v.length;
+  const a  = pxToCm2(polyArea(v));
+  ctx.save();
+  ctx.font = "bold 13px 'Nunito',sans-serif";
+  ctx.textAlign    = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillStyle    = '#1E1D1A';
+  ctx.fillText('A = '+a+' cm²', cx, cy);
+  ctx.restore();
+}
+
+function drawDepthLabel(frontVerts, depth){
+  if(depth === 0) return;
+  const v = isClockwise(frontVerts) ? [...frontVerts].reverse() : frontVerts;
+  // Sommet bas-droite : score = y + x*0.4
+  let brIdx = 0;
+  for(let i=1; i<v.length; i++)
+    if((v[i].y+v[i].x*0.4) > (v[brIdx].y+v[brIdx].x*0.4)) brIdx=i;
+  const front = v[brIdx];
+  const back  = {x: front.x+PX*depth, y: front.y+PY*depth};
+  const mx=(front.x+back.x)/2, my=(front.y+back.y)/2;
+  const el = dist(front,back);
+  if(el < 2) return;
+  const ex=(back.x-front.x)/el, ey=(back.y-front.y)/el;
+  let nx=-ey, ny=ex;
+  if(nx < 0){ nx=-nx; ny=-ny; }
+  ctx.save();
+  ctx.strokeStyle = COL_HEIGHT;
+  ctx.lineWidth   = 2.5;
+  ctx.lineCap     = 'round';
+  ctx.setLineDash([]);
+  ctx.beginPath(); ctx.moveTo(front.x,front.y); ctx.lineTo(back.x,back.y); ctx.stroke();
+  ctx.font         = "bold 12px 'Nunito',sans-serif";
+  ctx.textAlign    = 'left';
+  ctx.textBaseline = 'middle';
+  ctx.fillStyle    = COL_HEIGHT;
+  ctx.fillText(pxToCm(depth)+' cm', mx+nx*10, my+ny*10);
+  ctx.restore();
+}
+
+function drawVolume(frontVerts, depth){
+  if(depth===0 || volLabelX===null) return;
+  const areaCm = pxToCm2(polyArea(frontVerts));
+  const hCm    = pxToCm(depth);
+  ctx.save();
+  ctx.font         = "bold 13px 'Nunito',sans-serif";
+  ctx.textAlign    = 'center';
+  ctx.textBaseline = 'top';
+  ctx.fillStyle    = '#1E1D1A';
+  ctx.fillText('V = '+(areaCm*hCm)+' cm³', volLabelX, volLabelY);
+  ctx.restore();
+}
+
+function drawFace(pts2d, fill, stroke, lw){
+  ctx.save();
+  ctx.fillStyle   = fill;
+  ctx.strokeStyle = stroke;
+  ctx.lineWidth   = lw;
+  ctx.lineJoin    = 'round';
+  ctx.beginPath();
+  ctx.moveTo(pts2d[0].x, pts2d[0].y);
+  for(let i=1; i<pts2d.length; i++) ctx.lineTo(pts2d[i].x, pts2d[i].y);
+  ctx.closePath();
+  ctx.fill(); ctx.stroke();
+  ctx.restore();
+}
+
+function drawFlat(verts){
+  ctx.clearRect(0,0,CW,CH);
+  const fill   = frontRed ? COL_RED_F : COL_FILL;
+  const stroke = frontRed ? COL_RED_E : COL_EDGE;
+  drawFace(verts, fill, stroke, 2);
+  frontPath = [...verts]; backPath = null;
+  if(showMeasures) drawAire(verts);
+}
+
+function drawPrism(verts, depth){
+  ctx.clearRect(0,0,CW,CH);
+  if(!verts || verts.length < 3) return;
+  if(depth === 0){ drawFlat(verts); return; }
+
+  const v = isClockwise(verts) ? [...verts].reverse() : verts;
+  const dx = PX*depth, dy = PY*depth;
+  const vBack = v.map(p => ({x:p.x+dx, y:p.y+dy}));
+
+  const sides = [];
+  for(let i=0; i<v.length; i++){
+    const a=v[i], b=v[(i+1)%v.length], c=vBack[(i+1)%v.length], d=vBack[i];
+    sides.push({pts:[a,b,c,d], midY:(a.y+b.y+c.y+d.y)/4});
+  }
+  sides.sort((a,b) => b.midY - a.midY);
+
+  // Face arrière
+  const bFill   = backRed ? COL_RED_F : COL_BACK;
+  const bStroke = backRed ? COL_RED_E : COL_EDGE;
+  drawFace(vBack, bFill, bStroke, 1.5);
+
+  // Arêtes pointillées de liaison
+  ctx.save();
+  ctx.strokeStyle = COL_EDGE; ctx.lineWidth=1;
+  ctx.setLineDash([4,4]); ctx.globalAlpha=0.35;
+  for(let i=0; i<v.length; i++){
+    ctx.beginPath();
+    ctx.moveTo(vBack[i].x, vBack[i].y);
+    ctx.lineTo(v[i].x,     v[i].y);
+    ctx.stroke();
+  }
+  ctx.setLineDash([]); ctx.restore();
+
+  // Faces latérales
+  const sideHL = 'rgba(45,107,228,0.45)';
+  const sideStrokeHL = '#2D6BE4';
+  sides.forEach(({pts:s}) => drawFace(s,
+    showFacesHL ? sideHL : COL_SIDE,
+    showFacesHL ? sideStrokeHL : COL_EDGE,
+    showFacesHL ? 2 : 1.5
+  ));
+
+  // Face avant
+  const fFill   = frontRed ? COL_RED_F : COL_FILL;
+  const fStroke = frontRed ? COL_RED_E : COL_EDGE;
+  drawFace(v, fFill, fStroke, 2);
+
+  // Arêtes en surbrillance (tracées par-dessus tout)
+  if(showAretsHL){
+    ctx.save();
+    ctx.strokeStyle = '#2D6BE4'; ctx.lineWidth = 3; ctx.lineCap = 'round';
+    ctx.setLineDash([]);
+    // Arêtes de la base avant
+    for(let i=0; i<v.length; i++){
+      ctx.beginPath();
+      ctx.moveTo(v[i].x, v[i].y);
+      ctx.lineTo(v[(i+1)%v.length].x, v[(i+1)%v.length].y);
+      ctx.stroke();
+    }
+    // Arêtes de la base arrière
+    for(let i=0; i<vBack.length; i++){
+      ctx.beginPath();
+      ctx.moveTo(vBack[i].x, vBack[i].y);
+      ctx.lineTo(vBack[(i+1)%vBack.length].x, vBack[(i+1)%vBack.length].y);
+      ctx.stroke();
+    }
+    // Arêtes latérales
+    for(let i=0; i<v.length; i++){
+      ctx.beginPath();
+      ctx.moveTo(v[i].x, v[i].y);
+      ctx.lineTo(vBack[i].x, vBack[i].y);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  frontPath = [...v]; backPath = [...vBack];
+  if(showMeasures){ drawAire(v); drawDepthLabel(v, depth); drawVolume(v, depth); }
+}
+
+function drawInvite(){
+  ctx.save();
+  ctx.font         = "600 15px 'Nunito',sans-serif";
+  ctx.textAlign    = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillStyle    = '#B4B2A9';
+  ctx.fillText('Dessiner un polygone', CW/2, CH/2);
+  ctx.restore();
+}
+
+function redraw(){
+  if(animating) return;
+  ctx.clearRect(0,0,CW,CH);
+  if(!lastVerts){
+    if(phase === 'draw') drawInvite();
+    return;
+  }
+  if(currentDepth === 0) drawFlat(lastVerts);
+  else drawPrism(lastVerts, currentDepth);
+}
+
+let animating = false; // bloque redraw pendant le fondu
+
+function animateFlat(verts){
+  animating = true;
+  let t=0; const STEPS=20;
+  function ease(x){ return x<.5 ? 2*x*x : -1+(4-2*x)*x; }
+  (function step(){
+    ctx.clearRect(0,0,CW,CH);
+    ctx.save(); ctx.globalAlpha = ease(Math.min(t/STEPS,1));
+    drawFace(verts, COL_FILL, COL_EDGE, 2);
+    ctx.restore();
+    frontPath = [...verts]; backPath = null;
+    if(t < STEPS){ t++; requestAnimationFrame(step); }
+    else { animating = false; redraw(); }
+  })();
+}
+
+function onDown(e){
+  if(phase !== 'draw') return;
+  pressing = true; rawPts = [];
+  const p = svgpt(e);
+  if(!startT) startT = performance.now();
+  rawPts.push(p);
+  ctx.save();
+  ctx.strokeStyle = COL_DRAW; ctx.lineWidth=2;
+  ctx.lineCap='round'; ctx.lineJoin='round';
+  ctx.beginPath(); ctx.moveTo(p.x, p.y);
+  if(e.cancelable) e.preventDefault();
+}
+function onMove(e){
+  if(!pressing || phase !== 'draw') return;
+  const p = svgpt(e); rawPts.push(p);
+  ctx.lineTo(p.x, p.y); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(p.x, p.y);
+  if(e.cancelable) e.preventDefault();
+}
+function onUp(){
+  if(!pressing || phase !== 'draw') return;
+  pressing = false; ctx.stroke(); ctx.restore();
+  if(rawPts.length > 10){
+    const verts = detectShape(rawPts);
+    if(verts){
+      lastVerts    = verts;
+      currentDepth = 0;
+      showMeasures = false;
+      frontRed     = false;
+      backRed      = false;
+      phase        = 'shape';
+      cv.style.cursor = 'default';
+
+      // Position fixe du label V= (sous la figure)
+      volLabelX = verts.reduce((a,p)=>a+p.x,0)/verts.length;
+      volLabelY = Math.max(...verts.map(p=>p.y)) + 22;
+
+      // UI
+      btnMesures.disabled = false;
+      btnMesures.textContent = '⊹ Aire';
+      btnMesures.classList.remove('active');
+      btnFaces.style.display = 'none';
+      btnFaces.classList.remove('active');
+      btnFaces.textContent = 'Faces latérales';
+      btnArets.style.display = 'none';
+      btnArets.classList.remove('active');
+      btnArets.textContent = 'Arêtes';
+      btnPlus.classList.remove('active');
+      btnPlusWrap.style.display = 'none';
+      sliderWrap.style.display = 'flex';
+      sliderH.value = 0;
+
+      animateFlat(verts);
+    }
+  }
+  startT = null;
+}
+
+cv.addEventListener('mousedown', onDown);
+cv.addEventListener('mousemove', onMove);
+cv.addEventListener('mouseup',   onUp);
+cv.addEventListener('touchstart', onDown, {passive:false});
+cv.addEventListener('touchmove',  onMove, {passive:false});
+cv.addEventListener('touchend',   onUp,   {passive:false});
+window.addEventListener('mouseup', () => { if(pressing && phase==='draw') onUp(); });
+
+cv.addEventListener('click', e => {
+  if(phase !== 'shape' || !lastVerts || currentDepth === 0) return;
+  const p = svgpt(e);
+  const hF = frontPath && pointInPoly(p.x,p.y,frontPath);
+  const hB = backPath  && pointInPoly(p.x,p.y,backPath);
+  if(!hF && !hB) return;
+  if(hF){
+    if(frontRed){ frontRed=false; backRed=false; }
+    else frontRed = true;
+  } else if(hB){
+    if(backRed){ frontRed=false; backRed=false; }
+    else backRed = true;
+  }
+  redraw();
+});
+
+cv.addEventListener('mousemove', e => {
+  if(phase === 'draw'){ cv.style.cursor='crosshair'; return; }
+  if(!lastVerts || currentDepth === 0){ cv.style.cursor='default'; return; }
+  const p = svgpt(e);
+  const on = (frontPath && pointInPoly(p.x,p.y,frontPath))
+          || (backPath  && pointInPoly(p.x,p.y,backPath));
+  cv.style.cursor = on ? 'pointer' : 'default';
+});
+
+btnMesures.addEventListener('click', () => {
+  showMeasures = !showMeasures;
+  btnMesures.classList.toggle('active', showMeasures);
+  redraw();
+});
+
+btnFaces.addEventListener('click', () => {
+  if(!lastVerts) return;
+  const was = btnFaces.classList.contains('active');
+  btnFaces.classList.toggle('active', !was);
+  btnFaces.textContent = was ? 'Faces latérales' : 'Faces latérales : '+lastVerts.length;
+  bubbleFaces.style.display = 'none';
+  tooltipFacesLocked = !was;
+  showFacesHL = !was;
+  redraw();
+});
+
+btnArets.addEventListener('click', () => {
+  if(!lastVerts) return;
+  const was = btnArets.classList.contains('active');
+  btnArets.classList.toggle('active', !was);
+  btnArets.textContent = was ? 'Arêtes' : 'Arêtes : '+(3*lastVerts.length);
+  bubbleArets.style.display = 'none';
+  tooltipAretsLocked = !was;
+  showAretsHL = !was;
+  redraw();
+});
+
+sliderH.addEventListener('input', () => {
+  currentDepth = parseInt(sliderH.value);
+  btnMesures.textContent = currentDepth > 0 ? '⊹ Valeurs' : '⊹ Aire';
+  const extruded = currentDepth > 0;
+  btnPlusWrap.style.display = extruded ? 'inline-flex' : 'none';
+  document.getElementById('prisme-dev-sep').style.display = extruded ? 'block' : 'none';
+  document.getElementById('prisme-dev-btn').style.display = (extruded && lastVerts && lastVerts.length <= 6) ? 'inline-flex' : 'none';
+  if(!extruded){
+    btnPlus.classList.remove('active');
+    if(btnPlus.childNodes[0]) btnPlus.childNodes[0].textContent='+';
+    btnFaces.style.display = 'none';
+    btnArets.style.display = 'none';
+    prDevActif=false; prDevT=0;
+    if(prDevRaf){cancelAnimationFrame(prDevRaf);prDevRaf=null;}
+    document.getElementById('prisme-dev-btn').classList.remove('active');
+    document.getElementById('prisme-dev-btn').textContent='Développement';
+  }
+  redraw();
+});
+
+btnPlus.addEventListener('click', () => {
+  const wasActive = btnPlus.classList.contains('active');
+  btnPlus.classList.toggle('active', !wasActive);
+  // Changer le signe + / - sans toucher à la bulle (childNodes[0] = nœud texte)
+  btnPlus.childNodes[0].textContent = wasActive ? '+' : '−';
+  const show = !wasActive;
+  btnFaces.style.display = show ? 'inline-flex' : 'none';
+  btnArets.style.display = show ? 'inline-flex' : 'none';
+  if(!show){
+    btnFaces.style.display = 'none';
+    btnArets.style.display = 'none';
+    // Décompte conservé
+  }
+});
+
+btnClear.addEventListener('click', () => {
+  rawPts=[]; pressing=false; lastVerts=null; startT=null;
+  currentDepth=0; showMeasures=false; frontRed=false; backRed=false;
+  showFacesHL=false; showAretsHL=false;
+  frontPath=null; backPath=null; volLabelX=null; volLabelY=null;
+  phase='draw'; cv.style.cursor='crosshair';
+  ctx.clearRect(0,0,CW,CH);
+  drawInvite();
+  btnMesures.disabled=true; btnMesures.classList.remove('active'); btnMesures.textContent='⊹ Aire';
+  btnFaces.style.display='none'; btnFaces.classList.remove('active');
+  btnFaces.textContent='Faces latérales';
+  btnArets.style.display='none'; btnArets.classList.remove('active');
+  btnArets.textContent='Arêtes';
+  tooltipFacesLocked=false; tooltipAretsLocked=false;
+  bubbleFaces.style.display='none'; bubbleArets.style.display='none';
+  btnPlus.classList.remove('active');
+  if(btnPlus.childNodes[0]) btnPlus.childNodes[0].textContent='+';
+  btnPlusWrap.style.display='none';
+  sliderWrap.style.display='none'; sliderH.value=0;
+  prDevActif=false; prDevT=0;
+  if(prDevRaf){cancelAnimationFrame(prDevRaf);prDevRaf=null;}
+  document.getElementById('prisme-dev-sep').style.display='none';
+  document.getElementById('prisme-dev-btn').style.display='none';
+  document.getElementById('prisme-dev-btn').classList.remove('active');
+  document.getElementById('prisme-dev-btn').textContent='Développement';
+});
+
+requestAnimationFrame(() => requestAnimationFrame(() => {
+  resize();
+  // Sécurité : second appel si le canvas était encore à taille 0
+  setTimeout(resize, 100);
+}));
+
+/* ── Définitions au survol, cachées une fois le calcul affiché ── */
+const bubbleFaces = document.getElementById('bubble-faces');
+const bubbleArets = document.getElementById('bubble-arets');
+let tooltipFacesLocked = false;
+let tooltipAretsLocked = false;
+
+function positionBubble(btn, bubble){
+  const r = btn.getBoundingClientRect();
+  bubble.style.top  = Math.round(r.top + r.height/2 - bubble.offsetHeight/2) + 'px';
+  bubble.style.left = Math.round(r.right + 12) + 'px';
+}
+
+btnFaces.addEventListener('mouseenter', () => {
+  if(tooltipFacesLocked) return;
+  positionBubble(btnFaces, bubbleFaces);
+  bubbleFaces.style.display = 'block';
+});
+btnFaces.addEventListener('mouseleave', () => { bubbleFaces.style.display = 'none'; });
+
+btnArets.addEventListener('mouseenter', () => {
+  if(tooltipAretsLocked) return;
+  positionBubble(btnArets, bubbleArets);
+  bubbleArets.style.display = 'block';
+});
+btnArets.addEventListener('mouseleave', () => { bubbleArets.style.display = 'none'; });
+
+/* ── Développement pavé/cube ── */
+window.prismeToggleDev = function(){
+  prDevActif = !prDevActif;
+  const btn = document.getElementById('prisme-dev-btn');
+  btn.classList.toggle('active', prDevActif);
+  btn.textContent = prDevActif ? 'Replier' : 'Développement';
+  if(prDevRaf){ cancelAnimationFrame(prDevRaf); prDevRaf=null; }
+  const target = prDevActif ? PR_DEV_STEPS : 0;
+  const step   = prDevActif ? 1 : -1;
+  function animate(){
+    prDevT = Math.max(0, Math.min(PR_DEV_STEPS, prDevT+step));
+    drawDevPrisme(prDevT/PR_DEV_STEPS);
+    if(prDevT !== target) prDevRaf = requestAnimationFrame(animate);
+    else if(!prDevActif) redraw();
+  }
+  animate();
+};
+
+function drawDevPrisme(p){
+  if(!lastVerts || currentDepth === 0) return;
+  function easeP(t){return t<.5?2*t*t:-1+(4-2*t)*t;}
+  const ep = easeP(p);
+
+  const v = isClockwise(lastVerts) ? [...lastVerts].reverse() : lastVerts;
+  const n = v.length;
+  const dx = PX*currentDepth, dy = PY*currentDepth;
+  const vB = v.map(q => ({x:q.x+dx, y:q.y+dy}));
+
+  function face(pts, fill, lw){
+    ctx.beginPath();
+    ctx.moveTo(pts[0].x,pts[0].y);
+    for(let i=1;i<pts.length;i++) ctx.lineTo(pts[i].x,pts[i].y);
+    ctx.closePath();
+    ctx.fillStyle=fill; ctx.fill();
+    ctx.strokeStyle=COL_EDGE; ctx.lineWidth=lw||1.8; ctx.stroke();
+  }
+
+  // Centroïde base avant
+  const bcx=v.reduce((s,q)=>s+q.x,0)/n, bcy=v.reduce((s,q)=>s+q.y,0)/n;
+
+  // Déploie la face latérale i autour de v[i]→v[(i+1)%n]
+  function deployFace(i){
+    const a=v[i], b=v[(i+1)%n];
+    const ex=b.x-a.x, ey=b.y-a.y, el=Math.hypot(ex,ey);
+    const uX=ex/el, uY=ey/el;
+    let fnX=uY, fnY=-uX;
+    if(((a.x+b.x)/2+fnX-bcx)*fnX+((a.y+b.y)/2+fnY-bcy)*fnY < 0){fnX=-fnX; fnY=-fnY;}
+    const sideLen=Math.hypot(vB[i].x-v[i].x, vB[i].y-v[i].y);
+    // Positions finales (ep=1) des sommets mobiles
+    const dA={x:a.x+fnX*sideLen, y:a.y+fnY*sideLen};
+    const dB={x:b.x+fnX*sideLen, y:b.y+fnY*sideLen};
+    // Positions interpolées
+    const cA={x:vB[i].x+(dA.x-vB[i].x)*ep, y:vB[i].y+(dA.y-vB[i].y)*ep};
+    const cB={x:vB[(i+1)%n].x+(dB.x-vB[(i+1)%n].x)*ep, y:vB[(i+1)%n].y+(dB.y-vB[(i+1)%n].y)*ep};
+    return {a, b, cA, cB, dA, dB, uX, uY, fnX, fnY, sideLen};
+  }
+
+  // Face droite = arête de vB la plus à droite
+  let pivI = 0;
+  for(let i=1;i<n;i++){
+    if((vB[i].x+vB[(i+1)%n].x) > (vB[pivI].x+vB[(pivI+1)%n].x)) pivI = i;
+  }
+
+  const deployedSides = Array.from({length:n}, (_,i)=>deployFace(i));
+
+  // Base arrière : pivote autour de dA→dB de la face pivI
+  // Arête pivot finale = dA→dB (positions finales déployées de la face droite)
+  const {dA, dB, uX:puX, uY:puY, fnX:pfnX, fnY:pfnY, sideLen:pSL} = deployedSides[pivI];
+  const {cA:pcA, cB:pcB} = deployedSides[pivI];
+
+  // Arête pivot courante (suit l'animation) = pcA→pcB
+  // La base arrière déploie ses sommets à distance pSL dans la direction pfnX,pfnY
+  // depuis l'arête courante pcA→pcB
+
+  // Vecteur unitaire le long de pcA→pcB
+  const peX=pcB.x-pcA.x, peY=pcB.y-pcA.y, peL=Math.hypot(peX,peY)||1;
+  const puXc=peX/peL, puYc=peY/peL;
+
+  // Chaque sommet de vB se projette sur l'arête vB[pivI]→vB[(pivI+1)%n]
+  // pour garder sa coordonnée "along", et se place à pSL dans la direction pfnX,pfnY
+  const vBpivA = vB[pivI], vBpivB = vB[(pivI+1)%n];
+  const pvbex=vBpivB.x-vBpivA.x, pvbey=vBpivB.y-vBpivA.y, pvbel=Math.hypot(pvbex,pvbey)||1;
+  const pvbX=pvbex/pvbel, pvbY=pvbey/pvbel;
+
+  // La base arrière pivote autour de dA→dB.
+  // Chaque sommet de vB se trouve à une certaine distance de l'arête vB[pivI]→vB[(pivI+1)%n].
+  // Cette distance (perpendiculaire à l'arête) devient la distance le long de pfnX,pfnY dans le plan déployé.
+  const vBfinal = vB.map(pt => {
+    // Coordonnée along et perp par rapport à l'arête arrière vBpivA→vBpivB
+    const rx=pt.x-vBpivA.x, ry=pt.y-vBpivA.y;
+    const along = rx*pvbX + ry*pvbY;         // le long de l'arête
+    const perp  = rx*(-pvbY) + ry*pvbX;     // perpendiculaire (distance à l'arête)
+    // Position finale dans le plan déployé :
+    // - along : le long de dA→dB (puXc,puYc)
+    // - perp  : dans la direction pfnX,pfnY (perpendiculaire à la face droite déployée)
+    const finalX = dA.x + along*puXc + perp*pfnX;
+    const finalY = dA.y + along*puYc + perp*pfnY;
+    return {x: pt.x+(finalX-pt.x)*ep, y: pt.y+(finalY-pt.y)*ep};
+  });
+
+  ctx.clearRect(0,0,CW,CH);
+
+  // 1. Base arrière solidaire de la face droite
+  face(vBfinal, COL_FILL);
+
+  // 2. Faces latérales
+  deployedSides.forEach(({a,b,cA,cB})=>face([a,b,cB,cA], COL_SIDE));
+
+  // 3. Base avant (fixe)
+  face(v, COL_FILL, 2);
+}
+
+})();
+
+function showPage(p){
+  document.querySelectorAll('.page').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(el=>el.classList.remove('active'));
+  document.getElementById('page-'+p).classList.add('active');
+  document.getElementById('nav-'+p).classList.add('active');
+  if(p==='ex') initEx();
+  if(p==='atelier') requestAnimationFrame(()=>requestAnimationFrame(()=>{ if(window._atelierResize) window._atelierResize(); }));
+  if(p==='cylindre') requestAnimationFrame(()=>requestAnimationFrame(cylResize));
+}
+
+function svgPrisme(type){
+  const S=`<svg viewBox="0 0 200 160" width="200" height="160" font-family="Nunito,sans-serif">`;
+  const E=`</svg>`;
+
+  if(type==='pave'){
+    // Pavé droit — perspective cavalière
+    // Face avant : A(30,52) B(130,52) C(130,122) D(30,122) — 4 cm large, 3 cm haut
+    // Profondeur dx=+45 dy=-28 — arêtes vers haut-droite
+    // Face arrière : A'(75,24) B'(175,24) C'(175,94) D'(75,94)
+    // Toutes arêtes pleines — "5 cm" sur l'arête basse-droite C→C' (bas à droite)
+    return `<svg viewBox="0 0 210 165" width="210" height="165" font-family="Nunito,sans-serif">
+      <polygon points="75,24 175,24 175,94 75,94" fill="rgba(197,220,151,0.22)" stroke="#3B6D11" stroke-width="1.8" stroke-linejoin="round"/>
+      <polygon points="130,52 175,24 175,94 130,122" fill="rgba(197,220,151,0.38)" stroke="#3B6D11" stroke-width="1.8" stroke-linejoin="round"/>
+      <polygon points="30,52 130,52 175,24 75,24" fill="rgba(197,220,151,0.28)" stroke="#3B6D11" stroke-width="1.8" stroke-linejoin="round"/>
+      <line x1="30"  y1="52"  x2="75"  y2="24"  stroke="#3B6D11" stroke-width="1.8" stroke-linecap="round"/>
+      <line x1="30"  y1="122" x2="75"  y2="94"  stroke="#3B6D11" stroke-width="1.8" stroke-linecap="round"/>
+      <polygon points="30,52 130,52 130,122 30,122" fill="rgba(197,220,151,0.65)" stroke="#3B6D11" stroke-width="2" stroke-linejoin="round"/>
+      <text x="80"  y="140" font-size="12" font-weight="700" fill="#3B6D11" text-anchor="middle">4 cm</text>
+      <text x="26"  y="90"  font-size="12" font-weight="700" fill="#3B6D11" text-anchor="end">3 cm</text>
+      <!-- Cotation 5 cm : arête C(130,122)→C'(175,94), milieu (152,108) -->
+      <line x1="130" y1="122" x2="175" y2="94" stroke="#e05c00" stroke-width="1.5" stroke-linecap="round"/>
+      <text x="157" y="120" font-size="12" font-weight="700" fill="#e05c00" text-anchor="start">5 cm</text>
+    </svg>`;
+  }
+
+  if(type==='tri'){
+    return `<svg viewBox="0 0 480 210" width="300" height="131" font-family="Nunito,sans-serif">
+      <polygon points="310,2 240,142 380,142" fill="rgba(197,220,151,0.18)" stroke="#3B6D11" stroke-width="1.8" stroke-linejoin="round"/>
+      <polygon points="130,180 240,142 310,2 200,40" fill="rgba(197,220,151,0.25)" stroke="#3B6D11" stroke-width="1.8" stroke-linejoin="round"/>
+      <polygon points="270,180 380,142 310,2 200,40" fill="rgba(197,220,151,0.35)" stroke="#3B6D11" stroke-width="1.8" stroke-linejoin="round"/>
+      <polygon points="130,180 270,180 380,142 240,142" fill="rgba(197,220,151,0.28)" stroke="#3B6D11" stroke-width="1.8" stroke-linejoin="round"/>
+      <line x1="200" y1="40"  x2="310" y2="2"   stroke="#3B6D11" stroke-width="1.8" stroke-linecap="round"/>
+      <line x1="130" y1="180" x2="240" y2="142" stroke="#3B6D11" stroke-width="1.8" stroke-linecap="round"/>
+      <line x1="270" y1="180" x2="380" y2="142" stroke="#3B6D11" stroke-width="1.8" stroke-linecap="round"/>
+      <polygon points="200,40 130,180 270,180" fill="rgba(197,220,151,0.72)" stroke="#3B6D11" stroke-width="2.2" stroke-linejoin="round"/>
+      <text x="200" y="145" font-size="16" font-weight="700" fill="#3B6D11" text-anchor="middle">A = 9 cm²</text>
+      <text x="338" y="178" font-size="16" font-weight="700" fill="#e05c00" text-anchor="middle">7 cm</text>
+    </svg>`;
+  }
+
+  if(type==='hexa'){
+    // Prisme hexagonal couché — base hexagonale sur la face gauche
+    // Hexagone régulier centré en (70,80), rayon 45
+    // Profondeur = arêtes obliques vers droite dx=+70 dy=-15
+    const cx=70,cy=80,r=42;
+    const hex=Array.from({length:6},(_,i)=>{
+      const a=Math.PI/180*(60*i-30);
+      return [Math.round(cx+r*Math.cos(a)),Math.round(cy+r*Math.sin(a))];
+    });
+    const hexS=hex.map(p=>p.join(',')).join(' ');
+    const dx=75,dy=-15;
+    const hexB=hex.map(p=>[p[0]+dx,p[1]+dy]);
+    const hexBS=hexB.map(p=>p.join(',')).join(' ');
+    // Faces latérales visibles (droite) : côtés 0-1, 1-2, 5-0
+    return S+`
+      <polygon points="${hexBS}" fill="rgba(197,220,151,0.2)" stroke="#3B6D11" stroke-width="1.5" stroke-linejoin="round"/>
+      ${[0,1,2,3,4,5].map(i=>{
+        const j=(i+1)%6;
+        // Arêtes de profondeur — toutes, mais pointillées pour les cachées (3,4)
+        const hidden=i>=2&&i<=4;
+        return `<line x1="${hex[i][0]}" y1="${hex[i][1]}" x2="${hexB[i][0]}" y2="${hexB[i][1]}" stroke="#3B6D11" stroke-width="${hidden?1.2:1.8}" ${hidden?'stroke-dasharray="4,3"':''}/>`;
+      }).join('')}
+      ${[[0,1],[1,2],[4,5],[5,0]].map(([i,j])=>`
+        <polygon points="${hex[i][0]},${hex[i][1]} ${hex[j][0]},${hex[j][1]} ${hexB[j][0]},${hexB[j][1]} ${hexB[i][0]},${hexB[i][1]}" fill="rgba(197,220,151,0.4)" stroke="#3B6D11" stroke-width="1.5" stroke-linejoin="round"/>
+      `).join('')}
+      <polygon points="${hexS}" fill="rgba(197,220,151,0.65)" stroke="#3B6D11" stroke-width="2" stroke-linejoin="round"/>
+      <text x="${cx}" y="${cy+5}" font-size="12" font-weight="700" fill="#3B6D11" text-anchor="middle">B = 30 cm²</text>
+      <text x="${Math.round(cx + dx/2)}" y="${Math.round(cy + r + dy/2 + 18)}" font-size="12" font-weight="700" fill="#e05c00" text-anchor="middle">h = ? cm</text>
+    `+E;
+  }
+
+  if(type==='tri2'){
+    return `<svg viewBox="0 0 200 175" width="200" height="175" font-family="Nunito,sans-serif">
+      <polygon points="25,130 65,30 105,130" fill="rgba(197,220,151,0.6)" stroke="#3B6D11" stroke-width="2" stroke-linejoin="round"/>
+      <line x1="25" y1="130" x2="95" y2="115" stroke="#3B6D11" stroke-width="2"/>
+      <line x1="65" y1="30" x2="135" y2="15" stroke="#3B6D11" stroke-width="2"/>
+      <line x1="105" y1="130" x2="175" y2="115" stroke="#3B6D11" stroke-width="2"/>
+      <polygon points="95,115 135,15 175,115" fill="rgba(197,220,151,0.25)" stroke="#3B6D11" stroke-width="2" stroke-linejoin="round"/>
+      <polygon points="65,30 135,15 175,115 105,130" fill="rgba(197,220,151,0.35)" stroke="#3B6D11" stroke-width="1.5" stroke-linejoin="round"/>
+      <line x1="65" y1="30" x2="65" y2="130" stroke="#3B6D11" stroke-width="1.5" stroke-dasharray="4,3"/>
+      <text x="47" y="109" font-size="11" font-weight="700" fill="#3B6D11" text-anchor="start">h = 8 cm</text>
+      <line x1="105" y1="130" x2="175" y2="115" stroke="#e05c00" stroke-width="2.5" stroke-linecap="round"/>
+      <text x="145" y="133" font-size="11" font-weight="700" fill="#e05c00" text-anchor="start">h = 5 cm</text>
+      <text x="12" y="24" font-size="11" font-weight="700" fill="#555" text-anchor="start">V = 120 cm³</text>
+      <text x="17" y="143" font-size="11" font-weight="700" fill="#3B6D11" text-anchor="start">base du triangle = ? cm</text>
+    </svg>`;
+  }
+  if(type==='cyl1'){
+    return `<svg viewBox="0 0 200 160" width="200" height="160" font-family="Nunito,sans-serif">
+      <!-- Corps : path fermé comme dans l'atelier -->
+      <path d="M50,40 Q50,54 100,54 Q150,54 150,40 L150,120 Q150,134 100,134 Q50,134 50,120 Z"
+        fill="rgba(197,220,151,0.60)" stroke="#3B6D11" stroke-width="1.8" stroke-linejoin="round"/>
+      <!-- Ellipse haut (contour seul) -->
+      <ellipse cx="100" cy="40" rx="50" ry="14" fill="rgba(197,220,151,0.60)" stroke="#3B6D11" stroke-width="1.8"/>
+      <!-- Ellipse bas (contour seul, par-dessus) -->
+      <ellipse cx="100" cy="120" rx="50" ry="14" fill="rgba(197,220,151,0.60)" stroke="#3B6D11" stroke-width="2"/>
+      <!-- Label dans disque bas -->
+      <text x="100" y="123" font-size="12" font-weight="700" fill="#3B6D11" text-anchor="middle">A = 20 cm²</text>
+      <!-- Hauteur -->
+      <line x1="158" y1="40" x2="158" y2="120" stroke="#e05c00" stroke-width="2" stroke-linecap="round"/>
+      <text x="164" y="83" font-size="12" font-weight="700" fill="#e05c00" text-anchor="start">5 cm</text>
+    </svg>`;
+  }
+
+  if(type==='cyl2'){
+    return `<svg viewBox="0 0 200 170" width="200" height="170" font-family="Nunito,sans-serif">
+      <path d="M50,30 Q50,44 100,44 Q150,44 150,30 L150,130 Q150,144 100,144 Q50,144 50,130 Z"
+        fill="rgba(197,220,151,0.60)" stroke="#3B6D11" stroke-width="1.8" stroke-linejoin="round"/>
+      <ellipse cx="100" cy="30" rx="50" ry="14" fill="rgba(197,220,151,0.60)" stroke="#3B6D11" stroke-width="1.8"/>
+      <ellipse cx="100" cy="130" rx="50" ry="14" fill="rgba(197,220,151,0.60)" stroke="#3B6D11" stroke-width="2"/>
+      <text x="100" y="133" font-size="12" font-weight="700" fill="#3B6D11" text-anchor="middle">A = 15 cm²</text>
+      <text x="100" y="156" font-size="12" font-weight="700" fill="#3B6D11" text-anchor="middle">V = 90 cm³</text>
+      <line x1="158" y1="30" x2="158" y2="130" stroke="#e05c00" stroke-width="2" stroke-linecap="round"/>
+      <text x="164" y="83" font-size="12" font-weight="700" fill="#e05c00" text-anchor="start">h = ?</text>
+    </svg>`;
+  }
+
+  return '';
+}
+
+const exercices=[
+  // 1 — VF : définition prisme droit
+  {type:'vf',num:1,
+   q:'Un prisme droit est un solide dont les deux bases sont des polygones identiques et parallèles, reliées par des faces latérales perpendiculaires aux bases.',
+   ans:true,
+   fb_ok:'✓ Exact ! Les deux bases sont identiques et parallèles, et les faces latérales sont perpendiculaires aux bases.',
+   fb_ko:'✗ C\'est pourtant vrai : c\'est bien la définition d\'un prisme droit.'},
+
+  // 2 — VF : définition cylindre
+  {type:'vf',num:2,
+   q:'Un cylindre est un solide qui possède deux bases circulaires identiques et parallèles, reliées par une face latérale courbe.',
+   ans:true,
+   fb_ok:'✓ Exact ! Les deux disques sont identiques et parallèles, et la face latérale est une surface courbe.',
+   fb_ko:'✗ C\'est pourtant vrai : c\'est bien la définition d\'un cylindre.'},
+
+  // 3 — QCM : faces prisme triangulaire
+  {type:'qcm',num:3,
+   q:'Combien de faces possède un prisme à base triangulaire ?',
+   opts:['3','4','5','6'],ans:2,
+   fb_ok:'✓ Bravo ! 2 bases triangulaires + 3 faces latérales = 5 faces.',
+   fb_ko:'✗ Un prisme triangulaire a 2 bases + 3 faces latérales = 5 faces.'},
+
+  // 4 — QCM : arêtes prisme triangulaire
+  {type:'qcm',num:4,
+   q:'Combien d\'arêtes possède un prisme à base triangulaire ?',
+   opts:['6','9','12','15'],ans:1,
+   fb_ok:'✓ Exact ! 3 arêtes base basse + 3 arêtes base haute + 3 arêtes latérales = 9.',
+   fb_ko:'✗ 3 + 3 + 3 = 9 arêtes au total.'},
+
+  // 5 — Calcul volume pavé droit
+  {type:'calcul',num:5,figure:'pave',
+   q:'Calcule le volume de ce pavé droit (largeur 4 cm, hauteur 3 cm, profondeur 5 cm).',
+   unite:'cm³',ans:60,tolerance:0,
+   fb_ok:'✓ Parfait ! Aire base = 4 × 3 = 12 cm² → V = 12 × 5 = 60 cm³.',
+   fb_ko:'✗ Aire base = 4 × 3 = 12 cm². V = 12 × 5 = 60 cm³.'},
+
+  // 6 — VF : faces latérales rectangles
+  {type:'vf',num:6,
+   q:'Les faces latérales d\'un prisme droit sont toujours des rectangles.',
+   ans:true,
+   fb_ok:'✓ Exact ! Dans un prisme droit, toutes les faces latérales sont des rectangles.',
+   fb_ko:'✗ Si le prisme est droit, les faces latérales sont bien des rectangles.'},
+
+  // 7 — QCM : faces cylindre
+  {type:'qcm',num:7,
+   q:'Combien de faces possède un cylindre ?',
+   opts:['1','2','3','4'],ans:2,
+   fb_ok:'✓ Exact ! 1 face latérale courbe + 2 bases circulaires = 3 faces.',
+   fb_ko:'✗ Un cylindre a 3 faces : 1 face latérale courbe + 2 bases circulaires.'},
+
+  // 8 — Calcul volume prisme triangulaire
+  {type:'calcul',num:8,figure:'tri',
+   q:'Calcule le volume de ce prisme triangulaire (A = 9 cm², hauteur = 7 cm).',
+   unite:'cm³',ans:63,tolerance:0,
+   fb_ok:'✓ Bravo ! V = 9 × 7 = 63 cm³.',
+   fb_ko:'✗ V = Aire base × hauteur = 9 × 7 = 63 cm³.'},
+
+  // 9 — QCM : faces latérales prisme hexagonal
+  {type:'qcm',num:9,
+   q:'Combien de faces latérales possède un prisme à base hexagonale ?',
+   opts:['4','5','6','8'],ans:2,
+   fb_ok:'✓ Exact ! Autant de faces latérales que de côtés dans la base, soit 6.',
+   fb_ko:'✗ Un prisme hexagonal a 6 faces latérales — autant que de côtés.'},
+
+  // 10 — Calcul volume cylindre
+  {type:'calcul',num:10,figure:'cyl1',
+   q:'Calcule le volume de ce cylindre (aire de la base = 20 cm², hauteur = 5 cm).',
+   unite:'cm³',ans:100,tolerance:0,
+   fb_ok:'✓ Parfait ! V = Aire base × hauteur = 20 × 5 = 100 cm³.',
+   fb_ko:'✗ V = Aire base × hauteur = 20 × 5 = 100 cm³.'},
+
+  // 11 — Calcul hauteur prisme hexagonal (volume donné)
+  {type:'calcul',num:11,figure:'hexa',
+   q:'Ce prisme hexagonal a une base de 30 cm² et un volume de 120 cm³. Quelle est sa hauteur ?',
+   unite:'cm',ans:4,tolerance:0,
+   fb_ok:'✓ Bravo ! h = V ÷ Aire base = 120 ÷ 30 = 4 cm.',
+   fb_ko:'✗ h = Volume ÷ Aire base = 120 ÷ 30 = 4 cm.'},
+
+  // 12 — Calcul aire base prisme
+  {type:'calcul',num:12,figure:null,
+   q:'Un prisme a un volume de 150 cm³ et une hauteur de 6 cm. Quelle est l\'aire de sa base ?',
+   unite:'cm²',ans:25,tolerance:0,
+   fb_ok:'✓ Bravo ! Aire base = 150 ÷ 6 = 25 cm².',
+   fb_ko:'✗ Aire base = Volume ÷ hauteur = 150 ÷ 6 = 25 cm².'},
+
+  // 13 — Calcul hauteur cylindre (volume donné)
+  {type:'calcul',num:13,figure:'cyl2',
+   q:'Ce cylindre a une aire de base de 15 cm² et un volume de 90 cm³. Quelle est sa hauteur ?',
+   unite:'cm',ans:6,tolerance:0,
+   fb_ok:'✓ Bravo ! h = V ÷ Aire base = 90 ÷ 15 = 6 cm.',
+   fb_ko:'✗ h = Volume ÷ Aire base = 90 ÷ 15 = 6 cm.'},
+
+  // 14 — Calcul base triangle prisme
+  {type:'calcul',num:14,figure:'tri2',
+   q:'Ce prisme triangulaire a un volume de 120 cm³. La hauteur du triangle est 8 cm et la hauteur du prisme est 5 cm. Quelle est la base du triangle ?',
+   unite:'cm',ans:6,tolerance:0,
+   fb_ok:'✓ Excellent ! Aire base = V ÷ hauteur prisme = 120 ÷ 5 = 24 cm². Base = Aire×2 ÷ hauteur triangle = 24×2 ÷ 8 = 6 cm.',
+   fb_ko:'✗ Aire base = 120 ÷ 5 = 24 cm². Base triangle = 24×2 ÷ 8 = 6 cm.'},
+];
+
+let exScore=0, exDone=[], exInited=false;
+
+function initEx(){
+  if(exInited) return;
+  exInited=true;
+  exScore=0;
+  exDone=new Array(exercices.length).fill(false);
+  renderAllEx();
+}
+
+function restartEx(){
+  exScore=0; exDone=new Array(exercices.length).fill(false); exInited=true;
+  document.getElementById('ex-score-card').style.display='none';
+  renderAllEx();
+  document.getElementById('page-ex').scrollTop=0;
+}
+
+function renderAllEx(){
+  const wrap=document.getElementById('ex-wrap');
+  wrap.innerHTML=exercices.map((ex,idx)=>{
+    let html=`<div class="ex-card${idx>0?' locked':''}" id="ecard${idx}" style="margin-bottom:.7rem;">`;
+    html+=`<div class="ex-num">Exercice ${ex.num} / ${exercices.length}</div>`;
+    html+=`<div class="ex-question">${ex.q}</div>`;
+    if(ex.figure) html+=`<div class="ex-figure">${svgPrisme(ex.figure)}</div>`;
+    if(ex.type==='vf'){
+      html+=`<div class="ex-vf">
+        <button class="ex-vf-btn" id="vf${idx}v" onclick="repVF(${idx},true)">Vrai</button>
+        <button class="ex-vf-btn" id="vf${idx}f" onclick="repVF(${idx},false)">Faux</button>
+      </div>`;
+    } else if(ex.type==='qcm'){
+      html+=`<div class="ex-opts">`;
+      ex.opts.forEach((o,i)=>{ html+=`<button class="ex-opt" id="opt${idx}_${i}" onclick="repQCM(${idx},${i})">${o}</button>`; });
+      html+=`</div>`;
+    } else {
+      html+=`<div class="ex-input-wrap">
+        <input class="ex-input" type="number" id="inp${idx}" placeholder="?" step="any" onkeydown="if(event.key==='Enter')repCalc(${idx})">
+        <span class="ex-unit">${ex.unite}</span>
+        <button class="btn-valider-ex" style="height:32px;padding:0 14px;font-size:12px;" onclick="repCalc(${idx})">Vérifier</button>
+      </div>`;
+    }
+    html+=`<div class="ex-feedback" id="fb${idx}"></div>`;
+    html+=`</div>`;
+    return html;
+  }).join('');
+  updateExProgress();
+}
+
+function updateExProgress(){
+  const done=exDone.filter(Boolean).length;
+  const pct=done/exercices.length*100;
+  document.getElementById('ex-progress-fill').style.width=pct+'%';
+  document.getElementById('ex-progress-label').textContent=done+' / '+exercices.length;
+  document.getElementById('ex-score').textContent=exScore+' ✓';
+}
+
+function unlockNext(idx){
+  const next=idx+1;
+  if(next<exercices.length){
+    document.getElementById('ecard'+next).classList.remove('locked');
+    setTimeout(()=>document.getElementById('ecard'+next).scrollIntoView({behavior:'smooth',block:'center'}),300);
+  } else {
+    setTimeout(showFinEx,600);
+  }
+}
+
+function showFb(idx,correct){
+  const ex=exercices[idx];
+  const fb=document.getElementById('fb'+idx);
+  fb.textContent=correct?ex.fb_ok:ex.fb_ko;
+  fb.className='ex-feedback '+(correct?'ok':'ko');
+  if(correct) exScore++;
+  updateExProgress();
+  unlockNext(idx);
+}
+
+function repVF(idx,val){
+  if(exDone[idx]) return;
+  exDone[idx]=true;
+  const ex=exercices[idx];
+  const correct=(val===ex.ans);
+  const bv=document.getElementById('vf'+idx+'v');
+  const bf=document.getElementById('vf'+idx+'f');
+  bv.classList.add('locked'); bv.onclick=null;
+  bf.classList.add('locked'); bf.onclick=null;
+  (val?bv:bf).classList.add(correct?'ok':'ko');
+  if(!correct)(ex.ans?bv:bf).classList.add('ok');
+  showFb(idx,correct);
+}
+
+function repQCM(idx,i){
+  if(exDone[idx]) return;
+  exDone[idx]=true;
+  const ex=exercices[idx];
+  const correct=(i===ex.ans);
+  ex.opts.forEach((_,j)=>{
+    const b=document.getElementById('opt'+idx+'_'+j);
+    b.classList.add('locked'); b.onclick=null;
+    if(j===i) b.classList.add(correct?'ok':'ko');
+    if(j===ex.ans) b.classList.add('ok');
+  });
+  showFb(idx,correct);
+}
+
+function repCalc(idx){
+  if(exDone[idx]) return;
+  const ex=exercices[idx];
+  const inp=document.getElementById('inp'+idx);
+  const val=parseFloat(inp.value);
+  if(isNaN(val)) return;
+  exDone[idx]=true;
+  const correct=Math.abs(val-ex.ans)<=ex.tolerance;
+  inp.classList.add(correct?'ok':'ko'); inp.readOnly=true;
+  inp.nextElementSibling.nextElementSibling.disabled=true;
+  showFb(idx,correct);
+}
+
+function showFinEx(){
+  const card=document.getElementById('ex-score-card');
+  card.style.display='flex';
+  card.scrollIntoView({behavior:'smooth'});
+  let col='',msg='';
+  const pct=Math.round(exScore/exercices.length*100);
+  if(pct===100){col='#166534';msg='Parfait ! Excellent travail !';}
+  else if(pct>=75){col='#185FA5';msg='Très bien !';}
+  else if(pct>=50){col='#993C1D';msg='Pas mal, continue !';}
+  else{col='#991B1B';msg='Revois le cours et recommence.';}
+  document.getElementById('ex-score-big').style.color=col;
+  document.getElementById('ex-score-big').innerHTML=`${exScore}<span style="font-size:22px;color:var(--muted);font-weight:700;"> / ${exercices.length}</span>`;
+  document.getElementById('ex-score-msg').style.color=col;
+  document.getElementById('ex-score-msg').textContent=msg;
+}
+
+// Compatibilité (anciennes références)
+function selectVF(){}
+function selectOpt(){}
+function validerEx(){}
+function toggleApercu(){}
+function revoir(){}
+function fermerRevoir(){}
+function avancerEx(){}
+function afficherFeedback(){}
+
+(function(){
+'use strict';
+
+const cv   = document.getElementById('cyl-cv');
+const ctx  = cv.getContext('2d');
+const dpr  = window.devicePixelRatio || 1;
+let CW=0, CH=0;
+
+const COL_STROKE = '#185FA5';
+const COL_FILL   = 'rgba(197,220,151,0.80)';
+const COL_BACK   = 'rgba(160,195,100,0.25)';
+const COL_EDGE   = '#3B6D11';
+const COL_RED_F  = 'rgba(245,150,140,0.85)';
+const COL_RED_E  = '#a32d2d';
+const COL_HEIGHT = '#e05c00';
+const PPCM = 96/2.54;
+
+let phase='draw', pressing=false, rawPts=[];
+let cx=0, cy=0, radius=0;
+let currentDepth=0, showMeasures=false;
+let frontRed=false, backRed=false;
+let showCylFace=false, showCylArets=false;
+let animating=false;
+let volLabelX=null, volLabelY=null;
+
+const cylClear    = document.getElementById('cyl-clear');
+const cylMesures  = document.getElementById('cyl-mesures');
+const cylSliderW  = document.getElementById('cyl-slider-wrap');
+const cylSlider   = document.getElementById('cyl-slider');
+const cylPlusWrap = document.getElementById('cyl-plus-wrap');
+const cylPlus     = document.getElementById('cyl-plus');
+
+function cylResize(){
+  const wrap=document.getElementById('cyl-canvas-wrap');
+  const w=wrap.clientWidth, h=wrap.clientHeight;
+  if(w<1||h<1) return;
+  CW=w; CH=h;
+  cv.width=Math.round(CW*dpr); cv.height=Math.round(CH*dpr);
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  redraw();
+}
+window.addEventListener('resize', cylResize);
+window.cylResize = cylResize;
+
+function svgpt(e){
+  const r=cv.getBoundingClientRect(), src=e.touches?e.touches[0]:e;
+  return {x:(src.clientX-r.left)*(CW/r.width), y:(src.clientY-r.top)*(CH/r.height)};
+}
+function pxToCm(px){return Math.round(px/PPCM);}
+function pxToCm2(px2){return Math.round(px2/(PPCM*PPCM));}
+function circleArea(r){return Math.PI*r*r;}
+
+function detectCircle(pts){
+  if(pts.length<8) return null;
+  let sx=0,sy=0;
+  pts.forEach(p=>{sx+=p.x;sy+=p.y;});
+  const mcx=sx/pts.length, mcy=sy/pts.length;
+  let sr=0;
+  pts.forEach(p=>sr+=Math.hypot(p.x-mcx,p.y-mcy));
+  const r=sr/pts.length;
+  if(r<10) return null;
+  return {cx:mcx, cy:mcy, r};
+}
+
+function drawInvite(){
+  ctx.save();
+  ctx.font="600 15px 'Nunito',sans-serif";
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillStyle='#B4B2A9';
+  ctx.fillText('Dessiner un cercle', CW/2, CH/2);
+  ctx.restore();
+}
+
+function ell(x,y,rx,ry){
+  ctx.beginPath(); ctx.ellipse(x,y,rx,ry,0,0,2*Math.PI);
+}
+
+function redraw(){
+  if(animating) return;
+  ctx.clearRect(0,0,CW,CH);
+  if(!radius){ if(phase==='draw') drawInvite(); return; }
+  if(currentDepth===0) drawFlat();
+  else drawFace();
+}
+
+function drawFlat(){
+  const ry=radius*0.38;
+  ctx.save();
+  ell(cx,cy,radius,ry);
+  ctx.fillStyle=frontRed?COL_RED_F:COL_FILL; ctx.fill();
+  ctx.strokeStyle=frontRed?COL_RED_E:COL_EDGE; ctx.lineWidth=2; ctx.stroke();
+  ctx.restore();
+  if(showMeasures) drawAire();
+}
+
+function drawFace(){
+  const h=currentDepth;
+  const bot=cy, top=cy-h;
+  const ry=radius*0.28;
+  const stroke=COL_EDGE;
+  const bodyCol  = showCylFace ? 'rgba(45,107,228,0.45)' : 'rgba(197,220,151,0.75)';
+  const bodySt   = showCylFace ? '#2D6BE4' : stroke;
+  const bodyLW   = showCylFace ? 2 : 1.5;
+  ctx.save();
+
+  // 1. Corps (face latérale)
+  ctx.beginPath();
+  ctx.ellipse(cx,top,radius,ry,0,Math.PI,0,true);
+  ctx.lineTo(cx+radius,bot);
+  ctx.ellipse(cx,bot,radius,ry,0,0,Math.PI,false);
+  ctx.lineTo(cx-radius,top);
+  ctx.closePath();
+  ctx.fillStyle=bodyCol; ctx.fill();
+  ctx.strokeStyle=bodySt; ctx.lineWidth=bodyLW; ctx.stroke();
+
+  // 2. Ellipse haut
+  ctx.beginPath(); ctx.ellipse(cx,top,radius,ry,0,0,2*Math.PI);
+  ctx.fillStyle=backRed?COL_RED_F:'rgba(197,220,151,0.75)'; ctx.fill();
+  ctx.strokeStyle=backRed?COL_RED_E:stroke; ctx.lineWidth=bodyLW; ctx.stroke();
+
+  // 3. Ellipse bas
+  ctx.beginPath(); ctx.ellipse(cx,bot,radius,ry,0,0,2*Math.PI);
+  if(frontRed){ ctx.fillStyle=COL_RED_F; ctx.fill(); }
+  ctx.strokeStyle=frontRed?COL_RED_E:stroke; ctx.lineWidth=2; ctx.stroke();
+
+  // 4. Arêtes en surbrillance (les deux ellipses complètes)
+  if(showCylArets){
+    ctx.strokeStyle='#2D6BE4'; ctx.lineWidth=3; ctx.setLineDash([]);
+    ctx.beginPath(); ctx.ellipse(cx,top,radius,ry,0,0,2*Math.PI); ctx.stroke();
+    ctx.beginPath(); ctx.ellipse(cx,bot,radius,ry,0,0,2*Math.PI); ctx.stroke();
+  }
+
+  ctx.restore();
+  if(showMeasures){ drawAire(); drawDepthLabelFace(top,bot); drawVolume(); }
+}
+
+function drawAire(){
+  ctx.save();
+  ctx.font="bold 13px 'Nunito',sans-serif";
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillStyle='#1E1D1A';
+  ctx.fillText('A = '+pxToCm2(circleArea(radius))+' cm\u00B2', cx, cy);
+  ctx.restore();
+}
+
+function drawDepthLabelFace(top,bot){
+  const x=cx+radius+18;
+  ctx.save();
+  ctx.strokeStyle=COL_HEIGHT; ctx.lineWidth=2; ctx.lineCap='round';
+  ctx.beginPath(); ctx.moveTo(x,top); ctx.lineTo(x,bot); ctx.stroke();
+  ctx.font="bold 12px 'Nunito',sans-serif";
+  ctx.textAlign='left'; ctx.textBaseline='middle';
+  ctx.fillStyle=COL_HEIGHT;
+  ctx.fillText(pxToCm(currentDepth)+' cm', x+6, (top+bot)/2);
+  ctx.restore();
+}
+
+function drawVolume(){
+  if(volLabelX===null) return;
+  const areaCm=pxToCm2(circleArea(radius));
+  const hCm=pxToCm(currentDepth);
+  ctx.save();
+  ctx.font="bold 13px 'Nunito',sans-serif";
+  ctx.textAlign='center'; ctx.textBaseline='top';
+  ctx.fillStyle='#1E1D1A';
+  ctx.fillText('V = '+(areaCm*hCm)+' cm\u00B3', volLabelX, volLabelY);
+  ctx.restore();
+}
+
+function animateFlat(){
+  animating=true; let t=0; const STEPS=20;
+  function ease(x){return x<.5?2*x*x:-1+(4-2*x)*x;}
+  (function step(){
+    ctx.clearRect(0,0,CW,CH);
+    ctx.save(); ctx.globalAlpha=ease(Math.min(t/STEPS,1));
+    ctx.beginPath(); ctx.ellipse(cx,cy,radius,radius*0.38,0,0,2*Math.PI);
+    ctx.fillStyle=COL_FILL; ctx.fill();
+    ctx.strokeStyle=COL_EDGE; ctx.lineWidth=2; ctx.stroke();
+    ctx.restore();
+    if(t<STEPS){t++;requestAnimationFrame(step);}
+    else{animating=false;redraw();}
+  })();
+}
+
+cv.addEventListener('mousedown', e=>{
+  if(phase!=='draw') return;
+  pressing=true; rawPts=[];
+  const p=svgpt(e); rawPts.push(p);
+  ctx.save(); ctx.strokeStyle=COL_STROKE; ctx.lineWidth=2;
+  ctx.lineCap='round'; ctx.lineJoin='round';
+  ctx.beginPath(); ctx.moveTo(p.x,p.y);
+  if(e.cancelable) e.preventDefault();
+});
+cv.addEventListener('mousemove', e=>{
+  if(!pressing||phase!=='draw') return;
+  const p=svgpt(e); rawPts.push(p);
+  ctx.lineTo(p.x,p.y); ctx.stroke(); ctx.beginPath(); ctx.moveTo(p.x,p.y);
+  if(e.cancelable) e.preventDefault();
+});
+
+function onUp(){
+  if(!pressing||phase!=='draw') return;
+  pressing=false; ctx.stroke(); ctx.restore();
+  if(rawPts.length>10){
+    const res=detectCircle(rawPts);
+    if(res){
+      cx=res.cx; cy=res.cy; radius=res.r;
+      currentDepth=0; showMeasures=false; frontRed=false; backRed=false;
+      phase='shape'; cv.style.cursor='default';
+      volLabelX=cx; volLabelY=cy+radius*0.28+22;
+      cylMesures.disabled=false; cylMesures.textContent='\u22B9 Aire';
+      cylMesures.classList.remove('active');
+      cylSliderW.style.display='flex'; cylSlider.value=0;
+      cylPlusWrap.style.display='none'; cylPlus.classList.remove('active');
+      animateFlat();
+    }
+  }
+}
+cv.addEventListener('mouseup', onUp);
+cv.addEventListener('touchstart', e=>{
+  if(phase!=='draw') return;
+  pressing=true; rawPts=[];
+  const p=svgpt(e); rawPts.push(p);
+  ctx.save(); ctx.strokeStyle=COL_STROKE; ctx.lineWidth=2;
+  ctx.lineCap='round'; ctx.lineJoin='round';
+  ctx.beginPath(); ctx.moveTo(p.x,p.y);
+  if(e.cancelable) e.preventDefault();
+},{passive:false});
+cv.addEventListener('touchmove', e=>{
+  if(!pressing||phase!=='draw') return;
+  const p=svgpt(e); rawPts.push(p);
+  ctx.lineTo(p.x,p.y); ctx.stroke(); ctx.beginPath(); ctx.moveTo(p.x,p.y);
+  if(e.cancelable) e.preventDefault();
+},{passive:false});
+cv.addEventListener('touchend', onUp, {passive:false});
+window.addEventListener('mouseup', ()=>{if(pressing&&phase==='draw') onUp();});
+
+cv.addEventListener('click', e=>{
+  if(phase!=='shape'||!radius||currentDepth===0) return;
+  const p=svgpt(e);
+  const h=currentDepth, bot=cy, top=cy-h, ry=radius*0.28;
+  const inBot = Math.pow((p.x-cx)/radius,2)+Math.pow((p.y-bot)/ry,2)<=1;
+  const inTop = Math.pow((p.x-cx)/radius,2)+Math.pow((p.y-top)/ry,2)<=1;
+  if(!inBot&&!inTop) return;
+  if(inBot){frontRed=!frontRed; if(!frontRed)backRed=false;}
+  else if(inTop){backRed=!backRed; if(!backRed)frontRed=false;}
+  redraw();
+});
+
+cv.addEventListener('mousemove', e=>{
+  if(phase==='draw'){cv.style.cursor='crosshair';return;}
+  if(!radius||currentDepth===0){cv.style.cursor='default';return;}
+  const p=svgpt(e);
+  const h=currentDepth, bot=cy, top=cy-h, ry=radius*0.28;
+  const on=(Math.pow((p.x-cx)/radius,2)+Math.pow((p.y-bot)/ry,2)<=1)
+          ||(Math.pow((p.x-cx)/radius,2)+Math.pow((p.y-top)/ry,2)<=1);
+  cv.style.cursor=on?'pointer':'default';
+});
+
+cylMesures.addEventListener('click', ()=>{
+  showMeasures=!showMeasures;
+  cylMesures.classList.toggle('active',showMeasures);
+  redraw();
+});
+
+cylSlider.addEventListener('input', ()=>{
+  currentDepth=parseInt(cylSlider.value);
+  cylMesures.textContent=currentDepth>0?'\u22B9 Valeurs':'\u22B9 Aire';
+  const ext=currentDepth>0;
+  cylPlusWrap.style.display=ext?'inline-flex':'none';
+  document.getElementById('cyl-dev-sep').style.display=ext?'block':'none';
+  document.getElementById('cyl-dev-btn').style.display=ext?'inline-flex':'none';
+  if(!ext){
+    showCylFace=false; showCylArets=false;
+    cylPlus.classList.remove('active');
+    devActif=false;
+    document.getElementById('cyl-dev-btn').classList.remove('active');
+  }
+  redraw();
+});
+
+cylPlus.addEventListener('click', ()=>{
+  cylPlus.classList.toggle('active');
+});
+
+// Développement
+let devActif=false, devT=0, devRaf=null;
+const DEV_STEPS=60;
+
+window.cylToggleDev = function(){
+  devActif=!devActif;
+  document.getElementById('cyl-dev-btn').classList.toggle('active',devActif);
+  document.getElementById('cyl-dev-btn').textContent=devActif?'Replier':'Développement';
+  if(devRaf){ cancelAnimationFrame(devRaf); devRaf=null; }
+  const target=devActif?DEV_STEPS:0;
+  const step=devActif?1:-1;
+  function animate(){
+    devT=Math.max(0,Math.min(DEV_STEPS,devT+step));
+    drawDev(1-devT/DEV_STEPS);
+    if(devT!==target){ devRaf=requestAnimationFrame(animate); }
+  }
+  animate();
+};
+
+function ease(t){ return t<.5?2*t*t:-1+(4-2*t)*t; }
+
+function drawDev(p){
+  if(p>=0.999){ return; }
+  var ep=ease(p);
+  ctx.clearRect(0,0,CW,CH);
+
+  var cyTop=cy-currentDepth, cyBot=cy;
+  var r=radius, ratio=0.32, N=100;
+  var L=2*Math.PI*r, ryFinal=r*ratio;
+  var fill='rgba(197,220,151,0.75)', stroke=COL_EDGE;
+
+  function egx(pp,ccy,t){
+    if(pp<0.002) return cx-L/2+L*t;
+    var a=2*Math.PI*pp,ar=L/a,s=Math.PI/2-a/2,e=Math.PI/2+a/2;
+    return cx+ar*Math.cos(s+(e-s)*t);
+  }
+  function egy(pp,ccy,t){
+    if(pp<0.002) return ccy;
+    var a=2*Math.PI*pp,ar=L/a,ry=ar*ratio,cy2=ccy-ry,s=Math.PI/2-a/2,e=Math.PI/2+a/2;
+    return cy2+ry*Math.sin(s+(e-s)*t);
+  }
+  function drawEll(ex,ey,erx,ery){
+    ctx.beginPath();
+    var M=60,k,a,px,py;
+    for(k=0;k<=M;k++){
+      a=2*Math.PI*k/M;
+      px=ex+erx*Math.cos(a); py=ey+ery*Math.sin(a);
+      k===0?ctx.moveTo(px,py):ctx.lineTo(px,py);
+    }
+    ctx.closePath();
+    ctx.fillStyle=fill;ctx.fill();
+    ctx.strokeStyle=stroke;ctx.lineWidth=1.8;ctx.stroke();
+  }
+
+  var dRy=r+(ryFinal-r)*ep;
+  var dTY=cyTop-r+(r-ryFinal)*ep;
+  var dRyBot, dBY;
+  if(ep<=0.5){ dRyBot=r*(1-2*ep); dBY=cyBot+dRyBot; }
+  else        { dRyBot=ryFinal*(2*ep-1); dBY=cyBot-dRyBot; }
+
+  // 1. Disque bas
+  drawEll(cx,dBY,r,dRyBot);
+  // 2. Disque haut
+  drawEll(cx,dTY,r,dRy);
+  // 3. Face latérale
+  var i,t0,t1,tm,xa,xb,yt,yb;
+  ctx.fillStyle=fill;
+  for(i=0;i<N;i++){
+    t0=i/N;t1=(i+1)/N;tm=(t0+t1)/2;
+    xa=egx(ep,cyTop,t0);xb=egx(ep,cyTop,t1);
+    yt=egy(ep,cyTop,tm);yb=egy(ep,cyBot,tm);
+    ctx.fillRect(Math.min(xa,xb),yt,Math.abs(xb-xa)+1,yb-yt);
+  }
+  // 4. Contours arcs
+  ctx.strokeStyle=stroke;ctx.lineWidth=1.8;
+  var px,py;
+  ctx.beginPath();
+  for(i=0;i<=N;i++){px=egx(ep,cyTop,i/N);py=egy(ep,cyTop,i/N);i===0?ctx.moveTo(px,py):ctx.lineTo(px,py);}
+  ctx.stroke();
+  ctx.beginPath();
+  for(i=0;i<=N;i++){px=egx(ep,cyBot,i/N);py=egy(ep,cyBot,i/N);i===0?ctx.moveTo(px,py):ctx.lineTo(px,py);}
+  ctx.stroke();
+  if(ep<0.999){
+    ctx.beginPath();ctx.moveTo(egx(ep,cyTop,0),egy(ep,cyTop,0));ctx.lineTo(egx(ep,cyBot,0),egy(ep,cyBot,0));ctx.stroke();
+    ctx.beginPath();ctx.moveTo(egx(ep,cyTop,1),egy(ep,cyTop,1));ctx.lineTo(egx(ep,cyBot,1),egy(ep,cyBot,1));ctx.stroke();
+  }
+  // 5. Redessiner disque bas
+  drawEll(cx,dBY,r,dRyBot);
+  // 6. Traits verticaux cylindre fermé
+  if(ep>=0.999){
+    var vTop=cyTop-ryFinal, vBot=cyBot-ryFinal;
+    ctx.beginPath();ctx.moveTo(cx-r,vTop);ctx.lineTo(cx-r,vBot);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(cx+r,vTop);ctx.lineTo(cx+r,vBot);ctx.stroke();
+  }
+}
+
+// Clics sur les mots dans la bulle
+document.getElementById('cyl-word-face').addEventListener('click', e=>{
+  e.stopPropagation();
+  showCylFace=!showCylFace;
+  const el=document.getElementById('cyl-word-face');
+  el.style.textDecoration=showCylFace?'underline':'none';
+  redraw();
+});
+document.getElementById('cyl-word-arets').addEventListener('click', e=>{
+  e.stopPropagation();
+  showCylArets=!showCylArets;
+  const el=document.getElementById('cyl-word-arets');
+  el.style.textDecoration=showCylArets?'underline':'none';
+  redraw();
+});
+
+cylClear.addEventListener('click', ()=>{
+  rawPts=[]; pressing=false; cx=0; cy=0; radius=0; currentDepth=0;
+  showMeasures=false; frontRed=false; backRed=false;
+  showCylFace=false; showCylArets=false;
+  devActif=false; if(devRaf){cancelAnimationFrame(devRaf);devRaf=null;} devT=0;
+  volLabelX=null; volLabelY=null; phase='draw';
+  cv.style.cursor='crosshair'; ctx.clearRect(0,0,CW,CH); drawInvite();
+  cylMesures.disabled=true; cylMesures.classList.remove('active');
+  cylMesures.textContent='\u22B9 Aire';
+  cylSliderW.style.display='none'; cylSlider.value=0;
+  cylPlusWrap.style.display='none'; cylPlus.classList.remove('active');
+  document.getElementById('cyl-dev-sep').style.display='none';
+  document.getElementById('cyl-dev-btn').style.display='none';
+  document.getElementById('cyl-dev-btn').classList.remove('active');
+  document.getElementById('cyl-dev-btn').textContent='Développement';
+});
+
+requestAnimationFrame(()=>requestAnimationFrame(()=>{
+  cylResize();
+  setTimeout(cylResize,100);
+}));
+
+})();
+</script>
+</body>
+</html>
