@@ -13,6 +13,17 @@
   .header-title{font-size:17px;font-weight:800;}
   .header-title span{color:var(--accent);}
   .header-sub{font-size:12px;color:var(--muted);margin-left:auto;}
+  .back-btn{display:inline-flex;align-items:center;gap:5px;height:30px;padding:0 12px;border-radius:999px;border:1px solid var(--border);background:var(--bg);color:var(--muted);font-family:'Nunito',sans-serif;font-size:12px;font-weight:700;text-decoration:none;cursor:pointer;transition:all .18s;white-space:nowrap;flex-shrink:0;}
+  .back-btn:hover{background:var(--surface);color:var(--accent);border-color:var(--accent);}
+  .back-btn .back-arrow{font-size:14px;line-height:1;}
+  @media(max-width:600px){
+    .header-sub{display:none;}
+    .back-btn{margin-left:auto;padding:0 10px;font-size:11px;height:28px;}
+  }
+  @media(max-width:400px){
+    .back-btn{padding:0 9px;font-size:13px;}
+    .back-btn .back-label{display:none;}
+  }
   main{max-width:1400px;margin:0 auto;padding:1rem 1rem 0;}
   .intro{text-align:center;margin-bottom:1rem;font-size:15px;color:var(--muted);line-height:1.6;}
   .intro strong{color:var(--text);font-weight:700;}
@@ -61,6 +72,7 @@
 <header>
   <div class="header-title">Centre de <span>symétrie</span></div>
   <div class="header-sub">Cliquez sur ▶ pour lancer la rotation de 180°</div>
+  <a href="index.html" class="back-btn" title="Retour à l'accueil"><span class="back-arrow">←</span><span class="back-label">Retour</span></a>
 </header>
 <main>
   <div class="page active" id="page1">

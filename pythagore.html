@@ -18,6 +18,9 @@
   header{background:var(--surface);border-bottom:1px solid var(--border);padding:.75rem 1.25rem;display:flex;align-items:center;gap:12px;box-shadow:0 1px 8px rgba(0,0,0,.04);flex-shrink:0;}
   .header-icon{width:32px;height:32px;background:#EEF4FF;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
   .header-title{font-size:16px;font-weight:800;} .header-title span{color:var(--accent);}
+  .back-btn{margin-left:auto;display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);color:var(--muted);font-family:'Nunito',sans-serif;font-size:12px;font-weight:700;text-decoration:none;cursor:pointer;transition:all .18s;white-space:nowrap;flex-shrink:0;}
+  .back-btn:hover{background:var(--surface);color:var(--accent);border-color:var(--accent);}
+  .back-btn .back-arrow{font-size:14px;line-height:1;}
   main{flex:1;padding:.75rem;display:flex;flex-direction:column;min-height:0;}
   .anim-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);flex:1;display:flex;flex-direction:column;min-height:0;overflow:hidden;}
   .controls{display:flex;gap:8px;padding:.55rem .9rem;border-bottom:1px solid var(--border);background:#FAFAF8;flex-shrink:0;align-items:center;flex-wrap:wrap;}
@@ -84,6 +87,7 @@ html,body{height:100%;overflow:hidden;display:flex;flex-direction:column;}
   .btn{padding:6px 10px;font-size:12px;}
   header{padding:.5rem .8rem;}
   .header-title{font-size:14px;}
+  .back-btn{padding:4px 10px;font-size:11px;gap:3px;}
   svg.tri{max-width:100%;height:auto;}
   .num-input{width:80px;font-size:14px;}
   .input-row{gap:.4rem;}
@@ -93,6 +97,9 @@ html,body{height:100%;overflow:hidden;display:flex;flex-direction:column;}
   .qcm-grid{grid-template-columns:1fr;}
   .ex-card{padding:.7rem .7rem;}
   .btn{padding:5px 8px;font-size:11px;}
+  /* Sur très petit écran, on masque le texte du bouton retour, on ne garde que la flèche */
+  .back-btn{padding:4px 9px;font-size:13px;}
+  .back-btn .back-label{display:none;}
 }
 @media (min-width:900px){
   .ex-inner{padding:1.5rem 2rem 3rem;}
@@ -109,6 +116,7 @@ html,body{height:100%;overflow:hidden;display:flex;flex-direction:column;}
     </svg>
   </div>
   <div class="header-title"><span>Théorème de Pythagore</span></div>
+  <a href="index.html" class="back-btn" title="Retour à l'accueil"><span class="back-arrow">←</span><span class="back-label">Retour</span></a>
 </header>
 <div class="tabs">
   <button class="tab active" onclick="showPage('anim')">📐 Animation</button>

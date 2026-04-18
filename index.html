@@ -138,9 +138,54 @@
   .c4{background:#EDE9FE;color:#5B21B6}
   .c5{background:#FFE4E6;color:#9F1239}
 
-  @media(max-width:600px){
-    .main-header{padding:.75rem 1rem}
-    .index-main{padding:1.5rem .75rem 0}
+  /* ─── RESPONSIVE ─────────────────────────────────────────── */
+
+  /* Grands écrans (≥ 1400px) : on laisse respirer jusqu'à 5 colonnes */
+  @media (min-width:1400px) {
+    .index-main { max-width:1320px; }
+    .domains-grid { grid-template-columns:repeat(auto-fill, minmax(250px, 1fr)); gap:20px; }
+  }
+
+  /* Écrans 4K et au-delà */
+  @media (min-width:2000px) {
+    .index-main { max-width:1600px; padding-top:3rem; }
+    .header-title { font-size:22px; }
+  }
+
+  /* Tablettes en portrait (≤ 900px) */
+  @media (max-width:900px) {
+    .domains-grid { grid-template-columns:repeat(auto-fill, minmax(290px, 1fr)); gap:14px; }
+  }
+
+  /* Mobiles (≤ 600px) : une seule colonne, paddings réduits */
+  @media (max-width:600px) {
+    .main-header { padding:.75rem 1rem; }
+    .index-main { padding:1.25rem .75rem 0; }
+    .domains-grid { grid-template-columns:1fr; gap:12px; }
+    .header-title { font-size:18px; }
+    .domain-head { padding:.9rem .9rem; }
+    .domain-icon { width:40px; height:40px; font-size:18px; }
+    .domain-name { font-size:15px; }
+    .domain-sublist { padding:0 .9rem; }
+    .domain-card.open .domain-sublist { padding:.4rem .9rem 1rem; }
+    .sub-link { font-size:12.5px; padding:.5rem .6rem; }
+    .sub-group-label { font-size:12.5px; padding:.5rem .6rem; }
+    .sub-link.nested { font-size:12px; padding:.35rem .6rem .35rem 1.1rem; width:calc(100% - 14px); }
+    .sub-link.nested::before { left:.4rem; }
+  }
+
+  /* Très petits écrans (≤ 360px) */
+  @media (max-width:360px) {
+    .domain-name { font-size:14px; }
+    .sub-link, .sub-group-label { font-size:12px; }
+    .sub-link.nested { font-size:11.5px; }
+  }
+
+  /* Écrans tactiles : sur tap, on montre la flèche de sous-lien en permanence
+     car il n'y a pas de survol fiable */
+  @media (hover:none) {
+    .sub-link .arrow { opacity:.6; }
+    .domain-card.hover { box-shadow:none; transform:none; }
   }
 </style>
 </head>
@@ -309,6 +354,15 @@
     group.addEventListener('mouseenter', () => {
       group.classList.add('open-group');
     });
+
+    // Tactile : un tap sur le titre du sous-groupe le bascule
+    const label = group.querySelector('.sub-group-label');
+    if (label) {
+      label.addEventListener('click', (e) => {
+        e.stopPropagation(); // empêche le click de la carte de se déclencher
+        group.classList.toggle('open-group');
+      });
+    }
   });
 
   // Au mouseleave d'une carte, on referme tous ses sous-groupes
