@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Test EVA — Mathématiques</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Caveat:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg:#F7F6F2; --surface:#FFFFFF; --border:#E2E0D8; --border2:#C8C6BC;
+    --text:#1E1D1A; --muted:#6B6A64; --accent:#2D6BE4;
+    --radius:14px;
+  }
+  body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; padding:0 0 4rem; }
+
+  /* HEADER */
+  .main-header {
+    background:var(--surface); border-bottom:1px solid var(--border);
+    padding:1rem 1.5rem; display:flex; align-items:center; justify-content:center;
+    flex-wrap:wrap; gap:10px; position:sticky; top:0; z-index:200;
+    box-shadow:0 1px 8px rgba(0,0,0,.04);
+  }
+  .header-title { font-size:20px; font-weight:900; }
+  .header-title span { color:var(--accent); }
+
+  /* INDEX */
+  .index-main { max-width:1100px; margin:0 auto; padding:2.5rem 1.25rem 0; }
+
+  /* GRILLE DES 5 DOMAINES */
+  .domains-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); gap:18px; align-items:start; }
+
+  .domain-card {
+    background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
+    overflow:hidden; display:flex; flex-direction:column;
+    transition:box-shadow .2s,border-color .2s,transform .15s;
+    cursor:pointer;
+  }
+  .domain-card.hover,
+  .domain-card.open {
+    box-shadow:0 8px 28px rgba(0,0,0,.10);
+    border-color:var(--border2);
+    transform:translateY(-2px);
+  }
+
+  .domain-head {
+    padding:1.1rem 1.1rem;
+    display:flex; align-items:center; gap:12px;
+    transition:border-color .2s, padding .25s;
+    border-bottom:1px solid transparent;
+  }
+  .domain-card.open .domain-head {
+    border-bottom-color:var(--border);
+    padding-bottom:.9rem;
+  }
+
+  .domain-icon { width:44px; height:44px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:800; flex-shrink:0; }
+  .domain-name { font-size:16px; font-weight:800; line-height:1.25; flex:1; }
+  .domain-chev {
+    font-size:14px; color:var(--muted); font-weight:700;
+    transition:transform .25s, color .2s;
+  }
+  .domain-card.open .domain-chev {
+    transform:rotate(90deg);
+    color:var(--accent);
+  }
+
+  /* Liste repliée par défaut — s'ouvre via la classe .open */
+  .domain-sublist {
+    max-height:0;
+    overflow:hidden;
+    transition:max-height .35s ease, padding .25s ease;
+    padding:0 1.1rem;
+    display:flex; flex-direction:column;
+  }
+  .domain-card.open .domain-sublist {
+    max-height:600px;
+    padding:.4rem 1.1rem 1rem;
+  }
+
+  .sub-link {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:.55rem .7rem; border-radius:8px;
+    font-size:13px; font-weight:600; color:var(--text);
+    text-decoration:none; border:1px solid transparent;
+    transition:background .15s,border-color .15s,transform .1s;
+    line-height:1.35;
+  }
+  .sub-link:hover { background:var(--bg); border-color:var(--border); }
+  .sub-link:active { transform:scale(.99); }
+  .sub-link .arrow { font-size:13px; font-weight:700; color:var(--accent); opacity:0; transition:opacity .15s; margin-left:8px; flex-shrink:0; }
+  .sub-link:hover .arrow { opacity:1; }
+
+  /* Groupe : un intitulé parent non cliquable + sous-liens indentés */
+  .sub-group {
+    display:flex; flex-direction:column;
+  }
+  .sub-group-label {
+    padding:.55rem .7rem;
+    font-size:13px; font-weight:600; color:var(--text);
+    line-height:1.35;
+    border-radius:8px;
+    cursor:default;
+    transition:background .15s;
+  }
+  .sub-group.open-group > .sub-group-label { background:var(--bg); }
+
+  .sub-link.nested {
+    display:none;
+    margin-left:auto;
+    margin-right:0;
+    padding:.35rem .7rem .35rem 1.2rem;
+    font-size:12.5px;
+    font-weight:600;
+    color:var(--accent);
+    position:relative;
+    width:calc(100% - 18px);
+    justify-content:flex-end;
+  }
+  .sub-group.open-group > .sub-link.nested { display:flex; }
+  .sub-link.nested span:first-child { text-align:right; }
+  .sub-link.nested::before {
+    content:"•";
+    position:absolute;
+    left:.5rem; top:50%;
+    transform:translateY(-50%);
+    color:var(--accent);
+    font-size:14px;
+    line-height:1;
+  }
+  .sub-link.nested:hover { color:#1E4FB8; background:var(--bg); border-color:var(--border); }
+
+  /* Couleurs des domaines */
+  .c1{background:#DBEAFE;color:#1D4ED8}
+  .c2{background:#DCFCE7;color:#166534}
+  .c3{background:#FEF3C7;color:#92400E}
+  .c4{background:#EDE9FE;color:#5B21B6}
+  .c5{background:#FFE4E6;color:#9F1239}
+
+  @media(max-width:600px){
+    .main-header{padding:.75rem 1rem}
+    .index-main{padding:1.5rem .75rem 0}
+  }
+</style>
+</head>
+<body>
+
+<header class="main-header">
+  <div class="header-title">Test EVA — <span>Mathématiques</span></div>
+</header>
+
+<main class="index-main">
+
+  <div class="domains-grid">
+
+    <!-- NOMBRES ET OPÉRATIONS -->
+    <div class="domain-card">
+      <div class="domain-head">
+        <div class="domain-icon c1">+</div>
+        <div class="domain-name">Nombres et opérations</div>
+        <div class="domain-chev">›</div>
+      </div>
+      <div class="domain-sublist">
+        <a class="sub-link" href="nombres_probleme_4_operations.html"><span>Résoudre un problème "concret" avec 4 opérations</span><span class="arrow">→</span></a>
+        <a class="sub-link" href="nombres_decimaux.html"><span>Calculer avec des décimaux (4 opérations)</span><span class="arrow">→</span></a>
+        <a class="sub-link" href="nombres_relatifs.html"><span>Calculer avec des relatifs (4 opérations)</span><span class="arrow">→</span></a>
+        <a class="sub-link" href="nombres_rationnels.html"><span>Calculer avec des rationnels (4 opérations)</span><span class="arrow">→</span></a>
+        <a class="sub-link" href="nombres_puissances.html"><span>Calculer des puissances</span><span class="arrow">→</span></a>
+        <a class="sub-link" href="nombres_racines.html"><span>Calculer des racines</span><span class="arrow">→</span></a>
+        <a class="sub-link" href="nombres_hierarchie.html"><span>Appliquer la hiérarchie des opérations</span><span class="arrow">→</span></a>
+        <a class="sub-link" href="nombres_droite_graduee.html"><span>Lire la valeur d'un nombre sur une droite graduée</span><span class="arrow">→</span></a>
+        <a class="sub-link" href="nombres_estimation.html"><span>Estimer le résultat d'un calcul</span><span class="arrow">→</span></a>
+      </div>
+    </div>
+
+    <!-- PROPORTIONNALITÉ -->
+    <div class="domain-card">
+      <div class="domain-head">
+        <div class="domain-icon c2">%</div>
+        <div class="domain-name">Proportionnalité</div>
+        <div class="domain-chev">›</div>
+      </div>
+      <div class="domain-sublist">
+        <a class="sub-link" href="proportionnalite_fraction_pourcentage.html"><span>Calculer une fraction ou un pourcentage de …</span><span class="arrow">→</span></a>
+        <a class="sub-link" href="proportionnalite_retrouver_grandeur.html"><span>Retrouver une grandeur dont on connaît un pourcentage</span><span class="arrow">→</span></a>
+        <a class="sub-link" href="proportionnalite_poser_proportion.html"><span>Poser une proportion et la résoudre</span><span class="arrow">→</span></a>
+        <a class="sub-link" href="proportionnalite_probleme_concret.html"><span>Résoudre un problème concret de proportionnalité</span><span class="arrow">→</span></a>
+      </div>
+    </div>
+
+    <!-- ALGÈBRE -->
+    <div class="domain-card">
+      <div class="domain-head">
+        <div class="domain-icon c3">x</div>
+        <div class="domain-name">Algèbre</div>
+        <div class="domain-chev">›</div>
+      </div>
+      <div class="domain-sublist">
+        <a class="sub-link" href="algebre_verifier_solution.html"><span>Vérifier si un nombre est solution d'une équation</span><span class="arrow">→</span></a>
+        <a class="sub-link" href="algebre_developper_reduire.html"><span>Développer et réduire une expression algébrique</span><span class="arrow">→</span></a>
+        <a class="sub-link" href="algebre_factoriser.html"><span>Factoriser une expression algébrique</span><span class="arrow">→</span></a>
+        <a class="sub-link" href="algebre_traduire_probleme.html"><span>Traduire un problème en une expression algébrique</span><span class="arrow">→</span></a>
+        <a class="sub-link" href="algebre_resoudre_equation.html"><span>Résoudre une équation</span><span class="arrow">→</span></a>
+        <a class="sub-link" href="algebre_probleme_equation.html"><span>Résoudre un problème à l'aide d'une équation</span><span class="arrow">→</span></a>
+      </div>
+    </div>
+
+    <!-- GRANDEURS ET MESURES + PYTHAGORE -->
+    <div class="domain-card">
+      <div class="domain-head">
+        <div class="domain-icon c4">📏</div>
+        <div class="domain-name">Grandeurs et mesures + Pythagore</div>
+        <div class="domain-chev">›</div>
+      </div>
+      <div class="domain-sublist">
+        <div class="sub-group">
+          <div class="sub-group-label">Utiliser les formules de calcul de périmètres et d'aires</div>
+          <a class="sub-link nested" href="perimetres_aires_volumes.html"><span>Périmètres, aires et volumes</span><span class="arrow">→</span></a>
+          <a class="sub-link nested" href="surfaces.html"><span>Comprendre les formules d'aires</span><span class="arrow">→</span></a>
+        </div>
+        <div class="sub-group">
+          <div class="sub-group-label">Utiliser les formules de calcul de volumes</div>
+          <a class="sub-link nested" href="volumes.html"><span>Volumes</span><span class="arrow">→</span></a>
+        </div>
+        <div class="sub-group">
+          <div class="sub-group-label">Transformer les unités (longueur, aire, volume, capacité et temps)</div>
+          <a class="sub-link nested" href="unites.html"><span>Conversion d'unités</span><span class="arrow">→</span></a>
+        </div>
+        <div class="sub-group">
+          <div class="sub-group-label">Utiliser le théorème de Pythagore</div>
+          <a class="sub-link nested" href="pythagore.html"><span>Pythagore</span><span class="arrow">→</span></a>
+        </div>
+      </div>
+    </div>
+
+    <!-- ESPACE -->
+    <div class="domain-card">
+      <div class="domain-head">
+        <div class="domain-icon c5">△</div>
+        <div class="domain-name">Espace</div>
+        <div class="domain-chev">›</div>
+      </div>
+      <div class="domain-sublist">
+        <a class="sub-link" href="espace_vocabulaire.html"><span>Connaître le vocabulaire relatif aux figures planes et aux solides</span><span class="arrow">→</span></a>
+        <div class="sub-group">
+          <div class="sub-group-label">Appliquer les propriétés des figures planes (triangles, cercles)</div>
+          <a class="sub-link nested" href="triangle_droites_remarquables.html"><span>Droites remarquables du triangle</span><span class="arrow">→</span></a>
+        </div>
+        <a class="sub-link" href="espace_instruments.html"><span>Connaître l'utilisation des instruments de géométrie</span><span class="arrow">→</span></a>
+        <a class="sub-link" href="espace_developpements.html"><span>Identifier les développements de solides</span><span class="arrow">→</span></a>
+        <a class="sub-link" href="espace_reperage.html"><span>Repérer un point dans un système d'axes orthonormés</span><span class="arrow">→</span></a>
+        <div class="sub-group">
+          <div class="sub-group-label">Identifier les axes et le centre de symétrie d'une figure plane</div>
+          <a class="sub-link nested" href="centre_symetrie.html"><span>Centre de symétrie</span><span class="arrow">→</span></a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<script>
+  // Délais (en ms) — ajustables
+  const OPEN_DELAY  = 450;  // temps d'attente avant déploiement des sous-domaines
+  const CLOSE_DELAY = 120;  // petite latence à la sortie pour éviter les clignotements
+
+  const cards = document.querySelectorAll('.domain-card');
+
+  cards.forEach(card => {
+    let openTimer = null;
+    let closeTimer = null;
+
+    const cancelTimers = () => {
+      if (openTimer)  { clearTimeout(openTimer);  openTimer = null; }
+      if (closeTimer) { clearTimeout(closeTimer); closeTimer = null; }
+    };
+
+    // Survol : ombrage immédiat, déploiement après OPEN_DELAY
+    card.addEventListener('mouseenter', () => {
+      cancelTimers();
+      card.classList.add('hover');
+      openTimer = setTimeout(() => {
+        card.classList.add('open');
+      }, OPEN_DELAY);
+    });
+
+    // Sortie : on retire l'ombrage, on annule une ouverture en attente, et on ferme après CLOSE_DELAY
+    card.addEventListener('mouseleave', () => {
+      cancelTimers();
+      card.classList.remove('hover');
+      closeTimer = setTimeout(() => {
+        card.classList.remove('open');
+      }, CLOSE_DELAY);
+    });
+
+    // Clic (mobile/tactile) : bascule immédiate, sauf si on clique sur un sous-lien
+    card.addEventListener('click', (e) => {
+      if (e.target.closest('a.sub-link')) return;
+      cancelTimers();
+      card.classList.toggle('open');
+    });
+  });
+
+  // ─── Sous-groupes : ouverture au survol, persistants jusqu'à la sortie de la carte ───
+  // Dès qu'un groupe est ouvert, il le reste tant que la souris est quelque part
+  // dans la carte parente. Quand on quitte la carte, tous ses groupes se referment.
+  document.querySelectorAll('.sub-group').forEach(group => {
+    group.addEventListener('mouseenter', () => {
+      group.classList.add('open-group');
+    });
+  });
+
+  // Au mouseleave d'une carte, on referme tous ses sous-groupes
+  cards.forEach(card => {
+    card.addEventListener('mouseleave', () => {
+      card.querySelectorAll('.sub-group.open-group').forEach(g => {
+        g.classList.remove('open-group');
+      });
+    });
+  });
+</script>
+</body>
+</html>

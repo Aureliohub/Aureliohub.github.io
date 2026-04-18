@@ -1,0 +1,1085 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Surfaces — Triangle et Quadrilatères</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  :root{--bg:#F7F6F2;--surface:#FFFFFF;--border:#E2E0D8;--text:#1E1D1A;--muted:#6B6A64;--accent:#2D6BE4;--radius:14px;}
+  body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:0 0 2rem;}
+  header{background:var(--surface);border-bottom:1px solid var(--border);padding:.85rem 1.5rem;display:flex;align-items:center;gap:12px;box-shadow:0 1px 8px rgba(0,0,0,.04);position:sticky;top:0;z-index:100;}
+  .header-title{font-size:17px;font-weight:800;}
+  .header-title span{color:var(--accent);}
+  .header-sub{font-size:12px;color:var(--muted);margin-left:auto;}
+  main{max-width:1200px;margin:0 auto;padding:1.5rem 1rem 0;}
+  .intro{text-align:center;margin-bottom:1.5rem;font-size:15px;color:var(--muted);line-height:1.6;}
+  .intro strong{color:var(--text);font-weight:700;}
+  .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;}
+  @media(max-width:700px){.grid{grid-template-columns:1fr;}}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;display:flex;flex-direction:column;transition:box-shadow .2s,border-color .2s;}
+  .card:hover{box-shadow:0 4px 20px rgba(0,0,0,.08);border-color:#C8C6BC;}
+  .card-header{padding:.5rem .85rem .4rem;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border);}
+  .card-badge{padding:2px 10px;border-radius:999px;font-size:11px;font-weight:800;}
+  .card-name{font-size:14px;font-weight:800;flex:1;}
+  .card-formula{margin-left:auto;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;}
+  .badge-rect{background:#DCFCE7;color:#166534;}
+  .formula-rect{background:#DCFCE7;color:#166534;}
+  .badge-tri{background:#FEF3C7;color:#92400E;}
+  .formula-tri{background:#FEF3C7;color:#92400E;}
+  .badge-para{background:#EDE9FE;color:#5B21B6;}
+  .formula-para{background:#EDE9FE;color:#5B21B6;}
+  .badge-trap{background:#FEE2E2;color:#991B1B;}
+  .formula-trap{background:#FEE2E2;color:#991B1B;}
+  .canvas-area canvas{display:block;width:100%;touch-action:none;background:white;}
+  .canvas-area{background:#FAFAF8;padding:.75rem .5rem .5rem;}
+  .canvas-area svg{display:block;width:100%;touch-action:none;}
+  .controls-area{padding:.4rem .85rem .4rem;border-top:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-wrap:nowrap;height:44px;overflow:hidden;}
+  .ctrl-btn{width:32px;height:32px;padding:0;border:0.5px solid var(--border);border-radius:50%;background:transparent;color:var(--text);cursor:pointer;font-family:'Nunito',sans-serif;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .ctrl-btn:hover{background:var(--bg);}
+  .ctrl-btn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+  .sl-row{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--muted);}
+  .sl-row input{width:100px;}
+  .sl-row .v{min-width:36px;font-weight:700;color:var(--text);}
+  .apex-row{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--muted);}
+  .apex-row input{width:100px;}
+  .apex-row .v{min-width:50px;font-weight:700;color:var(--text);}
+</style>
+</head>
+<body>
+<header>
+  <div class="header-title">Surfaces — <span>Triangle et Quadrilatères</span> <span style="font-size:15px;color:var(--muted);font-weight:400;">— Comprendre les formules d'aire et leurs liens avec le rectangle</span></div>
+</header>
+<main>
+  <div class="grid">
+
+    <!-- RECTANGLE -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-badge badge-rect">Rectangle</span>
+        <span class="card-name"></span>
+        <span class="card-formula formula-rect">A = L × l</span>
+      </div>
+      <div class="canvas-area" style="position:relative;">
+        <canvas id="viz-rect" width="680" height="280"></canvas>
+        <div id="rect-msg" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:14px;color:var(--muted);pointer-events:none;text-align:center;font-style:italic;">Tracez une longueur et une largeur</div>
+      </div>
+      <div class="controls-area">
+        <button class="ctrl-btn" onclick="rectReset()" title="Recommencer"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg></button>
+        <button class="ctrl-btn" onclick="rectShowAire()" title="Afficher l'aire" style="width:auto;padding:0 12px;border-radius:16px;font-size:12px;font-weight:700;">Aire</button>
+      </div>
+    </div>
+
+
+    <!-- SYNTHÈSE -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-badge" style="background:#F0FDF4;color:#166534;">Synthèse</span>
+        <span class="card-name"></span>
+      </div>
+      <div class="canvas-area" style="padding:.4rem .4rem .3rem;height:250px;box-sizing:border-box;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;height:100%;">
+          <div style="background:#FAFAF8;border:1px solid #E2E0D8;border-radius:8px;overflow:hidden;display:flex;flex-direction:column;">
+            <div style="font-size:9px;font-weight:800;padding:2px 7px;border-bottom:1px solid #E2E0D8;background:#EDE9FE;color:#5B21B6;flex-shrink:0;">Parallélogramme</div>
+            <svg id="syn-para" viewBox="0 0 200 95" style="display:block;width:100%;flex:1;"></svg>
+          </div>
+          <div style="background:#FAFAF8;border:1px solid #E2E0D8;border-radius:8px;overflow:hidden;display:flex;flex-direction:column;">
+            <div style="font-size:9px;font-weight:800;padding:2px 7px;border-bottom:1px solid #E2E0D8;background:#FEF3C7;color:#92400E;flex-shrink:0;">Triangle</div>
+            <svg id="syn-tri" viewBox="0 0 200 95" style="display:block;width:100%;flex:1;"></svg>
+          </div>
+          <div style="background:#FAFAF8;border:1px solid #E2E0D8;border-radius:8px;overflow:hidden;display:flex;flex-direction:column;">
+            <div style="font-size:9px;font-weight:800;padding:2px 7px;border-bottom:1px solid #E2E0D8;background:#DBEAFE;color:#1D4ED8;flex-shrink:0;">Losange</div>
+            <svg id="syn-los" viewBox="0 0 200 95" style="display:block;width:100%;flex:1;"></svg>
+          </div>
+          <div style="background:#FAFAF8;border:1px solid #E2E0D8;border-radius:8px;overflow:hidden;display:flex;flex-direction:column;">
+            <div style="font-size:9px;font-weight:800;padding:2px 7px;border-bottom:1px solid #E2E0D8;background:#FEE2E2;color:#991B1B;flex-shrink:0;">Trapèze</div>
+            <svg id="syn-trap" viewBox="0 0 200 95" style="display:block;width:100%;flex:1;"></svg>
+          </div>
+        </div>
+      </div>
+      <div class="controls-area">
+        <button class="ctrl-btn" onclick="synReset()" title="Recommencer"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg></button>
+        <button id="syn-btn" class="ctrl-btn" onclick="synToggle()" title="Déployer / Replier"><svg id="syn-icon" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M8 5v14l11-7z"/></svg></button>
+      </div>
+    </div>
+
+    <!-- PARALLÉLOGRAMME -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-badge badge-para">Parallélogramme</span>
+        <span class="card-name"></span>
+        <span class="card-formula formula-para">A = b × h</span>
+      </div>
+      <div class="canvas-area" style="position:relative;">
+        <svg id="viz-para" viewBox="0 0 680 280">
+          <defs>
+            <marker id="arr-para" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+              <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </marker>
+          </defs>
+          <rect id="para-rf" fill="#C0DD97" opacity="0" stroke="none" x="0" y="0" width="0" height="0"/>
+          <rect id="para-rb" fill="none" stroke="#639922" stroke-width="1" stroke-dasharray="5 4" opacity="0" x="0" y="0" width="0" height="0"/>
+          <polygon id="para-body" fill="#3B8BD4" opacity=".65" stroke="none" points=""/>
+          <polygon id="para-tri" fill="#3B8BD4" opacity=".65" stroke="none" points="" style="cursor:default"/>
+          <line id="para-hl" stroke="#185FA5" stroke-width="1" stroke-dasharray="5 4" marker-end="url(#arr-para)" marker-start="url(#arr-para)" opacity="0" x1="0" y1="0" x2="0" y2="0"/>
+          <line id="para-htt" stroke="#185FA5" stroke-width=".8" opacity="0" x1="0" y1="0" x2="0" y2="0"/>
+          <line id="para-htb" stroke="#185FA5" stroke-width=".8" opacity="0" x1="0" y1="0" x2="0" y2="0"/>
+          <line id="para-bh" stroke="transparent" stroke-width="18" style="cursor:grab" x1="0" y1="0" x2="0" y2="0"/>
+        </svg>
+        <div id="para-hint" style="position:absolute;left:50%;bottom:14px;transform:translateX(-50%);font-size:14px;color:var(--muted);pointer-events:none;font-style:italic;">↑ Tire la base vers le haut</div>
+      </div>
+      <div class="controls-area">
+        <button class="ctrl-btn" onclick="paraReset()" title="Recommencer"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg></button>
+        <div class="sl-row">
+          <span>Inclinaison</span>
+          <input type="range" id="para-sk" min="10" max="45" value="25" step="1" oninput="paraReset()">
+          <span class="v" id="para-vk">25°</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- TRIANGLE -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-badge badge-tri">Triangle</span>
+        <span class="card-name"></span>
+        <span class="card-formula formula-tri">A = b × h ÷ 2</span>
+      </div>
+      <div class="canvas-area" style="position:relative;">
+        <svg id="viz-tri" viewBox="0 0 680 280">
+          <defs>
+            <marker id="arr-tri" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+              <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </marker>
+          </defs>
+          <rect id="tri-rf" fill="#C0DD97" opacity="0" stroke="none" x="0" y="0" width="0" height="0"/>
+          <rect id="tri-rb" fill="none" stroke="#639922" stroke-width="1" stroke-dasharray="5 4" opacity="0" x="0" y="0" width="0" height="0"/>
+          <line id="tri-dh" stroke="#185FA5" stroke-width="1" stroke-dasharray="5 4" marker-end="url(#arr-tri)" marker-start="url(#arr-tri)" opacity="0" x1="0" y1="0" x2="0" y2="0"/>
+          <line id="tri-tt" stroke="#185FA5" stroke-width=".8" opacity="0" x1="0" y1="0" x2="0" y2="0"/>
+          <line id="tri-tbot" stroke="#185FA5" stroke-width=".8" opacity="0" x1="0" y1="0" x2="0" y2="0"/>
+          <polygon id="tri-full" fill="#3B8BD4" opacity="0" stroke="none" points=""/>
+          <polygon id="tri-hL" fill="#3B8BD4" opacity="0" stroke="none" points=""/>
+          <polygon id="tri-hR" fill="#3B8BD4" opacity="0" stroke="none" points=""/>
+          <line id="tri-sep" stroke="#185FA5" stroke-width="1" stroke-dasharray="5 4" opacity="0" x1="0" y1="0" x2="0" y2="0"/>
+          <circle id="tri-pvL" r="4" fill="#185FA5" opacity="0"/>
+          <circle id="tri-pvR" r="4" fill="#185FA5" opacity="0"/>
+          <polygon id="tri-light" fill="#C0DD97" opacity="0" stroke="none" points="" style="cursor:default"/>
+          <line id="tri-bh" stroke="transparent" stroke-width="18" style="cursor:grab" x1="0" y1="0" x2="0" y2="0"/>
+        </svg>
+        <div id="tri-hint" style="position:absolute;left:50%;bottom:14px;transform:translateX(-50%);font-size:14px;color:var(--muted);pointer-events:none;font-style:italic;">↑ Tire la base vers le haut</div>
+      </div>
+      <div class="controls-area">
+        <button class="ctrl-btn" onclick="triReset()" title="Recommencer"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg></button>
+        <div class="apex-row">
+          <span>Apex</span>
+          <input type="range" id="tri-sa" min="0" max="100" value="35" step="1" oninput="triReset()">
+          <span class="v" id="tri-va">35%</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- LOSANGE -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-badge badge-los">Losange</span>
+        <span class="card-name"></span>
+        <span class="card-formula formula-los">A = (D × d) ÷ 2</span>
+      </div>
+      <div class="canvas-area">
+        <svg id="viz-los" viewBox="0 0 680 280">
+          <rect id="los-rft" fill="#C0DD97" opacity="0" stroke="none" x="0" y="0" width="0" height="0"/>
+          <rect id="los-rfb" fill="#C0DD97" opacity="0" stroke="none" x="0" y="0" width="0" height="0"/>
+          <rect id="los-rfl" fill="#C0DD97" opacity="0" stroke="none" x="0" y="0" width="0" height="0"/>
+          <rect id="los-rfr" fill="#C0DD97" opacity="0" stroke="none" x="0" y="0" width="0" height="0"/>
+          <polygon id="los-qTL" fill="#3B8BD4" opacity=".65" stroke="none" points=""/>
+          <polygon id="los-qTR" fill="#3B8BD4" opacity=".65" stroke="none" points=""/>
+          <polygon id="los-qBL" fill="#3B8BD4" opacity=".65" stroke="none" points=""/>
+          <polygon id="los-qBR" fill="#3B8BD4" opacity=".65" stroke="none" points=""/>
+          <polygon id="los-tTL" fill="#3B8BD4" opacity="0" stroke="none" points=""/>
+          <polygon id="los-tTR" fill="#3B8BD4" opacity="0" stroke="none" points=""/>
+          <polygon id="los-tBL" fill="#3B8BD4" opacity="0" stroke="none" points=""/>
+          <polygon id="los-tBR" fill="#3B8BD4" opacity="0" stroke="none" points=""/>
+          <line id="los-dhl" stroke="#185FA5" stroke-width="1.5" stroke-dasharray="6 4" opacity="1" x1="0" y1="0" x2="0" y2="0"/>
+          <line id="los-dhr" stroke="#185FA5" stroke-width="1.5" stroke-dasharray="6 4" opacity="1" x1="0" y1="0" x2="0" y2="0"/>
+          <line id="los-dvt" stroke="#185FA5" stroke-width="1.5" stroke-dasharray="6 4" opacity="1" x1="0" y1="0" x2="0" y2="0"/>
+          <line id="los-dvb" stroke="#185FA5" stroke-width="1.5" stroke-dasharray="6 4" opacity="1" x1="0" y1="0" x2="0" y2="0"/>
+          <polygon id="los-green" fill="#C0DD97" opacity="0" stroke="none" points="" style="cursor:default"/>
+          <line id="los-hitv" stroke="transparent" stroke-width="20" x1="0" y1="0" x2="0" y2="0" style="cursor:ew-resize"/>
+          <line id="los-hith" stroke="transparent" stroke-width="20" x1="0" y1="0" x2="0" y2="0" style="cursor:ns-resize"/>
+        </svg>
+      </div>
+      <div class="controls-area">
+        <button class="ctrl-btn" onclick="losReset()" title="Recommencer"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg></button>
+      </div>
+    </div>
+
+    <!-- TRAPÈZE -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-badge badge-trap">Trapèze</span>
+        <span class="card-name"></span>
+        <span class="card-formula formula-trap">A = (B+b) ÷ 2 × h</span>
+      </div>
+      <div class="canvas-area">
+        <svg id="viz-trap" viewBox="0 0 680 280">
+          <rect id="trap-rfb" fill="#C0DD97" opacity="0" x="0" y="0" width="0" height="0"/>
+          <rect id="trap-rft" fill="#C0DD97" opacity="0" x="0" y="0" width="0" height="0"/>
+          <rect id="trap-rb" fill="none" stroke="#639922" stroke-width="1" stroke-dasharray="5 4" opacity="0" x="0" y="0" width="0" height="0"/>
+          <polygon id="trap-center" fill="#3B8BD4" opacity=".65" stroke="none" points=""/>
+          <polygon id="trap-tBL" fill="#3B8BD4" opacity=".65" stroke="none" points="" style="cursor:default"/>
+          <polygon id="trap-tBR" fill="#3B8BD4" opacity=".65" stroke="none" points="" style="cursor:default"/>
+          <polygon id="trap-aBL" fill="#3B8BD4" opacity="0" stroke="none" points=""/>
+          <polygon id="trap-aBR" fill="#3B8BD4" opacity="0" stroke="none" points=""/>
+          <line id="trap-med" stroke="#185FA5" stroke-width="1.5" stroke-dasharray="6 4" stroke-linecap="round" opacity="1" x1="0" y1="0" x2="0" y2="0"/>
+          <line id="trap-hit" stroke="transparent" stroke-width="20" style="cursor:ns-resize" x1="0" y1="0" x2="0" y2="0"/>
+        </svg>
+      </div>
+      <div class="controls-area">
+        <button class="ctrl-btn" onclick="trapReset(false)" title="Recommencer"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg></button>
+        <div class="sl-row">
+          <span>B inf.</span>
+          <input type="range" id="trap-b1" min="150" max="300" value="250" step="5" oninput="trapSlider()" style="width:60px">
+          <span class="v" id="trap-v1" style="min-width:24px">250</span>
+        </div>
+        <div class="sl-row">
+          <span>B sup.</span>
+          <input type="range" id="trap-b2" min="30" max="280" value="120" step="5" oninput="trapSlider()" style="width:60px">
+          <span class="v" id="trap-v2" style="min-width:24px">120</span>
+        </div>
+        <div class="sl-row">
+          <span>Décal.</span>
+          <input type="range" id="trap-off" min="-120" max="120" value="0" step="5" oninput="trapSlider()" style="width:60px">
+          <span class="v" id="trap-voff" style="min-width:24px">0</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<script>
+// ============================================================
+// RECTANGLE
+// ============================================================
+(function(){
+const canvas=document.getElementById('viz-rect');
+const ctx=canvas.getContext('2d');
+const W=680,H=280;
+canvas.width=W;canvas.height=H;
+
+const COL_DRAW='#185FA5',COL_FILL='#C0DD97';
+let pts1=[],pts2=[],drawing=false,waitSecond=false,done=false,aireShown=false;
+let seg1=null,animT=0,animRaf=null,R=null;
+
+function setMsg(show){document.getElementById('rect-msg').style.display=show?'block':'none';}
+
+function svgpt(e){
+  const r=canvas.getBoundingClientRect(),sx=W/r.width,sy=H/r.height;
+  if(e.touches)return{x:(e.touches[0].clientX-r.left)*sx,y:(e.touches[0].clientY-r.top)*sy};
+  return{x:(e.clientX-r.left)*sx,y:(e.clientY-r.top)*sy};
+}
+function smooth(pts,k=3){
+  return pts.map((p,i)=>{
+    const s=Math.max(0,i-k),e=Math.min(pts.length-1,i+k);
+    let sx=0,sy=0,n=0;
+    for(let j=s;j<=e;j++){sx+=pts[j].x;sy+=pts[j].y;n++;}
+    return{x:sx/n,y:sy/n};
+  });
+}
+function findElbow(pts){
+  let maxA=0,idx=Math.floor(pts.length/3);
+  for(let i=10;i<pts.length-10;i++){
+    const dx1=pts[i].x-pts[i-8].x,dy1=pts[i].y-pts[i-8].y;
+    const dx2=pts[i+8].x-pts[i].x,dy2=pts[i+8].y-pts[i].y;
+    const l1=Math.hypot(dx1,dy1),l2=Math.hypot(dx2,dy2);
+    if(l1<1||l2<1)continue;
+    const dot=(dx1*dx2+dy1*dy2)/(l1*l2);
+    const a=Math.acos(Math.max(-1,Math.min(1,dot)));
+    if(a>maxA){maxA=a;idx=i;}
+  }
+  return idx;
+}
+function isHoriz(pts){
+  return Math.abs(pts[pts.length-1].x-pts[0].x)>=Math.abs(pts[pts.length-1].y-pts[0].y);
+}
+function snap(pts){
+  if(isHoriz(pts)){
+    const cy=(pts[0].y+pts[pts.length-1].y)/2;
+    return{x1:pts[0].x,y1:cy,x2:pts[pts.length-1].x,y2:cy,horiz:true};
+  } else {
+    const cx=(pts[0].x+pts[pts.length-1].x)/2;
+    return{x1:cx,y1:pts[0].y,x2:cx,y2:pts[pts.length-1].y,horiz:false};
+  }
+}
+function L(x1,y1,x2,y2,color,lw){
+  ctx.save();ctx.strokeStyle=color;ctx.lineWidth=lw;ctx.lineCap='round';
+  ctx.setLineDash([]);
+  ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();ctx.restore();
+}
+function drawFreehand(pts,color){
+  if(pts.length<2)return;
+  ctx.save();ctx.strokeStyle=color;ctx.lineWidth=2;ctx.lineCap='round';ctx.lineJoin='round';
+  ctx.beginPath();ctx.moveTo(pts[0].x,pts[0].y);
+  for(let i=1;i<pts.length;i++)ctx.lineTo(pts[i].x,pts[i].y);
+  ctx.stroke();ctx.restore();
+}
+function buildR(s1,s2){
+  const dx=s2.x2-s2.x1,dy=s2.y2-s2.y1;
+  const as2={x1:s1.x2,y1:s1.y2,x2:s1.x2+dx,y2:s1.y2+dy,horiz:s2.horiz};
+  const xs=[s1.x1,s1.x2,as2.x1,as2.x2];
+  const ys=[s1.y1,s1.y2,as2.y1,as2.y2];
+  const ox=Math.min(...xs),oy=Math.min(...ys);
+  const rw=Math.max(...xs)-ox,rh=Math.max(...ys)-oy;
+  return{ox,oy,rw,rh,s1,as2};
+}
+function launchAnim(s1,s2){
+  R=buildR(s1,s2);
+  animT=0;done=false;
+  if(animRaf)cancelAnimationFrame(animRaf);
+  const{ox,oy,rw,rh}=R;
+  const fillHoriz=R.as2.horiz;
+  const sx=R.as2.x1,sy2=R.as2.y1,ex=R.as2.x2,ey=R.as2.y2;
+  let oppX,oppY;
+  if(!fillHoriz) oppX=Math.abs(sx-ox)<2?ox+rw:ox;
+  else oppY=Math.abs(sy2-oy)<2?oy+rh:oy;
+
+  function drawFinal(){
+    ctx.save();ctx.fillStyle=COL_FILL;ctx.fillRect(ox,oy,rw,rh);ctx.restore();
+    L(R.s1.x1,R.s1.y1,R.s1.x2,R.s1.y2,COL_DRAW,2.5);
+    L(R.as2.x1,R.as2.y1,R.as2.x2,R.as2.y2,COL_DRAW,2.5);
+    if(!fillHoriz){L(ox,ey,ox+rw,ey,COL_DRAW,2);L(oppX,sy2,oppX,ey,COL_DRAW,2);}
+    else{L(ex,oy,ex,oy+rh,COL_DRAW,2);L(sx,oppY,ex,oppY,COL_DRAW,2);}
+  }
+  R.redraw=drawFinal;
+  function step(){
+    ctx.clearRect(0,0,W,H);
+    const t=Math.min(animT,1),et=t<.5?2*t*t:-1+(4-2*t)*t;
+    const curX=sx+(ex-sx)*et,curY=sy2+(ey-sy2)*et;
+    if(fillHoriz){
+      const x0=Math.min(sx,curX),fw=Math.abs(curX-sx);
+      ctx.save();ctx.fillStyle=COL_FILL;ctx.fillRect(x0,oy,fw,rh);ctx.restore();
+      L(R.s1.x1,R.s1.y1,R.s1.x2,R.s1.y2,COL_DRAW,2.5);
+      L(R.as2.x1,R.as2.y1,R.as2.x2,R.as2.y2,COL_DRAW,2.5);
+      if(et>0.005){L(curX,oy,curX,oy+rh,COL_DRAW,2);L(sx,oppY,curX,oppY,COL_DRAW,2);}
+    } else {
+      const y0=Math.min(sy2,curY),fh=Math.abs(curY-sy2);
+      ctx.save();ctx.fillStyle=COL_FILL;ctx.fillRect(ox,y0,rw,fh);ctx.restore();
+      L(R.s1.x1,R.s1.y1,R.s1.x2,R.s1.y2,COL_DRAW,2.5);
+      L(R.as2.x1,R.as2.y1,R.as2.x2,R.as2.y2,COL_DRAW,2.5);
+      if(et>0.005){L(ox,curY,ox+rw,curY,COL_DRAW,2);L(oppX,sy2,oppX,curY,COL_DRAW,2);}
+    }
+    if(t<1){animT+=0.016;animRaf=requestAnimationFrame(step);}
+    else{drawFinal();done=true;}
+  }
+  animRaf=requestAnimationFrame(step);
+}
+function onDown(e){
+  if(done)return;
+  const p=svgpt(e);drawing=true;
+  setMsg(false);
+  if(waitSecond)pts2=[p]; else pts1=[p];
+  if(e.cancelable)e.preventDefault();
+}
+function onMove(e){
+  if(!drawing)return;
+  const p=svgpt(e);
+  if(waitSecond)pts2.push(p); else pts1.push(p);
+  ctx.clearRect(0,0,W,H);
+  if(waitSecond){L(seg1.x1,seg1.y1,seg1.x2,seg1.y2,COL_DRAW,2.5);drawFreehand(pts2,COL_DRAW);}
+  else drawFreehand(pts1,COL_DRAW);
+  if(e.cancelable)e.preventDefault();
+}
+function onUp(){
+  if(!drawing)return;drawing=false;
+  if(!waitSecond){
+    const p=smooth(pts1,4);if(p.length<10)return;
+    const ei=findElbow(p);
+    const dx1=p[ei].x-p[0].x,dy1=p[ei].y-p[0].y;
+    const dx2=p[p.length-1].x-p[ei].x,dy2=p[p.length-1].y-p[ei].y;
+    const l1=Math.hypot(dx1,dy1),l2=Math.hypot(dx2,dy2);
+    const dot=(dx1*dx2+dy1*dy2)/(l1*l2);
+    const angle=Math.acos(Math.max(-1,Math.min(1,dot)));
+    if(angle>0.7&&l1>30&&l2>30){
+      launchAnim(snap(p.slice(0,ei+1)),snap(p.slice(ei)));
+    } else {
+      seg1=snap(p);waitSecond=true;
+      ctx.clearRect(0,0,W,H);
+      L(seg1.x1,seg1.y1,seg1.x2,seg1.y2,COL_DRAW,2.5);
+    }
+  } else {
+    const p=smooth(pts2,4);if(p.length<5)return;
+    launchAnim(seg1,snap(p));waitSecond=false;
+  }
+}
+window.rectReset=function(){
+  pts1=[];pts2=[];drawing=false;waitSecond=false;done=false;aireShown=false;
+  seg1=null;R=null;animT=0;
+  if(animRaf)cancelAnimationFrame(animRaf);
+  ctx.clearRect(0,0,W,H);
+  setMsg(true);
+};
+window.rectShowAire=function(){
+  if(!R||!done)return;
+  if(aireShown){
+    // Masquer : redessiner le rectangle final sans annotations
+    ctx.clearRect(0,0,W,H);
+    if(R.redraw)R.redraw();
+    aireShown=false;
+    return;
+  }
+  const PX_PER_CM=20;
+  const{ox,oy,rw,rh}=R;
+  const Lcm=Math.max(1,Math.round(rw/PX_PER_CM));
+  const lcm=Math.max(1,Math.round(rh/PX_PER_CM));
+  const Acm=Lcm*lcm;
+  ctx.save();
+  ctx.font='bold 16px Nunito,sans-serif';
+  ctx.fillStyle='#185FA5';
+  ctx.textAlign='center';
+  ctx.textBaseline='middle';
+  // Longueur (horizontal) : sous le rectangle si la place existe, sinon au-dessus
+  const belowY=oy+rh+18, aboveY=oy-18;
+  const Ly=(belowY<=H-4)?belowY:aboveY;
+  ctx.fillText(Lcm+' cm', ox+rw/2, Ly);
+  // largeur (vertical) : à droite si la place existe, sinon à gauche
+  const leftX=ox-18, rightX=ox+rw+18;
+  const useRight=rightX<=W-14;
+  ctx.save();
+  ctx.translate(useRight?rightX:leftX, oy+rh/2);
+  ctx.rotate(-Math.PI/2);
+  ctx.fillText(lcm+' cm', 0, 0);
+  ctx.restore();
+  // Aire au centre
+  ctx.font='bold 20px Nunito,sans-serif';
+  ctx.fillStyle='#166534';
+  ctx.fillText('A = '+Acm+' cm²', ox+rw/2, oy+rh/2);
+  ctx.restore();
+  aireShown=true;
+};
+canvas.addEventListener('mousedown',onDown);
+canvas.addEventListener('mousemove',onMove);
+canvas.addEventListener('mouseup',onUp);
+canvas.addEventListener('touchstart',onDown,{passive:false});
+canvas.addEventListener('touchmove',onMove,{passive:false});
+canvas.addEventListener('touchend',onUp,{passive:false});
+})();
+
+// ============================================================
+// SYNTHÈSE
+// ============================================================
+(function(){
+const DUR=800;
+let deployed=false,animating=false,synRaf=null;
+function ez(t){return t<.5?2*t*t:-1+(4-2*t)*t;}
+
+function paraShape(t){
+  const b=160,h=56,off=20,cx=100,cy=52;
+  const x0=cx-b/2, y0=cy+h/2, ay=cy-h/2;
+  const rfH=(h*t).toFixed(1),rfY=(y0-h*t).toFixed(1);
+  document.getElementById('syn-para').innerHTML=`
+    <rect x="${x0}" y="${rfY}" width="${b}" height="${rfH}" fill="#C0DD97" opacity="${t>0?1:0}"/>
+    <rect x="${x0}" y="${ay}" width="${b}" height="${h}" fill="none" stroke="#639922" stroke-width="0.8" stroke-dasharray="4 3" opacity="${t>0?0.8:0}"/>
+    <polygon points="${x0+off},${ay} ${x0+off+b},${ay} ${x0+b},${y0} ${x0},${y0}" fill="#3B8BD4" opacity=".65"/>`;
+}
+function triShape(t){
+  const b=170,h=62,cx=100,cy=52;
+  const x0=cx-b/2, y0=cy+h/2, ay=cy-h/2;
+  const rfH=(h*t).toFixed(1),rfY=(y0-h*t).toFixed(1);
+  document.getElementById('syn-tri').innerHTML=`
+    <rect x="${x0}" y="${rfY}" width="${b}" height="${rfH}" fill="#C0DD97" opacity="${t>0?1:0}"/>
+    <rect x="${x0}" y="${ay}" width="${b}" height="${h}" fill="none" stroke="#639922" stroke-width="0.8" stroke-dasharray="4 3" opacity="${t>0?0.8:0}"/>
+    <polygon points="${x0},${y0} ${cx},${ay} ${x0+b},${y0}" fill="#3B8BD4" opacity=".65"/>`;
+}
+function losShape(t){
+  const cx=100,cy=52,d1=75,d2=36;
+  const rfY=(cy-d2*t).toFixed(1),rfH=(d2*2*t).toFixed(1);
+  document.getElementById('syn-los').innerHTML=`
+    <rect x="${cx-d1}" y="${rfY}" width="${d1*2}" height="${rfH}" fill="#C0DD97" opacity="${t>0?1:0}"/>
+    <rect x="${cx-d1}" y="${cy-d2}" width="${d1*2}" height="${d2*2}" fill="none" stroke="#639922" stroke-width="0.8" stroke-dasharray="4 3" opacity="${t>0?0.8:0}"/>
+    <polygon points="${cx-d1},${cy} ${cx},${cy-d2} ${cx+d1},${cy} ${cx},${cy+d2}" fill="#3B8BD4" opacity=".65"/>
+    <line x1="${cx-d1}" y1="${cy}" x2="${cx+d1}" y2="${cy}" stroke="#185FA5" stroke-width="1.2" stroke-dasharray="4 3"/>
+    <line x1="${cx}" y1="${cy-d2}" x2="${cx}" y2="${cy+d2}" stroke="#185FA5" stroke-width="1.2" stroke-dasharray="4 3"/>`;
+}
+function trapShape(t){
+  const cx=100,B1=155,B2=70,cy=52,h=60;
+  const bot=cy+h/2,top=cy-h/2,mid=cy;
+  const tl=cx-B2/2,tr=cx+B2/2,bl=cx-B1/2,br=cx+B1/2;
+  const ml=(bl+tl)/2,mr=(br+tr)/2;
+  const bm=(B1+B2)/2;
+  const rfY=(mid-h/2*t).toFixed(1),rfH=(h*t).toFixed(1);
+  document.getElementById('syn-trap').innerHTML=`
+    <rect x="${cx-bm/2}" y="${rfY}" width="${bm}" height="${rfH}" fill="#C0DD97" opacity="${t>0?1:0}"/>
+    <rect x="${cx-bm/2}" y="${mid-h/2}" width="${bm}" height="${h}" fill="none" stroke="#639922" stroke-width="0.8" stroke-dasharray="4 3" opacity="${t>0?0.8:0}"/>
+    <polygon points="${bl},${bot} ${br},${bot} ${tr},${top} ${tl},${top}" fill="#3B8BD4" opacity=".65"/>
+    <line x1="${ml}" y1="${mid}" x2="${mr}" y2="${mid}" stroke="#185FA5" stroke-width="1.2" stroke-dasharray="4 3"/>`;
+}
+
+function renderAll(t){paraShape(t);triShape(t);losShape(t);trapShape(t);}
+
+window.synToggle=function(){
+  if(animating)return;
+  animating=true;
+  const from=deployed?1:0,to=deployed?0:1;
+  const t0=performance.now();
+  function step(now){
+    const t=Math.min((now-t0)/DUR,1),et=ez(t);
+    renderAll(from+(to-from)*et);
+    if(t<1){synRaf=requestAnimationFrame(step);}
+    else{renderAll(to);deployed=!deployed;animating=false;
+      document.getElementById('syn-icon').innerHTML=deployed
+        ?'<path d="M19 20L9 12l10-8v16z"/><line x1="5" y1="4" x2="5" y2="20" stroke-width="2" stroke-linecap="round"/>'
+        :'<path d="M8 5v14l11-7z"/>';}
+  }
+  synRaf=requestAnimationFrame(step);
+};
+window.synReset=function(){
+  deployed=false;animating=false;
+  if(synRaf)cancelAnimationFrame(synRaf);
+  renderAll(0);
+  document.getElementById('syn-icon').innerHTML='<path d="M8 5v14l11-7z"/>';
+};
+renderAll(0);
+})();
+
+// ============================================================
+// TRIANGLE
+// ============================================================
+(function(){
+const W=680,BOT=228,SVGH=280,CX=W/2,PTOP=40,DUR=1400,B=310;
+let sw=0,drag=false,dsy=0,dss=0;
+let aL=0,aR=0,rnL=false,rnR=false,rafL=null,rafR=null;
+let sL={f:0,to:180,elapsed:0,t0:0},sR={f:0,to:180,elapsed:0,t0:0};
+let triOffX=0,draggingTri=false,triDragStartX=0,triDragStartOff=0;
+let triVisible=false,triEverMoved=false;
+
+function AF(){return +document.getElementById('tri-sa').value/100;}
+function isRect(){const af=AF();return af<=0||af>=1;}
+function geo(){
+  const af=Math.max(0,Math.min(1,AF()));
+  const H=Math.min(Math.round(B*.75),BOT-PTOP-10);
+  const x0=CX-B/2,x1=CX+B/2,ax=x0+af*B,ay=BOT-H;
+  return{H,x0,x1,ax,ay,af};
+}
+function rpt(px,py,rx,ry,d){const a=d*Math.PI/180,dx=px-rx,dy=py-ry;return[rx+dx*Math.cos(a)-dy*Math.sin(a),ry+dx*Math.sin(a)+dy*Math.cos(a)];}
+function ptL(a){const{x0,ax,ay}=geo(),pvx=(x0+ax)/2,pvy=(BOT+ay)/2;return[[x0,BOT],[ax,BOT],[ax,ay]].map(([px,py])=>rpt(px,py,pvx,pvy,a));}
+function ptR(a){const{x1,ax,ay}=geo(),pvx=(x1+ax)/2,pvy=(BOT+ay)/2;return[[x1,BOT],[ax,BOT],[ax,ay]].map(([px,py])=>rpt(px,py,pvx,pvy,-a));}
+function ptRect(a){const{x0,x1,ay,af}=geo();if(af<=0){const pvx=(x1+x0)/2,pvy=(BOT+ay)/2;return[[x0,BOT],[x1,BOT],[x0,ay]].map(([px,py])=>rpt(px,py,pvx,pvy,a));}else{const pvx=(x0+x1)/2,pvy=(BOT+ay)/2;return[[x0,BOT],[x1,BOT],[x1,ay]].map(([px,py])=>rpt(px,py,pvx,pvy,-a));}}
+function ps(pts){return pts.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');}
+function inP(mx,my,pts){let ins=false;for(let i=0,j=pts.length-1;i<pts.length;j=i++){const xi=pts[i][0],yi=pts[i][1],xj=pts[j][0],yj=pts[j][1];if(((yi>my)!==(yj>my))&&(mx<(xj-xi)*(my-yi)/(yj-yi)+xi))ins=!ins;}return ins;}
+function ez(t){return t<.5?2*t*t:-1+(4-2*t)*t;}
+function triLightPts(){const{x0,x1,ax,ay}=geo();return[[x0+triOffX,BOT],[ax+triOffX,ay],[x1+triOffX,BOT]];}
+function isFull(){return sw>=geo().H;}
+function rectA(){const{af}=geo();return af<=0?aR:aL;}
+function rectSide(){const{af}=geo();return af<=0?'R':'L';}
+function rectRunning(){return rectSide()==='L'?rnL:rnR;}
+function checkVisible(){if(isRect()){if(rectA()>=179.9)triVisible=true;}else{if(aL>=179.9&&aR>=179.9)triVisible=true;}}
+function set(id,attr,val){document.getElementById(id).setAttribute(attr,val);}
+
+function tick(side,now){
+  const s=side==='L'?sL:sR;
+  s.elapsed+=(now-s.t0);s.t0=now;
+  const range=Math.abs(s.to-s.f),d=DUR*(range/180),t=Math.min(s.elapsed/d,1);
+  const cur=s.f+(s.to-s.f)*ez(t);
+  if(side==='L')aL=cur;else aR=cur;
+  checkVisible();triRender();
+  if(t<1){if(side==='L')rafL=requestAnimationFrame(n=>tick('L',n));else rafR=requestAnimationFrame(n=>tick('R',n));}
+  else{if(side==='L'){aL=s.to;rnL=false;}else{aR=s.to;rnR=false;}checkVisible();triRender();}
+}
+function launch(side,toVal){
+  const cur=side==='L'?aL:aR;
+  if(side==='L'){if(rafL)cancelAnimationFrame(rafL);sL={f:cur,to:toVal,elapsed:0,t0:performance.now()};rnL=true;rafL=requestAnimationFrame(n=>tick('L',n));}
+  else{if(rafR)cancelAnimationFrame(rafR);sR={f:cur,to:toVal,elapsed:0,t0:performance.now()};rnR=true;rafR=requestAnimationFrame(n=>tick('R',n));}
+}
+
+function triRender(){
+  const{H,x0,x1,ax,ay,af}=geo();
+  const s=sw,rY=BOT-s,full=s>=H,tk=6;
+  const atZero=isRect()?(rectA()<1):(aL<1&&aR<1);
+  document.getElementById('tri-va').textContent=Math.round(af*100)+'%'+(isRect()?' — ▲ rect':'');
+  set('tri-rf','x',x0);set('tri-rf','y',rY);set('tri-rf','width',B);set('tri-rf','height',s);
+  set('tri-rf','opacity',s>2&&!triEverMoved?'1':'0');
+  set('tri-rb','x',x0);set('tri-rb','y',rY);set('tri-rb','width',B);set('tri-rb','height',s);
+  set('tri-rb','opacity',full&&!triEverMoved?'0.8':'0');
+  const showH=sw>0&&!full;
+  set('tri-dh','x1',ax);set('tri-dh','y1',BOT);set('tri-dh','x2',ax);set('tri-dh','y2',rY);set('tri-dh','opacity',showH?'.8':'0');
+  set('tri-tbot','x1',ax-tk);set('tri-tbot','y1',BOT);set('tri-tbot','x2',ax+tk);set('tri-tbot','y2',BOT);set('tri-tbot','opacity',showH?'.6':'0');
+  set('tri-tt','x1',ax-tk);set('tri-tt','y1',rY);set('tri-tt','x2',ax+tk);set('tri-tt','y2',rY);set('tri-tt','opacity',showH?'.6':'0');
+  if(isRect()){
+    const rpts=ptRect(rectA()).map(([x,y])=>[x-triOffX,y]);
+    set('tri-hL','points',ps(rpts));set('tri-hL','opacity',full?'.65':'0');
+    set('tri-hR','points','0,0 0,0 0,0');set('tri-hR','opacity','0');
+    set('tri-sep','opacity','0');
+    const pvx=(rpts[0][0]+rpts[2][0])/2,pvy=(rpts[0][1]+rpts[2][1])/2;
+    set('tri-pvL','cx',pvx);set('tri-pvL','cy',pvy);set('tri-pvL','opacity',full&&rectA()>1&&rectA()<179?'0.8':'0');
+    set('tri-pvR','opacity','0');
+  } else {
+    const ptsL=ptL(aL).map(([x,y])=>[x-triOffX,y]);
+    const ptsR=ptR(aR).map(([x,y])=>[x-triOffX,y]);
+    set('tri-hL','points',ps(ptsL));set('tri-hL','opacity',full?'.65':'0');
+    set('tri-hR','points',ps(ptsR));set('tri-hR','opacity',full?'.65':'0');
+    const p0=ptsL[1],p1=ptsL[2];
+    set('tri-sep','x1',p0[0].toFixed(1));set('tri-sep','y1',p0[1].toFixed(1));
+    set('tri-sep','x2',p1[0].toFixed(1));set('tri-sep','y2',p1[1].toFixed(1));
+    set('tri-sep','opacity',full&&atZero&&!triEverMoved?'.7':'0');
+    const pLx=(ptsL[0][0]+ptsL[2][0])/2,pLy=(BOT+ay)/2,pRx=(ptsR[0][0]+ptsR[2][0])/2,pRy=(BOT+ay)/2;
+    set('tri-pvL','cx',pLx);set('tri-pvL','cy',pLy);set('tri-pvL','opacity',full&&aL>1&&aL<179?'0.8':'0');
+    set('tri-pvR','cx',pRx);set('tri-pvR','cy',pRy);set('tri-pvR','opacity',full&&aR>1&&aR<179?'0.8':'0');
+  }
+  // Triangle bleu complet décalé aussi
+  set('tri-full','points',`${x0-triOffX},${BOT} ${ax-triOffX},${ay} ${x1-triOffX},${BOT}`);
+  set('tri-full','opacity',full?'0':triEverMoved?'0':'.65');
+  set('tri-light','points',ps(triLightPts()));
+  set('tri-light','opacity',triVisible&&triEverMoved?'1':'0');
+  document.getElementById('tri-light').style.cursor=triVisible&&triEverMoved?(draggingTri?'grabbing':'grab'):'default';
+  set('tri-bh','x1',x0);set('tri-bh','y1',BOT);set('tri-bh','x2',x1);set('tri-bh','y2',BOT);
+  set('tri-bh','stroke-width',full?'0':'18');
+  document.getElementById('tri-hint').style.display=sw<1?'block':'none';
+}
+
+function triSvgpt(e){
+  const r=document.getElementById('viz-tri').getBoundingClientRect();
+  const cx2=e.touches?e.touches[0].clientX:e.clientX,cy2=e.touches?e.touches[0].clientY:e.clientY;
+  return{x:(cx2-r.left)*W/r.width,y:(cy2-r.top)*SVGH/r.height};
+}
+function hitBase(mx,my){const{x0,x1,H}=geo();return sw<H&&mx>=x0-10&&mx<=x1+10&&Math.abs(my-BOT)<18;}
+
+function triDown(e){
+  const{x:mx,y:my}=triSvgpt(e);
+  if(hitBase(mx,my)){drag=true;dsy=my;dss=sw;document.getElementById('tri-bh').style.cursor='grabbing';e.preventDefault();return;}
+  if(!isFull())return;
+  const{x0,x1,ax,ay,af}=geo();
+  const rect=isRect();
+  const fullTriPts=[[x0,BOT],[ax,ay],[x1,BOT]];
+  const inRect=my>=ay-5&&my<=BOT+5&&mx>=x0-5&&mx<=x1+5;
+  const onGreen=triVisible&&triEverMoved&&inP(mx,my,triLightPts());
+  const onGreenStatic=triVisible&&!triEverMoved&&inP(mx,my,fullTriPts);
+  const onGreenAny=onGreen||onGreenStatic;
+  if(rect){
+    const ra=rectA(),rs=rectSide(),rr=rectRunning();
+    if(onGreen||onGreenStatic){draggingTri=true;triDragStartX=mx;triDragStartOff=triOffX;e.preventDefault();return;}
+    if(!rr&&inRect&&!onGreenAny){launch(rs,ra>90?0:180);e.preventDefault();return;}
+  } else {
+    const ptsL=ptL(aL).map(([x,y])=>[x-triOffX,y]);
+    const ptsR=ptR(aR).map(([x,y])=>[x-triOffX,y]);
+    function hitBlue(pts, pad=10){
+      // Élargir seulement verticalement (pas horizontalement) pour éviter chevauchement
+      const expanded = pts.map(([x,y],i)=>{
+        // Trouver le point le plus haut et l'élargir vers le haut
+        const minY = Math.min(...pts.map(p=>p[1]));
+        return y===minY ? [x, y-pad] : [x, y+pad];
+      });
+      return inP(mx,my,pts) || inP(mx,my,expanded);
+    }
+    const onBL=!rnL&&aL>1&&hitBlue(ptsL);
+    const onBR=!rnR&&aR>1&&hitBlue(ptsR);
+    const onBLzone=!rnL&&aL<=1&&inRect&&mx<=ax-triOffX,onBRzone=!rnR&&aR<=1&&inRect&&mx>ax-triOffX;
+    // 1. Vert prioritaire s'il a déjà été déplacé
+    if(triEverMoved&&onGreen){draggingTri=true;triDragStartX=mx;triDragStartOff=triOffX;e.preventDefault();return;}
+    // 2. Bleus complètement pivotés
+    if(onBL&&aL>=179){launch('L',0);e.preventDefault();return;}
+    if(onBR&&aR>=179){launch('R',0);e.preventDefault();return;}
+    // 3. Triangle vert statique (pas encore bougé)
+    if(triVisible&&onGreenStatic){draggingTri=true;triDragStartX=mx;triDragStartOff=triOffX;e.preventDefault();return;}
+    // 4. Bleus en cours de pivot
+    if(onBL){launch('L',aL>90?0:180);e.preventDefault();return;}
+    if(onBR){launch('R',aR>90?0:180);e.preventDefault();return;}
+    // 5. Zones bleues non encore pivotées
+    if(onBLzone){launch('L',180);e.preventDefault();return;}
+    if(onBRzone){launch('R',180);e.preventDefault();return;}
+  }
+}
+function triMove(e){
+  const{x:mx,y:my}=triSvgpt(e);
+  if(draggingTri){triOffX=triDragStartOff+(mx-triDragStartX);if(Math.abs(triOffX)>0.5)triEverMoved=true;triRender();if(e.cancelable)e.preventDefault();return;}
+  if(drag){const{H}=geo();sw=Math.max(0,Math.min(H,dss+(dsy-my)));triRender();if(e.cancelable)e.preventDefault();}
+}
+function triUp(){drag=false;draggingTri=false;triRender();}
+window.triReset=function(){sw=0;aL=0;aR=0;rnL=false;rnR=false;drag=false;draggingTri=false;triOffX=0;triVisible=false;triEverMoved=false;if(rafL)cancelAnimationFrame(rafL);if(rafR)cancelAnimationFrame(rafR);triRender();};
+
+const vizTri=document.getElementById('viz-tri');
+vizTri.addEventListener('mousedown',triDown);
+vizTri.addEventListener('touchstart',triDown,{passive:false});
+window.addEventListener('mousemove',triMove);
+window.addEventListener('touchmove',triMove,{passive:false});
+window.addEventListener('mouseup',triUp);
+window.addEventListener('touchend',triUp);
+triReset();
+})();
+
+// ============================================================
+// PARALLÉLOGRAMME
+// ============================================================
+(function(){
+const W=680,BOT=222,SVGH=280,CX=W/2,PTOP=40,B=300,DUR=900;
+let sw=0,drag=false,dsy=0,dss=0;
+let triOffX=0,animating=false,raf=null;
+
+function SK(){return +document.getElementById('para-sk').value;}
+function geo(){
+  const H=Math.min(160,BOT-PTOP-10);
+  const ang=SK()*Math.PI/180,off=Math.round(H*Math.tan(ang));
+  const x0=CX-B/2-off/2,x1=x0+B,x0t=x0+off,x1t=x1+off,ay=BOT-H;
+  return{H,x0,x1,x0t,x1t,ay,off};
+}
+function isFull(){return sw>=geo().H;}
+function isAtRight(){return Math.abs(triOffX)<1;}
+function triPts(){const{x1,x1t,ay}=geo();return[[x1+triOffX,BOT],[x1t+triOffX,ay],[x1+triOffX,ay]];}
+function ps(pts){return pts.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');}
+function inP(mx,my,pts){let ins=false;for(let i=0,j=pts.length-1;i<pts.length;j=i++){const xi=pts[i][0],yi=pts[i][1],xj=pts[j][0],yj=pts[j][1];if(((yi>my)!==(yj>my))&&(mx<(xj-xi)*(my-yi)/(yj-yi)+xi))ins=!ins;}return ins;}
+function ez(t){return t<.5?2*t*t:-1+(4-2*t)*t;}
+function set(id,attr,val){document.getElementById(id).setAttribute(attr,val);}
+
+function animateTo(target){
+  const start=triOffX,t0=performance.now();
+  animating=true;if(raf)cancelAnimationFrame(raf);
+  function step(now){const t=Math.min((now-t0)/DUR,1);triOffX=start+(target-start)*ez(t);paraRender();if(t<1)raf=requestAnimationFrame(step);else{triOffX=target;animating=false;paraRender();}}
+  raf=requestAnimationFrame(step);
+}
+
+function paraRender(){
+  const{H,x0,x1,x0t,x1t,ay}=geo();
+  const s=sw,rY=BOT-s,full=s>=H,tk=6;
+  set('para-rf','x',x0);set('para-rf','y',rY);set('para-rf','width',B);set('para-rf','height',s);set('para-rf','opacity',s>2?'1':'0');
+  set('para-rb','x',x0);set('para-rb','y',rY);set('para-rb','width',B);set('para-rb','height',s);set('para-rb','opacity',full?'0.8':'0');
+  if(!full){
+    set('para-body','points',`${x0t},${ay} ${x1t},${ay} ${x1},${BOT} ${x0},${BOT}`);
+    set('para-body','opacity','.65');set('para-tri','points','0,0 0,0 0,0');set('para-tri','opacity','0');
+  } else {
+    set('para-body','points',`${x0t},${ay} ${x1},${ay} ${x1},${BOT} ${x0},${BOT}`);
+    set('para-body','opacity','.65');
+    const tp=triPts();set('para-tri','points',ps(tp));set('para-tri','opacity','.65');
+    document.getElementById('para-tri').style.cursor=!animating?'pointer':'default';
+  }
+  const showH=s>10&&!full;
+  set('para-hl','x1',x1);set('para-hl','y1',BOT);set('para-hl','x2',x1);set('para-hl','y2',rY);set('para-hl','opacity',showH?'.8':'0');
+  set('para-htb','x1',x1-tk);set('para-htb','y1',BOT);set('para-htb','x2',x1+tk);set('para-htb','y2',BOT);set('para-htb','opacity',showH?'.6':'0');
+  set('para-htt','x1',x1-tk);set('para-htt','y1',rY);set('para-htt','x2',x1+tk);set('para-htt','y2',rY);set('para-htt','opacity',showH?'.6':'0');
+  set('para-bh','x1',x0);set('para-bh','y1',BOT);set('para-bh','x2',x1);set('para-bh','y2',BOT);set('para-bh','stroke-width',full?'0':'18');
+  document.getElementById('para-hint').style.display=sw<1?'block':'none';
+  document.getElementById('para-vk').textContent=SK()+'°';
+}
+
+function paraSvgpt(e){
+  const r=document.getElementById('viz-para').getBoundingClientRect();
+  const cx2=e.touches?e.touches[0].clientX:e.clientX,cy2=e.touches?e.touches[0].clientY:e.clientY;
+  // viewBox="0 100 680 190" → x scale=680/width, y offset=100, scale=190/height
+  const sx=680/r.width, sy=280/r.height;
+  return{x:(cx2-r.left)*sx, y:(cy2-r.top)*sy};
+}
+function hitBase(mx,my){const{x0,x1,H}=geo();return sw<H&&mx>=x0-10&&mx<=x1+10&&Math.abs(my-BOT)<18;}
+
+function hitTri(mx,my){
+  const{x1,x1t,ay}=geo();
+  const xMin=Math.min(x1,x1t)+triOffX-5;
+  const xMax=Math.max(x1,x1t)+triOffX+5;
+  return mx>=xMin&&mx<=xMax&&my>=ay-5&&my<=BOT+5;
+}
+function paraDown(e){
+  const{x:mx,y:my}=paraSvgpt(e);
+  // Triangle en priorité quand rectangle déployé
+  if(sw>=geo().H&&!animating&&hitTri(mx,my)){
+    if(isAtRight())animateTo(-B);
+    else animateTo(0);
+    e.preventDefault();return;
+  }
+  if(hitBase(mx,my)){drag=true;dsy=my;dss=sw;document.getElementById('para-bh').style.cursor='grabbing';e.preventDefault();}
+}
+function paraMove(e){
+  if(!drag)return;const{y:my}=paraSvgpt(e);const{H}=geo();
+  sw=Math.max(0,Math.min(H,dss+(dsy-my)));paraRender();if(e.cancelable)e.preventDefault();
+}
+function paraUp(){drag=false;document.getElementById('para-bh').style.cursor='grab';paraRender();}
+window.paraReset=function(){sw=0;drag=false;triOffX=0;animating=false;if(raf)cancelAnimationFrame(raf);paraRender();};
+
+const vizPara=document.getElementById('viz-para');
+vizPara.addEventListener('mousedown',paraDown);
+vizPara.addEventListener('touchstart',paraDown,{passive:false});
+window.addEventListener('mousemove',paraMove);
+window.addEventListener('touchmove',paraMove,{passive:false});
+window.addEventListener('mouseup',paraUp);
+window.addEventListener('touchend',paraUp);
+paraReset();
+})();
+
+// ============================================================
+// LOSANGE
+// ============================================================
+(function(){
+const W=680,SVGH=280,CX=340,CY=138;
+const D1=170,D2=108,DUR=700;
+let sw=0,sv=0,dragH=false,dragV=false;
+let dragStartY=0,dragStartSW=0,dragStartX=0,dragStartSV=0;
+let aTL=0,aTR=0,aBL=0,aBR=0;
+let rnTL=false,rnTR=false,rnBL=false,rnBR=false;
+let rafTL=null,rafTR=null,rafBL=null,rafBR=null;
+let greenOffX=0,draggingGreen=false,greenDragStartX=0,greenDragStartOff=0;
+let greenEverMoved=false;
+let hideDHL=false,hideDHR=false,hideDVT=false,hideDVB=false;
+
+function set(id,attr,val){document.getElementById(id).setAttribute(attr,val);}
+function ez(t){return t<.5?2*t*t:-1+(4-2*t)*t;}
+function ps(pts){return pts.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');}
+function rpt(px,py,rx,ry,d){const a=d*Math.PI/180,dx=px-rx,dy=py-ry;return[rx+dx*Math.cos(a)-dy*Math.sin(a),ry+dx*Math.sin(a)+dy*Math.cos(a)];}
+function inP(mx,my,pts){let ins=false;for(let i=0,j=pts.length-1;i<pts.length;j=i++){const xi=pts[i][0],yi=pts[i][1],xj=pts[j][0],yj=pts[j][1];if(((yi>my)!==(yj>my))&&(mx<(xj-xi)*(my-yi)/(yj-yi)+xi))ins=!ins;}return ins;}
+// Snaps figés au clic (pour hit-test après déplacement)
+let snapTL=0,snapTR=0,snapBL=0,snapBR=0;
+
+function tTL(a){const A=[CX-D1,CY],B=[CX,CY-D2],C=[CX,CY];const pvx=(A[0]+B[0])/2,pvy=(A[1]+B[1])/2;return[A,B,C].map(([px,py])=>rpt(px,py,pvx,pvy,a));}
+function tTR(a){const A=[CX+D1,CY],B=[CX,CY-D2],C=[CX,CY];const pvx=(A[0]+B[0])/2,pvy=(A[1]+B[1])/2;return[A,B,C].map(([px,py])=>rpt(px,py,pvx,pvy,-a));}
+function tBL(a){const A=[CX-D1,CY],B=[CX,CY+D2],C=[CX,CY];const pvx=(A[0]+B[0])/2,pvy=(A[1]+B[1])/2;return[A,B,C].map(([px,py])=>rpt(px,py,pvx,pvy,-a));}
+function tBR(a){const A=[CX+D1,CY],B=[CX,CY+D2],C=[CX,CY];const pvx=(A[0]+B[0])/2,pvy=(A[1]+B[1])/2;return[A,B,C].map(([px,py])=>rpt(px,py,pvx,pvy,a));}
+// Le décalage suit toujours -greenOffX en temps réel, que le triangle soit pivoté ou non
+function shiftTL(pts){return pts.map(([x,y])=>[x-greenOffX,y]);}
+function shiftTR(pts){return pts.map(([x,y])=>[x-greenOffX,y]);}
+function shiftBL(pts){return pts.map(([x,y])=>[x-greenOffX,y]);}
+function shiftBR(pts){return pts.map(([x,y])=>[x-greenOffX,y]);}
+function inCTL(mx,my){const ox=-greenOffX;return inP(mx,my,[[CX-D1+ox,CY],[CX+ox,CY-D2],[CX+ox,CY]]);}
+function inCTR(mx,my){const ox=-greenOffX;return inP(mx,my,[[CX+D1+ox,CY],[CX+ox,CY-D2],[CX+ox,CY]]);}
+function inCBL(mx,my){const ox=-greenOffX;return inP(mx,my,[[CX-D1+ox,CY],[CX+ox,CY+D2],[CX+ox,CY]]);}
+function inCBR(mx,my){const ox=-greenOffX;return inP(mx,my,[[CX+D1+ox,CY],[CX+ox,CY+D2],[CX+ox,CY]]);}
+
+const hFull=()=>sw>=D2-1,vFull=()=>sv>=D1-1,anyFull=()=>hFull()||vFull();
+const allUp=()=>aTL>=179&&aTR>=179&&aBL>=179&&aBR>=179&&!rnTL&&!rnTR&&!rnBL&&!rnBR;
+function greenPts(){return[[CX+greenOffX,CY-D2],[CX+D1+greenOffX,CY],[CX+greenOffX,CY+D2],[CX-D1+greenOffX,CY]];}
+function greenStaticPts(){return[[CX,CY-D2],[CX+D1,CY],[CX,CY+D2],[CX-D1,CY]];}
+
+function updateDiagLocks(){
+  if(aTL>90&&aBL>90)hideDHL=true;if(aTR>90&&aBR>90)hideDHR=true;
+  if(aTL>90&&aTR>90)hideDVT=true;if(aBL>90&&aBR>90)hideDVB=true;
+}
+
+function launchLos(which,toVal){
+  const cfg={
+    TL:{get:()=>aTL,set:v=>{aTL=v;},rn:()=>rnTL,setRn:v=>{rnTL=v;},raf:()=>rafTL,setRaf:v=>{rafTL=v;},snap:()=>{snapTL=-greenOffX;}},
+    TR:{get:()=>aTR,set:v=>{aTR=v;},rn:()=>rnTR,setRn:v=>{rnTR=v;},raf:()=>rafTR,setRaf:v=>{rafTR=v;},snap:()=>{snapTR=-greenOffX;}},
+    BL:{get:()=>aBL,set:v=>{aBL=v;},rn:()=>rnBL,setRn:v=>{rnBL=v;},raf:()=>rafBL,setRaf:v=>{rafBL=v;},snap:()=>{snapBL=-greenOffX;}},
+    BR:{get:()=>aBR,set:v=>{aBR=v;},rn:()=>rnBR,setRn:v=>{rnBR=v;},raf:()=>rafBR,setRaf:v=>{rafBR=v;},snap:()=>{snapBR=-greenOffX;}}
+  }[which];
+  if(cfg.rn())return;
+  cfg.snap(); // figer la position au moment du clic
+  const st={f:cfg.get(),to:toVal,elapsed:0,t0:performance.now()};
+  cfg.setRn(true);if(cfg.raf())cancelAnimationFrame(cfg.raf());
+  function step(now){
+    st.elapsed+=(now-st.t0);st.t0=now;
+    const range=Math.abs(st.to-st.f),d=DUR*(range/180),t=Math.min(st.elapsed/d,1);
+    cfg.set(st.f+(st.to-st.f)*ez(t));updateDiagLocks();losRender();
+    if(t<1)cfg.setRaf(requestAnimationFrame(step));
+    else{cfg.set(st.to);cfg.setRn(false);updateDiagLocks();losRender();}
+  }
+  cfg.setRaf(requestAnimationFrame(step));
+}
+
+function losRender(){
+  const anyF=anyFull(),rHw=2*D1,rHx=CX-D1,rVh=2*D2,rVy=CY-D2;
+  const rfOp=sw>1&&!greenEverMoved?'1':'0';
+  set('los-rft','x',rHx);set('los-rft','y',CY-sw);set('los-rft','width',rHw);set('los-rft','height',sw);set('los-rft','opacity',rfOp);
+  set('los-rfb','x',rHx);set('los-rfb','y',CY);set('los-rfb','width',rHw);set('los-rfb','height',sw);set('los-rfb','opacity',rfOp);
+  const rfOpV=sv>1&&!greenEverMoved?'1':'0';
+  set('los-rfl','x',CX-sv);set('los-rfl','y',rVy);set('los-rfl','width',sv);set('los-rfl','height',rVh);set('los-rfl','opacity',rfOpV);
+  set('los-rfr','x',CX);set('los-rfr','y',rVy);set('los-rfr','width',sv);set('los-rfr','height',rVh);set('los-rfr','opacity',rfOpV);
+  set('los-dhl','x1',CX-D1);set('los-dhl','y1',CY);set('los-dhl','x2',CX);set('los-dhl','y2',CY);set('los-dhl','opacity',hideDHL?'0':'1');
+  set('los-dhr','x1',CX);set('los-dhr','y1',CY);set('los-dhr','x2',CX+D1);set('los-dhr','y2',CY);set('los-dhr','opacity',hideDHR?'0':'1');
+  set('los-dvt','x1',CX);set('los-dvt','y1',CY-D2);set('los-dvt','x2',CX);set('los-dvt','y2',CY);set('los-dvt','opacity',hideDVT?'0':'1');
+  set('los-dvb','x1',CX);set('los-dvb','y1',CY);set('los-dvb','x2',CX);set('los-dvb','y2',CY+D2);set('los-dvb','opacity',hideDVB?'0':'1');
+  set('los-hitv','x1',CX);set('los-hitv','y1',CY-D2);set('los-hitv','x2',CX);set('los-hitv','y2',CY+D2);
+  set('los-hith','x1',CX-D1);set('los-hith','y1',CY);set('los-hith','x2',CX+D1);set('los-hith','y2',CY);
+  const ox=-greenOffX;
+  set('los-qTL','points',`${CX-D1+ox},${CY} ${CX+ox},${CY-D2} ${CX+ox},${CY}`);set('los-qTL','opacity',aTL>1?'0':'.65');
+  set('los-qTR','points',`${CX+D1+ox},${CY} ${CX+ox},${CY-D2} ${CX+ox},${CY}`);set('los-qTR','opacity',aTR>1?'0':'.65');
+  set('los-qBL','points',`${CX-D1+ox},${CY} ${CX+ox},${CY+D2} ${CX+ox},${CY}`);set('los-qBL','opacity',aBL>1?'0':'.65');
+  set('los-qBR','points',`${CX+D1+ox},${CY} ${CX+ox},${CY+D2} ${CX+ox},${CY}`);set('los-qBR','opacity',aBR>1?'0':'.65');
+  set('los-tTL','points',ps(shiftTL(tTL(aTL))));set('los-tTL','opacity',aTL>1&&anyF?'.65':'0');
+  set('los-tTR','points',ps(shiftTR(tTR(aTR))));set('los-tTR','opacity',aTR>1&&anyF?'.65':'0');
+  set('los-tBL','points',ps(shiftBL(tBL(aBL))));set('los-tBL','opacity',aBL>1&&anyF?'.65':'0');
+  set('los-tBR','points',ps(shiftBR(tBR(aBR))));set('los-tBR','opacity',aBR>1&&anyF?'.65':'0');
+  set('los-green','points',ps(greenPts()));
+  set('los-green','opacity',greenEverMoved&&anyF?'1':'0');
+  document.getElementById('los-green').style.cursor=greenEverMoved?(draggingGreen?'grabbing':'grab'):'default';
+}
+
+function losSvgpt(e){
+  const r=document.getElementById('viz-los').getBoundingClientRect();
+  const cx2=e.touches?e.touches[0].clientX:e.clientX,cy2=e.touches?e.touches[0].clientY:e.clientY;
+  return{x:(cx2-r.left)*W/r.width,y:(cy2-r.top)*SVGH/r.height};
+}
+
+function losDown(e){
+  const{x:mx,y:my}=losSvgpt(e);
+  if(greenEverMoved&&anyFull()&&inP(mx,my,greenPts())){draggingGreen=true;greenDragStartX=mx;greenDragStartOff=greenOffX;e.preventDefault();return;}
+  if(!greenEverMoved&&allUp()&&anyFull()&&inP(mx,my,greenStaticPts())){draggingGreen=true;greenDragStartX=mx;greenDragStartOff=greenOffX;e.preventDefault();return;}
+  if(anyFull()){
+    if(!rnTL&&aTL>1&&inP(mx,my,shiftTL(tTL(aTL)))){launchLos('TL',aTL>=179?0:180);e.preventDefault();return;}
+    if(!rnTR&&aTR>1&&inP(mx,my,shiftTR(tTR(aTR)))){launchLos('TR',aTR>=179?0:180);e.preventDefault();return;}
+    if(!rnBL&&aBL>1&&inP(mx,my,shiftBL(tBL(aBL)))){launchLos('BL',aBL>=179?0:180);e.preventDefault();return;}
+    if(!rnBR&&aBR>1&&inP(mx,my,shiftBR(tBR(aBR)))){launchLos('BR',aBR>=179?0:180);e.preventDefault();return;}
+    if(!rnTL&&aTL<=1&&inCTL(mx,my)){launchLos('TL',180);e.preventDefault();return;}
+    if(!rnTR&&aTR<=1&&inCTR(mx,my)){launchLos('TR',180);e.preventDefault();return;}
+    if(!rnBL&&aBL<=1&&inCBL(mx,my)){launchLos('BL',180);e.preventDefault();return;}
+    if(!rnBR&&aBR<=1&&inCBR(mx,my)){launchLos('BR',180);e.preventDefault();return;}
+  }
+  if(Math.abs(mx-CX)<14&&my>=CY-D2-5&&my<=CY+D2+5){dragV=true;dragStartX=mx;dragStartSV=sv;e.preventDefault();return;}
+  if(Math.abs(my-CY)<14&&mx>=CX-D1-5&&mx<=CX+D1+5){dragH=true;dragStartY=my;dragStartSW=sw;e.preventDefault();return;}
+}
+function losMove(e){
+  const{x:mx,y:my}=losSvgpt(e);
+  if(draggingGreen){greenOffX=greenDragStartOff+(mx-greenDragStartX);if(Math.abs(greenOffX)>0.5)greenEverMoved=true;losRender();if(e.cancelable)e.preventDefault();return;}
+  if(dragH){sw=Math.max(0,Math.min(D2,dragStartSW+(Math.abs(my-CY)-Math.abs(dragStartY-CY))));losRender();if(e.cancelable)e.preventDefault();}
+  if(dragV){sv=Math.max(0,Math.min(D1,dragStartSV+(Math.abs(mx-CX)-Math.abs(dragStartX-CX))));losRender();if(e.cancelable)e.preventDefault();}
+}
+function losUp(){dragH=false;dragV=false;draggingGreen=false;}
+window.losReset=function(){
+  sw=0;sv=0;aTL=0;aTR=0;aBL=0;aBR=0;
+  rnTL=false;rnTR=false;rnBL=false;rnBR=false;
+  snapTL=0;snapTR=0;snapBL=0;snapBR=0;
+  greenOffX=0;draggingGreen=false;greenEverMoved=false;
+  hideDHL=false;hideDHR=false;hideDVT=false;hideDVB=false;
+  losRender();
+};
+
+const vizLos=document.getElementById('viz-los');
+vizLos.addEventListener('mousedown',losDown);
+vizLos.addEventListener('touchstart',losDown,{passive:false});
+window.addEventListener('mousemove',losMove);
+window.addEventListener('touchmove',losMove,{passive:false});
+window.addEventListener('mouseup',losUp);
+window.addEventListener('touchend',losUp);
+losReset();
+})();
+
+// ============================================================
+// TRAPÈZE
+// ============================================================
+(function(){
+const W=680,SVGH=280,CX=340,BOT=248,TOP=45;
+const H=BOT-TOP,HALF=H/2;
+const MID=(BOT+TOP)/2;
+const DUR=700;
+
+let B1=250,B2=120,OFF=0;
+let s=0,drag=false,dragStartY=0,dragStartS=0;
+let aL=0,aR=0,rnL=false,rnR=false,rafL=null,rafR=null;
+let launchedL=false,launchedR=false;
+
+function set(id,attr,val){document.getElementById(id).setAttribute(attr,val);}
+function ps(pts){return pts.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');}
+function ez(t){return t<.5?2*t*t:-1+(4-2*t)*t;}
+function inP(mx,my,pts){
+  let ins=false;
+  for(let i=0,j=pts.length-1;i<pts.length;j=i++){
+    const xi=pts[i][0],yi=pts[i][1],xj=pts[j][0],yj=pts[j][1];
+    if(((yi>my)!==(yj>my))&&(mx<(xj-xi)*(my-yi)/(yj-yi)+xi))ins=!ins;
+  }
+  return ins;
+}
+function rpt(px,py,rx,ry,deg){
+  const a=deg*Math.PI/180,dx=px-rx,dy=py-ry;
+  return[rx+dx*Math.cos(a)-dy*Math.sin(a),ry+dx*Math.sin(a)+dy*Math.cos(a)];
+}
+function mediane(){
+  const mx1=(CX-B1+CX+OFF-B2/2)/2;
+  const mx2=(CX+B1+CX+OFF+B2/2)/2;
+  return{x1:mx1,x2:mx2,y:MID};
+}
+function triBLpts(){const m=mediane();return[[CX-B1,BOT],[m.x1,BOT],[m.x1,MID]];}
+function triBRpts(){const m=mediane();return[[CX+B1,BOT],[m.x2,BOT],[m.x2,MID]];}
+function animBLpts(angle){const m=mediane();return triBLpts().map(([px,py])=>rpt(px,py,m.x1,MID,angle));}
+function animBRpts(angle){const m=mediane();return triBRpts().map(([px,py])=>rpt(px,py,m.x2,MID,angle));}
+
+function launch(which,toVal){
+  const cfg={
+    L:{get:()=>aL,set:v=>{aL=v;},rn:()=>rnL,setRn:v=>{rnL=v;},raf:()=>rafL,setRaf:v=>{rafL=v;},setL:()=>{launchedL=true;}},
+    R:{get:()=>aR,set:v=>{aR=v;},rn:()=>rnR,setRn:v=>{rnR=v;},raf:()=>rafR,setRaf:v=>{rafR=v;},setL:()=>{launchedR=true;}}
+  }[which];
+  if(cfg.rn())return;
+  cfg.setL();
+  const st={f:cfg.get(),to:toVal,t0:performance.now()};
+  cfg.setRn(true);
+  if(cfg.raf())cancelAnimationFrame(cfg.raf());
+  function step(now){
+    const t=Math.min((now-st.t0)/DUR,1);
+    cfg.set(st.f+(st.to-st.f)*ez(t));
+    trapRender();
+    if(t<1)cfg.setRaf(requestAnimationFrame(step));
+    else{cfg.set(st.to);cfg.setRn(false);trapRender();}
+  }
+  cfg.setRaf(requestAnimationFrame(step));
+}
+
+function isFull(){return s>=HALF-1;}
+
+function trapRender(){
+  const m=mediane();
+  const sh=Math.min(s,HALF),topY=MID-sh;
+  set('trap-rfb','x',m.x1);set('trap-rfb','y',MID);set('trap-rfb','width',m.x2-m.x1);set('trap-rfb','height',sh);set('trap-rfb','opacity',sh>1?'1':'0');
+  set('trap-rft','x',m.x1);set('trap-rft','y',topY);set('trap-rft','width',m.x2-m.x1);set('trap-rft','height',sh);set('trap-rft','opacity',sh>1?'1':'0');
+  set('trap-rb','x',m.x1);set('trap-rb','y',topY);set('trap-rb','width',m.x2-m.x1);set('trap-rb','height',sh*2);set('trap-rb','opacity',sh>1?'0.8':'0');
+  set('trap-center','points',ps([[m.x1,MID],[m.x1,BOT],[m.x2,BOT],[m.x2,MID],[CX+OFF+B2/2,TOP],[CX+OFF-B2/2,TOP]]));
+  set('trap-tBL','points',ps(triBLpts()));set('trap-tBL','opacity',launchedL?'0':'.65');
+  document.getElementById('trap-tBL').style.cursor=isFull()&&!launchedL?'pointer':'default';
+  set('trap-tBR','points',ps(triBRpts()));set('trap-tBR','opacity',launchedR?'0':'.65');
+  document.getElementById('trap-tBR').style.cursor=isFull()&&!launchedR?'pointer':'default';
+  set('trap-aBL','points',ps(animBLpts(aL)));set('trap-aBL','opacity',launchedL?'.65':'0');
+  set('trap-aBR','points',ps(animBRpts(aR)));set('trap-aBR','opacity',launchedR?'.65':'0');
+  set('trap-med','x1',m.x1);set('trap-med','y1',MID);set('trap-med','x2',m.x2);set('trap-med','y2',MID);
+  set('trap-hit','x1',CX-B1);set('trap-hit','y1',MID);set('trap-hit','x2',CX+B1);set('trap-hit','y2',MID);
+}
+
+function trapSvgpt(e){
+  const r=document.getElementById('viz-trap').getBoundingClientRect();
+  const cx2=e.touches?e.touches[0].clientX:e.clientX,cy=e.touches?e.touches[0].clientY:e.clientY;
+  return{x:(cx2-r.left)*W/r.width,y:(cy-r.top)*SVGH/r.height};
+}
+function trapDown(e){
+  const{x:mx,y:my}=trapSvgpt(e);
+  if(isFull()&&!launchedL&&!rnL&&inP(mx,my,triBLpts())){launch('L',180);e.preventDefault();return;}
+  if(isFull()&&!launchedR&&!rnR&&inP(mx,my,triBRpts())){launch('R',-180);e.preventDefault();return;}
+  if(isFull()&&launchedL&&!rnL&&inP(mx,my,animBLpts(aL))){launch('L',aL>=179?0:180);e.preventDefault();return;}
+  if(isFull()&&launchedR&&!rnR&&inP(mx,my,animBRpts(aR))){launch('R',aR<=-179?0:-180);e.preventDefault();return;}
+  if(Math.abs(my-MID)<20&&s<HALF){drag=true;dragStartY=my;dragStartS=s;e.preventDefault();}
+}
+function trapMove(e){
+  if(!drag)return;
+  const{y:my}=trapSvgpt(e);
+  s=Math.max(0,Math.min(HALF,dragStartS+Math.abs(my-dragStartY)));
+  trapRender();if(e.cancelable)e.preventDefault();
+}
+function trapUp(){drag=false;}
+
+window.trapReset=function(keepSliders){
+  s=0;aL=0;aR=0;rnL=false;rnR=false;launchedL=false;launchedR=false;
+  if(rafL)cancelAnimationFrame(rafL);if(rafR)cancelAnimationFrame(rafR);
+  if(!keepSliders){
+    B1=250;B2=120;OFF=0;
+    document.getElementById('trap-b1').value=B1;
+    document.getElementById('trap-b2').value=B2;
+    document.getElementById('trap-off').value=OFF;
+    document.getElementById('trap-v1').textContent=B1;
+    document.getElementById('trap-v2').textContent=B2;
+    document.getElementById('trap-voff').textContent=OFF;
+  }
+  trapRender();
+};
+window.trapSlider=function(){
+  B1=+document.getElementById('trap-b1').value;
+  B2=Math.min(+document.getElementById('trap-b2').value,2*B1);
+  OFF=+document.getElementById('trap-off').value;
+  document.getElementById('trap-b2').value=B2;
+  document.getElementById('trap-v1').textContent=B1;
+  document.getElementById('trap-v2').textContent=B2;
+  document.getElementById('trap-voff').textContent=OFF>0?'+'+OFF:OFF;
+  window.trapReset(true);
+};
+
+const vizTrap=document.getElementById('viz-trap');
+vizTrap.addEventListener('mousedown',trapDown);
+vizTrap.addEventListener('touchstart',trapDown,{passive:false});
+window.addEventListener('mousemove',trapMove);
+window.addEventListener('touchmove',trapMove,{passive:false});
+window.addEventListener('mouseup',trapUp);
+window.addEventListener('touchend',trapUp);
+trapReset(false);
+})();
+</script>
+</body>
+</html>
