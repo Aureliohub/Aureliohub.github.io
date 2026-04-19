@@ -1,0 +1,1840 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Entraînement au test EVA — Fichier d'exercices</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,800;1,9..144,400&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink: #1a1a1a;
+  --paper: #fdfcf7;
+  --paper-shade: #f5f1e6;
+  --accent: #a8321e;
+  --accent-soft: #e8b8a8;
+  --rule: #3b4cca;
+  --rule-soft: #c8cfe8;
+  --success: #2d6a3f;
+  --warning: #b8801a;
+  --muted: #6b5d4f;
+  --border: #d4c9b8;
+  --shadow: 0 2px 12px rgba(26, 26, 26, 0.06);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Inter Tight', sans-serif;
+  background: var(--paper);
+  color: var(--ink);
+  line-height: 1.6;
+  font-size: 16px;
+  background-image:
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 31px,
+      rgba(59, 76, 202, 0.05) 31px,
+      rgba(59, 76, 202, 0.05) 32px
+    );
+  background-attachment: fixed;
+}
+
+.wrap {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 60px 40px 120px;
+}
+
+/* ========== HEADER ========== */
+header.cover {
+  text-align: center;
+  padding: 40px 20px 60px;
+  margin-bottom: 40px;
+  border-bottom: 3px double var(--ink);
+  position: relative;
+}
+
+.eyebrow {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 18px;
+}
+
+h1.title {
+  font-family: 'Fraunces', serif;
+  font-weight: 800;
+  font-size: clamp(38px, 6vw, 64px);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  margin-bottom: 16px;
+}
+
+h1.title em {
+  font-style: italic;
+  font-weight: 400;
+  color: var(--accent);
+}
+
+.subtitle {
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  font-size: 19px;
+  color: var(--muted);
+  margin-bottom: 30px;
+}
+
+.meta-form {
+  display: flex;
+  gap: 30px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 30px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+}
+
+.meta-form label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+}
+
+.meta-form input {
+  font-family: 'Fraunces', serif;
+  font-size: 17px;
+  border: none;
+  border-bottom: 1.5px solid var(--ink);
+  background: transparent;
+  padding: 4px 10px;
+  min-width: 180px;
+  color: var(--ink);
+  outline: none;
+}
+
+.meta-form input:focus {
+  border-bottom-color: var(--accent);
+}
+
+/* ========== TOC ========== */
+.toc {
+  background: var(--paper-shade);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  padding: 28px 32px;
+  margin-bottom: 50px;
+  box-shadow: var(--shadow);
+}
+
+.toc h2 {
+  font-family: 'Fraunces', serif;
+  font-size: 22px;
+  margin-bottom: 16px;
+  font-weight: 600;
+}
+
+.toc ol {
+  columns: 2;
+  column-gap: 40px;
+  list-style: none;
+  counter-reset: toc;
+}
+
+.toc li {
+  counter-increment: toc;
+  padding: 5px 0;
+  font-size: 14px;
+  break-inside: avoid;
+}
+
+.toc li::before {
+  content: counter(toc, decimal-leading-zero) " · ";
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.toc a {
+  color: var(--ink);
+  text-decoration: none;
+  border-bottom: 1px dotted transparent;
+  transition: border-color 0.2s;
+}
+
+.toc a:hover {
+  border-bottom-color: var(--accent);
+}
+
+/* ========== SECTIONS ========== */
+section.domain {
+  margin-top: 80px;
+  margin-bottom: 20px;
+}
+
+.domain-header {
+  display: flex;
+  align-items: baseline;
+  gap: 20px;
+  margin-bottom: 40px;
+  padding-bottom: 14px;
+  border-bottom: 2px solid var(--ink);
+}
+
+.domain-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  color: var(--accent);
+  letter-spacing: 0.2em;
+  font-weight: 600;
+}
+
+.domain-title {
+  font-family: 'Fraunces', serif;
+  font-size: 42px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+/* ========== EXERCISE ========== */
+.exo {
+  margin-bottom: 52px;
+  padding: 32px 36px;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--rule);
+  border-radius: 2px;
+  box-shadow: var(--shadow);
+  position: relative;
+  break-inside: avoid;
+}
+
+.exo-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+  margin-bottom: 14px;
+  padding-bottom: 14px;
+  border-bottom: 1px dashed var(--border);
+}
+
+.exo-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  color: var(--muted);
+  text-transform: uppercase;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.exo-title {
+  font-family: 'Fraunces', serif;
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.exo-note {
+  white-space: nowrap;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 6px 12px;
+  background: var(--accent);
+  color: var(--paper);
+  border-radius: 2px;
+  letter-spacing: 0.05em;
+}
+
+.skill {
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  font-size: 14px;
+  color: var(--muted);
+  margin-bottom: 18px;
+}
+
+.instruction {
+  font-weight: 600;
+  margin-bottom: 18px;
+  font-size: 15px;
+}
+
+/* ========== ANSWER INPUTS ========== */
+.answer-line {
+  display: inline-block;
+  border-bottom: 1px solid var(--ink);
+  min-width: 120px;
+  padding: 2px 6px;
+  margin: 0 2px;
+  font-family: 'Fraunces', serif;
+  font-size: 16px;
+  background: transparent;
+  color: var(--accent);
+}
+.answer-line:focus {
+  outline: none;
+  border-bottom-color: var(--accent);
+  border-bottom-width: 2px;
+}
+
+.answer-line.short { min-width: 80px; }
+.answer-line.long { min-width: 260px; width: 50%; }
+
+.answer-block {
+  display: block;
+  width: 100%;
+  min-height: 32px;
+  border: none;
+  border-bottom: 1px solid var(--ink);
+  padding: 6px 8px;
+  margin: 6px 0 14px;
+  font-family: 'Fraunces', serif;
+  font-size: 16px;
+  background: transparent;
+  color: var(--accent);
+  font-style: italic;
+  resize: none;
+}
+.answer-block:focus {
+  outline: none;
+  border-bottom-color: var(--accent);
+}
+
+.question-list {
+  list-style: none;
+  counter-reset: q;
+  padding-left: 0;
+}
+
+.question-list > li {
+  counter-increment: q;
+  padding: 10px 0 10px 32px;
+  position: relative;
+  border-bottom: 1px solid rgba(212, 201, 184, 0.5);
+}
+
+.question-list > li:last-child { border-bottom: none; }
+
+.question-list > li::before {
+  content: counter(q) ".";
+  position: absolute;
+  left: 0;
+  top: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--rule);
+}
+
+.prompt { font-size: 15px; margin-bottom: 4px; }
+
+/* ========== MODE/TEMPS TABLE ========== */
+.mt-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 8px;
+  margin-bottom: 8px;
+}
+
+.mt-cell {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 8px 12px;
+  background: var(--paper-shade);
+  border-radius: 2px;
+}
+
+.mt-cell label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.mt-cell input {
+  flex: 1;
+  border: none;
+  border-bottom: 1px solid var(--ink);
+  background: transparent;
+  font-family: 'Fraunces', serif;
+  font-size: 15px;
+  color: var(--accent);
+  padding: 2px 4px;
+}
+
+.mt-cell input:focus {
+  outline: none;
+  border-bottom-color: var(--accent);
+}
+
+/* ========== ADJ BANK ========== */
+.adj-bank {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 14px 18px;
+  background: var(--paper-shade);
+  border: 1px dashed var(--border);
+  border-radius: 2px;
+  margin-bottom: 18px;
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+}
+
+.adj-bank .tag {
+  padding: 2px 8px;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  font-size: 14px;
+  font-style: normal;
+}
+
+.fill-text {
+  font-family: 'Fraunces', serif;
+  font-size: 16.5px;
+  line-height: 2.2;
+}
+
+/* ========== CHOICES (actif/passif, type phrase, sens propre/figuré) ========== */
+.choices {
+  display: inline-flex;
+  gap: 6px;
+  margin-left: 10px;
+}
+
+.choice {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  padding: 3px 10px;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  transition: all 0.15s;
+  background: #fff;
+  user-select: none;
+}
+.choice input { position: absolute; opacity: 0; pointer-events: none; }
+.choice:hover { border-color: var(--rule); background: var(--paper-shade); }
+.choice input:checked + span {
+  font-weight: 700;
+}
+.choice:has(input:checked) {
+  background: var(--rule);
+  color: #fff;
+  border-color: var(--rule);
+}
+
+/* ========== REGISTRE TABLE ========== */
+.registre-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 14px;
+  font-family: 'Fraunces', serif;
+}
+
+.registre-table th {
+  background: var(--ink);
+  color: var(--paper);
+  text-align: left;
+  padding: 10px 14px;
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: 0.05em;
+}
+
+.registre-table td {
+  border: 1px solid var(--border);
+  padding: 0;
+  vertical-align: top;
+}
+
+.registre-table td input {
+  width: 100%;
+  border: none;
+  background: transparent;
+  padding: 10px 14px;
+  font-family: 'Fraunces', serif;
+  font-size: 15px;
+  color: var(--accent);
+  font-style: italic;
+}
+
+.registre-table td input:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+  background: #fff;
+}
+
+/* ========== TEXT PASSAGE ========== */
+.passage {
+  background: var(--paper-shade);
+  border-left: 3px solid var(--ink);
+  padding: 18px 22px;
+  margin: 14px 0 18px;
+  font-family: 'Fraunces', serif;
+  font-size: 15.5px;
+  line-height: 1.75;
+  font-style: italic;
+}
+
+.passage .source {
+  display: block;
+  margin-top: 10px;
+  text-align: right;
+  font-size: 13px;
+  color: var(--muted);
+  font-style: normal;
+  letter-spacing: 0.03em;
+}
+
+/* ========== EMAIL ========== */
+.ad-box {
+  background: #fff;
+  border: 2px dashed var(--accent);
+  padding: 18px 22px;
+  margin: 18px 0;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  line-height: 1.7;
+  white-space: pre-line;
+}
+
+.ad-box .ad-head {
+  font-family: 'Fraunces', serif;
+  font-weight: 800;
+  font-size: 18px;
+  color: var(--accent);
+  margin-bottom: 10px;
+  font-style: italic;
+}
+
+/* ========== EVALUATION GRID ========== */
+section.evaluation {
+  margin-top: 100px;
+  padding-top: 60px;
+  border-top: 3px double var(--ink);
+  page-break-before: always;
+}
+
+.eval-head {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.eval-head .eyebrow { color: var(--rule); }
+
+.eval-head h2 {
+  font-family: 'Fraunces', serif;
+  font-size: 48px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin-bottom: 14px;
+}
+
+.eval-head p {
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  color: var(--muted);
+  font-size: 17px;
+}
+
+.grid-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  background: #fff;
+  box-shadow: var(--shadow);
+}
+
+.grid-table thead th {
+  background: var(--ink);
+  color: var(--paper);
+  padding: 14px 12px;
+  text-align: left;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.grid-table tbody td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+
+.grid-table tr.domain-row td {
+  background: var(--paper-shade);
+  font-family: 'Fraunces', serif;
+  font-weight: 600;
+  font-size: 15px;
+  letter-spacing: 0.02em;
+  color: var(--ink);
+  padding: 12px;
+  text-transform: uppercase;
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  border-top: 2px solid var(--ink);
+}
+
+.grid-table tbody tr:hover td:not([colspan]) {
+  background: #fffcf0;
+}
+
+.grid-table .col-score input {
+  width: 70px;
+  text-align: center;
+  padding: 5px 8px;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+  background: var(--paper);
+}
+
+.grid-table .col-score input:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: -1px;
+}
+
+.grid-table .col-max {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  color: var(--muted);
+  text-align: center;
+}
+
+.grid-table tr.total-row td {
+  background: var(--ink);
+  color: var(--paper);
+  font-family: 'Fraunces', serif;
+  font-weight: 700;
+  font-size: 18px;
+  padding: 16px 12px;
+  border: none;
+}
+
+.grid-table tr.total-row input {
+  background: var(--paper);
+  color: var(--accent);
+  font-family: 'Fraunces', serif;
+  font-size: 17px;
+  font-weight: 700;
+  border: none;
+  width: 90px;
+  padding: 6px 10px;
+}
+
+/* ========== RESULT CARD ========== */
+.result-card {
+  margin-top: 30px;
+  padding: 28px 32px;
+  background: var(--paper-shade);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-items: center;
+}
+
+.result-score {
+  text-align: center;
+}
+
+.result-score .big {
+  font-family: 'Fraunces', serif;
+  font-size: 72px;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--accent);
+  display: block;
+}
+
+.result-score .small {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  color: var(--muted);
+  letter-spacing: 0.1em;
+}
+
+.result-score .percent {
+  font-family: 'Fraunces', serif;
+  font-size: 22px;
+  font-style: italic;
+  color: var(--ink);
+  margin-top: 8px;
+  display: block;
+}
+
+.appreciation-box textarea {
+  width: 100%;
+  min-height: 130px;
+  border: 1px solid var(--border);
+  background: #fff;
+  padding: 14px;
+  font-family: 'Fraunces', serif;
+  font-size: 14px;
+  line-height: 1.6;
+  resize: vertical;
+  border-radius: 2px;
+  color: var(--ink);
+}
+
+.appreciation-box textarea:focus {
+  outline: 2px solid var(--rule);
+  outline-offset: -1px;
+}
+
+.appreciation-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+/* ========== ACTIONS ========== */
+.actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 40px;
+  flex-wrap: wrap;
+}
+
+.btn {
+  padding: 12px 24px;
+  border: 1.5px solid var(--ink);
+  background: var(--paper);
+  color: var(--ink);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: all 0.15s;
+}
+
+.btn:hover {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.btn.primary {
+  background: var(--accent);
+  color: var(--paper);
+  border-color: var(--accent);
+}
+
+.btn.primary:hover {
+  background: var(--ink);
+  border-color: var(--ink);
+}
+
+/* ========== PRINT ========== */
+@media print {
+  body { background: #fff; background-image: none; font-size: 11pt; }
+  .wrap { padding: 0; max-width: 100%; }
+  .actions, .toc { display: none; }
+  .exo {
+    box-shadow: none;
+    page-break-inside: avoid;
+    padding: 18px 20px;
+  }
+  section.evaluation { page-break-before: always; }
+  .meta-form input { color: #000; }
+  .answer-line, .answer-block { color: #000; }
+}
+
+/* ========== MOBILE ========== */
+@media (max-width: 640px) {
+  .wrap { padding: 30px 16px 80px; }
+  .exo { padding: 20px 18px; }
+  h1.title { font-size: 36px; }
+  .domain-title { font-size: 28px; }
+  .toc ol { columns: 1; }
+  .result-card { grid-template-columns: 1fr; }
+  .exo-head { flex-direction: column; }
+  .mt-row { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ============ COVER ============ -->
+  <header class="cover">
+    <div class="eyebrow">Fichier d'exercices</div>
+    <h1 class="title">S'entraîner <em>au&nbsp;test</em> EVA</h1>
+    <p class="subtitle">Conjugaison · Orthographe · Grammaire · Vocabulaire · Production écrite</p>
+    <div class="meta-form">
+      <label>Nom, prénom
+        <input type="text" id="student-name" placeholder="______________">
+      </label>
+      <label>Date
+        <input type="text" id="exam-date" placeholder="____ / ____ / ______">
+      </label>
+    </div>
+  </header>
+
+  <!-- ============ TOC ============ -->
+  <nav class="toc">
+    <h2>Sommaire</h2>
+    <ol>
+      <li><a href="#ex1">Conjuguer les verbes (20 pts)</a></li>
+      <li><a href="#ex2">Identifier modes et temps (10 pts)</a></li>
+      <li><a href="#ex3">Accorder les adjectifs (15 pts)</a></li>
+      <li><a href="#ex4">Présent de l'indicatif (8 pts)</a></li>
+      <li><a href="#ex5">Participes passés — être (7 pts)</a></li>
+      <li><a href="#ex6">Participes passés — avoir (6 pts)</a></li>
+      <li><a href="#ex7">se / s' / ce / c' (2,5 pts)</a></li>
+      <li><a href="#ex8">son / sont (2 pts)</a></li>
+      <li><a href="#ex9">est / et (3 pts)</a></li>
+      <li><a href="#ex10">a / à (3 pts)</a></li>
+      <li><a href="#ex11">Classes grammaticales (8 pts)</a></li>
+      <li><a href="#ex12">Fonctions grammaticales (12 pts)</a></li>
+      <li><a href="#ex13">Phrases interrogatives (4 pts)</a></li>
+      <li><a href="#ex14">Actif / passif (5 pts)</a></li>
+      <li><a href="#ex15">Types de phrases (15 pts)</a></li>
+      <li><a href="#ex16">Synonymes de « battre » (3 pts)</a></li>
+      <li><a href="#ex17">Antonymes par préfixe (5 pts)</a></li>
+      <li><a href="#ex18">Registres de langue — tableau (12 pts)</a></li>
+      <li><a href="#ex19">Registres — Petit Nicolas (6 pts)</a></li>
+      <li><a href="#ex20">Radicaux (5 pts)</a></li>
+      <li><a href="#ex21">Verbes → noms (5 pts)</a></li>
+      <li><a href="#ex22">Champ lexical (5 pts)</a></li>
+      <li><a href="#ex23">Sens propre / figuré (8 pts)</a></li>
+      <li><a href="#ex24">Production écrite — courriel</a></li>
+      <li><a href="#evaluation">Grille d'évaluation finale</a></li>
+    </ol>
+  </nav>
+
+  <!-- ============ CONJUGAISON ============ -->
+  <section class="domain">
+    <div class="domain-header">
+      <span class="domain-num">Domaine 01</span>
+      <h2 class="domain-title">Conjugaison</h2>
+    </div>
+
+    <!-- EX 1 -->
+    <article class="exo" id="ex1">
+      <div class="exo-head">
+        <div>
+          <div class="exo-num">Exercice 01</div>
+          <div class="exo-title">Conjuguer les verbes au temps et à la personne indiqués</div>
+        </div>
+        <div class="exo-note">/ 20</div>
+      </div>
+      <p class="skill">Construire et orthographier correctement les verbes à tous les modes et tous les temps.</p>
+      <ol class="question-list">
+        <li><span class="prompt">Présent — nous (entendre) :</span> <input class="answer-line" type="text"></li>
+        <li><span class="prompt">Passé composé — tu (savoir) :</span> <input class="answer-line" type="text"></li>
+        <li><span class="prompt">Passé composé — je (rougir) :</span> <input class="answer-line" type="text"></li>
+        <li><span class="prompt">Présent — je (rendre) :</span> <input class="answer-line" type="text"></li>
+        <li><span class="prompt">Imparfait — tu (aimer) :</span> <input class="answer-line" type="text"></li>
+        <li><span class="prompt">Imparfait — ils (aimer) :</span> <input class="answer-line" type="text"></li>
+        <li><span class="prompt">Présent — tu (tracer) :</span> <input class="answer-line" type="text"></li>
+        <li><span class="prompt">Subjonctif présent — il (réussir) :</span> <input class="answer-line" type="text"></li>
+        <li><span class="prompt">Plus-que-parfait — je (ranger) :</span> <input class="answer-line" type="text"></li>
+        <li><span class="prompt">Conditionnel présent — elle (jeter) :</span> <input class="answer-line" type="text"></li>
+        <li><span class="prompt">Subjonctif présent — ils (servir) :</span> <input class="answer-line" type="text"></li>
+        <li><span class="prompt">Présent — on (jouer) :</span> <input class="answer-line" type="text"></li>
+        <li><span class="prompt">Impératif — tu (obéir) :</span> <input class="answer-line" type="text"></li>
+        <li><span class="prompt">Passé simple — tu (être) :</span> <input class="answer-line" type="text"></li>
+        <li><span class="prompt">Présent — elle (obéir) :</span> <input class="answer-line" type="text"></li>
+        <li><span class="prompt">Imparfait — ils (jeter) :</span> <input class="answer-line" type="text"></li>
+        <li><span class="prompt">Plus-que-parfait — vous (appeler) :</span> <input class="answer-line" type="text"></li>
+        <li><span class="prompt">Conditionnel présent — il (aboyer) :</span> <input class="answer-line" type="text"></li>
+        <li><span class="prompt">Impératif — nous (courir) :</span> <input class="answer-line" type="text"></li>
+        <li><span class="prompt">Présent — ils (courir) :</span> <input class="answer-line" type="text"></li>
+      </ol>
+    </article>
+
+    <!-- EX 2 -->
+    <article class="exo" id="ex2">
+      <div class="exo-head">
+        <div>
+          <div class="exo-num">Exercice 02</div>
+          <div class="exo-title">Identifier les modes et les temps des verbes en contexte</div>
+        </div>
+        <div class="exo-note">/ 10</div>
+      </div>
+      <p class="skill">Identifier les modes et les temps des verbes en contexte.</p>
+      <p class="instruction">Identifiez le mode et le temps auxquels sont conjugués les verbes soulignés.</p>
+      <ol class="question-list">
+        <li>
+          <span class="prompt">Notre correspondant <u>a appelé</u> tôt ce matin.</span>
+          <div class="mt-row">
+            <div class="mt-cell"><label>Mode</label><input type="text"></div>
+            <div class="mt-cell"><label>Temps</label><input type="text"></div>
+          </div>
+        </li>
+        <li>
+          <span class="prompt">Il nous informe qu'une découverte extraordinaire <u>a été faite</u> par une équipe de chercheurs.</span>
+          <div class="mt-row">
+            <div class="mt-cell"><label>Mode</label><input type="text"></div>
+            <div class="mt-cell"><label>Temps</label><input type="text"></div>
+          </div>
+        </li>
+        <li>
+          <span class="prompt">Une famille de petits dinosaures <u>vivrait</u> sur une île au large de la Sibérie.</span>
+          <div class="mt-row">
+            <div class="mt-cell"><label>Mode</label><input type="text"></div>
+            <div class="mt-cell"><label>Temps</label><input type="text"></div>
+          </div>
+        </li>
+        <li>
+          <span class="prompt"><u>Envoyez</u> une équipe sur place de toute urgence pour réaliser un reportage !</span>
+          <div class="mt-row">
+            <div class="mt-cell"><label>Mode</label><input type="text"></div>
+            <div class="mt-cell"><label>Temps</label><input type="text"></div>
+          </div>
+        </li>
+        <li>
+          <span class="prompt">Je veux que vous <u>partiez</u> dès aujourd'hui.</span>
+          <div class="mt-row">
+            <div class="mt-cell"><label>Mode</label><input type="text"></div>
+            <div class="mt-cell"><label>Temps</label><input type="text"></div>
+          </div>
+        </li>
+        <li>
+          <span class="prompt">Faites quand même attention, ces bêtes <u>pourraient</u> être dangereuses.</span>
+          <div class="mt-row">
+            <div class="mt-cell"><label>Mode</label><input type="text"></div>
+            <div class="mt-cell"><label>Temps</label><input type="text"></div>
+          </div>
+        </li>
+        <li>
+          <span class="prompt">Je ne pense pas qu'elles <u>soient</u> agressives, mais on ne sait jamais.</span>
+          <div class="mt-row">
+            <div class="mt-cell"><label>Mode</label><input type="text"></div>
+            <div class="mt-cell"><label>Temps</label><input type="text"></div>
+          </div>
+        </li>
+        <li>
+          <span class="prompt">Vous m'<u>aviez dit</u> la semaine dernière vouloir plus d'aventures… Vous êtes servis !</span>
+          <div class="mt-row">
+            <div class="mt-cell"><label>Mode</label><input type="text"></div>
+            <div class="mt-cell"><label>Temps</label><input type="text"></div>
+          </div>
+        </li>
+        <li>
+          <span class="prompt"><u>Épuisé</u> par ces dernières semaines, je préfère rester.</span>
+          <div class="mt-row">
+            <div class="mt-cell"><label>Mode</label><input type="text"></div>
+            <div class="mt-cell"><label>Temps</label><input type="text"></div>
+          </div>
+        </li>
+        <li>
+          <span class="prompt"><u>Venant</u> de vous, ce refus m'étonne.</span>
+          <div class="mt-row">
+            <div class="mt-cell"><label>Mode</label><input type="text"></div>
+            <div class="mt-cell"><label>Temps</label><input type="text"></div>
+          </div>
+        </li>
+      </ol>
+    </article>
+  </section>
+
+  <!-- ============ ORTHOGRAPHE ============ -->
+  <section class="domain">
+    <div class="domain-header">
+      <span class="domain-num">Domaine 02</span>
+      <h2 class="domain-title">Orthographe</h2>
+    </div>
+
+    <!-- EX 3 -->
+    <article class="exo" id="ex3">
+      <div class="exo-head">
+        <div>
+          <div class="exo-num">Exercice 03</div>
+          <div class="exo-title">Accorder les adjectifs dans un texte</div>
+        </div>
+        <div class="exo-note">/ 15</div>
+      </div>
+      <p class="skill">Maîtriser les accords grammaticaux.</p>
+      <p class="instruction">Complétez le texte avec les adjectifs (rangés dans l'ordre) que vous accorderez.</p>
+      <div class="adj-bank">
+        <span class="tag">acide</span><span class="tag">humain</span><span class="tag">seul</span>
+        <span class="tag">permanent</span><span class="tag">temporaire</span><span class="tag">faible</span>
+        <span class="tag">certain</span><span class="tag">précis</span><span class="tag">polaire</span>
+        <span class="tag">naturel</span><span class="tag">produit</span><span class="tag">industriel</span>
+        <span class="tag">grand</span><span class="tag">actuel</span><span class="tag">vital</span>
+      </div>
+      <p class="fill-text">
+        Les pluies <input class="answer-line short" type="text"> affectent tous les continents.
+        L'activité <input class="answer-line short" type="text"> n'est pas la <input class="answer-line short" type="text"> responsable de cette acidité.
+        Les émanations <input class="answer-line short" type="text"> des marais ainsi que celles <input class="answer-line short" type="text"> des volcans apportent aux pluies une acidité peut-être <input class="answer-line short" type="text"> mais <input class="answer-line short" type="text">.
+        C'est ainsi que l'on a, par l'analyse <input class="answer-line short" type="text"> de glaces <input class="answer-line short" type="text">, constaté une acidité d'origine <input class="answer-line short" type="text"> et non <input class="answer-line short" type="text"> par les activités <input class="answer-line short" type="text">.
+        Néanmoins, sachons qu'une <input class="answer-line short" type="text"> partie de l'acidité <input class="answer-line short" type="text"> est due à la combustion de produits <input class="answer-line short" type="text"> pour l'homme d'aujourd'hui : le pétrole et le charbon.
+      </p>
+    </article>
+
+    <!-- EX 4 -->
+    <article class="exo" id="ex4">
+      <div class="exo-head">
+        <div>
+          <div class="exo-num">Exercice 04</div>
+          <div class="exo-title">Conjuguer au présent de l'indicatif</div>
+        </div>
+        <div class="exo-note">/ 8</div>
+      </div>
+      <p class="instruction">Écrivez les verbes entre parenthèses au présent de l'indicatif. Entourez leur sujet.</p>
+      <ol class="question-list">
+        <li>Tu me montres un vaste camping qui (s'étendre) <input class="answer-line" type="text"> au-delà du bois.</li>
+        <li>Aucun geste ne (trahir) <input class="answer-line" type="text"> son émotion et Pierre (rester) <input class="answer-line" type="text"> de marbre.</li>
+        <li>Celui qui me (suivre) <input class="answer-line" type="text"> a de la chance car je coupe le vent.</li>
+        <li>Le bruit (couvrir) <input class="answer-line" type="text"> la voix du présentateur qui ne (savoir) <input class="answer-line" type="text"> plus quoi faire.</li>
+        <li>Les plages de la côte vendéenne (s'étendre) <input class="answer-line" type="text"> à perte de vue.</li>
+        <li>Les élèves (apprendre) <input class="answer-line" type="text"> leur leçon et la (réciter) <input class="answer-line" type="text"> à la perfection.</li>
+        <li>Le chômage et l'insécurité (préoccuper) <input class="answer-line" type="text"> la population.</li>
+        <li>Les touristes (dévorer) <input class="answer-line" type="text"> leur barquette de frites mais la soif les (obliger) <input class="answer-line" type="text"> bien vite à acheter des bouteilles d'eau.</li>
+      </ol>
+    </article>
+
+    <!-- EX 5 -->
+    <article class="exo" id="ex5">
+      <div class="exo-head">
+        <div>
+          <div class="exo-num">Exercice 05</div>
+          <div class="exo-title">Participes passés avec l'auxiliaire être</div>
+        </div>
+        <div class="exo-note">/ 7</div>
+      </div>
+      <p class="instruction">Complétez avec les participes passés des verbes entre parenthèses.</p>
+      <ol class="question-list">
+        <li>Les branches étaient (tordre) <input class="answer-line" type="text"> et (briser) <input class="answer-line" type="text"> par l'élagueur.</li>
+        <li>La barrière a été (fabriquer) <input class="answer-line" type="text"> et (installer) <input class="answer-line" type="text"> à l'entrée du parking.</li>
+        <li>Ces paraboles ont été mal (orienter) <input class="answer-line" type="text">.</li>
+        <li>Les commodes sont (nettoyer) <input class="answer-line" type="text"> puis (cirer) <input class="answer-line" type="text">.</li>
+      </ol>
+    </article>
+
+    <!-- EX 6 -->
+    <article class="exo" id="ex6">
+      <div class="exo-head">
+        <div>
+          <div class="exo-num">Exercice 06</div>
+          <div class="exo-title">Participes passés avec l'auxiliaire avoir</div>
+        </div>
+        <div class="exo-note">/ 6</div>
+      </div>
+      <p class="instruction">Complétez avec les participes passés des verbes entre parenthèses. Entourez le COD.</p>
+      <ol class="question-list">
+        <li>Ce matin, nous avons (cueillir) <input class="answer-line" type="text"> des myrtilles.</li>
+        <li>Deux tsunamis ont (dévaster) <input class="answer-line" type="text"> les côtes japonaises.</li>
+        <li>La veste que tu as (acheter) <input class="answer-line" type="text"> vient d'Italie.</li>
+        <li>Les chevaux ont (galoper) <input class="answer-line" type="text"> jusqu'à la barrière et ont (manger) <input class="answer-line" type="text"> tout le foin.</li>
+        <li>Les malades que ce médecin a (soigner) <input class="answer-line" type="text"> se portent bien.</li>
+        <li>Ces serviettes, je les ai (plier) <input class="answer-line" type="text"> avec soin.</li>
+      </ol>
+    </article>
+
+    <!-- EX 7 -->
+    <article class="exo" id="ex7">
+      <div class="exo-head">
+        <div>
+          <div class="exo-num">Exercice 07</div>
+          <div class="exo-title">Homophones : se / s' / ce / c'</div>
+        </div>
+        <div class="exo-note">/ 2,5</div>
+      </div>
+      <p class="skill">Distinguer les homophones.</p>
+      <p class="instruction">Complétez les phrases suivantes avec se, s', ce ou c'.</p>
+      <ol class="question-list">
+        <li>Il est dangereux de <input class="answer-line short" type="text"> placer trop près d'un écran d'ordinateur.</li>
+        <li><input class="answer-line short" type="text"> est monsieur Albert qui <input class="answer-line short" type="text"> est proposé de débarrasser la table.</li>
+        <li>Sur <input class="answer-line short" type="text"> circuit, les voitures roulent à 250 km/h ; elles ne peuvent pas <input class="answer-line short" type="text"> doubler.</li>
+      </ol>
+    </article>
+
+    <!-- EX 8 -->
+    <article class="exo" id="ex8">
+      <div class="exo-head">
+        <div>
+          <div class="exo-num">Exercice 08</div>
+          <div class="exo-title">Homophones : son / sont</div>
+        </div>
+        <div class="exo-note">/ 2</div>
+      </div>
+      <p class="instruction">Complétez avec son ou sont.</p>
+      <ol class="question-list">
+        <li>Les étoiles ne <input class="answer-line short" type="text"> plus indispensables pour s'orienter dans le désert.</li>
+        <li>Jérôme a renversé du ketchup sur <input class="answer-line short" type="text"> pantalon.</li>
+        <li>Julie et <input class="answer-line short" type="text"> amie <input class="answer-line short" type="text"> parties se préparer pour le spectacle.</li>
+      </ol>
+    </article>
+
+    <!-- EX 9 -->
+    <article class="exo" id="ex9">
+      <div class="exo-head">
+        <div>
+          <div class="exo-num">Exercice 09</div>
+          <div class="exo-title">Homophones : est / et — proverbes</div>
+        </div>
+        <div class="exo-note">/ 3</div>
+      </div>
+      <p class="instruction">Complétez ces proverbes par est ou et. Recherchez leur signification.</p>
+      <ol class="question-list">
+        <li>Tout ce qui brille n'<input class="answer-line short" type="text"> pas d'or.</li>
+        <li>On ne peut pas être à la fois au four <input class="answer-line short" type="text"> au moulin.</li>
+        <li>Les chiens aboient <input class="answer-line short" type="text"> la caravane passe.</li>
+        <li>Une fois n'<input class="answer-line short" type="text"> pas coutume.</li>
+        <li>Il faut battre le fer quand il <input class="answer-line short" type="text"> chaud.</li>
+        <li>L'enfer <input class="answer-line short" type="text"> pavé de bonnes intentions.</li>
+      </ol>
+    </article>
+
+    <!-- EX 10 -->
+    <article class="exo" id="ex10">
+      <div class="exo-head">
+        <div>
+          <div class="exo-num">Exercice 10</div>
+          <div class="exo-title">Homophones : a / à</div>
+        </div>
+        <div class="exo-note">/ 3</div>
+      </div>
+      <p class="instruction">Complétez par a ou à.</p>
+      <ol class="question-list">
+        <li>Hier, la fusée Ariane <input class="answer-line short" type="text"> placé un satellite en orbite autour de la Terre.</li>
+        <li>Aujourd'hui, un ouvrier ne travaille plus <input class="answer-line short" type="text"> la chaîne ; il <input class="answer-line short" type="text"> plus de responsabilités et il fait face <input class="answer-line short" type="text"> des situations imprévues.</li>
+        <li>La gardienne de l'immeuble <input class="answer-line short" type="text"> gardé les clés de notre appartement pendant que nous étions en vacances <input class="answer-line short" type="text"> Lugano.</li>
+      </ol>
+    </article>
+  </section>
+
+  <!-- ============ GRAMMAIRE ============ -->
+  <section class="domain">
+    <div class="domain-header">
+      <span class="domain-num">Domaine 03</span>
+      <h2 class="domain-title">Grammaire</h2>
+    </div>
+
+    <!-- EX 11 -->
+    <article class="exo" id="ex11">
+      <div class="exo-head">
+        <div>
+          <div class="exo-num">Exercice 11</div>
+          <div class="exo-title">Identifier la classe grammaticale des mots</div>
+        </div>
+        <div class="exo-note">/ 8</div>
+      </div>
+      <p class="skill">Identifier la classe grammaticale des mots dans une phrase.</p>
+      <ol class="question-list">
+        <li>
+          <span class="prompt">Il a bu son biberon rapidement.</span>
+          <div class="mt-row">
+            <div class="mt-cell"><label>Il</label><input type="text"></div>
+            <div class="mt-cell"><label>a bu</label><input type="text"></div>
+          </div>
+          <div class="mt-row">
+            <div class="mt-cell"><label>son</label><input type="text"></div>
+            <div class="mt-cell"><label>rapidement</label><input type="text"></div>
+          </div>
+        </li>
+        <li>
+          <span class="prompt">Je l'ai vu l'autre fois. Elle avait l'air en grande forme.</span>
+          <div class="mt-row">
+            <div class="mt-cell"><label>l'</label><input type="text"></div>
+            <div class="mt-cell"><label>Elle</label><input type="text"></div>
+          </div>
+          <div class="mt-row">
+            <div class="mt-cell"><label>grande</label><input type="text"></div>
+            <div class="mt-cell"><label></label><input type="text" disabled style="background:transparent"></div>
+          </div>
+        </li>
+        <li>
+          <span class="prompt">J'ai lu un article très intéressant sur les vélos électriques.</span>
+          <div class="mt-row">
+            <div class="mt-cell"><label>article</label><input type="text"></div>
+            <div class="mt-cell"><label>intéressant</label><input type="text"></div>
+          </div>
+          <div class="mt-row">
+            <div class="mt-cell"><label>les</label><input type="text"></div>
+            <div class="mt-cell"><label>électriques</label><input type="text"></div>
+          </div>
+        </li>
+        <li>
+          <span class="prompt">Il pleut constamment depuis trois jours mais on annonce une amélioration pour demain.</span>
+          <div class="mt-row">
+            <div class="mt-cell"><label>depuis</label><input type="text"></div>
+            <div class="mt-cell"><label>mais</label><input type="text"></div>
+          </div>
+          <div class="mt-row">
+            <div class="mt-cell"><label>annonce</label><input type="text"></div>
+            <div class="mt-cell"><label>demain</label><input type="text"></div>
+          </div>
+        </li>
+      </ol>
+    </article>
+
+    <!-- EX 12 -->
+    <article class="exo" id="ex12">
+      <div class="exo-head">
+        <div>
+          <div class="exo-num">Exercice 12</div>
+          <div class="exo-title">Identifier la fonction grammaticale</div>
+        </div>
+        <div class="exo-note">/ 12</div>
+      </div>
+      <p class="skill">Identifier la fonction grammaticale des mots dans une phrase.</p>
+      <p class="instruction">Indiquez la fonction des mots ou groupes de mots soulignés.</p>
+      <ol class="question-list">
+        <li>Le guépard vit <u>dans la savane africaine</u>. <input class="answer-block" type="text"></li>
+        <li><u>Chaque matin</u> nous allons à l'école <u>avec la voiture</u>. <input class="answer-block" type="text"></li>
+        <li>Il mange <u>de la soupe</u> tous les soirs. <input class="answer-block" type="text"></li>
+        <li>Ils paraissent <u>de plus en plus fatigués</u>. <input class="answer-block" type="text"></li>
+        <li>Les maçons construisent <u>une nouvelle maison</u>. <input class="answer-block" type="text"></li>
+        <li>Elle envoie une carte <u>à sa mère</u> pour sa fête. <input class="answer-block" type="text"></li>
+        <li>Les magasins <u>du village</u> sont fermés. <input class="answer-block" type="text"></li>
+        <li>Le chapeau <u>de mon père</u> est dans le salon. <input class="answer-block" type="text"></li>
+        <li>Tous les matins, ils vont à l'école <u>en bus</u>. <input class="answer-block" type="text"></li>
+        <li><u>Heureux</u>, il part en vacances. <input class="answer-block" type="text"></li>
+        <li>Il se prépare <u>tous les matins</u> pour aller à l'école. <input class="answer-block" type="text"></li>
+        <li>La pluie tombe <u>violemment</u>. <input class="answer-block" type="text"></li>
+      </ol>
+    </article>
+
+    <!-- EX 13 -->
+    <article class="exo" id="ex13">
+      <div class="exo-head">
+        <div>
+          <div class="exo-num">Exercice 13</div>
+          <div class="exo-title">Former des phrases interrogatives</div>
+        </div>
+        <div class="exo-note">/ 4</div>
+      </div>
+      <p class="skill">Former des phrases interrogatives.</p>
+      <p class="instruction">Trouvez les questions à poser pour obtenir comme réponse les mots soulignés.</p>
+      <ol class="question-list">
+        <li>Il est arrivé à l'école <u>à moto</u>. <input class="answer-block" type="text"></li>
+        <li>Elsa fait <u>trois</u> vœux. <input class="answer-block" type="text"></li>
+        <li>Nous organisons une grande fête <u>mercredi soir</u>. <input class="answer-block" type="text"></li>
+        <li>Nadia et Camille chantent <u>dans une chorale</u>. <input class="answer-block" type="text"></li>
+      </ol>
+    </article>
+
+    <!-- EX 14 -->
+    <article class="exo" id="ex14">
+      <div class="exo-head">
+        <div>
+          <div class="exo-num">Exercice 14</div>
+          <div class="exo-title">Identifier la forme active ou passive</div>
+        </div>
+        <div class="exo-note">/ 5</div>
+      </div>
+      <p class="skill">Identifier la forme passive d'une phrase.</p>
+      <p class="instruction">Indiquez si les phrases sont à l'actif (A) ou au passif (P).</p>
+      <ol class="question-list">
+        <li>Eva a été reconnaissante envers ses parents.
+          <span class="choices">
+            <label class="choice"><input type="radio" name="ex14-1"><span>A</span></label>
+            <label class="choice"><input type="radio" name="ex14-1"><span>P</span></label>
+          </span>
+        </li>
+        <li>Les grands débats d'idées le dépassaient.
+          <span class="choices">
+            <label class="choice"><input type="radio" name="ex14-2"><span>A</span></label>
+            <label class="choice"><input type="radio" name="ex14-2"><span>P</span></label>
+          </span>
+        </li>
+        <li>Les enfants couraient dans toute la maison.
+          <span class="choices">
+            <label class="choice"><input type="radio" name="ex14-3"><span>A</span></label>
+            <label class="choice"><input type="radio" name="ex14-3"><span>P</span></label>
+          </span>
+        </li>
+        <li>Jean n'est pas admiré de tous.
+          <span class="choices">
+            <label class="choice"><input type="radio" name="ex14-4"><span>A</span></label>
+            <label class="choice"><input type="radio" name="ex14-4"><span>P</span></label>
+          </span>
+        </li>
+        <li>À quel moment auriez-vous été vu ?
+          <span class="choices">
+            <label class="choice"><input type="radio" name="ex14-5"><span>A</span></label>
+            <label class="choice"><input type="radio" name="ex14-5"><span>P</span></label>
+          </span>
+        </li>
+      </ol>
+    </article>
+
+    <!-- EX 15 -->
+    <article class="exo" id="ex15">
+      <div class="exo-head">
+        <div>
+          <div class="exo-num">Exercice 15</div>
+          <div class="exo-title">Identifier le type de phrase</div>
+        </div>
+        <div class="exo-note">/ 15</div>
+      </div>
+      <p class="skill">Identifier le type de phrase.</p>
+      <p class="instruction">D : déclarative &nbsp;·&nbsp; I : interrogative &nbsp;·&nbsp; E : exclamative &nbsp;·&nbsp; Im : impérative</p>
+      <ol class="question-list">
+        <li>Comme cette phrase est bien écrite !
+          <span class="choices">
+            <label class="choice"><input type="radio" name="ex15-1"><span>D</span></label>
+            <label class="choice"><input type="radio" name="ex15-1"><span>I</span></label>
+            <label class="choice"><input type="radio" name="ex15-1"><span>E</span></label>
+            <label class="choice"><input type="radio" name="ex15-1"><span>Im</span></label>
+          </span>
+        </li>
+        <li>J'adore ton nouveau pull Paul.
+          <span class="choices">
+            <label class="choice"><input type="radio" name="ex15-2"><span>D</span></label>
+            <label class="choice"><input type="radio" name="ex15-2"><span>I</span></label>
+            <label class="choice"><input type="radio" name="ex15-2"><span>E</span></label>
+            <label class="choice"><input type="radio" name="ex15-2"><span>Im</span></label>
+          </span>
+        </li>
+        <li>Pose ton sac à dos sur le sol.
+          <span class="choices">
+            <label class="choice"><input type="radio" name="ex15-3"><span>D</span></label>
+            <label class="choice"><input type="radio" name="ex15-3"><span>I</span></label>
+            <label class="choice"><input type="radio" name="ex15-3"><span>E</span></label>
+            <label class="choice"><input type="radio" name="ex15-3"><span>Im</span></label>
+          </span>
+        </li>
+        <li>La neige n'est pas à cette période de l'année.
+          <span class="choices">
+            <label class="choice"><input type="radio" name="ex15-4"><span>D</span></label>
+            <label class="choice"><input type="radio" name="ex15-4"><span>I</span></label>
+            <label class="choice"><input type="radio" name="ex15-4"><span>E</span></label>
+            <label class="choice"><input type="radio" name="ex15-4"><span>Im</span></label>
+          </span>
+        </li>
+        <li>Comme tu as grandi depuis qu'on s'est vu !
+          <span class="choices">
+            <label class="choice"><input type="radio" name="ex15-5"><span>D</span></label>
+            <label class="choice"><input type="radio" name="ex15-5"><span>I</span></label>
+            <label class="choice"><input type="radio" name="ex15-5"><span>E</span></label>
+            <label class="choice"><input type="radio" name="ex15-5"><span>Im</span></label>
+          </span>
+        </li>
+        <li>Tu n'auras pas de paie cette semaine.
+          <span class="choices">
+            <label class="choice"><input type="radio" name="ex15-6"><span>D</span></label>
+            <label class="choice"><input type="radio" name="ex15-6"><span>I</span></label>
+            <label class="choice"><input type="radio" name="ex15-6"><span>E</span></label>
+            <label class="choice"><input type="radio" name="ex15-6"><span>Im</span></label>
+          </span>
+        </li>
+        <li>Mangez bien et vous aurez du dessert.
+          <span class="choices">
+            <label class="choice"><input type="radio" name="ex15-7"><span>D</span></label>
+            <label class="choice"><input type="radio" name="ex15-7"><span>I</span></label>
+            <label class="choice"><input type="radio" name="ex15-7"><span>E</span></label>
+            <label class="choice"><input type="radio" name="ex15-7"><span>Im</span></label>
+          </span>
+        </li>
+        <li>Ne courez jamais autour de la table.
+          <span class="choices">
+            <label class="choice"><input type="radio" name="ex15-8"><span>D</span></label>
+            <label class="choice"><input type="radio" name="ex15-8"><span>I</span></label>
+            <label class="choice"><input type="radio" name="ex15-8"><span>E</span></label>
+            <label class="choice"><input type="radio" name="ex15-8"><span>Im</span></label>
+          </span>
+        </li>
+        <li>Est-ce que c'est toi qui as gagné ?
+          <span class="choices">
+            <label class="choice"><input type="radio" name="ex15-9"><span>D</span></label>
+            <label class="choice"><input type="radio" name="ex15-9"><span>I</span></label>
+            <label class="choice"><input type="radio" name="ex15-9"><span>E</span></label>
+            <label class="choice"><input type="radio" name="ex15-9"><span>Im</span></label>
+          </span>
+        </li>
+        <li>Quelle chance tu as eue !
+          <span class="choices">
+            <label class="choice"><input type="radio" name="ex15-10"><span>D</span></label>
+            <label class="choice"><input type="radio" name="ex15-10"><span>I</span></label>
+            <label class="choice"><input type="radio" name="ex15-10"><span>E</span></label>
+            <label class="choice"><input type="radio" name="ex15-10"><span>Im</span></label>
+          </span>
+        </li>
+        <li>Elle ne pense pas vraiment ce qu'elle dit.
+          <span class="choices">
+            <label class="choice"><input type="radio" name="ex15-11"><span>D</span></label>
+            <label class="choice"><input type="radio" name="ex15-11"><span>I</span></label>
+            <label class="choice"><input type="radio" name="ex15-11"><span>E</span></label>
+            <label class="choice"><input type="radio" name="ex15-11"><span>Im</span></label>
+          </span>
+        </li>
+        <li>Ma seule amie est partie dans un autre pays.
+          <span class="choices">
+            <label class="choice"><input type="radio" name="ex15-12"><span>D</span></label>
+            <label class="choice"><input type="radio" name="ex15-12"><span>I</span></label>
+            <label class="choice"><input type="radio" name="ex15-12"><span>E</span></label>
+            <label class="choice"><input type="radio" name="ex15-12"><span>Im</span></label>
+          </span>
+        </li>
+        <li>Ne me regarde pas.
+          <span class="choices">
+            <label class="choice"><input type="radio" name="ex15-13"><span>D</span></label>
+            <label class="choice"><input type="radio" name="ex15-13"><span>I</span></label>
+            <label class="choice"><input type="radio" name="ex15-13"><span>E</span></label>
+            <label class="choice"><input type="radio" name="ex15-13"><span>Im</span></label>
+          </span>
+        </li>
+        <li>Quelle somme as-tu obtenue ?
+          <span class="choices">
+            <label class="choice"><input type="radio" name="ex15-14"><span>D</span></label>
+            <label class="choice"><input type="radio" name="ex15-14"><span>I</span></label>
+            <label class="choice"><input type="radio" name="ex15-14"><span>E</span></label>
+            <label class="choice"><input type="radio" name="ex15-14"><span>Im</span></label>
+          </span>
+        </li>
+        <li>Je suis si contente de te voir !
+          <span class="choices">
+            <label class="choice"><input type="radio" name="ex15-15"><span>D</span></label>
+            <label class="choice"><input type="radio" name="ex15-15"><span>I</span></label>
+            <label class="choice"><input type="radio" name="ex15-15"><span>E</span></label>
+            <label class="choice"><input type="radio" name="ex15-15"><span>Im</span></label>
+          </span>
+        </li>
+      </ol>
+    </article>
+  </section>
+
+  <!-- ============ VOCABULAIRE ============ -->
+  <section class="domain">
+    <div class="domain-header">
+      <span class="domain-num">Domaine 04</span>
+      <h2 class="domain-title">Vocabulaire</h2>
+    </div>
+
+    <!-- EX 16 -->
+    <article class="exo" id="ex16">
+      <div class="exo-head">
+        <div>
+          <div class="exo-num">Exercice 16</div>
+          <div class="exo-title">Synonymes du verbe « battre »</div>
+        </div>
+        <div class="exo-note">/ 3</div>
+      </div>
+      <p class="skill">Comprendre et utiliser des termes langagiers (synonyme, antonyme, homonyme, registres de langue).</p>
+      <p class="instruction">Trouvez un synonyme qui convient au verbe « battre » selon le sens de la phrase.</p>
+      <ol class="question-list">
+        <li>Battre la campagne : <input class="answer-line long" type="text"></li>
+        <li>Battre une équipe : <input class="answer-line long" type="text"></li>
+        <li>Battre des œufs : <input class="answer-line long" type="text"></li>
+      </ol>
+    </article>
+
+    <!-- EX 17 -->
+    <article class="exo" id="ex17">
+      <div class="exo-head">
+        <div>
+          <div class="exo-num">Exercice 17</div>
+          <div class="exo-title">Antonymes par préfixation</div>
+        </div>
+        <div class="exo-note">/ 5</div>
+      </div>
+      <p class="instruction">Écrivez l'antonyme du mot donné à l'aide d'un préfixe.</p>
+      <ol class="question-list">
+        <li>Variable : <input class="answer-line" type="text"></li>
+        <li>Content : <input class="answer-line" type="text"></li>
+        <li>Adroit : <input class="answer-line" type="text"></li>
+        <li>Normal : <input class="answer-line" type="text"></li>
+        <li>Agréable : <input class="answer-line" type="text"></li>
+      </ol>
+    </article>
+
+    <!-- EX 18 -->
+    <article class="exo" id="ex18">
+      <div class="exo-head">
+        <div>
+          <div class="exo-num">Exercice 18</div>
+          <div class="exo-title">Classer les mots par niveau de langage</div>
+        </div>
+        <div class="exo-note">/ 12</div>
+      </div>
+      <p class="instruction">Classez ces mots selon le niveau de langage auquel ils appartiennent.</p>
+      <div class="adj-bank">
+        <span class="tag">bagnole</span><span class="tag">voiture</span><span class="tag">véhicule</span>
+        <span class="tag">chaussure</span><span class="tag">soulier</span><span class="tag">pompe</span>
+        <span class="tag">bicyclette</span><span class="tag">vélo</span><span class="tag">bécane</span>
+        <span class="tag">appréhension</span><span class="tag">trouille</span><span class="tag">peur</span>
+        <span class="tag">ouvrage</span><span class="tag">bouquin</span><span class="tag">livre</span>
+        <span class="tag">profession</span><span class="tag">boulot</span><span class="tag">travail</span>
+        <span class="tag">moche</span><span class="tag">hideux</span><span class="tag">laid</span>
+        <span class="tag">dérober</span><span class="tag">voler</span><span class="tag">piquer</span>
+      </div>
+      <table class="registre-table">
+        <thead>
+          <tr><th>Familier</th><th>Courant</th><th>Soutenu</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+          <tr><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+          <tr><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+          <tr><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+          <tr><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+          <tr><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+          <tr><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+          <tr><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+        </tbody>
+      </table>
+    </article>
+
+    <!-- EX 19 -->
+    <article class="exo" id="ex19">
+      <div class="exo-head">
+        <div>
+          <div class="exo-num">Exercice 19</div>
+          <div class="exo-title">Registres de langue — Le Petit Nicolas</div>
+        </div>
+        <div class="exo-note">/ 6</div>
+      </div>
+      <p class="instruction">Lisez le texte et répondez aux questions.</p>
+      <div class="passage">
+        Papa a réfléchi, et puis il a dit que bon, mais que c'était bien parce que ce soir, on était tous malades. Alors, moi j'ai été drôlement content, j'ai embrassé Papa, j'ai embrassé Maman et j'ai fait une galipette sur le tapis. Papa et Maman ont rigolé et Papa a pris une de ses cartes de visite — les nouvelles, avec les lettres qui brillent — et il a écrit dessus :
+        <br><br>
+        « Mademoiselle, je vous présente mes salutations et vous prie d'excuser Nicolas de n'avoir pas fait son devoir d'arithmétique. En effet, il est rentré ce soir de l'école un peu fiévreux et nous avons préféré l'aliter. »
+        <span class="source">R. Goscinny et J.-J. Sempé, Le Petit Nicolas, 1960.</span>
+      </div>
+      <ol class="question-list">
+        <li>Quel est le registre de langue utilisé dans le premier paragraphe ? Justifiez votre réponse en citant un exemple.
+          <input class="answer-block" type="text">
+          <input class="answer-block" type="text">
+        </li>
+        <li>Quel est le registre de langue dans le second paragraphe ? Justifiez votre réponse.
+          <input class="answer-block" type="text">
+          <input class="answer-block" type="text">
+        </li>
+        <li>Pourquoi passe-t-on d'un niveau de langue à un autre ?
+          <input class="answer-block" type="text">
+          <input class="answer-block" type="text">
+        </li>
+      </ol>
+    </article>
+
+    <!-- EX 20 -->
+    <article class="exo" id="ex20">
+      <div class="exo-head">
+        <div>
+          <div class="exo-num">Exercice 20</div>
+          <div class="exo-title">Trouver le radical</div>
+        </div>
+        <div class="exo-note">/ 5</div>
+      </div>
+      <p class="skill">Décomposer un mot et construire des familles de mots par dérivation.</p>
+      <p class="instruction">Dans chaque série de mots, trouvez le radical.</p>
+      <ol class="question-list">
+        <li>lenteur, lentement, ralentir : <input class="answer-line" type="text"></li>
+        <li>nombreux, dénombrer, innombrable : <input class="answer-line" type="text"></li>
+        <li>jardiner, jardinerie, jardinier : <input class="answer-line" type="text"></li>
+        <li>chanter, déchanter, chanteuse : <input class="answer-line" type="text"></li>
+        <li>longueur, allonger, longuement : <input class="answer-line" type="text"></li>
+      </ol>
+    </article>
+
+    <!-- EX 21 -->
+    <article class="exo" id="ex21">
+      <div class="exo-head">
+        <div>
+          <div class="exo-num">Exercice 21</div>
+          <div class="exo-title">Transformer les verbes en noms (suffixation)</div>
+        </div>
+        <div class="exo-note">/ 5</div>
+      </div>
+      <p class="instruction">Transformez les verbes suivants en noms, en ajoutant un suffixe.</p>
+      <ol class="question-list">
+        <li>évaluer : <input class="answer-line" type="text"></li>
+        <li>polluer : <input class="answer-line" type="text"></li>
+        <li>réduire : <input class="answer-line" type="text"></li>
+        <li>restaurer : <input class="answer-line" type="text"></li>
+        <li>abaisser : <input class="answer-line" type="text"></li>
+      </ol>
+    </article>
+
+    <!-- EX 22 -->
+    <article class="exo" id="ex22">
+      <div class="exo-head">
+        <div>
+          <div class="exo-num">Exercice 22</div>
+          <div class="exo-title">Champ lexical de l'exclusion</div>
+        </div>
+        <div class="exo-note">/ 5</div>
+      </div>
+      <p class="skill">Repérer un champ lexical.</p>
+      <p class="instruction">Dans le texte suivant, entourez les mots ou groupes de mots qui font partie du champ lexical de l'exclusion.</p>
+      <div class="passage">
+        Me voici donc seul sur la terre, n'ayant plus de frère, de prochain, d'ami, de société que moi-même.
+        <br><br>
+        Le plus sociable et le plus aimant des humains en a été proscrit. Par un accord unanime, ils ont cherché dans les raffinements de leur haine quel tourment pouvait être le plus cruel à mon âme sensible, et ils ont brisé violemment tous les liens qui m'attachaient à eux.
+        <br><br>
+        J'aurais aimé les hommes en dépit d'eux-mêmes. Ils n'ont pu qu'en cessant de l'être se dérober à mon affection. Les voilà donc étrangers, inconnus, nuls enfin pour moi puisqu'ils l'ont voulu. Mais moi, détaché d'eux et de tout, que suis-je moi-même ? Voilà ce qui me reste à chercher.
+        <span class="source">Jean-Jacques Rousseau, Les rêveries d'un promeneur solitaire.</span>
+      </div>
+      <p class="prompt">Relevez les mots du champ lexical de l'exclusion :</p>
+      <input class="answer-block" type="text">
+      <input class="answer-block" type="text">
+      <input class="answer-block" type="text">
+    </article>
+
+    <!-- EX 23 -->
+    <article class="exo" id="ex23">
+      <div class="exo-head">
+        <div>
+          <div class="exo-num">Exercice 23</div>
+          <div class="exo-title">Sens propre / sens figuré</div>
+        </div>
+        <div class="exo-note">/ 8</div>
+      </div>
+      <p class="skill">Distinguer le sens propre et le sens figuré d'un mot.</p>
+      <p class="instruction">Cochez si le mot en gras est au sens propre ou au sens figuré.</p>
+      <ol class="question-list">
+        <li>Les flammes <strong>dansaient</strong> dans la cheminée.
+          <span class="choices">
+            <label class="choice"><input type="radio" name="ex23-1"><span>Propre</span></label>
+            <label class="choice"><input type="radio" name="ex23-1"><span>Figuré</span></label>
+          </span>
+        </li>
+        <li>Nous avons <strong>dansé</strong> toute la nuit.
+          <span class="choices">
+            <label class="choice"><input type="radio" name="ex23-2"><span>Propre</span></label>
+            <label class="choice"><input type="radio" name="ex23-2"><span>Figuré</span></label>
+          </span>
+        </li>
+        <li>Ce chanteur est au <strong>sommet</strong> de sa gloire.
+          <span class="choices">
+            <label class="choice"><input type="radio" name="ex23-3"><span>Propre</span></label>
+            <label class="choice"><input type="radio" name="ex23-3"><span>Figuré</span></label>
+          </span>
+        </li>
+        <li>L'alpiniste est monté jusqu'au <strong>sommet</strong>.
+          <span class="choices">
+            <label class="choice"><input type="radio" name="ex23-4"><span>Propre</span></label>
+            <label class="choice"><input type="radio" name="ex23-4"><span>Figuré</span></label>
+          </span>
+        </li>
+        <li>Cet artiste a <strong>marqué</strong> son époque.
+          <span class="choices">
+            <label class="choice"><input type="radio" name="ex23-5"><span>Propre</span></label>
+            <label class="choice"><input type="radio" name="ex23-5"><span>Figuré</span></label>
+          </span>
+        </li>
+        <li>Il est souvent dans la <strong>lune</strong>.
+          <span class="choices">
+            <label class="choice"><input type="radio" name="ex23-6"><span>Propre</span></label>
+            <label class="choice"><input type="radio" name="ex23-6"><span>Figuré</span></label>
+          </span>
+        </li>
+        <li>Il pleut des <strong>cordes</strong>.
+          <span class="choices">
+            <label class="choice"><input type="radio" name="ex23-7"><span>Propre</span></label>
+            <label class="choice"><input type="radio" name="ex23-7"><span>Figuré</span></label>
+          </span>
+        </li>
+        <li>Elle est <strong>clouée</strong> au lit.
+          <span class="choices">
+            <label class="choice"><input type="radio" name="ex23-8"><span>Propre</span></label>
+            <label class="choice"><input type="radio" name="ex23-8"><span>Figuré</span></label>
+          </span>
+        </li>
+      </ol>
+    </article>
+  </section>
+
+  <!-- ============ PRODUCTION ECRITE ============ -->
+  <section class="domain">
+    <div class="domain-header">
+      <span class="domain-num">Domaine 05</span>
+      <h2 class="domain-title">Production de l'écrit</h2>
+    </div>
+
+    <!-- EX 24 -->
+    <article class="exo" id="ex24">
+      <div class="exo-head">
+        <div>
+          <div class="exo-num">Exercice 24</div>
+          <div class="exo-title">Rédiger un courriel en réponse à une annonce</div>
+        </div>
+        <div class="exo-note">/ 20</div>
+      </div>
+      <p class="skill">Rédiger un texte personnel (courriel) qui assure une cohérence des idées. Respecter une mise en page définie (objet, formule de politesse). Vérifier l'utilisation des temps verbaux, la syntaxe, la ponctuation, l'orthographe lexicale et grammaticale. Utiliser un langage riche et varié (vocabulaire et registre de langue adaptés).</p>
+      <p class="instruction">Vous répondez par courriel à l'annonce suivante concernant un vélo. Dans votre message : demandez si le vendeur a conservé la facture d'achat ; demandez si le vélo est toujours sous garantie ; proposez une date pour venir voir le vélo. N'oubliez pas de respecter la mise en forme du courriel (objet, formule d'appel, message, formule de politesse, signature).</p>
+      <div class="ad-box">
+<span class="ad-head">Vends VTT — très bon état</span>
+Vends un VTT en très bon état acheté en 2025 chez V'Sport.
+Prix neuf : 500 CHF — Je le vends 200 CHF.
+
+Description : Vélo VTT ST 100 Rock Rider gris bleu 27,5".
+Cadre léger aluminium et roues en 27,5" montées sur jantes double parois.
+
+État : très bon état
+Univers : mixte
+Prix : 200 CHF
+Mode de remise : en main propre
+Lieu : Thonex
+      </div>
+      <p class="prompt">Rédigez votre courriel ci-dessous :</p>
+      <textarea class="answer-block" style="min-height: 320px; font-family: 'Fraunces', serif; line-height: 1.8;" placeholder="Objet : ..."></textarea>
+    </article>
+  </section>
+
+  <!-- ============ EVALUATION GRID ============ -->
+  <section class="evaluation" id="evaluation">
+    <div class="eval-head">
+      <div class="eyebrow">Bilan</div>
+      <h2>Grille d'évaluation</h2>
+      <p>Tableau récapitulatif des points par domaine et par exercice.</p>
+    </div>
+
+    <table class="grid-table">
+      <thead>
+        <tr>
+          <th style="width:50px;">№</th>
+          <th>Compétence évaluée</th>
+          <th class="col-score" style="width:100px; text-align:center;">Score</th>
+          <th class="col-max" style="width:80px; text-align:center;">Barème</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="domain-row"><td colspan="4">Conjugaison</td></tr>
+        <tr><td>01</td><td>Conjuguer les verbes</td><td class="col-score"><input type="number" min="0" max="20" step="0.5" data-max="20"></td><td class="col-max">/ 20</td></tr>
+        <tr><td>02</td><td>Identifier modes et temps</td><td class="col-score"><input type="number" min="0" max="10" step="0.5" data-max="10"></td><td class="col-max">/ 10</td></tr>
+
+        <tr class="domain-row"><td colspan="4">Orthographe</td></tr>
+        <tr><td>03</td><td>Accorder les adjectifs</td><td class="col-score"><input type="number" min="0" max="15" step="0.5" data-max="15"></td><td class="col-max">/ 15</td></tr>
+        <tr><td>04</td><td>Présent de l'indicatif</td><td class="col-score"><input type="number" min="0" max="8" step="0.5" data-max="8"></td><td class="col-max">/ 8</td></tr>
+        <tr><td>05</td><td>Participes passés (être)</td><td class="col-score"><input type="number" min="0" max="7" step="0.5" data-max="7"></td><td class="col-max">/ 7</td></tr>
+        <tr><td>06</td><td>Participes passés (avoir)</td><td class="col-score"><input type="number" min="0" max="6" step="0.5" data-max="6"></td><td class="col-max">/ 6</td></tr>
+        <tr><td>07</td><td>Homophones : se / s' / ce / c'</td><td class="col-score"><input type="number" min="0" max="2.5" step="0.5" data-max="2.5"></td><td class="col-max">/ 2,5</td></tr>
+        <tr><td>08</td><td>Homophones : son / sont</td><td class="col-score"><input type="number" min="0" max="2" step="0.5" data-max="2"></td><td class="col-max">/ 2</td></tr>
+        <tr><td>09</td><td>Homophones : est / et</td><td class="col-score"><input type="number" min="0" max="3" step="0.5" data-max="3"></td><td class="col-max">/ 3</td></tr>
+        <tr><td>10</td><td>Homophones : a / à</td><td class="col-score"><input type="number" min="0" max="3" step="0.5" data-max="3"></td><td class="col-max">/ 3</td></tr>
+
+        <tr class="domain-row"><td colspan="4">Grammaire</td></tr>
+        <tr><td>11</td><td>Classes grammaticales</td><td class="col-score"><input type="number" min="0" max="8" step="0.5" data-max="8"></td><td class="col-max">/ 8</td></tr>
+        <tr><td>12</td><td>Fonctions grammaticales</td><td class="col-score"><input type="number" min="0" max="12" step="0.5" data-max="12"></td><td class="col-max">/ 12</td></tr>
+        <tr><td>13</td><td>Phrases interrogatives</td><td class="col-score"><input type="number" min="0" max="4" step="0.5" data-max="4"></td><td class="col-max">/ 4</td></tr>
+        <tr><td>14</td><td>Actif / passif</td><td class="col-score"><input type="number" min="0" max="5" step="0.5" data-max="5"></td><td class="col-max">/ 5</td></tr>
+        <tr><td>15</td><td>Types de phrases</td><td class="col-score"><input type="number" min="0" max="15" step="0.5" data-max="15"></td><td class="col-max">/ 15</td></tr>
+
+        <tr class="domain-row"><td colspan="4">Vocabulaire</td></tr>
+        <tr><td>16</td><td>Synonymes de « battre »</td><td class="col-score"><input type="number" min="0" max="3" step="0.5" data-max="3"></td><td class="col-max">/ 3</td></tr>
+        <tr><td>17</td><td>Antonymes par préfixe</td><td class="col-score"><input type="number" min="0" max="5" step="0.5" data-max="5"></td><td class="col-max">/ 5</td></tr>
+        <tr><td>18</td><td>Tableau des registres de langue</td><td class="col-score"><input type="number" min="0" max="12" step="0.5" data-max="12"></td><td class="col-max">/ 12</td></tr>
+        <tr><td>19</td><td>Registres — Petit Nicolas</td><td class="col-score"><input type="number" min="0" max="6" step="0.5" data-max="6"></td><td class="col-max">/ 6</td></tr>
+        <tr><td>20</td><td>Radicaux</td><td class="col-score"><input type="number" min="0" max="5" step="0.5" data-max="5"></td><td class="col-max">/ 5</td></tr>
+        <tr><td>21</td><td>Verbes → noms</td><td class="col-score"><input type="number" min="0" max="5" step="0.5" data-max="5"></td><td class="col-max">/ 5</td></tr>
+        <tr><td>22</td><td>Champ lexical</td><td class="col-score"><input type="number" min="0" max="5" step="0.5" data-max="5"></td><td class="col-max">/ 5</td></tr>
+        <tr><td>23</td><td>Sens propre / figuré</td><td class="col-score"><input type="number" min="0" max="8" step="0.5" data-max="8"></td><td class="col-max">/ 8</td></tr>
+
+        <tr class="domain-row"><td colspan="4">Production écrite</td></tr>
+        <tr><td>24</td><td>Courriel — fond, forme, langue</td><td class="col-score"><input type="number" min="0" max="20" step="0.5" data-max="20"></td><td class="col-max">/ 20</td></tr>
+
+        <tr class="total-row">
+          <td></td>
+          <td>TOTAL</td>
+          <td class="col-score"><input type="text" id="total-score" readonly value="—"></td>
+          <td style="color: var(--paper); text-align:center; font-family: 'Fraunces', serif; font-size: 17px;">/ 168,5</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="result-card">
+      <div class="result-score">
+        <span class="small">Note sur 20</span>
+        <span class="big" id="note-20">—</span>
+        <span class="percent" id="percent">— %</span>
+      </div>
+      <div class="appreciation-box">
+        <div class="appreciation-label">Appréciation générale</div>
+        <textarea placeholder="Points forts, points à travailler, conseils pour la suite…"></textarea>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="btn" onclick="window.print()">Imprimer</button>
+      <button class="btn" onclick="resetAll()">Réinitialiser</button>
+      <button class="btn primary" onclick="computeTotal()">Calculer le total</button>
+    </div>
+  </section>
+
+</div>
+
+<script>
+function computeTotal() {
+  const inputs = document.querySelectorAll('.grid-table input[type="number"]');
+  let total = 0;
+  let max = 0;
+  let hasValue = false;
+  inputs.forEach(inp => {
+    const v = parseFloat(inp.value);
+    const m = parseFloat(inp.dataset.max);
+    max += m;
+    if (!isNaN(v)) {
+      total += v;
+      hasValue = true;
+    }
+  });
+  const totalEl = document.getElementById('total-score');
+  const note20El = document.getElementById('note-20');
+  const percentEl = document.getElementById('percent');
+
+  if (!hasValue) {
+    totalEl.value = '—';
+    note20El.textContent = '—';
+    percentEl.textContent = '— %';
+    return;
+  }
+
+  totalEl.value = total.toFixed(1) + ' / ' + max;
+  const note20 = (total / max) * 20;
+  const percent = (total / max) * 100;
+  note20El.textContent = note20.toFixed(1);
+  percentEl.textContent = percent.toFixed(0) + ' %';
+}
+
+// Auto-compute when any score changes
+document.querySelectorAll('.grid-table input[type="number"]').forEach(inp => {
+  inp.addEventListener('input', computeTotal);
+});
+
+function resetAll() {
+  if (!confirm('Réinitialiser toutes les réponses et les notes ?')) return;
+  document.querySelectorAll('input[type="text"], input[type="number"], textarea').forEach(el => {
+    if (!el.readOnly) el.value = '';
+  });
+  document.querySelectorAll('input[type="radio"]').forEach(el => el.checked = false);
+  computeTotal();
+  window.scrollTo({top: 0, behavior: 'smooth'});
+}
+</script>
+
+</body>
+</html>
