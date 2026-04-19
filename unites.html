@@ -15,25 +15,28 @@ header{background:var(--surface);border-bottom:1px solid var(--border);padding:.
 .back-btn{margin-left:auto;display:inline-flex;align-items:center;gap:5px;height:28px;padding:0 12px;border-radius:999px;border:1px solid #C8C6BC;background:#F7F6F2;color:#6B6A64;font-family:'Nunito',sans-serif;font-size:12px;font-weight:700;text-decoration:none;cursor:pointer;transition:background .15s,color .15s,border-color .15s;}
 .back-btn:hover{background:#fff;color:#2D6BE4;border-color:#2D6BE4;}
 .back-btn .back-arrow{font-size:14px;line-height:1;}
-main{flex:1;padding:.75rem;display:flex;flex-direction:column;min-height:0;}
+main{flex:1;display:flex;flex-direction:column;min-height:0;}
 .card{background:var(--surface);border:1px solid var(--border);border-radius:14px;flex:1;display:flex;flex-direction:column;min-height:0;overflow:hidden;}
 .body{flex:1;padding:1rem;display:flex;flex-direction:column;min-height:0;overflow:auto;}
 
 /* ── LAYOUT ── */
 #layout{display:flex;align-items:flex-start;gap:14px;}
-#col-val{width:220px;flex-shrink:0;display:flex;flex-direction:column;}
+#col-val{width:280px;flex-shrink:0;display:flex;flex-direction:column;transition:width .5s ease;}
+/* État compacté : la colonne valeurs se rétrécit, le tableau coulisse à gauche */
+#layout.compacted #col-val{width:110px;}
+#layout.compacted .vpastilles{display:none;}
 #btn-val{padding:6px 14px;border-radius:20px;border:1.5px solid #7BBDE0;background:#F0F7FD;color:#1E3A50;font-family:'Nunito',sans-serif;font-size:11px;font-weight:700;cursor:pointer;align-self:flex-start;}
 #val-spacer{flex-shrink:0;}
 #val-list{display:flex;flex-direction:column;opacity:0;transition:opacity .4s;}
 #val-list.shown{opacity:1;}
-.vrow{display:flex;align-items:center;gap:5px;height:56px;flex-shrink:0;}
+.vrow{display:flex;align-items:center;gap:6px;height:60px;flex-shrink:0;}
 .vrow.locked{opacity:.3;pointer-events:none;}
-.vnom{font-size:13px;font-weight:800;min-width:44px;}
-.vunit{font-size:14px;font-weight:700;color:#4A6B80;min-width:28px;}
+.vnom{font-size:15px;font-weight:800;min-width:50px;}
+.vunit{font-size:16px;font-weight:700;color:#4A6B80;min-width:32px;}
 .vpastilles{display:flex;align-items:center;gap:3px;flex-wrap:nowrap;}
 
 /* Pastilles */
-.pastille{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:8px;font-size:17px;font-weight:800;border:1.5px solid #7BBDE0;background:#F0F7FD;color:#1E3A50;cursor:grab;user-select:none;touch-action:none;flex-shrink:0;transition:opacity .2s;}
+.pastille{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:8px;font-size:18px;font-weight:800;border:1.5px solid #7BBDE0;background:#F0F7FD;color:#1E3A50;cursor:grab;user-select:none;touch-action:none;flex-shrink:0;transition:opacity .2s;}
 .pastille:active{cursor:grabbing;}
 .pastille.used{opacity:.25;pointer-events:none;}
 .pastille.ghost-clone{position:fixed;pointer-events:none;opacity:.85;z-index:9999;}
@@ -41,54 +44,53 @@ main{flex:1;padding:.75rem;display:flex;flex-direction:column;min-height:0;}
 /* Tableau */
 #col-tab{flex-shrink:0;display:flex;flex-direction:column;align-items:center;}
 #tab-outer{position:relative;align-self:flex-start;}
-#btn-conv{display:none;opacity:0;padding:5px 12px;border-radius:20px;border:1.5px solid #7BBDE0;background:#F0F7FD;color:#1E3A50;font-family:'Nunito',sans-serif;font-size:11px;font-weight:700;cursor:pointer;transition:opacity .4s;white-space:nowrap;position:absolute;top:0;left:calc(100% + 135px);}
+#btn-conv{display:none;opacity:0;padding:5px 12px;border-radius:20px;border:1.5px solid #7BBDE0;background:#F0F7FD;color:#1E3A50;font-family:'Nunito',sans-serif;font-size:11px;font-weight:700;cursor:pointer;transition:opacity .4s;white-space:nowrap;position:absolute;top:0;left:calc(100% + 12px);}
 #tab{position:relative;font-family:'Nunito',sans-serif;}
-.trow-titre{border-radius:10px 10px 0 0;padding:8px 14px;text-align:center;background:#EAF3FB;color:#1E3A50;border:1px solid #7BBDE0;border-bottom:none;}
-.trow-titre .titre-main{font-size:13px;font-weight:800;display:block;}
-.trow-titre .titre-instruction{font-size:11px;font-weight:600;color:#4A6B80;display:block;margin-top:2px;opacity:1;transition:opacity .4s;}
+.trow-titre{border-radius:10px 10px 0 0;padding:8px 14px;text-align:center;background:#EAF3FB;color:#1E3A50;border:1px solid #7BBDE0;border-bottom:none;position:relative;}
+.trow-titre .titre-main{font-size:15px;font-weight:800;display:block;}
+.trow-titre .titre-instruction{font-size:13px;font-weight:600;color:#4A6B80;display:block;margin-top:2px;opacity:1;transition:opacity .4s;}
 .trow-titre .titre-instruction.hidden{opacity:0;height:0;margin:0;overflow:hidden;}
 .urow{border:1px solid #7BBDE0;border-top:none;display:grid;background:#EAF3FB;}
-.uc{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4px 2px;gap:2px;height:64px;}
+.uc{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:5px 3px;gap:3px;height:74px;}
 .uc+.uc{border-left:1px solid #7BBDE0;}
 .uc.extra{background:transparent;}
-.ubadge{display:inline-flex;align-items:center;justify-content:center;width:48px;height:30px;border-radius:6px;font-size:12px;font-weight:800;border:1.5px solid #7BBDE0;background:#F0F7FD;color:#1E3A50;}
-.unom{font-size:8px;font-weight:700;color:#4A6B80;}
+.ubadge{display:inline-flex;align-items:center;justify-content:center;width:56px;height:36px;border-radius:8px;font-size:14px;font-weight:800;border:1.5px solid #7BBDE0;background:#F0F7FD;color:#1E3A50;}
+.unom{font-size:10px;font-weight:700;color:#4A6B80;line-height:1.1;text-align:center;}
 .crow{border:1px solid #7BBDE0;border-top:none;display:grid;}
 .crow.last{border-radius:0 0 10px 10px;overflow:hidden;}
 /* Slot vide (phase 1) */
-.cs{display:flex;align-items:center;justify-content:center;height:56px;background:#fff;position:relative;}
+.cs{display:flex;align-items:center;justify-content:center;height:60px;background:#fff;position:relative;}
 .cs+.cs{border-left:1px solid #7BBDE0;}
 .cs.slot-active{background:#EAF3FB;}
 .cs.slot-hover{background:#D4EAFB;outline:2px solid #7BBDE0;}
 .cs.slot-ok{background:#C0DD97;}
 .cs.slot-ko{background:#F7C1C1;}
 /* Chiffre fixé */
-.cfix{font-size:20px;font-weight:800;color:var(--text);}
+.cfix{font-size:22px;font-weight:800;color:var(--text);}
 /* Chiffre déposé (draggable retour) */
-.cval{font-size:20px;font-weight:800;color:#1E3A50;cursor:grab;user-select:none;}
+.cval{font-size:22px;font-weight:800;color:#1E3A50;cursor:grab;user-select:none;}
 /* Zéros de conversion */
-.czero{font-size:20px;font-weight:800;color:#E07B39;}
+.czero{font-size:22px;font-weight:800;color:#E07B39;}
 
 /* ── OUTIL ── */
 #outil{position:absolute;display:none;z-index:20;cursor:grab;user-select:none;}
 #outil-cadre{border:2.5px solid #E07B39;border-radius:7px;background:rgba(224,123,57,0.08);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#E07B39;pointer-events:none;}
-#outil-queue{position:absolute;width:2.5px;background:#E07B39;border-radius:0 0 2px 2px;pointer-events:none;}
+#outil-queue{position:absolute;width:2.5px;background:#E07B39;pointer-events:none;}
 
 /* Colonne résultats */
 #col-res{flex-shrink:0;display:flex;flex-direction:column;opacity:0;transition:opacity .4s;}
 #col-res.shown{opacity:1;}
 #res-spacer{flex-shrink:0;}
-.rrow{display:flex;align-items:center;gap:7px;height:56px;flex-shrink:0;}
+.rrow{display:flex;align-items:center;gap:8px;height:60px;flex-shrink:0;}
 .rrow.locked{opacity:.3;pointer-events:none;}
-.rarrow{font-size:11px;color:#4A6B80;}
-.runit{font-size:14px;font-weight:700;color:#4A6B80;min-width:28px;}
-.rfield{display:flex;align-items:center;min-height:36px;min-width:80px;border:1.5px dashed #ccc;border-radius:6px;justify-content:center;font-size:11px;color:#aaa;background:#fff;transition:border-color .2s,background .4s;}
+.rarrow{font-size:13px;color:#4A6B80;}
+.runit{font-size:16px;font-weight:700;color:#4A6B80;min-width:32px;}
+.rfield{display:flex;align-items:center;min-height:40px;min-width:90px;border:1.5px dashed #ccc;border-radius:6px;justify-content:center;font-size:12px;color:#aaa;background:#fff;transition:border-color .2s,background .4s;}
 .rfield.active{border-color:#7BBDE0;border-style:solid;}
-.rdig{display:flex;align-items:center;justify-content:center;min-width:22px;height:36px;font-size:16px;font-weight:800;padding:0 2px;}
-.rcomma{display:flex;align-items:center;justify-content:center;width:10px;height:36px;font-size:18px;font-weight:800;color:var(--text);padding-bottom:4px;}
-.outil-unit-label{font-size:14px;font-weight:800;color:#E07B39;min-width:32px;text-align:center;}
-.btn-next{padding:4px 10px;border-radius:14px;border:1.5px solid #7BBDE0;background:#F0F7FD;color:#1E3A50;font-family:'Nunito',sans-serif;font-size:10px;font-weight:700;cursor:pointer;display:none;white-space:nowrap;}
-.btn-next:hover{background:#7BBDE0;color:#fff;}
+.rdig{display:flex;align-items:center;justify-content:center;min-width:24px;height:40px;font-size:18px;font-weight:800;padding:0 2px;}
+.rcomma{display:flex;align-items:center;justify-content:center;width:11px;height:40px;font-size:20px;font-weight:800;color:var(--text);padding-bottom:4px;}
+.outil-unit-label{font-size:16px;font-weight:800;color:#E07B39;min-width:36px;text-align:center;}
+.btn-next{display:none!important;}
 
 /* Transitions douces phase 0 -> phase 1 */
 #urow{transition:none;}
@@ -97,8 +99,8 @@ main{flex:1;padding:.75rem;display:flex;flex-direction:column;min-height:0;}
 #tab{transition:width .5s ease;}
 .uc.extra{opacity:0;transition:opacity .5s ease;}
 .uc.extra.revealed{opacity:1;}
-.crow .cs[data-col="0"],.crow .cs[data-col="8"]{opacity:0;transition:opacity .5s ease;}
-.crow .cs[data-col="0"].revealed,.crow .cs[data-col="8"].revealed{opacity:1;}
+.crow .cs.cs-extra{opacity:0;transition:opacity .5s ease;}
+.crow .cs.cs-extra.revealed{opacity:1;}
 
 /* Phase 0 : ligne intermédiaire des badges mélangés */
 #pool-row{border:1px solid #7BBDE0;border-top:none;display:none;background:#EAF3FB;transition:opacity .3s;padding:8px 4px;}
@@ -121,82 +123,315 @@ main{flex:1;padding:.75rem;display:flex;flex-direction:column;min-height:0;}
 .msg.ok{color:#3B6D11;}.msg.ko{color:#A32D2D;}
 #bottom-bar{display:flex;flex-direction:column;align-items:center;margin-top:8px;}
 #btn-reset{padding:5px 14px;font-size:11px;font-weight:700;font-family:'Nunito',sans-serif;cursor:pointer;border:1.5px solid var(--border);border-radius:20px;background:transparent;color:var(--muted);margin-top:5px;}
+
+/* ── Navigation par onglets ── */
+.nav-tabs{display:flex;align-items:center;gap:6px;margin-left:16px;}
+.nav-btn{display:inline-flex;align-items:center;height:28px;padding:0 14px;border-radius:999px;border:1.5px solid #C8C6BC;background:#F7F6F2;color:#6B6A64;font-family:'Nunito',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:background .15s,color .15s,border-color .15s;}
+.nav-btn:hover{background:#fff;color:#2D6BE4;border-color:#2D6BE4;}
+.nav-btn.active{background:#2D6BE4;color:#fff;border-color:#2D6BE4;}
+.nav-btn.active:hover{background:#2558c4;color:#fff;}
+.page{flex:1;padding:.75rem;display:flex;flex-direction:column;min-height:0;}
+.page[hidden]{display:none;}
+.page-slot{flex:1;display:flex;flex-direction:column;min-height:0;}
+.placeholder{flex:1;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:15px;font-weight:700;text-align:center;padding:2rem;}
+
+/* ── Page Unités : layout dédié ── */
+#unites-layout{display:flex;align-items:flex-start;gap:18px;width:100%;}
+#unites-sidebar{display:flex;flex-direction:column;gap:8px;flex-shrink:0;padding-top:6px;}
+.cat-btn{display:inline-flex;align-items:center;height:28px;padding:0 14px;border-radius:999px;border:1.5px solid #C8C6BC;background:#F7F6F2;color:#6B6A64;font-family:'Nunito',sans-serif;font-size:12px;font-weight:700;cursor:pointer;text-align:left;transition:background .15s,color .15s,border-color .15s;}
+.cat-btn:hover{background:#fff;color:#2D6BE4;border-color:#2D6BE4;}
+.cat-btn.active{background:#2D6BE4;color:#fff;border-color:#2D6BE4;}
+#unites-main{flex:1;display:flex;flex-direction:column;align-items:flex-start;gap:12px;min-width:0;}
+#unites-tab{font-family:'Nunito',sans-serif;box-sizing:border-box;}
+#unites-tab .trow-titre{border-radius:10px 10px 0 0;padding:12px 18px;}
+#unites-tab .trow-titre .titre-main{font-size:15px;}
+#unites-tab .trow-titre .titre-instruction{font-size:13px;margin-top:4px;}
+#unites-pool{display:flex;flex-wrap:nowrap;gap:10px;justify-content:center;align-items:center;border:1px solid #7BBDE0;border-top:none;background:#EAF3FB;padding:10px 12px;min-height:60px;box-sizing:border-box;}
+.pu-big{display:inline-flex;align-items:center;justify-content:center;width:56px;height:40px;border-radius:10px;font-size:15px;font-weight:800;border:1.5px solid #7BBDE0;background:#F0F7FD;color:#1E3A50;cursor:grab;user-select:none;flex-shrink:0;}
+.pu-big:active{cursor:grabbing;}
+#unites-urow{border:1px solid #7BBDE0;border-top:none;display:grid;background:#EAF3FB;box-sizing:border-box;}
+#unites-urow .uc-big{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;height:74px;padding:6px 4px;}
+#unites-urow .uc-big+.uc-big{border-left:1px solid #7BBDE0;}
+#unites-urow .uc-big.hover-u{background:#D4EAFB;}
+#unites-urow .uc-big.ok-u{background:#C0DD97;}
+#unites-urow .uc-big.ko-u{background:#F7C1C1;}
+.pu-big.central{background:#D4EAFB;border-color:#5BA8D6;}
+#unites-urow .uc-big.central{background:#D4EAFB;}
+/* Mais la cellule centrale conserve les couleurs de feedback ok-u/ko-u quand applicable */
+#unites-urow .uc-big.central.ok-u{background:#C0DD97;}
+#unites-urow .uc-big.central.ko-u{background:#F7C1C1;}
+#unites-urow .uc-big.central.hover-u{background:#B8DAF0;}
+#unites-urow .uc-big.locked .pu-big{cursor:default;}
+/* Pastille centrale, une fois verrouillée, reprend le ton standard */
+#unites-urow .uc-big.locked .pu-big.central{background:#F0F7FD;border-color:#7BBDE0;}
+.bare-dash{font-size:20px;font-weight:800;color:#1E3A50;line-height:1;}
+/* Boutons grandeur dans le titre du tableau Conversion */
+.grandeur-btns{position:absolute;left:14px;top:50%;transform:translateY(-50%);display:flex;gap:6px;}
+.grb{width:32px;height:32px;border-radius:50%;border:1.5px solid #7BBDE0;background:#F0F7FD;color:#1E3A50;font-family:'Nunito',sans-serif;font-size:14px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;transition:background .15s,color .15s,border-color .15s;}
+.grb:hover{background:#fff;color:#2D6BE4;border-color:#2D6BE4;}
+.grb.active{background:#2D6BE4;color:#fff;border-color:#2D6BE4;}
+#unites-urow .uc-big.bare-cell .unom-big{display:none;}
+.uc-slot{display:flex;align-items:center;justify-content:center;min-height:40px;}
+.uc-big .unom-big{font-size:12px;font-weight:700;color:#4A6B80;opacity:0;transition:opacity .4s ease;line-height:1.1;text-align:center;}
+.uc-big .unom-big.revealed{opacity:1;}
+#unites-tab .crow{border:1px solid #7BBDE0;border-top:none;display:grid;background:#fff;height:60px;box-sizing:border-box;}
+#unites-tab .crow .cs-empty+.cs-empty{border-left:1px solid #7BBDE0;}
+#unites-msg{font-size:14px;min-height:18px;}
+#unites-reset{padding:5px 14px;font-size:12px;font-weight:700;font-family:'Nunito',sans-serif;cursor:pointer;border:1.5px solid var(--border);border-radius:20px;background:transparent;color:var(--muted);}
 </style>
 </head>
 <body>
-<header><div class="htitle">Conversion d'unités</div><a href="index.html" class="back-btn" title="Retour à l'accueil"><span class="back-arrow">←</span>Retour</a></header>
-<main><div class="card"><div class="body">
-  <div id="layout">
-    <div id="col-val">
-      <button id="btn-val" style="display:none;opacity:0;">Valeurs</button>
-      <div id="val-spacer"></div>
-      <div id="val-list"></div>
-    </div>
-    <div id="col-tab">
-      <div id="tab-outer">
-        <div id="tab">
-          <div class="trow-titre"><span class="titre-main">Unités de longueur</span><span class="titre-instruction" id="phase0-hint">Place les unités dans le bon ordre dans la ligne ci-dessous</span></div>
-          <div id="pool-row" style="display:none;"></div>
-          <div class="urow" id="urow"></div>
-          <div id="outil"><div id="outil-cadre"></div><div id="outil-queue"></div></div>
+<header>
+  <div class="htitle">Conversion d'unités</div>
+  <nav class="nav-tabs">
+    <button class="nav-btn active" data-target="page-unites">Unités</button>
+    <button class="nav-btn" data-target="page-conversion">Conversion</button>
+    <button class="nav-btn" data-target="page-exercice">Exercice</button>
+  </nav>
+  <a href="index.html" class="back-btn" title="Retour à l'accueil"><span class="back-arrow">←</span>Retour</a>
+</header>
+<main>
+  <section class="page" id="page-unites" data-page="unites">
+    <div class="card"><div class="body">
+      <div id="unites-layout">
+        <div id="unites-sidebar">
+          <button class="cat-btn active" data-cat="longueur">Longueur</button>
+          <button class="cat-btn" data-cat="capacite">Capacité</button>
+          <button class="cat-btn" data-cat="masse">Masse</button>
         </div>
-        <button id="btn-conv">Conversion</button>
+        <div id="unites-main">
+          <div id="unites-tab">
+            <div class="trow-titre">
+              <span class="titre-main" id="unites-titre">Unités de longueur</span>
+              <span class="titre-instruction" id="unites-hint">Place les unités dans le bon ordre dans la ligne ci-dessous</span>
+            </div>
+            <div id="unites-pool"></div>
+            <div class="urow" id="unites-urow"></div>
+            <div class="crow" id="unites-empty-row-1"></div>
+            <div class="crow last" id="unites-empty-row-2"></div>
+          </div>
+          <div class="msg" id="unites-msg"></div>
+          <button id="unites-reset">↺ Recommencer</button>
+        </div>
       </div>
-      <div id="bottom-bar">
-        <div class="msg" id="msg"></div>
-        <button id="btn-reset">↺ Recommencer</button>
+    </div></div>
+  </section>
+  <section class="page" id="page-conversion" data-page="conversion" hidden>
+    <div class="page-slot"></div>
+  </section>
+  <section class="page" id="page-exercice" data-page="exercice" hidden>
+    <div class="card"><div class="body">
+      <div class="placeholder">Exercices — à venir prochainement</div>
+    </div></div>
+  </section>
+  <!-- Bloc d'exercice partagé : déplacé dans la bonne page selon l'onglet actif -->
+  <div id="exercise-card" class="card" style="display:none;"><div class="body">
+    <div id="layout">
+      <div id="col-val">
+        <div id="val-spacer"></div>
+        <div id="val-list"></div>
+      </div>
+      <div id="col-tab">
+        <div id="tab-outer">
+          <div id="tab">
+            <div class="trow-titre">
+              <div class="grandeur-btns">
+                <button class="grb active" data-g="longueur">m</button>
+                <button class="grb" data-g="capacite">L</button>
+                <button class="grb" data-g="masse">g</button>
+              </div>
+              <span class="titre-main" id="titre-tab">Unités de longueur</span>
+              <span class="titre-instruction" id="phase0-hint">Place les chiffres dans le tableau</span>
+            </div>
+            <div id="pool-row" style="display:none;"></div>
+            <div class="urow" id="urow"></div>
+            <div id="outil"><div id="outil-cadre"></div><div id="outil-queue"></div></div>
+          </div>
+          <button id="btn-conv">Conversion</button>
+        </div>
+        <div id="bottom-bar">
+          <div class="msg" id="msg"></div>
+          <button id="btn-reset">↺ Recommencer</button>
+        </div>
+      </div>
+      <div id="col-res">
+        <div id="res-spacer"></div>
+        <div id="res-list"></div>
       </div>
     </div>
-    <div id="col-res">
-      <div id="res-spacer"></div>
-      <div id="res-list"></div>
-    </div>
-  </div>
-</div></div></main>
+  </div></div>
+</main>
 <script>
-const U=['km','hm','dam','m','dm','cm','mm'];
-const NOM={km:'kilomètre',hm:'hectomètre',dam:'décamètre',m:'mètre',dm:'décimètre',cm:'centimètre',mm:'millimètre'};
-const EX=1, NL=6, CW=56, RH=56;
-const NC=U.length+2*EX;
+// Grandeurs : longueur, capacité, masse
+const GRANDEURS={
+  longueur:{
+    cols:['km','hm','dam','m','dm','cm','mm'],   // 7 colonnes
+    NOM:{km:'kilomètre',hm:'hectomètre',dam:'décamètre',m:'mètre',dm:'décimètre',cm:'centimètre',mm:'millimètre'},
+    EX:1,         // 1 colonne extra de chaque côté → tableau 9 col
+    titre:'Unités de longueur'
+  },
+  capacite:{
+    cols:['kL','hL','daL','L','dL','cL','mL'],
+    NOM:{kL:'kilolitre',hL:'hectolitre',daL:'décalitre',L:'litre',dL:'décilitre',cL:'centilitre',mL:'millilitre'},
+    EX:1,
+    titre:'Unités de capacité'
+  },
+  masse:{
+    cols:['t','q','-','kg','hg','dag','g','dg','cg','mg'], // 10 colonnes (le '-' est inerte)
+    NOM:{t:'tonne',q:'quintal',kg:'kilogramme',hg:'hectogramme',dag:'décagramme',g:'gramme',dg:'décigramme',cg:'centigramme',mg:'milligramme'},
+    EX:0,         // pas d'extra → tableau strict 10 col
+    titre:'Unités de masse'
+  }
+};
+let activeG='longueur';
+// Variables exposées (mises à jour par setActiveGrandeur)
+let U=GRANDEURS.longueur.cols;
+let NOM=GRANDEURS.longueur.NOM;
+let EX=GRANDEURS.longueur.EX;
+let NC=U.length+2*EX;
+const NL=6, CW=68, RH=60;
+
+// Indices des unités utilisables comme source/cible (exclut le '-' inerte)
+function usableUiList(){
+  const list=[];
+  U.forEach((u,i)=>{if(u!=='-')list.push(i);});
+  return list;
+}
+
+function setActiveGrandeur(g){
+  if(!GRANDEURS[g])return;
+  activeG=g;
+  U=GRANDEURS[g].cols;
+  NOM=GRANDEURS[g].NOM;
+  EX=GRANDEURS[g].EX;
+  NC=U.length+2*EX;
+  document.querySelectorAll('.grb').forEach(b=>{
+    b.classList.toggle('active',b.dataset.g===g);
+  });
+  const titre=document.getElementById('titre-tab');
+  if(titre)titre.textContent=GRANDEURS[g].titre;
+}
 
 /* ── GÉNÉRATION ── */
 function rnd(a,b){return Math.floor(Math.random()*(b-a+1))+a;}
 function rndNZ(a,b){var v=0;while(!v)v=rnd(a,b);return v;}
 
 function genEXS(){
+  const usable=usableUiList(); // indices d'unités utilisables (exclut '-')
   const g=ui=>EX+ui;
-  var exs=[];
-  (function(){ // L1: entier 2 chiffres
-    var ui=rnd(2,4);var d1=rndNZ(1,9),d2=rnd(0,9);
-    exs.push({s:''+d1+d2,u:U[ui],d:[{c:g(ui)-1,v:d1},{c:g(ui),v:d2}]});
+  const isMasse=(activeG==='masse');
+  // Vérifier qu'une plage de colonnes RÉELLES [colA, colB] est valide (dans les bornes du tableau).
+  // La colonne '-' peut recevoir un chiffre normalement (c'est seulement comme unité source/cible qu'elle est exclue).
+  const colsValid=(colA,colB)=>{
+    if(colA<0||colB>NC-1)return false;
+    return true;
+  };
+  // Sources autorisées : pour la masse, indices d'unités t, q, kg, hg, dag, g
+  const allowedSrc=isMasse
+    ? usable.filter(ui=>['t','q','kg','hg','dag','g'].includes(U[ui]))
+    : usable;
+  // ── Branche MASSE : exercices dédiés pour utiliser t et q ──
+  if(isMasse){
+    const ui=u=>U.indexOf(u);
+    const exs=[];
+    // L1 : "XY q" entier 2 chiffres source q → chiffres en [t, q]
+    (function(){
+      const u=ui('q');
+      const d1=rndNZ(1,9),d2=rnd(0,9);
+      exs.push({s:''+d1+d2,u:'q',d:[{c:g(u)-1,v:d1},{c:g(u),v:d2}]});
+    })();
+    // L2 : "XYZ kg" entier 3 chiffres (centaines de kg) source kg → chiffres en [q, -, kg]
+    (function(){
+      const u=ui('kg');
+      const d1=rndNZ(1,9),d2=rnd(0,9),d3=rnd(0,9);
+      exs.push({s:''+d1+d2+d3,u:'kg',d:[{c:g(u)-2,v:d1},{c:g(u)-1,v:d2},{c:g(u),v:d3}]});
+    })();
+    // L3 : "XYZT hg" entier 4 chiffres (milliers de hg) source hg → chiffres en [q, -, kg, hg]
+    (function(){
+      const u=ui('hg');
+      const d1=rndNZ(1,9),d2=rnd(0,9),d3=rnd(0,9),d4=rnd(0,9);
+      exs.push({s:''+d1+d2+d3+d4,u:'hg',d:[{c:g(u)-3,v:d1},{c:g(u)-2,v:d2},{c:g(u)-1,v:d3},{c:g(u),v:d4}]});
+    })();
+    // L4 : "X,Y t" décimal source t → chiffres en [t, q]
+    (function(){
+      const u=ui('t');
+      const d1=rndNZ(1,9),d2=rndNZ(1,9);
+      exs.push({s:d1+','+d2,u:'t',d:[{c:g(u),v:d1},{c:g(u)+1,v:d2}]});
+    })();
+    // L5 : "X,YZ kg" décimal source kg → [kg, hg, dag]
+    (function(){
+      const u=ui('kg');
+      const d1=rndNZ(1,9),d2=rnd(0,9),d3=rndNZ(1,9);
+      exs.push({s:d1+','+d2+d3,u:'kg',d:[{c:g(u),v:d1},{c:g(u)+1,v:d2},{c:g(u)+2,v:d3}]});
+    })();
+    // L6 : "XYZ,T g" décimal 3+1 source g → [hg, dag, g, dg]
+    (function(){
+      const u=ui('g');
+      const d1=rndNZ(1,9),d2=rnd(0,9),d3=rnd(0,9),d4=rndNZ(1,9);
+      exs.push({s:''+d1+d2+d3+','+d4,u:'g',d:[{c:g(u)-2,v:d1},{c:g(u)-1,v:d2},{c:g(u),v:d3},{c:g(u)+1,v:d4}]});
+    })();
+    return exs;
+  }
+  // ── Longueur / Capacité : logique générique ──
+  const pickUi=(leftCount,rightCount)=>{
+    const valid=allowedSrc.filter(uii=>colsValid(g(uii)-leftCount,g(uii)+rightCount));
+    if(!valid.length)return null;
+    return valid[Math.floor(Math.random()*valid.length)];
+  };
+  const exs=[];
+  // L1 : entier 2 chiffres
+  (function(){
+    const uii=pickUi(1,0);if(uii===null)return;
+    const d1=rndNZ(1,9),d2=rnd(0,9);
+    exs.push({s:''+d1+d2,u:U[uii],d:[{c:g(uii)-1,v:d1},{c:g(uii),v:d2}]});
   })();
-  (function(){ // L2: entier 3 chiffres
-    var ui=rnd(2,5);var d1=rndNZ(1,9),d2=rnd(0,9),d3=rnd(0,9);
-    exs.push({s:''+d1+d2+d3,u:U[ui],d:[{c:g(ui)-2>=1?g(ui)-2:0,v:d1},{c:g(ui)-1>=1?g(ui)-1:0,v:d2},{c:g(ui),v:d3}]});
+  // L2 : entier 3 chiffres
+  (function(){
+    const uii=pickUi(2,0);if(uii===null)return;
+    const d1=rndNZ(1,9),d2=rnd(0,9),d3=rnd(0,9);
+    exs.push({s:''+d1+d2+d3,u:U[uii],d:[{c:g(uii)-2,v:d1},{c:g(uii)-1,v:d2},{c:g(uii),v:d3}]});
   })();
-  (function(){ // L3: sort du tableau à gauche (hm)
-    var ui=1;var d1=rndNZ(1,9),d2=rnd(0,9),d3=rnd(0,9);
-    exs.push({s:''+d1+d2+d3,u:U[ui],d:[{c:0,v:d1},{c:1,v:d2},{c:2,v:d3}]});
+  // L3 : 3 chiffres avec ui le plus à gauche possible
+  (function(){
+    const valid=allowedSrc.filter(uii=>colsValid(g(uii)-2,g(uii)));
+    if(!valid.length)return;
+    const uii=valid[0];
+    const d1=rndNZ(1,9),d2=rnd(0,9),d3=rnd(0,9);
+    exs.push({s:''+d1+d2+d3,u:U[uii],d:[{c:g(uii)-2,v:d1},{c:g(uii)-1,v:d2},{c:g(uii),v:d3}]});
   })();
-  (function(){ // L4: décimal X,Y
-    var ui=rnd(1,5);var d1=rndNZ(1,9),d2=rndNZ(1,9);
-    exs.push({s:d1+','+d2,u:U[ui],d:[{c:g(ui),v:d1},{c:g(ui)+1,v:d2}]});
+  // L4 : décimal X,Y
+  (function(){
+    const uii=pickUi(0,1);if(uii===null)return;
+    const d1=rndNZ(1,9),d2=rndNZ(1,9);
+    exs.push({s:d1+','+d2,u:U[uii],d:[{c:g(uii),v:d1},{c:g(uii)+1,v:d2}]});
   })();
-  (function(){ // L5: décimal X,YZ
-    var ui=rnd(1,4);var d1=rndNZ(1,9),d2=rnd(0,9),d3=rndNZ(1,9);
-    exs.push({s:d1+','+d2+d3,u:U[ui],d:[{c:g(ui),v:d1},{c:g(ui)+1,v:d2},{c:g(ui)+2,v:d3}]});
+  // L5 : décimal X,YZ
+  (function(){
+    const uii=pickUi(0,2);if(uii===null)return;
+    const d1=rndNZ(1,9),d2=rnd(0,9),d3=rndNZ(1,9);
+    exs.push({s:d1+','+d2+d3,u:U[uii],d:[{c:g(uii),v:d1},{c:g(uii)+1,v:d2},{c:g(uii)+2,v:d3}]});
   })();
-  (function(){ // L6: décimal XYZ,T
-    var ui=rnd(3,5);var d1=rndNZ(1,9),d2=rnd(0,9),d3=rnd(0,9),d4=rndNZ(1,9);
-    var c1=g(ui)-2>=1?g(ui)-2:0,c2=g(ui)-1>=1?g(ui)-1:0;
-    exs.push({s:''+d1+d2+d3+','+d4,u:U[ui],d:[{c:c1,v:d1},{c:c2,v:d2},{c:g(ui),v:d3},{c:g(ui)+1,v:d4}]});
+  // L6 : décimal XYZ,T
+  (function(){
+    const uii=pickUi(2,1);if(uii===null)return;
+    const d1=rndNZ(1,9),d2=rnd(0,9),d3=rnd(0,9),d4=rndNZ(1,9);
+    exs.push({s:''+d1+d2+d3+','+d4,u:U[uii],d:[{c:g(uii)-2,v:d1},{c:g(uii)-1,v:d2},{c:g(uii),v:d3},{c:g(uii)+1,v:d4}]});
   })();
   return exs;
 }
 
+// Cibles : limiter l'écart pour éviter des résultats à trop de chiffres.
+// Écart compté en "pas d'unité usable" (en sautant le '-').
 function pickTgt(srcUi){
-  const p=U.map((_,j)=>j).filter(j=>j!==srcUi);
-  return p[Math.floor(Math.random()*p.length)];
+  const usable=usableUiList();
+  const srcIdx=usable.indexOf(srcUi);
+  // Indices voisins dans usable : ±2 max, en excluant la source elle-même
+  const minI=Math.max(0,srcIdx-2);
+  const maxI=Math.min(usable.length-1,srcIdx+2);
+  const candidates=[];
+  for(let i=minI;i<=maxI;i++)if(i!==srcIdx)candidates.push(usable[i]);
+  if(!candidates.length)return usable[0]===srcUi?usable[1]:usable[0];
+  return candidates[Math.floor(Math.random()*candidates.length)];
 }
 
 var EXS=genEXS();
@@ -205,11 +440,105 @@ let phase0Done=false;
 let dragUnit=null,dragUnitOrigin=null;
 let checkLineTimer=null;
 let checkUnitsTimer=null;
+let autoValidateTimer=null;
 // Phase : 1=placement pastilles, 2=conversion
 let phase=1;
 let lineIdx=0; // ligne active en phase 1
 // Pastille en cours de drag
 let dragPastille=null,dragOrigin=null,ghostEl=null;
+// Mode de la page active : 'unites-only' | 'full'
+let pageMode='unites-only';
+// Flag : la page Conversion a-t-elle déjà été initialisée ? (pour préserver son état)
+let conversionInitialized=false;
+// État de la page Conversion par grandeur (longueur, capacite, masse)
+const convStates={}; // { longueur: snapshot, capacite: snapshot, masse: snapshot }
+
+function snapshotConvState(){
+  // Capture l'état complet de la carte d'exercice pour la grandeur active
+  return {
+    EXS:JSON.parse(JSON.stringify(EXS)),
+    tgts:tgts.slice(),
+    convIdx:convIdx,outilCol:outilCol,phase:phase,lineIdx:lineIdx,
+    tabHTML:document.getElementById('tab').innerHTML,
+    valListHTML:document.getElementById('val-list').innerHTML,
+    valListShown:document.getElementById('val-list').classList.contains('shown'),
+    resListHTML:document.getElementById('res-list').innerHTML,
+    colResShown:document.getElementById('col-res').classList.contains('shown'),
+    btnConvVisible:document.getElementById('btn-conv').style.display==='block',
+    layoutCompacted:document.getElementById('layout').classList.contains('compacted'),
+    valSpacer:document.getElementById('val-spacer').style.height,
+    resSpacer:document.getElementById('res-spacer').style.height,
+    msg:document.getElementById('msg').textContent,
+    msgClass:document.getElementById('msg').className,
+    tabWidth:document.getElementById('tab').style.width,
+    activeG:activeG
+  };
+}
+
+function restoreConvState(state){
+  if(!state)return false;
+  EXS=JSON.parse(JSON.stringify(state.EXS));
+  tgts=state.tgts.slice();
+  convIdx=state.convIdx;outilCol=state.outilCol;
+  phase=state.phase;lineIdx=state.lineIdx;
+  // Restaurer le DOM
+  document.getElementById('tab').innerHTML=state.tabHTML;
+  document.getElementById('tab').style.width=state.tabWidth;
+  document.getElementById('val-list').innerHTML=state.valListHTML;
+  document.getElementById('val-list').classList.toggle('shown',state.valListShown);
+  document.getElementById('res-list').innerHTML=state.resListHTML;
+  document.getElementById('col-res').classList.toggle('shown',state.colResShown);
+  document.getElementById('val-spacer').style.height=state.valSpacer;
+  document.getElementById('res-spacer').style.height=state.resSpacer;
+  document.getElementById('msg').textContent=state.msg;
+  document.getElementById('msg').className=state.msgClass;
+  document.getElementById('layout').classList.toggle('compacted',state.layoutCompacted);
+  const bc=document.getElementById('btn-conv');
+  if(state.btnConvVisible){bc.style.cssText='display:block;opacity:1;';}
+  else{bc.style.cssText='display:none;opacity:0;';}
+  // Réattacher les listeners sur les éléments restaurés
+  document.querySelectorAll('#tab .cs').forEach(s=>setupSlot(s));
+  document.querySelectorAll('#val-list .pastille').forEach(p=>enablePastilleDrag(p));
+  document.querySelectorAll('#tab .cs .cval').forEach(disp=>{
+    const slot=disp.parentElement;
+    if(slot)enableSlotCvalDrag(disp,slot);
+  });
+  document.querySelectorAll('#val-list .vpastilles').forEach(wrap=>{
+    wrap.addEventListener('dragover',e=>e.preventDefault());
+    wrap.addEventListener('drop',e=>{
+      e.preventDefault();
+      if(dragPastille&&dragOrigin&&dragOrigin.classList.contains('cs'))returnPastille();
+    });
+  });
+  document.querySelectorAll('#res-list .btn-next').forEach(btn=>{
+    btn.addEventListener('click',()=>validateLine(+btn.dataset.li));
+  });
+  // Si on est en phase 2 (conversion), réinstaller l'outil et le drag
+  if(phase===2){
+    document.getElementById('outil').style.display='block';
+    posOutil(outilCol,convIdx);
+    setupDrag();
+  } else {
+    document.getElementById('outil').style.display='none';
+  }
+  return true;
+}
+
+function switchGrandeur(newG){
+  if(newG===activeG)return;
+  // Sauvegarder l'état actuel
+  if(conversionInitialized)convStates[activeG]=snapshotConvState();
+  // Basculer la grandeur
+  setActiveGrandeur(newG);
+  // Restaurer ou builder
+  if(convStates[newG]){
+    restoreConvState(convStates[newG]);
+  } else {
+    // Première visite de cette grandeur : build depuis zéro
+    phase0Done=true;
+    build();
+  }
+}
 
 /* ── CONVERSION ── */
 function computeConv(li,tgtUi){
@@ -246,22 +575,26 @@ function build(){
 
   document.getElementById('msg').textContent='';document.getElementById('msg').className='msg';
   document.getElementById('btn-conv').style.cssText='display:none;opacity:0;';
-  // btn-val caché au départ - apparaît après phase 0
-  document.getElementById('btn-val').style.display='none';
   document.getElementById('col-res').classList.remove('shown');
   document.getElementById('outil').style.display='none';
   document.getElementById('val-list').innerHTML='';
   document.getElementById('val-list').classList.remove('shown');
+  document.getElementById('layout').classList.remove('compacted');
   const pr=document.getElementById('pool-row');pr.innerHTML='';pr.style.display='none';pr.classList.remove('hiding');
   document.getElementById('res-list').innerHTML='';
 
   if(wasPhase0Done){
-    // Phase 1 : tableau 9 colonnes, bouton Valeurs visible
-    buildUrow(true, true);
-    buildRows(true);
+    // Phase 1 : tableau (largeur dépend de la grandeur), valeurs affichées dès le départ
+    buildUrow(true, EX>0);
+    buildRows(EX>0);
     document.getElementById('urow').classList.add('revealed');
-    const bv=document.getElementById('btn-val');
-    bv.style.display='block';bv.style.opacity='1';bv.style.pointerEvents='auto';
+    // Révéler immédiatement les cellules extra s'il y en a
+    document.querySelectorAll('.uc.extra').forEach(el=>el.classList.add('revealed'));
+    if(EX>0){
+      document.querySelectorAll('.crow .cs.cs-extra').forEach(el=>el.classList.add('revealed'));
+    }
+    // Afficher les valeurs dès le début
+    showValList();
   } else {
     // Phase 0 : 7 colonnes, badges mélangés
     buildUrow(false, false);
@@ -271,11 +604,13 @@ function build(){
   }
 
   setTimeout(()=>{
-    const crow0=document.querySelector('.crow');
-    const btnVal=document.getElementById('btn-val');
-    if(crow0&&btnVal){
-      const spacer=Math.max(0,crow0.getBoundingClientRect().top-btnVal.getBoundingClientRect().bottom);
-      document.getElementById('val-spacer').style.height=spacer+'px';
+    // Aligner la première vrow avec la première crow en mettant sur val-spacer
+    // la hauteur totale des éléments d'en-tête du tableau (titre + pool-row + urow)
+    const tab=document.getElementById('tab');
+    const firstCrow=tab&&tab.querySelector('.crow');
+    if(tab&&firstCrow){
+      const headerHeight=firstCrow.offsetTop;
+      document.getElementById('val-spacer').style.height=headerHeight+'px';
     }
   },100);
 }
@@ -283,24 +618,25 @@ function build(){
 function buildUrow(withBadges, withExtra){
   const ur=document.getElementById('urow');
   ur.innerHTML='';
-  // Phase 0 : seulement les 7 colonnes centrales (pas les extra)
-  // Phase 1+ : 9 colonnes avec extra
   const cols = withExtra ? NC : U.length;
-  const startCol = withExtra ? 0 : EX;
   ur.style.gridTemplateColumns=`repeat(${cols},${CW}px)`;
   for(let ci=0;ci<cols;ci++){
     const c = withExtra ? ci : ci+EX; // col réelle
     const cell=document.createElement('div');cell.className='uc';cell.dataset.col=c;
     if(c<EX||c>=EX+U.length){cell.classList.add('extra');}
     else{
-      if(withBadges){
-        const u=U[c-EX];
+      const u=U[c-EX];
+      if(u==='-'){
+        // Colonne inerte (myriagramme) : afficher un tiret nu, pas de badge
+        const t=document.createElement('div');t.className='bare-dash';t.textContent='–';
+        cell.appendChild(t);
+      } else if(withBadges){
         const b=document.createElement('div');b.className='ubadge';b.textContent=u;
         const n=document.createElement('div');n.className='unom';n.textContent=NOM[u];
         cell.appendChild(b);cell.appendChild(n);
       } else {
         cell.classList.add('slot-u');
-        cell.dataset.expectU=U[c-EX];
+        cell.dataset.expectU=u;
         setupUnitSlot(cell);
       }
     }
@@ -322,6 +658,8 @@ function buildRows(withExtra){
     for(let ci=0;ci<cols;ci++){
       const col=withExtra?ci:ci+EX;
       const s=document.createElement('div');s.className='cs';s.dataset.col=col;s.dataset.li=i;
+      // Marquer comme extra si la colonne est en dehors de la plage des unités
+      if(col<EX||col>=EX+U.length)s.classList.add('cs-extra');
       setupSlot(s);
       row.appendChild(s);
     }
@@ -451,6 +789,15 @@ function checkAllUnits(){
   if(allOk){
     checkUnitsTimer=setTimeout(()=>{
       checkUnitsTimer=null;
+      if(pageMode==='unites-only'){
+        // Mode page "Unités" : on s'arrête après phase 0
+        const hint=document.getElementById('phase0-hint');if(hint)hint.classList.add('hidden');
+        const msg=document.getElementById('msg');
+        msg.textContent='Bravo, les unités sont bien placées !';
+        msg.className='msg ok';
+        return;
+      }
+      // Mode "full" : on enchaîne sur la phase 1
       // Masquer pool-row avec animation
       const pr=document.getElementById('pool-row');
       pr.classList.add('hiding');
@@ -464,14 +811,13 @@ function checkAllUnits(){
         document.getElementById('urow').classList.add('revealed');
       const hint=document.getElementById('phase0-hint');if(hint)hint.classList.add('hidden');
         document.querySelectorAll('.uc.extra').forEach(function(el){el.classList.add('revealed');});
-        document.querySelectorAll('.crow .cs[data-col="0"],.crow .cs[data-col="8"]').forEach(function(el){el.classList.add('revealed');});
+        document.querySelectorAll('.crow .cs.cs-extra').forEach(function(el){el.classList.add('revealed');});
       });
-      // Montrer btn-val après la transition
+      // Afficher les valeurs après la transition (ancienne logique btn-val remplacée)
       checkUnitsTimer=setTimeout(()=>{
         checkUnitsTimer=null;
         if(!phase0Done)return; // annulé si recommencer
-        const bv=document.getElementById('btn-val');
-        bv.style.display='block';bv.style.opacity='1';bv.style.pointerEvents='auto';
+        showValList();
       },700);
     },600);
   }
@@ -751,15 +1097,11 @@ function showBtnConv(){
   const bc=document.getElementById('btn-conv');
   bc.style.display='block';
   requestAnimationFrame(()=>requestAnimationFrame(()=>bc.style.opacity='1'));
+  // Coulisser le tableau à gauche : compacter la colonne valeurs
+  document.getElementById('layout').classList.add('compacted');
 }
 
-/* ── BTN VALEURS ── */
-document.getElementById('btn-val').addEventListener('click',()=>{
-  document.getElementById('btn-val').style.opacity='0.4';
-  document.getElementById('btn-val').style.pointerEvents='none';
-  showValList();
-});
-
+/* ── AFFICHAGE DES VALEURS ── */
 function showValList(){
   const vl=document.getElementById('val-list');vl.innerHTML='';
   EXS.forEach((ex,i)=>{
@@ -773,11 +1115,10 @@ function showValList(){
   });
   requestAnimationFrame(()=>requestAnimationFrame(()=>vl.classList.add('shown')));
   setTimeout(()=>{
-    const crow0=document.querySelector('.crow');
-    const btnVal=document.getElementById('btn-val');
-    if(crow0&&btnVal){
-      const spacer=Math.max(0,crow0.getBoundingClientRect().top-btnVal.getBoundingClientRect().bottom);
-      document.getElementById('val-spacer').style.height=spacer+'px';
+    const tab=document.getElementById('tab');
+    const firstCrow=tab&&tab.querySelector('.crow');
+    if(tab&&firstCrow){
+      document.getElementById('val-spacer').style.height=firstCrow.offsetTop+'px';
     }
   },50);
 };
@@ -790,11 +1131,10 @@ document.getElementById('btn-conv').addEventListener('click',()=>{
   buildResList();
   document.getElementById('col-res').classList.add('shown');
   requestAnimationFrame(()=>{
-    const crow0=document.querySelector('.crow');
-    const colRes=document.getElementById('col-res');
-    if(crow0&&colRes){
-      const needed=crow0.getBoundingClientRect().top-colRes.getBoundingClientRect().top;
-      document.getElementById('res-spacer').style.height=Math.max(0,needed)+'px';
+    const tab=document.getElementById('tab');
+    const firstCrow=tab&&tab.querySelector('.crow');
+    if(tab&&firstCrow){
+      document.getElementById('res-spacer').style.height=firstCrow.offsetTop+'px';
     }
     document.getElementById('outil').style.display='block';
     posOutil(EX+U.indexOf(EXS[convIdx].u),convIdx);
@@ -834,10 +1174,13 @@ function posOutil(col,li){
   cadre.style.width=cW+'px';cadre.style.height=cH+'px';cadre.textContent='';
   const queue=document.getElementById('outil-queue');
   const border=2.5;
+  const radius=7;
   queue.style.width=border+'px';
   queue.style.left=(cW-border)+'px';
-  queue.style.top=(cH-2)+'px';
-  queue.style.height=(2+(li+1)*RH)+'px';
+  // Démarrer la queue dans le cadre (à hauteur du border-radius) pour qu'elle masque
+  // l'arrondi du coin inférieur-droit et soit collée à la bordure.
+  queue.style.top=(cH-radius)+'px';
+  queue.style.height=(radius+(li+1)*RH)+'px';
   outilCol=col;
 }
 
@@ -853,13 +1196,28 @@ function setupDrag(){
     cells.forEach((c,i)=>{if(c.classList.contains('extra'))return;
       const r=c.getBoundingClientRect();const mid=(r.left+r.right)/2;const d=Math.abs(cx-mid);
       if(d<bestD){bestD=d;best=i;}});return best;};
-  const onMove=cx=>{const col=nearestCol(cx);if(col!==outilCol){posOutil(col,convIdx);updateLine(convIdx,col);}};
-  ot.addEventListener('mousedown',e=>{isDrag=true;e.preventDefault();ot.style.cursor='grabbing';});
+  const onMove=cx=>{const col=nearestCol(cx);if(col!==outilCol){posOutil(col,convIdx);updateLine(convIdx,col);cancelAutoValidate();}};
+  // Validation automatique après lâcher : 600 ms d'inactivité
+  const scheduleAutoValidate=()=>{
+    cancelAutoValidate();
+    const li=convIdx;
+    const srcUi=U.indexOf(EXS[li].u);const srcCol=EX+srcUi;
+    if(outilCol===srcCol)return; // outil sur la source : rien à valider
+    autoValidateTimer=setTimeout(()=>{
+      autoValidateTimer=null;
+      validateLine(li);
+    },600);
+  };
+  ot.addEventListener('mousedown',e=>{isDrag=true;e.preventDefault();ot.style.cursor='grabbing';cancelAutoValidate();});
   document.addEventListener('mousemove',e=>{if(isDrag)onMove(e.clientX);});
-  document.addEventListener('mouseup',()=>{if(isDrag){isDrag=false;ot.style.cursor='grab';}});
-  ot.addEventListener('touchstart',e=>{isDrag=true;e.preventDefault();},{passive:false});
+  document.addEventListener('mouseup',()=>{if(isDrag){isDrag=false;ot.style.cursor='grab';scheduleAutoValidate();}});
+  ot.addEventListener('touchstart',e=>{isDrag=true;e.preventDefault();cancelAutoValidate();},{passive:false});
   ot.addEventListener('touchmove',e=>{e.preventDefault();if(isDrag)onMove(e.touches[0].clientX);},{passive:false});
-  ot.addEventListener('touchend',()=>{isDrag=false;});
+  ot.addEventListener('touchend',()=>{isDrag=false;scheduleAutoValidate();});
+}
+
+function cancelAutoValidate(){
+  if(autoValidateTimer){clearTimeout(autoValidateTimer);autoValidateTimer=null;}
 }
 
 function updateLine(li,tgtCol){
@@ -929,8 +1287,398 @@ function validateLine(li){
   },600);
 }
 
-document.getElementById('btn-reset').addEventListener('click',build);
-build();
+document.getElementById('btn-reset').addEventListener('click',()=>{
+  delete convStates[activeG];
+  build();
+});
+
+/* ── NAVIGATION PAR ONGLETS ── */
+function showPage(target){
+  // Si on quitte la page Unités, sauvegarder son état
+  const currentPage=document.querySelector('.page:not([hidden])');
+  if(currentPage&&currentPage.id==='page-unites'&&target!=='page-unites'){
+    saveUnitesState();
+  }
+  const pages=document.querySelectorAll('.page');
+  pages.forEach(p=>{p.hidden=(p.id!==target);});
+  document.querySelectorAll('.nav-btn').forEach(b=>{
+    b.classList.toggle('active',b.dataset.target===target);
+  });
+  const card=document.getElementById('exercise-card');
+  if(target==='page-unites'){
+    // Page Unités : logique dédiée, on cache la carte partagée
+    card.style.display='none';
+    buildUnitesPage();
+    restoreUnitesState();
+  } else if(target==='page-conversion'){
+    const slot=document.querySelector('#page-conversion .page-slot');
+    if(slot&&card.parentElement!==slot){slot.appendChild(card);}
+    card.style.display='';
+    pageMode='full';
+    // On saute la phase 0 : tableau avec badges déjà en place
+    phase0Done=true;
+    if(!conversionInitialized){
+      setActiveGrandeur(activeG); // applique titre et boutons
+      build();
+      conversionInitialized=true;
+    }
+  } else {
+    // Page "Exercice" : placeholder, on cache la carte partagée
+    card.style.display='none';
+  }
+}
+
+document.querySelectorAll('.nav-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>showPage(btn.dataset.target));
+});
+
+/* ── PAGE UNITÉS : logique dédiée ── */
+const CATS={
+  longueur:{
+    titre:'Unités de longueur',
+    cols:['km','hm','dam','m','dm','cm','mm'],
+    central:'m',
+    noms:{km:'kilomètre',hm:'hectomètre',dam:'décamètre',m:'mètre',dm:'décimètre',cm:'centimètre',mm:'millimètre'}
+  },
+  capacite:{
+    titre:'Unités de capacité',
+    cols:['kL','hL','daL','L','dL','cL','mL'],
+    central:'L',
+    noms:{kL:'kilolitre',hL:'hectolitre',daL:'décalitre',L:'litre',dL:'décilitre',cL:'centilitre',mL:'millilitre'}
+  },
+  masse:{
+    titre:'Unités de masse',
+    cols:['t','q','-','kg','hg','dag','g','dg','cg','mg'],
+    central:'g',
+    noms:{t:'tonne',q:'quintal',kg:'kilogramme',hg:'hectogramme',dag:'décagramme',g:'gramme',dg:'décigramme',cg:'centigramme',mg:'milligramme'}
+  }
+};
+let unitesCat='longueur';
+let unitesDragUnit=null,unitesDragOrigin=null,unitesGhost=null;
+const UCW=80; // largeur de colonne pour la page Unités
+
+function buildUnitesPage(){
+  const cat=CATS[unitesCat];
+  const cols=cat.cols;
+  // Titre + consigne + état actif des boutons
+  document.getElementById('unites-titre').textContent=cat.titre;
+  const hint=document.getElementById('unites-hint');
+  hint.textContent='Place les unités dans le bon ordre dans la ligne ci-dessous';
+  hint.style.display='';
+  hint.style.color='';
+  document.getElementById('unites-msg').textContent='';
+  document.getElementById('unites-msg').className='msg';
+  document.querySelectorAll('.cat-btn').forEach(b=>{
+    b.classList.toggle('active',b.dataset.cat===unitesCat);
+  });
+  // Largeur globale du tableau (nombre de colonnes variable selon la catégorie)
+  const tabWidth=cols.length*UCW+2;
+  const tab=document.getElementById('unites-tab');
+  tab.style.width=tabWidth+'px';
+  // Pool : badges mélangés (uniquement les unités réelles, pas les colonnes vides)
+  const pool=document.getElementById('unites-pool');
+  pool.innerHTML='';
+  pool.style.display='';
+  const shuffled=[...cols].sort(()=>Math.random()-.5);
+  shuffled.forEach(u=>{
+    const pu=document.createElement('div');
+    pu.className='pu-big';pu.textContent=u;pu.dataset.u=u;
+    if(u===cat.central)pu.classList.add('central');
+    enableUnitesUnitDrag(pu);
+    pool.appendChild(pu);
+  });
+  // Urow : une cellule par colonne, toutes cibles
+  const ur=document.getElementById('unites-urow');
+  ur.innerHTML='';
+  ur.style.gridTemplateColumns=`repeat(${cols.length},${UCW}px)`;
+  cols.forEach(u=>{
+    const cell=document.createElement('div');
+    cell.className='uc-big';
+    cell.dataset.expectU=u;
+    if(u===cat.central)cell.classList.add('central');
+    const slot=document.createElement('div');slot.className='uc-slot';
+    cell.appendChild(slot);
+    // Nom sous la case (seulement si l'unité a un nom)
+    if(cat.noms[u]){
+      const nom=document.createElement('div');nom.className='unom-big';nom.textContent=cat.noms[u];
+      cell.appendChild(nom);
+    }
+    setupUnitesSlot(cell);
+    ur.appendChild(cell);
+  });
+  // Deux lignes vides en-dessous (pour l'aspect tableau tronqué)
+  [1,2].forEach(n=>{
+    const row=document.getElementById('unites-empty-row-'+n);
+    row.innerHTML='';
+    row.style.gridTemplateColumns=`repeat(${cols.length},${UCW}px)`;
+    for(let i=0;i<cols.length;i++){
+      const s=document.createElement('div');s.className='cs-empty';
+      row.appendChild(s);
+    }
+  });
+}
+
+function enableUnitesUnitDrag(pu){
+  pu.draggable=true;
+  pu.addEventListener('dragstart',e=>{
+    // Si la pastille est dans une case verrouillée, refuser le drag
+    const parentCell=pu.parentElement&&pu.parentElement.closest('.uc-big');
+    if(parentCell&&parentCell.classList.contains('locked')){
+      e.preventDefault();return;
+    }
+    unitesDragUnit=pu;unitesDragOrigin=pu.parentElement;
+    e.dataTransfer.effectAllowed='move';
+    setTimeout(()=>pu.style.opacity='0.3',0);
+  });
+  pu.addEventListener('dragend',()=>{
+    if(pu.parentElement)pu.style.opacity='';
+    unitesDragUnit=null;unitesDragOrigin=null;
+  });
+  // Touch
+  pu.addEventListener('touchstart',e=>{
+    const parentCell=pu.parentElement&&pu.parentElement.closest('.uc-big');
+    if(parentCell&&parentCell.classList.contains('locked'))return;
+    unitesDragUnit=pu;unitesDragOrigin=pu.parentElement;
+    const t=e.touches[0];
+    unitesGhost=pu.cloneNode(true);unitesGhost.className='pu-big ghost-clone';
+    unitesGhost.style.cssText='position:fixed;pointer-events:none;opacity:.85;z-index:9999;width:'+pu.offsetWidth+'px;height:'+pu.offsetHeight+'px;';
+    unitesGhost.style.left=(t.clientX-pu.offsetWidth/2)+'px';
+    unitesGhost.style.top=(t.clientY-pu.offsetHeight/2)+'px';
+    document.body.appendChild(unitesGhost);pu.style.opacity='0.3';
+  },{passive:true});
+  pu.addEventListener('touchmove',e=>{
+    if(!unitesDragUnit)return;
+    e.preventDefault();const t=e.touches[0];
+    if(unitesGhost){
+      unitesGhost.style.left=(t.clientX-unitesGhost.offsetWidth/2)+'px';
+      unitesGhost.style.top=(t.clientY-unitesGhost.offsetHeight/2)+'px';
+    }
+    document.querySelectorAll('#unites-urow .uc-big.hover-u').forEach(s=>s.classList.remove('hover-u'));
+    const el=document.elementFromPoint(t.clientX,t.clientY);
+    const sl=el&&el.closest('#unites-urow .uc-big');
+    if(sl&&!sl.classList.contains('locked'))sl.classList.add('hover-u');
+  },{passive:false});
+  pu.addEventListener('touchend',e=>{
+    if(!unitesDragUnit){pu.style.opacity='';return;}
+    pu.style.opacity='';
+    if(unitesGhost){unitesGhost.remove();unitesGhost=null;}
+    document.querySelectorAll('#unites-urow .uc-big.hover-u').forEach(s=>s.classList.remove('hover-u'));
+    const t=e.changedTouches[0];
+    const el=document.elementFromPoint(t.clientX,t.clientY);
+    const sl=el&&el.closest('#unites-urow .uc-big');
+    const poolEl=el&&el.closest('#unites-pool');
+    if(sl&&!sl.classList.contains('locked'))dropUnitesUnit(sl);
+    else if(poolEl)dropUnitesOnPool();
+    unitesDragUnit=null;unitesDragOrigin=null;
+  });
+}
+
+function setupUnitesSlot(cell){
+  cell.addEventListener('dragover',e=>{
+    if(cell.classList.contains('locked'))return;
+    e.preventDefault();cell.classList.add('hover-u');
+  });
+  cell.addEventListener('dragleave',()=>cell.classList.remove('hover-u'));
+  cell.addEventListener('drop',e=>{
+    if(cell.classList.contains('locked'))return;
+    e.preventDefault();cell.classList.remove('hover-u');
+    dropUnitesUnit(cell);
+  });
+}
+
+function setupUnitesPoolDrop(){
+  const pool=document.getElementById('unites-pool');
+  pool.addEventListener('dragover',e=>{
+    // Accepte uniquement si la pastille vient d'une case (pas d'une case à l'autre du pool)
+    if(unitesDragOrigin&&unitesDragOrigin.closest('.uc-big')){
+      e.preventDefault();
+    }
+  });
+  pool.addEventListener('drop',e=>{
+    if(unitesDragOrigin&&unitesDragOrigin.closest('.uc-big')){
+      e.preventDefault();
+      dropUnitesOnPool();
+    }
+  });
+}
+
+function dropUnitesOnPool(){
+  if(!unitesDragUnit)return;
+  const origin=unitesDragOrigin;
+  const cell=origin&&origin.closest('.uc-big');
+  // Vider la case d'origine
+  if(cell){
+    const origSlot=cell.querySelector('.uc-slot');
+    if(origSlot)origSlot.innerHTML='';
+    cell.classList.remove('ok-u','ko-u');
+  } else if(unitesDragUnit.parentElement){
+    unitesDragUnit.parentElement.removeChild(unitesDragUnit);
+  }
+  // Remettre dans le pool
+  enableUnitesUnitDrag(unitesDragUnit);
+  document.getElementById('unites-pool').appendChild(unitesDragUnit);
+  unitesDragUnit.style.opacity='';
+  unitesDragUnit=null;unitesDragOrigin=null;
+}
+
+function dropUnitesUnit(cell){
+  if(!unitesDragUnit)return;
+  const origin=unitesDragOrigin;
+  // L'origine est soit le pool, soit un .uc-slot ; on remonte à la cellule .uc-big le cas échéant
+  const originCell=origin&&origin.closest&&origin.closest('.uc-big');
+  // Le conteneur du badge à l'intérieur de la cellule cible
+  const slotDiv=cell.querySelector('.uc-slot');
+  const existing=slotDiv.querySelector('.pu-big');
+  if(existing){
+    // Échange : remettre l'existing à l'origine
+    slotDiv.removeChild(existing);
+    if(originCell){
+      const origSlot=originCell.querySelector('.uc-slot');
+      if(origSlot)origSlot.innerHTML='';
+      originCell.classList.remove('ok-u','ko-u','locked');
+      enableUnitesUnitDrag(existing);
+      (origSlot||originCell).appendChild(existing);
+    } else {
+      // Origine = pool : retour au pool
+      enableUnitesUnitDrag(existing);
+      document.getElementById('unites-pool').appendChild(existing);
+    }
+  }
+  // Retirer dragUnit de son origine
+  if(originCell){
+    const origSlot=originCell.querySelector('.uc-slot');
+    if(origSlot)origSlot.innerHTML='';
+    originCell.classList.remove('ok-u','ko-u','locked');
+  } else if(unitesDragUnit.parentElement){
+    unitesDragUnit.parentElement.removeChild(unitesDragUnit);
+  }
+  // Déposer dans le slot interne
+  enableUnitesUnitDrag(unitesDragUnit);
+  slotDiv.appendChild(unitesDragUnit);
+  const correct=(cell.dataset.expectU===unitesDragUnit.dataset.u);
+  cell.classList.remove('ok-u','ko-u','locked');
+  cell.classList.add(correct?'ok-u':'ko-u');
+  if(correct){
+    // Verrouiller la case : la pastille ne pourra plus être déplacée
+    cell.classList.add('locked');
+    unitesDragUnit.draggable=false;
+  }
+  unitesDragUnit=null;unitesDragOrigin=null;
+  checkUnitesAll();
+}
+
+function checkUnitesAll(){
+  // On ne considère que les cellules qui attendent une unité (pas les colonnes vides)
+  const slots=[...document.querySelectorAll('#unites-urow .uc-big[data-expect-u]')];
+  const allFilled=slots.every(s=>s.querySelector('.pu-big'));
+  if(!allFilled)return;
+  const allOk=slots.every(s=>{
+    const pu=s.querySelector('.pu-big');
+    return pu&&pu.dataset.u===s.dataset.expectU;
+  });
+  if(allOk){
+    // Le bravo remplace la consigne (même élément, pas de saut)
+    const hint=document.getElementById('unites-hint');
+    hint.textContent='Bravo, les unités sont bien placées !';
+    hint.style.color='#3B6D11';
+    // La bande bleue (pool) se rétracte
+    document.getElementById('unites-pool').style.display='none';
+    // Faire apparaître les noms sous les badges
+    document.querySelectorAll('#unites-urow .unom-big').forEach(n=>n.classList.add('revealed'));
+    // Pour les cases qui attendent '-' : remplacer la pastille par un simple tiret nu
+    document.querySelectorAll('#unites-urow .uc-big[data-expect-u="-"]').forEach(cell=>{
+      const slot=cell.querySelector('.uc-slot');
+      if(slot){slot.innerHTML='';const t=document.createElement('div');t.className='bare-dash';t.textContent='–';slot.appendChild(t);}
+      cell.classList.add('bare-cell');
+    });
+  }
+}
+
+// État sauvegardé par catégorie : { cat: { placed: {colIndex: {u, ok}}, allDone: bool } }
+const unitesState={};
+
+function saveUnitesState(){
+  // Sauvegarde l'état de la catégorie actuellement affichée
+  const cat=CATS[unitesCat];if(!cat)return;
+  const state={placed:{},allDone:false};
+  const cells=[...document.querySelectorAll('#unites-urow .uc-big')];
+  cells.forEach((cell,i)=>{
+    const pu=cell.querySelector('.pu-big');
+    const bare=cell.querySelector('.bare-dash');
+    if(pu){
+      state.placed[i]={u:pu.dataset.u,ok:cell.classList.contains('ok-u')};
+    } else if(bare){
+      // La pastille '-' a été remplacée par un tiret nu (état final)
+      state.placed[i]={u:'-',ok:true,bare:true};
+    }
+  });
+  state.allDone=document.getElementById('unites-pool').style.display==='none';
+  unitesState[unitesCat]=state;
+}
+
+function restoreUnitesState(){
+  const cat=CATS[unitesCat];if(!cat)return;
+  const state=unitesState[unitesCat];
+  if(!state)return;
+  const cells=[...document.querySelectorAll('#unites-urow .uc-big')];
+  // Pour chaque cellule restaurée, retirer la pastille correspondante du pool
+  Object.keys(state.placed).forEach(idx=>{
+    const i=+idx;const info=state.placed[idx];
+    const cell=cells[i];if(!cell)return;
+    const slot=cell.querySelector('.uc-slot');if(!slot)return;
+    if(info.bare){
+      // Restaurer le tiret nu
+      slot.innerHTML='';
+      const t=document.createElement('div');t.className='bare-dash';t.textContent='–';
+      slot.appendChild(t);
+      cell.classList.add('bare-cell','ok-u','locked');
+    } else {
+      // Trouver la pastille dans le pool et la déplacer dans la cellule
+      const pool=document.getElementById('unites-pool');
+      const pu=pool.querySelector(`.pu-big[data-u="${CSS.escape(info.u)}"]`);
+      if(pu){
+        pool.removeChild(pu);
+        slot.innerHTML='';slot.appendChild(pu);
+        cell.classList.add(info.ok?'ok-u':'ko-u');
+        if(info.ok){cell.classList.add('locked');pu.draggable=false;}
+      }
+    }
+  });
+  // Si tout était fini, restaurer aussi l'état "bravo"
+  if(state.allDone){
+    const hint=document.getElementById('unites-hint');
+    hint.textContent='Bravo, les unités sont bien placées !';
+    hint.style.color='#3B6D11';
+    document.getElementById('unites-pool').style.display='none';
+    document.querySelectorAll('#unites-urow .unom-big').forEach(n=>n.classList.add('revealed'));
+  }
+}
+
+// Boutons catégorie
+document.querySelectorAll('.cat-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    if(btn.dataset.cat===unitesCat)return;
+    saveUnitesState();
+    unitesCat=btn.dataset.cat;
+    buildUnitesPage();
+    restoreUnitesState();
+  });
+});
+// Bouton recommencer : reset complet de la catégorie courante
+document.getElementById('unites-reset').addEventListener('click',()=>{
+  delete unitesState[unitesCat];
+  buildUnitesPage();
+});
+// Handlers de drop sur le pool (une fois pour toutes)
+setupUnitesPoolDrop();
+// Boutons grandeur de la page Conversion : délégation pour résister au DOM régénéré
+document.addEventListener('click',e=>{
+  const btn=e.target.closest('.grb');
+  if(btn)switchGrandeur(btn.dataset.g);
+});
+
+// Initialisation : page "Unités" par défaut
+showPage('page-unites');
 </script>
 </body>
 </html>
