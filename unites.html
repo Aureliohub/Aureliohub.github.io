@@ -135,6 +135,46 @@ main{flex:1;display:flex;flex-direction:column;min-height:0;}
 .page-slot{flex:1;display:flex;flex-direction:column;min-height:0;}
 .placeholder{flex:1;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:15px;font-weight:700;text-align:center;padding:2rem;}
 
+/* ── Page Exercice ── */
+#ex-header{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;margin-bottom:16px;flex-shrink:0;gap:16px;}
+.ex-header-left{grid-column:1;}
+.ex-grandeur-btns{grid-column:2;display:flex;gap:8px;justify-content:center;}
+.ex-title-row{display:flex;align-items:baseline;gap:16px;flex-wrap:wrap;}
+.ex-title{font-size:16px;font-weight:800;color:#2D6BE4;margin:0;}
+.ex-instruction{font-size:13px;font-weight:600;color:var(--muted);margin-top:3px;}
+.ex-units-reminder{font-size:12px;font-weight:600;color:#A9A69B;letter-spacing:.5px;}
+.ex-grb{width:32px;height:32px;border-radius:50%;border:1.5px solid #7BBDE0;background:#F0F7FD;color:#1E3A50;font-family:'Nunito',sans-serif;font-size:14px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;transition:background .15s,color .15s,border-color .15s;}
+.ex-grb:hover{background:#fff;color:#2D6BE4;border-color:#2D6BE4;}
+.ex-grb.active{background:#2D6BE4;color:#fff;border-color:#2D6BE4;}
+#ex-reset{grid-column:3;justify-self:end;padding:5px 14px;font-size:12px;font-weight:700;font-family:'Nunito',sans-serif;cursor:pointer;border:1.5px solid var(--border);border-radius:20px;background:transparent;color:var(--muted);}
+#ex-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px 36px;}
+.ex-column{display:flex;flex-direction:column;}
+.ex-serie-title{font-size:14px;font-weight:800;color:#2D6BE4;margin-bottom:8px;text-align:center;}
+.ex-column>div:not(.ex-serie-title){display:flex;flex-direction:column;gap:6px;}
+.ex-validate-serie{margin-top:12px;padding:6px 16px;font-size:12px;font-weight:700;font-family:'Nunito',sans-serif;cursor:pointer;border:1.5px solid #7BBDE0;background:#F0F7FD;color:#1E3A50;border-radius:18px;align-self:center;}
+.ex-validate-serie:hover{background:#7BBDE0;color:#fff;}
+.ex-column>div:not(.ex-serie-title){display:flex;flex-direction:column;gap:6px;}
+.ex-line{display:grid;grid-template-columns:20px 62px auto 140px 32px auto;align-items:center;gap:8px;padding:4px 6px;border-radius:6px;transition:background .2s;}
+.ex-line.ok{background:#E9F5D9;}
+.ex-line.ko{background:#FBE8E8;animation:shakehoriz .4s;}
+@keyframes shakehoriz{0%,100%{transform:translateX(0);}25%{transform:translateX(-4px);}75%{transform:translateX(4px);}}
+.ex-num{font-size:12px;font-weight:700;color:var(--muted);min-width:20px;text-align:right;}
+.ex-source{font-size:14px;font-weight:800;color:var(--text);min-width:62px;text-align:right;white-space:nowrap;}
+.ex-equals{font-size:14px;font-weight:700;color:var(--muted);}
+.ex-digits{display:flex;align-items:center;gap:0;padding:3px 6px;border:1.5px solid #7BBDE0;border-radius:8px;background:#F0F7FD;min-height:30px;user-select:none;}
+.ex-digit{font-size:15px;font-weight:800;color:#1E3A50;padding:0 2px;user-select:none;}
+.ex-digit-ghost{color:#C8C6BC;}
+.ex-digit-implicit{color:#1E3A50;}
+.ex-comma-drag{font-size:22px;font-weight:800;color:#E07B39;padding:0 1px;line-height:1;user-select:none;}
+.ex-field-container{display:flex;align-items:center;justify-content:flex-start;gap:4px;}
+.ex-arrows-h{display:flex;gap:3px;}
+.ex-arrow{width:26px;height:26px;padding:0;border-radius:5px;border:1.5px solid #7BBDE0;background:#F0F7FD;color:#1E3A50;font-family:'Nunito',sans-serif;font-size:18px;font-weight:normal;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center;}
+.ex-arrow:hover{background:#7BBDE0;color:#fff;}
+.ex-arrow:active{transform:scale(0.95);}
+.ex-target-unit{font-size:14px;font-weight:700;color:#4A6B80;min-width:28px;}
+.ex-validate{display:none!important;}
+.ex-line.ok .ex-digits{border-color:#5BAD5B;background:#F0FEF0;}
+
 /* ── Page Unités : layout dédié ── */
 #unites-layout{display:flex;align-items:flex-start;gap:18px;width:100%;}
 #unites-sidebar{display:flex;flex-direction:column;gap:8px;flex-shrink:0;padding-top:6px;}
@@ -220,8 +260,34 @@ main{flex:1;display:flex;flex-direction:column;min-height:0;}
     <div class="page-slot"></div>
   </section>
   <section class="page" id="page-exercice" data-page="exercice" hidden>
-    <div class="card"><div class="body">
-      <div class="placeholder">Exercices — à venir prochainement</div>
+    <div class="card"><div class="body" style="overflow:auto;">
+      <div id="ex-header">
+        <div class="ex-header-left">
+          <div class="ex-title-row">
+            <h2 class="ex-title" id="ex-title">Conversions de longueurs</h2>
+            <div class="ex-units-reminder" id="ex-units-reminder">km · hm · dam · m · dm · cm · mm</div>
+          </div>
+          <div class="ex-instruction">Déplace la virgule</div>
+        </div>
+        <div class="ex-grandeur-btns">
+          <button class="ex-grb active" data-g="longueur">m</button>
+          <button class="ex-grb" data-g="capacite">L</button>
+          <button class="ex-grb" data-g="masse">g</button>
+        </div>
+        <button id="ex-reset">↺ Nouvelle série</button>
+      </div>
+      <div id="ex-grid">
+        <div class="ex-column">
+          <div class="ex-serie-title">Série A</div>
+          <div id="ex-col-1"></div>
+          <button class="ex-validate-serie" data-serie="A">Valider la série A</button>
+        </div>
+        <div class="ex-column">
+          <div class="ex-serie-title">Série B</div>
+          <div id="ex-col-2"></div>
+          <button class="ex-validate-serie" data-serie="B">Valider la série B</button>
+        </div>
+      </div>
     </div></div>
   </section>
   <!-- Bloc d'exercice partagé : déplacé dans la bonne page selon l'onglet actif -->
@@ -450,6 +516,7 @@ let dragPastille=null,dragOrigin=null,ghostEl=null;
 let pageMode='unites-only';
 // Flag : la page Conversion a-t-elle déjà été initialisée ? (pour préserver son état)
 let conversionInitialized=false;
+let exerciceInitialized=false;
 // État de la page Conversion par grandeur (longueur, capacite, masse)
 const convStates={}; // { longueur: snapshot, capacite: snapshot, masse: snapshot }
 
@@ -1325,6 +1392,10 @@ function showPage(target){
   } else {
     // Page "Exercice" : placeholder, on cache la carte partagée
     card.style.display='none';
+    if(!exerciceInitialized){
+      buildExercicePage();
+      exerciceInitialized=true;
+    }
   }
 }
 
@@ -1675,6 +1746,391 @@ setupUnitesPoolDrop();
 document.addEventListener('click',e=>{
   const btn=e.target.closest('.grb');
   if(btn)switchGrandeur(btn.dataset.g);
+});
+
+/* ── PAGE EXERCICE : 10 conversions avec virgule déplaçable (longueur/capacité/masse) ── */
+const EX_GRANDEURS={
+  longueur:{
+    cols:['km','hm','dam','m','dm','cm','mm'],
+    titre:'Conversions de longueurs',
+    reminder:'km · hm · dam · m · dm · cm · mm'
+  },
+  capacite:{
+    cols:['kL','hL','daL','L','dL','cL','mL'],
+    titre:'Conversions de capacités',
+    reminder:'kL · hL · daL · L · dL · cL · mL'
+  },
+  masse:{
+    cols:['t','q','-','kg','hg','dag','g','dg','cg','mg'],
+    titre:'Conversions de masses',
+    reminder:'t · q · – · kg · hg · dag · g · dg · cg · mg'
+  }
+};
+let activeExG='longueur';
+
+function exRandom(n){return Math.floor(Math.random()*n);}
+function exRndNZ(a,b){let v=0;while(!v)v=Math.floor(Math.random()*(b-a+1))+a;return v;}
+
+// Liste des indices d'unités usables (exclut '-') pour la grandeur active
+function exUsableIndices(){
+  const cols=EX_GRANDEURS[activeExG].cols;
+  const out=[];
+  cols.forEach((u,i)=>{if(u!=='-')out.push(i);});
+  return out;
+}
+
+// Génère une conversion dans la grandeur active
+function genExercise(){
+  const cols=EX_GRANDEURS[activeExG].cols;
+  const usable=exUsableIndices();
+  // Choisir srcI parmi les unités usables
+  const srcI=usable[exRandom(usable.length)];
+  const srcU=cols[srcI];
+  // Cible à ±3 pas de tableau de la source (compte '-' comme 1 pas), usable et différent de src
+  const candidates=usable.filter(i=>i!==srcI&&Math.abs(i-srcI)<=3);
+  const tgtI=candidates[exRandom(candidates.length)];
+  const tgtU=cols[tgtI];
+  // Type de nombre : 60% entier, 40% décimal
+  let sourceStr;
+  if(Math.random()<0.6){
+    const nDigits=1+exRandom(4);
+    let s=''+exRndNZ(1,9);
+    for(let i=1;i<nDigits;i++)s+=exRandom(10);
+    sourceStr=s;
+  } else {
+    const nInt=1+exRandom(3);
+    const nDec=1+exRandom(2);
+    let s=''+exRndNZ(1,9);
+    for(let i=1;i<nInt;i++)s+=exRandom(10);
+    s+=',';
+    for(let i=0;i<nDec-1;i++)s+=exRandom(10);
+    s+=exRndNZ(1,9);
+    sourceStr=s;
+  }
+  const srcDigitsOnly=sourceStr.replace(',','');
+  const srcCommaPos=sourceStr.includes(',')?sourceStr.indexOf(','):sourceStr.length;
+  // delta : nombre de positions dans le tableau (compte '-' comme 1 pas)
+  const delta=tgtI-srcI;
+  let digits=srcDigitsOnly;
+  let targetCommaPos=srcCommaPos+delta;
+  while(targetCommaPos>digits.length){digits+='0';}
+  while(targetCommaPos<0){digits='0'+digits;targetCommaPos++;}
+  return {sourceStr,srcU,tgtU,digits,commaPos:targetCommaPos,srcCommaPos,srcI,tgtI};
+}
+
+let exExercises=[];
+// État sauvegardé par grandeur (pour préserver le travail quand on bascule)
+const exStates={};
+
+function snapshotExState(){
+  // Snapshot des exercices + état de chaque ligne (digits, commaPos, ok/ko)
+  return {
+    exercises:JSON.parse(JSON.stringify(exExercises)),
+    lines:[...document.querySelectorAll('.ex-line')].map(line=>({
+      digits:line._state?line._state.digits:'',
+      commaPos:line._state?line._state.commaPos:0,
+      minCommaPos:line._state?line._state.minCommaPos:0,
+      maxCommaPos:line._state?line._state.maxCommaPos:0,
+      ok:line.classList.contains('ok')
+    }))
+  };
+}
+
+function restoreExState(snapshot){
+  exExercises=JSON.parse(JSON.stringify(snapshot.exercises));
+  renderExercicePage();
+  // Réappliquer l'état de chaque ligne
+  const lines=document.querySelectorAll('.ex-line');
+  snapshot.lines.forEach((ls,i)=>{
+    const line=lines[i];
+    if(!line||!line._state)return;
+    line._state.digits=ls.digits;
+    line._state.commaPos=ls.commaPos;
+    line._state.minCommaPos=ls.minCommaPos;
+    line._state.maxCommaPos=ls.maxCommaPos;
+    const digitsEl=line.querySelector('.ex-digits');
+    if(digitsEl)renderDragDigits(digitsEl,line._state);
+    if(ls.ok)line.classList.add('ok');
+  });
+}
+
+function buildExercicePage(){
+  exExercises=[];
+  for(let i=0;i<10;i++)exExercises.push(genExercise());
+  // Pour la masse : garantir au moins un exercice utilisant t ou q
+  if(activeExG==='masse'){
+    const cols=EX_GRANDEURS.masse.cols;
+    const hasTQ=exExercises.some(ex=>['t','q'].includes(ex.srcU)||['t','q'].includes(ex.tgtU));
+    if(!hasTQ){
+      // Remplacer un exercice au hasard par un avec t ou q
+      // On tente jusqu'à trouver un ex qui touche t ou q
+      for(let tries=0;tries<30;tries++){
+        const ex=genExercise();
+        if(['t','q'].includes(ex.srcU)||['t','q'].includes(ex.tgtU)){
+          exExercises[exRandom(10)]=ex;
+          break;
+        }
+      }
+    }
+  }
+  renderExercicePage();
+}
+
+function renderExercicePage(){
+  const col1=document.querySelector('#ex-col-1');
+  const col2=document.querySelector('#ex-col-2');
+  col1.innerHTML='';col2.innerHTML='';
+  exExercises.forEach((ex,i)=>{
+    const line=buildExLine(ex,i);
+    (i<5?col1:col2).appendChild(line);
+  });
+}
+
+function buildExLine(ex,idx){
+  const line=document.createElement('div');line.className='ex-line';line.dataset.idx=idx;
+  // Numéro : chaque série repart à 1 (1..5)
+  const num=document.createElement('span');num.className='ex-num';
+  num.textContent=((idx%5)+1)+'.';
+  // Zone source
+  const src=document.createElement('span');src.className='ex-source';
+  src.textContent=ex.sourceStr+' '+ex.srcU;
+  const eq=document.createElement('span');eq.className='ex-equals';eq.textContent='=';
+  // Conteneur avec uniquement le champ (les flèches seront après l'unité cible)
+  const container=document.createElement('div');container.className='ex-field-container';
+  const digits=document.createElement('div');digits.className='ex-digits';digits.dataset.idx=idx;
+  container.append(digits);
+  // Unité cible
+  const tgt=document.createElement('span');tgt.className='ex-target-unit';tgt.textContent=ex.tgtU;
+  // Flèches côte à côte à droite de la ligne (alignées verticalement entre lignes)
+  const arrows=document.createElement('div');arrows.className='ex-arrows-h';
+  const btnLeft=document.createElement('button');btnLeft.className='ex-arrow ex-arrow-left';
+  btnLeft.textContent='‹';btnLeft.setAttribute('aria-label','Décaler la virgule à gauche');
+  const btnRight=document.createElement('button');btnRight.className='ex-arrow ex-arrow-right';
+  btnRight.textContent='›';btnRight.setAttribute('aria-label','Décaler la virgule à droite');
+  arrows.append(btnLeft,btnRight);
+  // État
+  const state={
+    digits:ex.sourceStr.replace(',',''),
+    commaPos:ex.srcCommaPos,
+    minCommaPos:ex.srcCommaPos-6,
+    maxCommaPos:ex.srcCommaPos+6
+  };
+  line._state=state;
+  renderDragDigits(digits,state);
+  // Flèche gauche : virgule d'un cran à gauche
+  btnLeft.addEventListener('click',()=>{
+    if(line.classList.contains('ok'))return;
+    const newPos=state.commaPos-1;
+    if(newPos<state.minCommaPos)return;
+    moveComma(state,newPos);
+    renderDragDigits(digits,state);
+  });
+  // Flèche droite : virgule d'un cran à droite
+  btnRight.addEventListener('click',()=>{
+    if(line.classList.contains('ok'))return;
+    const newPos=state.commaPos+1;
+    if(newPos>state.maxCommaPos)return;
+    moveComma(state,newPos);
+    renderDragDigits(digits,state);
+  });
+  line.append(num,src,eq,container,tgt,arrows);
+  return line;
+}
+
+function renderDragDigits(digits,state){
+  digits.innerHTML='';
+  // Rendu minimal : uniquement les chiffres réels + la virgule à sa position
+  // Cas spécial : virgule à la position 0 → afficher "0," devant les chiffres
+  if(state.commaPos===0){
+    const z=document.createElement('span');z.className='ex-digit ex-digit-implicit';z.textContent='0';
+    digits.appendChild(z);
+    const comma=document.createElement('span');comma.className='ex-comma-drag';comma.textContent=',';
+    digits.appendChild(comma);
+    for(let i=0;i<state.digits.length;i++){
+      const d=document.createElement('span');d.className='ex-digit';d.textContent=state.digits[i];
+      digits.appendChild(d);
+    }
+    return;
+  }
+  // Parcourir les chiffres, insérer la virgule avant le chiffre d'index commaPos
+  for(let i=0;i<state.digits.length;i++){
+    if(i===state.commaPos){
+      const comma=document.createElement('span');comma.className='ex-comma-drag';comma.textContent=',';
+      digits.appendChild(comma);
+    }
+    const d=document.createElement('span');d.className='ex-digit';d.textContent=state.digits[i];
+    digits.appendChild(d);
+  }
+  // Virgule à la fin (position === digits.length) : pas d'affichage visible
+  // (on ne dessine pas la virgule après le dernier chiffre pour un nombre entier)
+}
+
+function setupCommaDrag(digits,state,ex){
+  let isDragging=false;
+  digits.addEventListener('pointerdown',e=>{
+    const comma=e.target.closest('.ex-comma-drag');
+    if(!comma)return;
+    isDragging=true;
+    digits.setPointerCapture(e.pointerId);
+    e.preventDefault();
+  });
+  digits.addEventListener('pointermove',e=>{
+    if(!isDragging)return;
+    // Déterminer la position cible en fonction du X du pointeur :
+    // on mesure le centre de chaque chiffre affiché (y compris les fantômes)
+    // et la virgule se positionne juste avant le chiffre dont le centre est le plus proche à droite du pointeur.
+    const digitEls=[...digits.querySelectorAll('.ex-digit')];
+    if(!digitEls.length)return;
+    const px=e.clientX;
+    // Trouver la position "display" la plus proche
+    let targetDisplayPos=0;
+    for(let i=0;i<digitEls.length;i++){
+      const r=digitEls[i].getBoundingClientRect();
+      const mid=r.left+r.width/2;
+      if(px<mid){targetDisplayPos=i;break;}
+      targetDisplayPos=i+1;
+    }
+    // Convertir targetDisplayPos (dans l'affichage avec fantômes) en commaPos (dans state.digits)
+    // On compte le nombre de fantômes à gauche actuellement affichés
+    const ghostLeftEls=digitEls.filter((_,i)=>digitEls[i].classList.contains('ex-digit-ghost')&&i<digitEls.indexOf(digitEls.find(d=>!d.classList.contains('ex-digit-ghost'))));
+    // Plus simple : compter les .ex-digit-ghost en tête de liste
+    let ghostLeftCount=0;
+    for(const d of digitEls){if(d.classList.contains('ex-digit-ghost'))ghostLeftCount++;else break;}
+    let newCommaPos=targetDisplayPos-ghostLeftCount;
+    // Plafonner aux bornes autorisées
+    if(newCommaPos<state.minCommaPos)newCommaPos=state.minCommaPos;
+    if(newCommaPos>state.maxCommaPos)newCommaPos=state.maxCommaPos;
+    if(newCommaPos!==state.commaPos){
+      moveComma(state,newCommaPos);
+      renderDragDigits(digits,state);
+    }
+  });
+  const endDrag=e=>{
+    if(!isDragging)return;
+    isDragging=false;
+    try{digits.releasePointerCapture(e.pointerId);}catch(_){}
+  };
+  digits.addEventListener('pointerup',endDrag);
+  digits.addEventListener('pointercancel',endDrag);
+}
+
+// Déplace la virgule en pos cible (absolue). Ajoute des 0 aux extrémités si besoin,
+// puis normalise à la forme minimale en retirant les 0 superflus.
+function moveComma(state,targetPos){
+  let digits=state.digits;
+  let pos=targetPos;
+  let minP=state.minCommaPos;
+  let maxP=state.maxCommaPos;
+  // Ajouter des 0 à gauche si pos < 0 (décale tous les indices de +1 par ajout)
+  while(pos<0){digits='0'+digits;pos++;minP++;maxP++;}
+  // Ajouter des 0 à droite si pos > digits.length (pas d'impact sur les indices)
+  while(pos>digits.length){digits=digits+'0';}
+  // Normalisation :
+  // (a) Retirer les 0 de tête superflus : décale tous les indices de -1
+  while(digits.length>1&&digits[0]==='0'&&pos>1){
+    digits=digits.slice(1);pos--;minP--;maxP--;
+  }
+  // (b) Retirer les 0 de queue superflus (pas d'impact sur les indices)
+  while(digits.length>1&&digits[digits.length-1]==='0'&&pos<digits.length){
+    if(pos>digits.length-2)break;
+    digits=digits.slice(0,-1);
+  }
+  state.digits=digits;
+  state.commaPos=pos;
+  state.minCommaPos=minP;
+  state.maxCommaPos=maxP;
+}
+
+function renderDigits(digits,digitStr,state){
+  digits.innerHTML='';
+  for(let i=0;i<=digitStr.length;i++){
+    // Gap à la position i (espace où la virgule peut être placée)
+    const gap=document.createElement('span');
+    gap.className='ex-gap';
+    gap.dataset.pos=i;
+    if(state.currentCommaPos===i&&i!==0&&i!==digitStr.length){
+      gap.classList.add('has-comma');
+    }
+    digits.appendChild(gap);
+    // Chiffre (sauf après le dernier)
+    if(i<digitStr.length){
+      const d=document.createElement('span');
+      d.className='ex-digit';
+      d.textContent=digitStr[i];
+      digits.appendChild(d);
+    }
+  }
+}
+
+function validateExLine(line,ex,state){
+  // Construire la valeur actuelle à partir de state.digits + state.commaPos
+  const cur=formatWithComma(state.digits,state.commaPos);
+  const curVal=parseFloat(cur.replace(',','.'));
+  const srcVal=parseFloat(ex.sourceStr.replace(',','.'));
+  // delta en pas de tableau (inclut '-' pour la masse)
+  const tgtVal=srcVal*Math.pow(10,ex.tgtI-ex.srcI);
+  if(Math.abs(curVal-tgtVal)<1e-9){
+    line.classList.remove('ko');
+    line.classList.add('ok');
+  } else {
+    line.classList.remove('ok');
+    line.classList.add('ko');
+    setTimeout(()=>line.classList.remove('ko'),500);
+  }
+}
+
+function formatWithComma(digitStr,commaPos){
+  if(commaPos<=0)return '0,'+digitStr;
+  if(commaPos>=digitStr.length)return digitStr;
+  return digitStr.slice(0,commaPos)+','+digitStr.slice(commaPos);
+}
+
+function setActiveExGrandeur(g){
+  if(!EX_GRANDEURS[g])return;
+  if(g===activeExG)return;
+  // Sauvegarder l'état de la grandeur courante
+  if(exExercises.length){
+    exStates[activeExG]=snapshotExState();
+  }
+  activeExG=g;
+  document.querySelectorAll('.ex-grb').forEach(b=>{
+    b.classList.toggle('active',b.dataset.g===g);
+  });
+  const titre=document.getElementById('ex-title');
+  if(titre)titre.textContent=EX_GRANDEURS[g].titre;
+  const reminder=document.getElementById('ex-units-reminder');
+  if(reminder)reminder.textContent=EX_GRANDEURS[g].reminder;
+  // Restaurer ou générer
+  if(exStates[g]){
+    restoreExState(exStates[g]);
+  } else {
+    buildExercicePage();
+  }
+}
+
+document.getElementById('ex-reset').addEventListener('click',()=>{
+  delete exStates[activeExG];
+  buildExercicePage();
+});
+// Boutons de grandeur (délégation pour résister au DOM éventuellement régénéré)
+document.addEventListener('click',e=>{
+  const btn=e.target.closest('.ex-grb');
+  if(!btn)return;
+  setActiveExGrandeur(btn.dataset.g);
+});
+// Bouton Valider la série (délégation)
+document.addEventListener('click',e=>{
+  const btn=e.target.closest('.ex-validate-serie');
+  if(!btn)return;
+  const serie=btn.dataset.serie;
+  // A = indices 0..4, B = indices 5..9
+  const start=(serie==='A')?0:5;
+  const end=start+5;
+  for(let idx=start;idx<end;idx++){
+    const line=document.querySelector(`.ex-line[data-idx="${idx}"]`);
+    if(!line||!line._state)continue;
+    validateExLine(line,exExercises[idx],line._state);
+  }
 });
 
 // Initialisation : page "Unités" par défaut
