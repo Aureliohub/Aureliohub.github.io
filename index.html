@@ -347,19 +347,46 @@
     });
   });
 
-  // ─── Sous-groupes : ouverture au survol, persistants jusqu'à la sortie de la carte ───
-  // Dès qu'un groupe est ouvert, il le reste tant que la souris est quelque part
-  // dans la carte parente. Quand on quitte la carte, tous ses groupes se referment.
+  // ─── Sous-groupes : ouverture au survol avec délai, persistants jusqu'à la sortie de la carte ───
+  // Un délai évite qu'un simple passage de souris sur un titre ouvre immédiatement
+  // ses sous-liens bleus. Si la souris quitte le sous-domaine avant la fin du délai,
+  // l'ouverture est annulée.
+  const GROUP_OPEN_DELAY = 400;
+
   document.querySelectorAll('.sub-group').forEach(group => {
+    let openTimer = null;
+
     group.addEventListener('mouseenter', () => {
-      group.classList.add('open-group');
+      // Si un groupe est déjà ouvert, ne pas attendre pour les suivants
+      // (navigation fluide à l'intérieur de la même carte)
+      const card = group.closest('.domain-card');
+      const alreadyHasOpenGroup = card && card.querySelector('.sub-group.open-group');
+
+      if (alreadyHasOpenGroup) {
+        group.classList.add('open-group');
+      } else {
+        if (openTimer) clearTimeout(openTimer);
+        openTimer = setTimeout(() => {
+          group.classList.add('open-group');
+          openTimer = null;
+        }, GROUP_OPEN_DELAY);
+      }
     });
 
-    // Tactile : un tap sur le titre du sous-groupe le bascule
+    group.addEventListener('mouseleave', () => {
+      // Annuler l'ouverture en attente si on quitte avant le délai
+      if (openTimer) {
+        clearTimeout(openTimer);
+        openTimer = null;
+      }
+    });
+
+    // Tactile : un tap sur le titre du sous-groupe le bascule (immédiat, sans délai)
     const label = group.querySelector('.sub-group-label');
     if (label) {
       label.addEventListener('click', (e) => {
         e.stopPropagation(); // empêche le click de la carte de se déclencher
+        if (openTimer) { clearTimeout(openTimer); openTimer = null; }
         group.classList.toggle('open-group');
       });
     }
