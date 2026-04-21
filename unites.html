@@ -51,8 +51,31 @@ main{flex:1;display:flex;flex-direction:column;min-height:0;}
 .trow-titre .titre-instruction{font-size:13px;font-weight:600;color:#4A6B80;display:block;margin-top:2px;opacity:1;transition:opacity .4s;}
 .trow-titre .titre-instruction.hidden{opacity:0;height:0;margin:0;overflow:hidden;}
 .urow{border:1px solid #7BBDE0;border-top:none;display:grid;background:#EAF3FB;}
-.uc{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:5px 3px;gap:3px;height:74px;}
-.uc+.uc{border-left:1px solid #7BBDE0;}
+.uc{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:5px 3px;gap:3px;height:74px;position:relative;}
+/* Badge plus étroit pour tenir dans une demi-colonne (sans réduire la police) */
+#tab.subcols-2 .ubadge,#tab.subcols-3 .ubadge{width:46px;padding:0 4px;}
+/* Volume : pastilles (draggables) adaptées à la sub-col étroite */
+#tab.subcols-3 .cs .pastille{
+  width:32px;height:32px;font-size:15px;
+}
+/* Les chiffres fixés/déposés/zéros gardent leur taille native mais avec une police plus petite */
+#tab.subcols-3 .cs .cval,#tab.subcols-3 .cs .cfix,#tab.subcols-3 .cs .czero{
+  font-size:18px;
+}
+/* Volume : résultats plus compacts pour tenir dans l'espace disponible */
+#exercise-card.sc3 .rdig{min-width:18px;height:34px;font-size:16px;padding:0 1px;}
+#exercise-card.sc3 .rfield{min-height:34px;min-width:60px;padding:0 4px;}
+#exercise-card.sc3 .rcomma{font-size:18px;min-width:8px;}
+/* Permettre scroll horizontal de la carte si nécessaire */
+#exercise-card.sc3 .body{overflow-x:auto;}
+/* Volume : badge positionné absolument pour déborder sur la sub-col voisine gauche */
+#tab.subcols-3 .uc[data-subcol="2"]{position:relative;overflow:visible;}
+#tab.subcols-3 .uc[data-subcol="2"] .ubadge{
+  position:absolute;right:4px;top:50%;transform:translateY(-50%);
+  width:auto;min-width:52px;padding:0 8px;height:36px;
+}
+.uc{border-right:1px solid #7BBDE0;}
+.uc:last-child{border-right:none;}
 .uc.extra{background:transparent;}
 .ubadge{display:inline-flex;align-items:center;justify-content:center;width:56px;height:36px;border-radius:8px;font-size:14px;font-weight:800;border:1.5px solid #7BBDE0;background:#F0F7FD;color:#1E3A50;}
 .unom{font-size:10px;font-weight:700;color:#4A6B80;line-height:1.1;text-align:center;}
@@ -60,7 +83,15 @@ main{flex:1;display:flex;flex-direction:column;min-height:0;}
 .crow.last{border-radius:0 0 10px 10px;overflow:hidden;}
 /* Slot vide (phase 1) */
 .cs{display:flex;align-items:center;justify-content:center;height:60px;background:#fff;position:relative;}
-.cs+.cs{border-left:1px solid #7BBDE0;}
+/* Séparateur léger entre sous-colonnes (m², m³) — zone unités et zone chiffres */
+.cs.cs-sub-sep{border-right:1px solid #E2ECF3;}
+.uc.uc-sub-sep{border-right:1px solid #E2ECF3;}
+/* Bordures inter-colonnes : utiliser border-right pour éviter le doublement avec le cadre */
+.cs{border-right:1px solid #7BBDE0;}
+.cs:last-child{border-right:none;}
+/* Sous-colonnes (m², m³) : la dernière sous-cellule d'une col sépare avec bordure normale,
+   les autres avec un trait léger */
+.cs.cs-sub-sep{border-right:1px solid #E2ECF3;}
 .cs.slot-active{background:#EAF3FB;}
 .cs.slot-hover{background:#D4EAFB;outline:2px solid #7BBDE0;}
 .cs.slot-ok{background:#C0DD97;}
@@ -154,12 +185,12 @@ main{flex:1;display:flex;flex-direction:column;min-height:0;}
 .ex-validate-serie{margin-top:12px;padding:6px 16px;font-size:12px;font-weight:700;font-family:'Nunito',sans-serif;cursor:pointer;border:1.5px solid #7BBDE0;background:#F0F7FD;color:#1E3A50;border-radius:18px;align-self:center;}
 .ex-validate-serie:hover{background:#7BBDE0;color:#fff;}
 .ex-column>div:not(.ex-serie-title){display:flex;flex-direction:column;gap:6px;}
-.ex-line{display:grid;grid-template-columns:20px 62px auto 140px 32px auto;align-items:center;gap:8px;padding:4px 6px;border-radius:6px;transition:background .2s;}
+.ex-line{display:grid;grid-template-columns:20px 100px auto 140px 40px auto;align-items:center;gap:8px;padding:4px 6px;border-radius:6px;transition:background .2s;}
 .ex-line.ok{background:#E9F5D9;}
 .ex-line.ko{background:#FBE8E8;animation:shakehoriz .4s;}
 @keyframes shakehoriz{0%,100%{transform:translateX(0);}25%{transform:translateX(-4px);}75%{transform:translateX(4px);}}
 .ex-num{font-size:12px;font-weight:700;color:var(--muted);min-width:20px;text-align:right;}
-.ex-source{font-size:14px;font-weight:800;color:var(--text);min-width:62px;text-align:right;white-space:nowrap;}
+.ex-source{font-size:14px;font-weight:800;color:var(--text);min-width:100px;text-align:right;white-space:nowrap;padding-right:4px;}
 .ex-equals{font-size:14px;font-weight:700;color:var(--muted);}
 .ex-digits{display:flex;align-items:center;gap:0;padding:3px 6px;border:1.5px solid #7BBDE0;border-radius:8px;background:#F0F7FD;min-height:30px;user-select:none;}
 .ex-digit{font-size:15px;font-weight:800;color:#1E3A50;padding:0 2px;user-select:none;}
@@ -273,6 +304,8 @@ main{flex:1;display:flex;flex-direction:column;min-height:0;}
           <button class="ex-grb active" data-g="longueur">m</button>
           <button class="ex-grb" data-g="capacite">L</button>
           <button class="ex-grb" data-g="masse">g</button>
+          <button class="ex-grb" data-g="surface">m²</button>
+          <button class="ex-grb" data-g="volume">m³</button>
         </div>
         <button id="ex-reset">↺ Nouvelle série</button>
       </div>
@@ -305,6 +338,8 @@ main{flex:1;display:flex;flex-direction:column;min-height:0;}
                 <button class="grb active" data-g="longueur">m</button>
                 <button class="grb" data-g="capacite">L</button>
                 <button class="grb" data-g="masse">g</button>
+                <button class="grb" data-g="surface">m²</button>
+                <button class="grb" data-g="volume">m³</button>
               </div>
               <span class="titre-main" id="titre-tab">Unités de longueur</span>
               <span class="titre-instruction" id="phase0-hint">Place les chiffres dans le tableau</span>
@@ -347,6 +382,20 @@ const GRANDEURS={
     NOM:{t:'tonne',q:'quintal',kg:'kilogramme',hg:'hectogramme',dag:'décagramme',g:'gramme',dg:'décigramme',cg:'centigramme',mg:'milligramme'},
     EX:0,         // pas d'extra → tableau strict 10 col
     titre:'Unités de masse'
+  },
+  surface:{
+    cols:['km','hm','dam','m','dm','cm','mm'],
+    NOM:{km:'km²',hm:'hm²',dam:'dam²',m:'m²',dm:'dm²',cm:'cm²',mm:'mm²'},
+    EX:0,
+    titre:'Unités de surface',
+    subCols:2    // 2 sous-colonnes par unité (×100 entre unités)
+  },
+  volume:{
+    cols:['km','hm','dam','m','dm','cm','mm'],
+    NOM:{km:'km³',hm:'hm³',dam:'dam³',m:'m³',dm:'dm³',cm:'cm³',mm:'mm³'},
+    EX:0,
+    titre:'Unités de volume',
+    subCols:3    // 3 sous-colonnes par unité (×1000 entre unités)
   }
 };
 let activeG='longueur';
@@ -354,8 +403,16 @@ let activeG='longueur';
 let U=GRANDEURS.longueur.cols;
 let NOM=GRANDEURS.longueur.NOM;
 let EX=GRANDEURS.longueur.EX;
+let SC=1; // nombre de sous-colonnes par unité (2 pour m², 3 pour m³)
 let NC=U.length+2*EX;
 const NL=6, CW=68, RH=60;
+// Largeur effective d'une sous-colonne selon SC
+// Pour SC=1 (longueur, capacité, masse) : largeur d'unité = CW.
+// Pour SC=2 (surface) : chaque sous-colonne = 55 px (accueille une pastille de 44 px).
+// Pour SC=3 (volume) : chaque sous-colonne = 40 px (pastille de 36 px via CSS dédié).
+function scw(){return SC===3?40:(SC>1?55:CW);}
+// Largeur d'une unité entière (pour posOutil et les calculs de layout)
+function ucw(){return scw()*SC;}
 
 // Indices des unités utilisables comme source/cible (exclut le '-' inerte)
 function usableUiList(){
@@ -370,12 +427,27 @@ function setActiveGrandeur(g){
   U=GRANDEURS[g].cols;
   NOM=GRANDEURS[g].NOM;
   EX=GRANDEURS[g].EX;
+  SC=GRANDEURS[g].subCols||1;
   NC=U.length+2*EX;
   document.querySelectorAll('.grb').forEach(b=>{
     b.classList.toggle('active',b.dataset.g===g);
   });
   const titre=document.getElementById('titre-tab');
   if(titre)titre.textContent=GRANDEURS[g].titre;
+  // Classe de sous-colonnes (m² → subcols-2, m³ → subcols-3)
+  const tab=document.getElementById('tab');
+  if(tab){
+    tab.classList.remove('subcols-2','subcols-3');
+    const sc=GRANDEURS[g].subCols;
+    if(sc===2)tab.classList.add('subcols-2');
+    else if(sc===3)tab.classList.add('subcols-3');
+  }
+  // Classe sc3 sur exercise-card pour adapter le layout des résultats en volume
+  const card=document.getElementById('exercise-card');
+  if(card){
+    card.classList.remove('sc3');
+    if(GRANDEURS[g].subCols===3)card.classList.add('sc3');
+  }
 }
 
 /* ── GÉNÉRATION ── */
@@ -438,7 +510,163 @@ function genEXS(){
     })();
     return exs;
   }
-  // ── Longueur / Capacité : logique générique ──
+  // ── Branche SURFACE / VOLUME : entiers et décimaux, placement en sous-colonnes ──
+  if(activeG==='surface'||activeG==='volume'){
+    const ui=u=>U.indexOf(u);
+    // placeDigits gère maintenant les décimaux : numStr peut contenir une virgule.
+    // La partie entière va dans/à gauche de l'unité source, la partie décimale à droite.
+    const placeDigits=(numStr,srcU)=>{
+      const uu=ui(srcU);
+      const srcSubPos=g(uu)*SC+(SC-1); // sub-pos des unités de srcU
+      const out=[];
+      const commaIdx=numStr.indexOf(',');
+      const digits=numStr.replace(',','').split('').map(Number);
+      // k-position pour chaque chiffre par rapport à la sub-pos des unités de srcU :
+      //   avant la virgule : k=0 pour le chiffre juste avant la virgule, k=1 pour le précédent, etc.
+      //   après la virgule : k=-1 pour le chiffre juste après la virgule, k=-2, etc.
+      digits.forEach((v,idx)=>{
+        let k;
+        if(commaIdx<0){
+          // Pas de virgule : comme un entier, dernier chiffre = unités
+          k=digits.length-1-idx;
+        } else {
+          // Avec virgule : les idx<commaIdx sont avant la virgule, les autres après
+          if(idx<commaIdx){
+            k=commaIdx-1-idx;
+          } else {
+            k=commaIdx-1-idx; // idx≥commaIdx → k<0
+          }
+        }
+        const totalSubPos=srcSubPos-k;
+        const c=Math.floor(totalSubPos/SC);
+        const subcol=totalSubPos-c*SC;
+        out.push({c,subcol,v});
+      });
+      return out;
+    };
+    // Vérifie qu'un nombre "numStr" tient dans le tableau pour l'unité srcU
+    const fits=(numStr,srcU)=>{
+      const uu=ui(srcU);
+      if(uu<0)return false;
+      const srcSubPos=g(uu)*SC+(SC-1);
+      const commaIdx=numStr.indexOf(',');
+      const digits=numStr.replace(',','');
+      const leftLen=commaIdx<0?digits.length:commaIdx;   // chiffres avant virgule
+      const rightLen=commaIdx<0?0:digits.length-commaIdx; // chiffres après virgule
+      const leftMost=srcSubPos-(leftLen-1);
+      const rightMost=srcSubPos+rightLen;
+      const totalSubCols=NC*SC;
+      return leftMost>=0&&rightMost<totalSubCols;
+    };
+    const mkInt=(nDigits,srcU)=>{
+      let s=''+rndNZ(1,9);
+      for(let i=1;i<nDigits;i++)s+=rnd(0,9);
+      return {s,u:srcU,d:placeDigits(s,srcU)};
+    };
+    // Génère un décimal avec nInt chiffres avant et nDec chiffres après la virgule
+    const mkDec=(nInt,nDec,srcU)=>{
+      let s=''+rndNZ(1,9);
+      for(let i=1;i<nInt;i++)s+=rnd(0,9);
+      s+=',';
+      for(let i=0;i<nDec-1;i++)s+=rnd(0,9);
+      s+=rndNZ(1,9); // dernier décimal non-nul pour éviter "2,0"
+      return {s,u:srcU,d:placeDigits(s,srcU)};
+    };
+    // Plan 6 lignes pour SURFACE : mix entiers + décimaux, valeurs réalistes
+    let exs=[];
+    if(activeG==='surface'){
+      // Plan varié : 2-3 entiers + 3-4 décimaux, 6 lignes au total
+      // Limité à 4 chiffres par nombre pour que tout tienne dans col-val (largeur 280px)
+      const entierPool=['hm','dam','m','dm','cm','mm'];
+      const decPool=['km','hm','dam','m','dm','cm'];
+      const pick=arr=>arr[Math.floor(Math.random()*arr.length)];
+      // Répartition variable : 2 ou 3 entiers, le reste en décimaux
+      const nEntiers=rnd(2,3);
+      const nDec=6-nEntiers;
+      // Générer les structures
+      const structure=[];
+      for(let i=0;i<nEntiers;i++){
+        structure.push({type:'int', nDigits:rnd(1,4)});
+      }
+      for(let i=0;i<nDec;i++){
+        // nInt + nDec total max 4 chiffres
+        const nInt=rnd(1,3);
+        const maxDec=Math.min(2,4-nInt);
+        const nDecD=rnd(1,maxDec);
+        structure.push({type:'dec', nInt, nDec:nDecD});
+      }
+      // Mélanger l'ordre
+      for(let i=structure.length-1;i>0;i--){
+        const j=Math.floor(Math.random()*(i+1));
+        [structure[i],structure[j]]=[structure[j],structure[i]];
+      }
+      const used=new Set();
+      structure.forEach(s=>{
+        let attempt;
+        for(let tries=0;tries<30;tries++){
+          const pool=s.type==='int'?entierPool:decPool;
+          const u=pick(pool);
+          const key=u+'_'+s.type+'_'+(s.nDigits||s.nInt+'_'+s.nDec);
+          if(used.has(key)&&tries<15)continue;
+          const testNum=s.type==='int'
+            ?''.padStart(s.nDigits,'1')
+            :'1'.padEnd(s.nInt,'1')+','+'1'.padEnd(s.nDec,'1');
+          if(!fits(testNum,u))continue;
+          used.add(key);
+          attempt=s.type==='int'?mkInt(s.nDigits,u):mkDec(s.nInt,s.nDec,u);
+          break;
+        }
+        if(!attempt)attempt=mkInt(2,'m');
+        exs.push(attempt);
+      });
+    } else {
+      // VOLUME : 1 chiffre seul, 2 chiffres entier, puis 4 décimaux variés
+      const entierPool=['hm','dam','m','dm','cm','mm'];
+      const decPool=['km','hm','dam','m','dm','cm'];
+      const pick=arr=>arr[Math.floor(Math.random()*arr.length)];
+      const used=new Set();
+      const pickUnit=(pool,nInt,nDec)=>{
+        for(let tries=0;tries<30;tries++){
+          const u=pick(pool);
+          const key=u+'_'+nInt+'_'+(nDec||0);
+          if(used.has(key)&&tries<15)continue;
+          const testNum=nDec?'1'.padEnd(nInt,'1')+','+'1'.padEnd(nDec,'1'):''.padStart(nInt,'1');
+          if(!fits(testNum,u))continue;
+          used.add(key);
+          return u;
+        }
+        return 'm';
+      };
+      // L1 : 1 chiffre
+      exs.push(mkInt(1,pickUnit(entierPool,1,0)));
+      // L2 : entier 2 chiffres
+      exs.push(mkInt(2,pickUnit(entierPool,2,0)));
+      // L3..L6 : 4 décimaux variés (tailles différentes)
+      const decShapes=[
+        {nInt:1, nDec:1},
+        {nInt:2, nDec:1},
+        {nInt:1, nDec:2},
+        {nInt:3, nDec:1}
+      ];
+      // Mélanger l'ordre des décimaux
+      for(let i=decShapes.length-1;i>0;i--){
+        const j=Math.floor(Math.random()*(i+1));
+        [decShapes[i],decShapes[j]]=[decShapes[j],decShapes[i]];
+      }
+      decShapes.forEach(s=>{
+        const u=pickUnit(decPool,s.nInt,s.nDec);
+        exs.push(mkDec(s.nInt,s.nDec,u));
+      });
+    }
+    // Vérifier que tout tient ; sinon fallback sur m
+    exs=exs.map(ex=>{
+      if(!fits(ex.s,ex.u)){
+        return mkInt(2,'m');
+      }
+      return ex;
+    });
+    return exs;
+  }
   const pickUi=(leftCount,rightCount)=>{
     const valid=allowedSrc.filter(uii=>colsValid(g(uii)-leftCount,g(uii)+rightCount));
     if(!valid.length)return null;
@@ -491,9 +719,10 @@ function genEXS(){
 function pickTgt(srcUi){
   const usable=usableUiList();
   const srcIdx=usable.indexOf(srcUi);
-  // Indices voisins dans usable : ±2 max, en excluant la source elle-même
-  const minI=Math.max(0,srcIdx-2);
-  const maxI=Math.min(usable.length-1,srcIdx+2);
+  // Écart ±2 partout (donne une variété raisonnable)
+  const range=2;
+  const minI=Math.max(0,srcIdx-range);
+  const maxI=Math.min(usable.length-1,srcIdx+range);
   const candidates=[];
   for(let i=minI;i<=maxI;i++)if(i!==srcIdx)candidates.push(usable[i]);
   if(!candidates.length)return usable[0]===srcUi?usable[1]:usable[0];
@@ -613,18 +842,25 @@ function computeConv(li,tgtUi){
   if(tgtUi===srcUi)return null;
   const val=parseFloat(ex.s.replace(',','.'));
   const diff=tgtUi-srcUi;
-  const res=val*Math.pow(10,diff);
-  const str=parseFloat(res.toPrecision(8)).toString().replace('.',',');
+  // Pour surface/volume : chaque pas d'unité = 10^SC (×100 pour m², ×1000 pour m³)
+  const factorExp=diff*SC;
+  const res=val*Math.pow(10,factorExp);
+  const str=parseFloat(res.toPrecision(10)).toString().replace('.',',');
   const srcDecCount=ex.s.includes(',')?ex.s.split(',')[1].length:0;
-  const addedRight=Math.max(0,diff-srcDecCount);
+  const addedRight=Math.max(0,factorExp-srcDecCount);
   const commaPos=str.indexOf(',');const strClean=str.replace(',','');
   const total=strClean.length;const digits=[];
+  // tgtSubPos = position absolue sub-col des unités de la cible
+  const tgtSubPos=(EX+tgtUi)*SC+(SC-1);
   strClean.split('').forEach((ch,i)=>{
     const charsBeforeComma=commaPos>=0?commaPos:total;
+    // rankFromTgt : 0 pour le chiffre des unités (juste avant la virgule), 1 pour dizaines, -1 pour 1ère décimale…
     const rankFromTgt=charsBeforeComma-1-i;
-    const col=EX+tgtUi-rankFromTgt;
+    const totalSubPos=tgtSubPos-rankFromTgt;
+    const col=Math.floor(totalSubPos/SC);
+    const subcol=totalSubPos-col*SC;
     const isZero=(ch==='0')&&(addedRight>0)&&(i>=total-addedRight);
-    digits.push({col,v:ch,isZero,afterComma:commaPos>=0&&i>=commaPos});
+    digits.push({col,subcol,v:ch,isZero,afterComma:commaPos>=0&&i>=commaPos});
   });
   return{str,digits,commaPos};
 }
@@ -686,28 +922,59 @@ function buildUrow(withBadges, withExtra){
   const ur=document.getElementById('urow');
   ur.innerHTML='';
   const cols = withExtra ? NC : U.length;
-  ur.style.gridTemplateColumns=`repeat(${cols},${CW}px)`;
+  const totalSubCols = cols * SC;
+  const subW = scw();
+  ur.style.gridTemplateColumns=`repeat(${totalSubCols},${subW}px)`;
   for(let ci=0;ci<cols;ci++){
     const c = withExtra ? ci : ci+EX; // col réelle
-    const cell=document.createElement('div');cell.className='uc';cell.dataset.col=c;
-    if(c<EX||c>=EX+U.length){cell.classList.add('extra');}
-    else{
-      const u=U[c-EX];
-      if(u==='-'){
-        // Colonne inerte (myriagramme) : afficher un tiret nu, pas de badge
-        const t=document.createElement('div');t.className='bare-dash';t.textContent='–';
-        cell.appendChild(t);
-      } else if(withBadges){
-        const b=document.createElement('div');b.className='ubadge';b.textContent=u;
-        const n=document.createElement('div');n.className='unom';n.textContent=NOM[u];
-        cell.appendChild(b);cell.appendChild(n);
-      } else {
-        cell.classList.add('slot-u');
-        cell.dataset.expectU=u;
-        setupUnitSlot(cell);
+    if(SC===1){
+      // Cas simple : une cellule par colonne
+      const cell=document.createElement('div');cell.className='uc';cell.dataset.col=c;
+      if(c<EX||c>=EX+U.length){cell.classList.add('extra');}
+      else{
+        const u=U[c-EX];
+        if(u==='-'){
+          const t=document.createElement('div');t.className='bare-dash';t.textContent='–';
+          cell.appendChild(t);
+        } else if(withBadges){
+          const b=document.createElement('div');b.className='ubadge';b.textContent=u;
+          const n=document.createElement('div');n.className='unom';n.textContent=NOM[u];
+          cell.appendChild(b);cell.appendChild(n);
+        } else {
+          cell.classList.add('slot-u');
+          cell.dataset.expectU=u;
+          setupUnitSlot(cell);
+        }
+      }
+      ur.appendChild(cell);
+    } else {
+      // SC > 1 : plusieurs sous-cellules visuellement séparées par un trait clair,
+      // avec le badge dans la sous-cellule de droite (celle des "unités").
+      // Pour SC=3 (volume), la sub-col est étroite (40px) ; le badge (46px) débordera
+      // sur sa voisine gauche via CSS.
+      const isExtra=(c<EX||c>=EX+U.length);
+      const u=isExtra?null:U[c-EX];
+      for(let sc=0;sc<SC;sc++){
+        const cell=document.createElement('div');cell.className='uc';cell.dataset.col=c;cell.dataset.subcol=sc;
+        if(isExtra)cell.classList.add('extra');
+        if(sc<SC-1)cell.classList.add('uc-sub-sep');
+        // Badge dans la sous-cellule de droite uniquement
+        if(!isExtra&&sc===SC-1){
+          if(u==='-'){
+            const t=document.createElement('div');t.className='bare-dash';t.textContent='–';
+            cell.appendChild(t);
+          } else if(withBadges){
+            const b=document.createElement('div');b.className='ubadge';b.textContent=NOM[u]||u;
+            cell.appendChild(b);
+          } else {
+            cell.classList.add('slot-u');
+            cell.dataset.expectU=u;
+            setupUnitSlot(cell);
+          }
+        }
+        ur.appendChild(cell);
       }
     }
-    ur.appendChild(cell);
   }
 }
 
@@ -716,19 +983,25 @@ function buildRows(withExtra){
   const tab=document.getElementById('tab');
   tab.querySelectorAll('.crow').forEach(r=>r.remove());
   const cols=withExtra?NC:U.length;
-  tab.style.width=(cols*CW+2)+'px';
+  const totalSubCols=cols*SC;
+  const subW=scw();
+  tab.style.width=(totalSubCols*subW+2)+'px';
   EXS.forEach((ex,i)=>{
     const row=document.createElement('div');
     row.className='crow'+(i===NL-1?' last':'');
     row.dataset.li=i;row.dataset.frozen=(i>0?'1':'');
-    row.style.gridTemplateColumns=`repeat(${cols},${CW}px)`;
+    row.style.gridTemplateColumns=`repeat(${totalSubCols},${subW}px)`;
     for(let ci=0;ci<cols;ci++){
       const col=withExtra?ci:ci+EX;
-      const s=document.createElement('div');s.className='cs';s.dataset.col=col;s.dataset.li=i;
-      // Marquer comme extra si la colonne est en dehors de la plage des unités
-      if(col<EX||col>=EX+U.length)s.classList.add('cs-extra');
-      setupSlot(s);
-      row.appendChild(s);
+      for(let sc=0;sc<SC;sc++){
+        const s=document.createElement('div');s.className='cs';s.dataset.col=col;s.dataset.subcol=sc;s.dataset.li=i;
+        // Sous-colonne non-dernière : séparateur pointillé à droite
+        if(SC>1&&sc<SC-1)s.classList.add('cs-sub-sep');
+        // Marquer comme extra si la colonne est en dehors de la plage des unités
+        if(col<EX||col>=EX+U.length)s.classList.add('cs-extra');
+        setupSlot(s);
+        row.appendChild(s);
+      }
     }
     tab.appendChild(row);
   });
@@ -1098,9 +1371,13 @@ function checkLine(li){
   const row=document.querySelector(`.crow[data-li="${li}"]`);
   if(!row)return;
 
-  // Colorier chaque slot rempli (vert si bon chiffre+bonne case, rouge sinon)
-  // D'abord effacer toutes les couleurs
+  // Effacer toutes les couleurs
   row.querySelectorAll('.cs').forEach(s=>s.classList.remove('slot-ok','slot-ko'));
+
+  // Helper : trouve le digit attendu pour (col, subcol)
+  const findExpected=(col,subcol)=>ex.d.find(d=>d.c===col&&(d.subcol||0)===subcol);
+  // Helper : cherche slot (col, subcol)
+  const findSlot=(col,subcol)=>row.querySelector(`.cs[data-col="${col}"][data-subcol="${subcol}"]`);
 
   // Colorier les slots remplis
   let allCorrect=true, countFilled=0;
@@ -1108,8 +1385,8 @@ function checkLine(li){
     const cval=s.querySelector('.pastille,.cval');
     if(!cval)return;
     countFilled++;
-    const col=+s.dataset.col;
-    const expectedDigit=ex.d.find(d=>d.c===col);
+    const col=+s.dataset.col, subcol=+(s.dataset.subcol||0);
+    const expectedDigit=findExpected(col,subcol);
     const placedVal=parseInt(cval.dataset.v||cval.textContent);
     if(expectedDigit&&placedVal===expectedDigit.v){
       s.classList.add('slot-ok');
@@ -1119,27 +1396,26 @@ function checkLine(li){
     }
   });
 
-  // Vérifier si tous les slots requis sont remplis et corrects
+  // Vérifier si tous les slots requis sont remplis
   const requiredFilled=ex.d.every(d=>{
-    const s=row.querySelector(`.cs[data-col="${d.c}"]`);
+    const s=findSlot(d.c,d.subcol||0);
     return s&&s.querySelector('.pastille,.cval');
   });
 
-  // Compter les pastilles hors ex.d (mauvaises cases)
+  // Compter pastilles hors ex.d
   let outsideCount=0;
   row.querySelectorAll('.cs').forEach(s=>{
     if(!s.querySelector('.pastille,.cval'))return;
-    const col=+s.dataset.col;
-    if(!ex.d.some(d=>d.c===col))outsideCount++;
+    const col=+s.dataset.col, subcol=+(s.dataset.subcol||0);
+    if(!findExpected(col,subcol))outsideCount++;
   });
 
-  // Annuler tout timer précédent
   if(checkLineTimer)clearTimeout(checkLineTimer);
   if(requiredFilled&&allCorrect&&countFilled===ex.d.length&&outsideCount===0){
-    // Tout correct et aucune pastille hors place : figer après délai
     checkLineTimer=setTimeout(()=>{
       ex.d.forEach(d=>{
-        const s=row.querySelector(`.cs[data-col="${d.c}"]`);
+        const s=findSlot(d.c,d.subcol||0);
+        if(!s)return;
         s.innerHTML='';
         const f=document.createElement('span');f.className='cfix';f.textContent=d.v;f.dataset.v=d.v;
         s.appendChild(f);s.classList.remove('slot-ok','slot-ko');
@@ -1175,7 +1451,7 @@ function showValList(){
     const row=document.createElement('div');
     row.className='vrow'+(i>0?' locked':'');row.dataset.li=i;
     const sn=document.createElement('span');sn.className='vnom';sn.textContent=ex.s;
-    const su=document.createElement('span');su.className='vunit';su.textContent=ex.u;
+    const su=document.createElement('span');su.className='vunit';su.textContent=NOM[ex.u]||ex.u;
     const pastilles=makePastilles(ex,i);
     row.appendChild(sn);row.appendChild(su);row.appendChild(pastilles);
     vl.appendChild(row);
@@ -1216,7 +1492,7 @@ function buildResList(){
     const row=document.createElement('div');
     row.className='rrow'+(i>0?' locked':'');row.dataset.li=i;
     const arr=document.createElement('span');arr.className='rarrow';arr.textContent='→';
-    const usp=document.createElement('span');usp.className='runit';usp.textContent=U[tgts[i]];
+    const usp=document.createElement('span');usp.className='runit';usp.textContent=NOM[U[tgts[i]]]||U[tgts[i]];
     const field=document.createElement('div');field.className='rfield';field.id='rf'+i;field.textContent='—';
     const btn=document.createElement('button');btn.className='btn-next';btn.textContent='Valider';btn.dataset.li=i;
     btn.addEventListener('click',()=>validateLine(i));
@@ -1230,13 +1506,19 @@ function posOutil(col,li){
   const ur=document.getElementById('urow');
   const tab=document.getElementById('tab');
   const cells=[...ur.querySelectorAll('.uc')];
-  const cell=cells[col];if(!cell)return;
+  // Pour SC>1 : chaque colonne d'unité = SC cellules .uc. On cible la 1ère sub-cellule.
+  const firstCell=cells[col*SC];
+  const lastCell=cells[col*SC+SC-1];
+  if(!firstCell||!lastCell)return;
   const tabRect=tab.getBoundingClientRect();
-  const cRect=cell.getBoundingClientRect();
-  const cW=cRect.width,cH=cRect.height;
+  const fRect=firstCell.getBoundingClientRect();
+  const lRect=lastCell.getBoundingClientRect();
+  // Largeur totale = du bord gauche de la 1ère à droite de la dernière
+  const cW=lRect.right-fRect.left;
+  const cH=fRect.height;
   const ou=document.getElementById('outil');
-  ou.style.left=(cRect.left-tabRect.left)+'px';
-  ou.style.top=(cRect.top-tabRect.top)+'px';
+  ou.style.left=(fRect.left-tabRect.left)+'px';
+  ou.style.top=(fRect.top-tabRect.top)+'px';
   const cadre=document.getElementById('outil-cadre');
   cadre.style.width=cW+'px';cadre.style.height=cH+'px';cadre.textContent='';
   const queue=document.getElementById('outil-queue');
@@ -1244,8 +1526,6 @@ function posOutil(col,li){
   const radius=7;
   queue.style.width=border+'px';
   queue.style.left=(cW-border)+'px';
-  // Démarrer la queue dans le cadre (à hauteur du border-radius) pour qu'elle masque
-  // l'arrondi du coin inférieur-droit et soit collée à la bordure.
   queue.style.top=(cH-radius)+'px';
   queue.style.height=(radius+(li+1)*RH)+'px';
   outilCol=col;
@@ -1259,10 +1539,19 @@ function setupDrag(){
   const ot=document.getElementById('outil');
   isDrag=false;
   const nearestCol=cx=>{
+    // Pour SC>1, on parcourt les .uc (qui représentent les sub-cellules)
+    // et on convertit l'index en index d'unité (floor(i/SC)).
     let best=outilCol,bestD=Infinity;
-    cells.forEach((c,i)=>{if(c.classList.contains('extra'))return;
-      const r=c.getBoundingClientRect();const mid=(r.left+r.right)/2;const d=Math.abs(cx-mid);
-      if(d<bestD){bestD=d;best=i;}});return best;};
+    cells.forEach((c,i)=>{
+      if(c.classList.contains('extra'))return;
+      const r=c.getBoundingClientRect();
+      const mid=(r.left+r.right)/2;
+      const d=Math.abs(cx-mid);
+      const unitIdx=Math.floor(i/SC);
+      if(d<bestD){bestD=d;best=unitIdx;}
+    });
+    return best;
+  };
   const onMove=cx=>{const col=nearestCol(cx);if(col!==outilCol){posOutil(col,convIdx);updateLine(convIdx,col);cancelAutoValidate();}};
   // Validation automatique après lâcher : 600 ms d'inactivité
   const scheduleAutoValidate=()=>{
@@ -1297,26 +1586,18 @@ function updateLine(li,tgtCol){
     const oul=document.getElementById('oul'+li);if(oul)oul.textContent='';return;
   }
   const tgtUi=tgtCol-EX;const conv=computeConv(li,tgtUi);if(!conv)return;
-  if(tgtUi<srcUi){
-    for(let col=tgtCol+1;col<srcCol;col++){
-      const slot=document.querySelector(`.cs[data-li="${li}"][data-col="${col}"]`);
-      if(!slot||slot.querySelector('.cfix'))continue;
-      const sp=document.createElement('span');sp.className='czero';sp.textContent='0';slot.appendChild(sp);
-    }
-    if(conv.str.startsWith('0,')){
-      const slotTgt=document.querySelector(`.cs[data-li="${li}"][data-col="${tgtCol}"]`);
-      if(slotTgt&&!slotTgt.querySelector('.cfix')&&!slotTgt.querySelector('.czero')){
-        const sp=document.createElement('span');sp.className='czero';sp.textContent='0';slotTgt.appendChild(sp);
-      }
-    }
-  } else {
-    conv.digits.forEach(d=>{
-      if(!d.isZero)return;
-      const slot=document.querySelector(`.cs[data-li="${li}"][data-col="${d.col}"]`);
-      if(!slot||slot.querySelector('.cfix'))return;
-      const sp=document.createElement('span');sp.className='czero';sp.textContent='0';slot.appendChild(sp);
-    });
-  }
+  const fillZeroSubCell=(col,subcol)=>{
+    const slot=document.querySelector(`.cs[data-li="${li}"][data-col="${col}"][data-subcol="${subcol}"]`);
+    if(!slot||slot.querySelector('.cfix')||slot.querySelector('.czero'))return;
+    const sp=document.createElement('span');sp.className='czero';sp.textContent='0';slot.appendChild(sp);
+  };
+  // Pour chaque chiffre du résultat : s'il n'est pas déjà visible comme .cfix (chiffre source),
+  // on l'affiche comme un 0 d'aide à la conversion.
+  // On considère seulement les chiffres '0' (ceux qui font partie du motif de conversion).
+  conv.digits.forEach(d=>{
+    if(d.v!=='0')return;
+    fillZeroSubCell(d.col,d.subcol);
+  });
   const f=document.getElementById('rf'+li);
   f.className='rfield active';f.innerHTML='';
   conv.str.split('').forEach(ch=>{
@@ -1325,7 +1606,7 @@ function updateLine(li,tgtCol){
   });
   document.querySelector(`.btn-next[data-li="${li}"]`).style.display='block';
   const oul=document.getElementById('oul'+li);
-  if(oul)oul.textContent=(tgtCol>=EX&&tgtCol<EX+U.length)?U[tgtCol-EX]:'';
+  if(oul)oul.textContent=(tgtCol>=EX&&tgtCol<EX+U.length)?(NOM[U[tgtCol-EX]]||U[tgtCol-EX]):'';
 }
 
 function validateLine(li){
@@ -1753,17 +2034,34 @@ const EX_GRANDEURS={
   longueur:{
     cols:['km','hm','dam','m','dm','cm','mm'],
     titre:'Conversions de longueurs',
-    reminder:'km · hm · dam · m · dm · cm · mm'
+    reminder:'km · hm · dam · m · dm · cm · mm',
+    subCols:1
   },
   capacite:{
     cols:['kL','hL','daL','L','dL','cL','mL'],
     titre:'Conversions de capacités',
-    reminder:'kL · hL · daL · L · dL · cL · mL'
+    reminder:'kL · hL · daL · L · dL · cL · mL',
+    subCols:1
   },
   masse:{
     cols:['t','q','-','kg','hg','dag','g','dg','cg','mg'],
     titre:'Conversions de masses',
-    reminder:'t · q · – · kg · hg · dag · g · dg · cg · mg'
+    reminder:'t · q · – · kg · hg · dag · g · dg · cg · mg',
+    subCols:1
+  },
+  surface:{
+    cols:['km','hm','dam','m','dm','cm','mm'],
+    display:{km:'km²',hm:'hm²',dam:'dam²',m:'m²',dm:'dm²',cm:'cm²',mm:'mm²'},
+    titre:'Conversions de surfaces',
+    reminder:'km² · hm² · dam² · m² · dm² · cm² · mm²',
+    subCols:2
+  },
+  volume:{
+    cols:['km','hm','dam','m','dm','cm','mm'],
+    display:{km:'km³',hm:'hm³',dam:'dam³',m:'m³',dm:'dm³',cm:'cm³',mm:'mm³'},
+    titre:'Conversions de volumes',
+    reminder:'km³ · hm³ · dam³ · m³ · dm³ · cm³ · mm³',
+    subCols:3
   }
 };
 let activeExG='longueur';
@@ -1781,13 +2079,16 @@ function exUsableIndices(){
 
 // Génère une conversion dans la grandeur active
 function genExercise(){
-  const cols=EX_GRANDEURS[activeExG].cols;
+  const grandeur=EX_GRANDEURS[activeExG];
+  const cols=grandeur.cols;
+  const SC=grandeur.subCols||1;
   const usable=exUsableIndices();
   // Choisir srcI parmi les unités usables
   const srcI=usable[exRandom(usable.length)];
   const srcU=cols[srcI];
-  // Cible à ±3 pas de tableau de la source (compte '-' comme 1 pas), usable et différent de src
-  const candidates=usable.filter(i=>i!==srcI&&Math.abs(i-srcI)<=3);
+  // Cible à ±2 pas de tableau pour SC>1 (sinon déplacements de virgule énormes), ±3 sinon
+  const maxStep=SC>1?2:3;
+  const candidates=usable.filter(i=>i!==srcI&&Math.abs(i-srcI)<=maxStep);
   const tgtI=candidates[exRandom(candidates.length)];
   const tgtU=cols[tgtI];
   // Type de nombre : 60% entier, 40% décimal
@@ -1809,13 +2110,14 @@ function genExercise(){
   }
   const srcDigitsOnly=sourceStr.replace(',','');
   const srcCommaPos=sourceStr.includes(',')?sourceStr.indexOf(','):sourceStr.length;
-  // delta : nombre de positions dans le tableau (compte '-' comme 1 pas)
-  const delta=tgtI-srcI;
+  // delta : décalage de virgule = (nombre de pas de tableau) × SC
+  //   (pour surface : 1 pas = ×100 = 2 crans de virgule ; pour volume : 1 pas = ×1000 = 3 crans)
+  const delta=(tgtI-srcI)*SC;
   let digits=srcDigitsOnly;
   let targetCommaPos=srcCommaPos+delta;
   while(targetCommaPos>digits.length){digits+='0';}
   while(targetCommaPos<0){digits='0'+digits;targetCommaPos++;}
-  return {sourceStr,srcU,tgtU,digits,commaPos:targetCommaPos,srcCommaPos,srcI,tgtI};
+  return {sourceStr,srcU,tgtU,digits,commaPos:targetCommaPos,srcCommaPos,srcI,tgtI,SC};
 }
 
 let exExercises=[];
@@ -1859,11 +2161,8 @@ function buildExercicePage(){
   for(let i=0;i<10;i++)exExercises.push(genExercise());
   // Pour la masse : garantir au moins un exercice utilisant t ou q
   if(activeExG==='masse'){
-    const cols=EX_GRANDEURS.masse.cols;
     const hasTQ=exExercises.some(ex=>['t','q'].includes(ex.srcU)||['t','q'].includes(ex.tgtU));
     if(!hasTQ){
-      // Remplacer un exercice au hasard par un avec t ou q
-      // On tente jusqu'à trouver un ex qui touche t ou q
       for(let tries=0;tries<30;tries++){
         const ex=genExercise();
         if(['t','q'].includes(ex.srcU)||['t','q'].includes(ex.tgtU)){
@@ -1873,6 +2172,20 @@ function buildExercicePage(){
       }
     }
   }
+  // Pour chaque série (A = 0..4, B = 5..9) : garantir au moins une conversion à ≥2 unités d'écart
+  [[0,4],[5,9]].forEach(([start,end])=>{
+    const hasFar=exExercises.slice(start,end+1).some(ex=>Math.abs(ex.tgtI-ex.srcI)>=2);
+    if(hasFar)return;
+    // Remplacer un exercice au hasard dans cette série par un à ≥2 d'écart
+    for(let tries=0;tries<30;tries++){
+      const ex=genExercise();
+      if(Math.abs(ex.tgtI-ex.srcI)>=2){
+        const replaceIdx=start+exRandom(end-start+1);
+        exExercises[replaceIdx]=ex;
+        break;
+      }
+    }
+  });
   renderExercicePage();
 }
 
@@ -1888,19 +2201,22 @@ function renderExercicePage(){
 
 function buildExLine(ex,idx){
   const line=document.createElement('div');line.className='ex-line';line.dataset.idx=idx;
+  // Helper : afficher l'unité avec exposant si la grandeur en a un (surface/volume)
+  const grandeur=EX_GRANDEURS[activeExG];
+  const disp=u=>(grandeur.display&&grandeur.display[u])||u;
   // Numéro : chaque série repart à 1 (1..5)
   const num=document.createElement('span');num.className='ex-num';
   num.textContent=((idx%5)+1)+'.';
   // Zone source
   const src=document.createElement('span');src.className='ex-source';
-  src.textContent=ex.sourceStr+' '+ex.srcU;
+  src.textContent=ex.sourceStr+' '+disp(ex.srcU);
   const eq=document.createElement('span');eq.className='ex-equals';eq.textContent='=';
   // Conteneur avec uniquement le champ (les flèches seront après l'unité cible)
   const container=document.createElement('div');container.className='ex-field-container';
   const digits=document.createElement('div');digits.className='ex-digits';digits.dataset.idx=idx;
   container.append(digits);
   // Unité cible
-  const tgt=document.createElement('span');tgt.className='ex-target-unit';tgt.textContent=ex.tgtU;
+  const tgt=document.createElement('span');tgt.className='ex-target-unit';tgt.textContent=disp(ex.tgtU);
   // Flèches côte à côte à droite de la ligne (alignées verticalement entre lignes)
   const arrows=document.createElement('div');arrows.className='ex-arrows-h';
   const btnLeft=document.createElement('button');btnLeft.className='ex-arrow ex-arrow-left';
@@ -1909,11 +2225,14 @@ function buildExLine(ex,idx){
   btnRight.textContent='›';btnRight.setAttribute('aria-label','Décaler la virgule à droite');
   arrows.append(btnLeft,btnRight);
   // État
+  const SC=ex.SC||1;
+  // Limites : ±2 pas de tableau × SC, plus marge de sécurité
+  const maxShift=Math.max(6,2*SC+2);
   const state={
     digits:ex.sourceStr.replace(',',''),
     commaPos:ex.srcCommaPos,
-    minCommaPos:ex.srcCommaPos-6,
-    maxCommaPos:ex.srcCommaPos+6
+    minCommaPos:ex.srcCommaPos-maxShift,
+    maxCommaPos:ex.srcCommaPos+maxShift
   };
   line._state=state;
   renderDragDigits(digits,state);
@@ -2067,8 +2386,9 @@ function validateExLine(line,ex,state){
   const cur=formatWithComma(state.digits,state.commaPos);
   const curVal=parseFloat(cur.replace(',','.'));
   const srcVal=parseFloat(ex.sourceStr.replace(',','.'));
-  // delta en pas de tableau (inclut '-' pour la masse)
-  const tgtVal=srcVal*Math.pow(10,ex.tgtI-ex.srcI);
+  // Pour surface/volume : 1 pas de tableau = 10^SC (×100 pour m², ×1000 pour m³)
+  const SC=ex.SC||1;
+  const tgtVal=srcVal*Math.pow(10,(ex.tgtI-ex.srcI)*SC);
   if(Math.abs(curVal-tgtVal)<1e-9){
     line.classList.remove('ko');
     line.classList.add('ok');
