@@ -1223,8 +1223,8 @@ function isSlotTarget(s){
   const row=document.querySelector(`.crow[data-li="${li}"]`);
   if(row&&row.dataset.frozen)return false;
   const col=+s.dataset.col;
-  // Accepter toutes les colonnes valides + col 0 (extra gauche pour valeurs qui débordent)
-  return col>=0 && col<EX+U.length;
+  // Accepter toutes les colonnes du tableau, y compris les extras à gauche et à droite
+  return col>=0 && col<NC;
 }
 
 function makePastilles(ex,liIdx){
@@ -1491,7 +1491,7 @@ function showValList(){
     const row=document.createElement('div');
     row.className='vrow'+(i>0?' locked':'');row.dataset.li=i;
     const sn=document.createElement('span');sn.className='vnom';sn.textContent=ex.s;
-    const su=document.createElement('span');su.className='vunit';su.textContent=NOM[ex.u]||ex.u;
+    const su=document.createElement('span');su.className='vunit';su.textContent=(SC>1)?(NOM[ex.u]||ex.u):ex.u;
     const pastilles=makePastilles(ex,i);
     row.appendChild(sn);row.appendChild(su);row.appendChild(pastilles);
     vl.appendChild(row);
@@ -1532,7 +1532,7 @@ function buildResList(){
     const row=document.createElement('div');
     row.className='rrow'+(i>0?' locked':'');row.dataset.li=i;
     const arr=document.createElement('span');arr.className='rarrow';arr.textContent='→';
-    const usp=document.createElement('span');usp.className='runit';usp.textContent=NOM[U[tgts[i]]]||U[tgts[i]];
+    const usp=document.createElement('span');usp.className='runit';usp.textContent=(SC>1)?(NOM[U[tgts[i]]]||U[tgts[i]]):U[tgts[i]];
     const field=document.createElement('div');field.className='rfield';field.id='rf'+i;field.textContent='—';
     const btn=document.createElement('button');btn.className='btn-next';btn.textContent='Valider';btn.dataset.li=i;
     btn.addEventListener('click',()=>validateLine(i));
@@ -1646,7 +1646,7 @@ function updateLine(li,tgtCol){
   });
   document.querySelector(`.btn-next[data-li="${li}"]`).style.display='block';
   const oul=document.getElementById('oul'+li);
-  if(oul)oul.textContent=(tgtCol>=EX&&tgtCol<EX+U.length)?(NOM[U[tgtCol-EX]]||U[tgtCol-EX]):'';
+  if(oul)oul.textContent=(tgtCol>=EX&&tgtCol<EX+U.length)?((SC>1)?(NOM[U[tgtCol-EX]]||U[tgtCol-EX]):U[tgtCol-EX]):'';
 }
 
 function validateLine(li){
