@@ -53,13 +53,13 @@ main{flex:1;display:flex;flex-direction:column;min-height:0;}
 .urow{border:1px solid #7BBDE0;border-top:none;display:grid;background:#EAF3FB;}
 .uc{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:5px 3px;gap:3px;height:74px;position:relative;}
 /* Badge plus étroit pour tenir dans une demi-colonne (sans réduire la police) */
-#tab.subcols-2 .ubadge,#tab.subcols-3 .ubadge{width:46px;padding:0 4px;}
+.subcols-2 .ubadge,.subcols-3 .ubadge{width:46px;padding:0 4px;}
 /* Volume : pastilles (draggables) adaptées à la sub-col étroite */
-#tab.subcols-3 .cs .pastille{
+.subcols-3 .cs .pastille{
   width:32px;height:32px;font-size:15px;
 }
 /* Les chiffres fixés/déposés/zéros gardent leur taille native mais avec une police plus petite */
-#tab.subcols-3 .cs .cval,#tab.subcols-3 .cs .cfix,#tab.subcols-3 .cs .czero{
+.subcols-3 .cs .cval,.subcols-3 .cs .cfix,.subcols-3 .cs .czero{
   font-size:18px;
 }
 /* Volume : résultats plus compacts pour tenir dans l'espace disponible */
@@ -69,14 +69,18 @@ main{flex:1;display:flex;flex-direction:column;min-height:0;}
 /* Permettre scroll horizontal de la carte si nécessaire */
 #exercise-card.sc3 .body{overflow-x:auto;}
 /* Volume : badge positionné absolument pour déborder sur la sub-col voisine gauche */
-#tab.subcols-3 .uc[data-subcol="2"]{position:relative;overflow:visible;}
-#tab.subcols-3 .uc[data-subcol="2"] .ubadge{
+.subcols-3 .uc[data-subcol="2"]{position:relative;overflow:visible;}
+.subcols-3 .uc[data-subcol="2"] .ubadge{
   position:absolute;right:4px;top:50%;transform:translateY(-50%);
   width:auto;min-width:52px;padding:0 8px;height:36px;
 }
 .uc{border-right:1px solid #7BBDE0;}
 .uc:last-child{border-right:none;}
 .uc.extra{background:transparent;}
+/* Page Libre : cellules extras visibles dès le départ */
+#libre-tab .uc.extra,#libre-tab .cs.cs-extra{opacity:1;}
+/* Page Libre : badge cliquable quand l'outil est désactivé - contour orange de la cible */
+#libre-tab .ubadge.libre-badge-active{border-color:#E07B39;border-width:2.5px;}
 .ubadge{display:inline-flex;align-items:center;justify-content:center;width:56px;height:36px;border-radius:8px;font-size:14px;font-weight:800;border:1.5px solid #7BBDE0;background:#F0F7FD;color:#1E3A50;}
 .unom{font-size:10px;font-weight:700;color:#4A6B80;line-height:1.1;text-align:center;}
 .crow{border:1px solid #7BBDE0;border-top:none;display:grid;}
@@ -175,6 +179,20 @@ main{flex:1;display:flex;flex-direction:column;min-height:0;}
 .ex-instruction{font-size:13px;font-weight:600;color:var(--muted);margin-top:3px;}
 .ex-units-reminder{font-size:12px;font-weight:600;color:#A9A69B;letter-spacing:.5px;}
 .ex-grb{width:32px;height:32px;border-radius:50%;border:1.5px solid #7BBDE0;background:#F0F7FD;color:#1E3A50;font-family:'Nunito',sans-serif;font-size:14px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;transition:background .15s,color .15s,border-color .15s;}
+/* ── PAGE LIBRE ── */
+#libre-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;gap:16px;flex-wrap:wrap;flex-shrink:0;}
+.libre-left{display:flex;flex-direction:column;gap:2px;}
+.libre-title{font-size:16px;font-weight:800;color:#2D6BE4;margin:0;}
+.libre-hint{font-size:12px;color:var(--muted);font-weight:600;}
+.libre-input-row{display:flex;gap:8px;align-items:center;}
+#libre-input{padding:8px 12px;font-size:15px;font-weight:700;font-family:'Nunito',sans-serif;border:1.5px solid #7BBDE0;border-radius:8px;background:#fff;color:#1E3A50;width:180px;outline:none;transition:border-color .2s;}
+#libre-input:focus{border-color:#2D6BE4;}
+#libre-submit{padding:8px 16px;font-size:13px;font-weight:700;font-family:'Nunito',sans-serif;border:1.5px solid #2D6BE4;background:#2D6BE4;color:#fff;border-radius:8px;cursor:pointer;transition:background .15s;}
+#libre-submit:hover{background:#1E5AC7;}
+.libre-outil-toggle{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;user-select:none;}
+.libre-outil-toggle input{cursor:pointer;}
+.libre-error{font-size:13px;color:#C03838;font-weight:600;margin-bottom:10px;min-height:18px;}
+#libre-tab-slot{flex:1;display:flex;flex-direction:column;min-height:0;overflow:auto;}
 .ex-grb:hover{background:#fff;color:#2D6BE4;border-color:#2D6BE4;}
 .ex-grb.active{background:#2D6BE4;color:#fff;border-color:#2D6BE4;}
 #ex-reset{grid-column:3;justify-self:end;padding:5px 14px;font-size:12px;font-weight:700;font-family:'Nunito',sans-serif;cursor:pointer;border:1.5px solid var(--border);border-radius:20px;background:transparent;color:var(--muted);}
@@ -257,6 +275,7 @@ main{flex:1;display:flex;flex-direction:column;min-height:0;}
   <nav class="nav-tabs">
     <button class="nav-btn active" data-target="page-unites">Unités</button>
     <button class="nav-btn" data-target="page-conversion">Conversion</button>
+    <button class="nav-btn" data-target="page-libre">Libre</button>
     <button class="nav-btn" data-target="page-exercice">Exercice</button>
   </nav>
   <a href="index.html" class="back-btn" title="Retour à l'accueil"><span class="back-arrow">←</span>Retour</a>
@@ -289,6 +308,26 @@ main{flex:1;display:flex;flex-direction:column;min-height:0;}
   </section>
   <section class="page" id="page-conversion" data-page="conversion" hidden>
     <div class="page-slot"></div>
+  </section>
+  <section class="page" id="page-libre" data-page="libre" hidden>
+    <div class="card"><div class="body">
+      <div id="libre-header">
+        <div class="libre-left">
+          <h2 class="libre-title">Entraînement libre</h2>
+          <div class="libre-hint">Saisis un nombre et son unité (ex : 12,5 m² ou 350 cm3)</div>
+        </div>
+        <div class="libre-input-row">
+          <input type="text" id="libre-input" placeholder="Ex : 12,5 m²" autocomplete="off" />
+          <button id="libre-submit">Valider</button>
+        </div>
+        <label class="libre-outil-toggle">
+          <input type="checkbox" id="libre-outil-check" checked />
+          <span>Outil de conversion</span>
+        </label>
+      </div>
+      <div id="libre-error" class="libre-error"></div>
+      <div id="libre-tab-slot"></div>
+    </div></div>
   </section>
   <section class="page" id="page-exercice" data-page="exercice" hidden>
     <div class="card"><div class="body" style="overflow:auto;">
@@ -746,6 +785,7 @@ let pageMode='unites-only';
 // Flag : la page Conversion a-t-elle déjà été initialisée ? (pour préserver son état)
 let conversionInitialized=false;
 let exerciceInitialized=false;
+let libreInitialized=false;
 // État de la page Conversion par grandeur (longueur, capacite, masse)
 const convStates={}; // { longueur: snapshot, capacite: snapshot, masse: snapshot }
 
@@ -1670,6 +1710,12 @@ function showPage(target){
       build();
       conversionInitialized=true;
     }
+  } else if(target==='page-libre'){
+    card.style.display='none';
+    if(!libreInitialized){
+      buildLibrePage();
+      libreInitialized=true;
+    }
   } else {
     // Page "Exercice" : placeholder, on cache la carte partagée
     card.style.display='none';
@@ -2029,7 +2075,366 @@ document.addEventListener('click',e=>{
   if(btn)switchGrandeur(btn.dataset.g);
 });
 
-/* ── PAGE EXERCICE : 10 conversions avec virgule déplaçable (longueur/capacité/masse) ── */
+/* ── PAGE LIBRE : saisie libre d'une valeur, tableau correspondant + outil conversion optionnel ── */
+
+// Dictionnaire : unité tapée par l'utilisateur → { grandeur, canonicalU }
+// Les clés acceptent : minuscules, avec ou sans exposant, "2"/"²" et "3"/"³"
+const LIBRE_UNITS = (function(){
+  const map={};
+  // Longueur
+  ['km','hm','dam','m','dm','cm','mm'].forEach(u=>{map[u]={g:'longueur',u};});
+  // Capacité - deux notations : L majuscule (officielle) et l
+  ['kL','hL','daL','L','dL','cL','mL'].forEach(u=>{map[u]={g:'capacite',u};map[u.toLowerCase()]={g:'capacite',u};});
+  // Masse
+  ['t','q','kg','hg','dag','g','dg','cg','mg'].forEach(u=>{map[u]={g:'masse',u};});
+  // Surface : accepter km2 / km² / km^2
+  ['km','hm','dam','m','dm','cm','mm'].forEach(u=>{
+    [u+'2',u+'²',u+'^2'].forEach(k=>{map[k]={g:'surface',u};});
+  });
+  // Volume : km3 / km³ / km^3
+  ['km','hm','dam','m','dm','cm','mm'].forEach(u=>{
+    [u+'3',u+'³',u+'^3'].forEach(k=>{map[k]={g:'volume',u};});
+  });
+  return map;
+})();
+
+// Parse une saisie libre "12,5 m²" → {value:"12,5", unitKey:"m²", info:{g:'surface',u:'m'}} ou null
+function parseLibreInput(raw){
+  if(!raw)return null;
+  const s=raw.trim();
+  // Regex : nombre (digits + , ou . optionnel + digits) suivi d'espace(s) optionnels et d'une unité
+  const m=s.match(/^(\d+(?:[.,]\d+)?)\s*([a-zA-Z²³\^0-9]+)$/);
+  if(!m)return null;
+  const numberStr=m[1].replace('.',',');
+  const unitStr=m[2];
+  // Essayer plusieurs variantes pour matcher le dictionnaire :
+  // - Tel quel
+  // - Avec ² remplacé par 2, ³ par 3
+  // - Avec ^2/^3 simplifiés
+  const variants=new Set();
+  variants.add(unitStr);
+  variants.add(unitStr.replace('²','2').replace('³','3'));
+  variants.add(unitStr.replace(/\^/g,''));
+  for(const v of variants){
+    if(LIBRE_UNITS[v])return {value:numberStr,unitKey:v,info:LIBRE_UNITS[v]};
+  }
+  return null;
+}
+
+// Construit la page Libre (HTML déjà en place)
+function buildLibrePage(){
+  const input=document.getElementById('libre-input');
+  const submit=document.getElementById('libre-submit');
+  const err=document.getElementById('libre-error');
+  const check=document.getElementById('libre-outil-check');
+  const handle=()=>{
+    const raw=input.value;
+    err.textContent='';
+    const parsed=parseLibreInput(raw);
+    if(!parsed){
+      err.textContent='Format non reconnu. Ex : 12,5 m² ou 350 cm3';
+      return;
+    }
+    renderLibreTable(parsed);
+  };
+  submit.addEventListener('click',handle);
+  input.addEventListener('keydown',e=>{
+    if(e.key==='Enter'){e.preventDefault();handle();}
+  });
+  check.addEventListener('change',()=>{
+    const slot=document.getElementById('libre-tab-slot');
+    if(!slot._current)return;
+    renderLibreTable(slot._current);
+  });
+}
+
+// Affiche le tableau correspondant à la saisie dans le slot dédié
+function renderLibreTable(parsed){
+  const slot=document.getElementById('libre-tab-slot');
+  slot._current=parsed;
+  slot.innerHTML='';
+  const grandeur=GRANDEURS[parsed.info.g];
+  const SC_local=grandeur.subCols||1;
+  const U_local=grandeur.cols;
+  const NOM_local=grandeur.NOM;
+  const srcUi=U_local.indexOf(parsed.info.u);
+  if(srcUi<0)return;
+  // Max d'extras selon la grandeur : 2 pour m/L/g, 1 pour m²/m³
+  const maxEX=(SC_local>1)?1:2;
+  // Calculer les positions de chiffres avec EX=0 d'abord
+  const numStr=parsed.value;
+  const commaIdx=numStr.indexOf(',');
+  const digitsSrc=numStr.replace(',','');
+  // Avec EX=0 : srcSubPos pour le chiffre des unités
+  // Position absolue sub-col du chiffre des unités de la source dans un tableau U_local (sans EX) :
+  const srcSubPosNoEX=srcUi*SC_local+(SC_local-1);
+  // Positions sub-col de tous les chiffres (de gauche à droite dans numStr)
+  const subPositions=digitsSrc.split('').map((_,idx)=>{
+    let k;
+    if(commaIdx<0){k=digitsSrc.length-1-idx;}
+    else{k=commaIdx-1-idx;}
+    return srcSubPosNoEX-k;
+  });
+  const minSub=Math.min(...subPositions);
+  const maxSub=Math.max(...subPositions);
+  // Calculer EX à gauche et à droite pour faire rentrer tous les chiffres
+  const totalSubU=U_local.length*SC_local;
+  const needLeftSub=Math.max(0,-minSub);                  // nb sub-cols à gauche manquantes
+  const needRightSub=Math.max(0,(maxSub-totalSubU+1));    // nb sub-cols à droite manquantes
+  // Convertir en colonnes d'unité entières (arrondi supérieur)
+  const EX_left=Math.min(maxEX,Math.ceil(needLeftSub/SC_local));
+  const EX_right=Math.min(maxEX,Math.ceil(needRightSub/SC_local));
+  // Limite globale EX pour l'affichage (même de chaque côté, pour l'esthétique)
+  // En réalité on peut avoir asymétrique : on va stocker les deux séparément
+  const EX_local=Math.max(EX_left,EX_right); // on garde le tableau symétrique pour l'esthétique
+  const NC_local=U_local.length+2*EX_local;
+  // Positionner les chiffres avec cette nouvelle EX
+  const srcSubPos=(EX_local+srcUi)*SC_local+(SC_local-1);
+  const placed=digitsSrc.split('').map((v,idx)=>{
+    let k;
+    if(commaIdx<0){k=digitsSrc.length-1-idx;}
+    else{k=commaIdx-1-idx;}
+    const totalSubPos=srcSubPos-k;
+    const c=Math.floor(totalSubPos/SC_local);
+    const subcol=totalSubPos-c*SC_local;
+    return {col:c,subcol,v};
+  });
+  // On affiche TOUS les chiffres qui rentrent dans le tableau.
+  // Ceux qui dépassent (col<0 ou col>=NC_local) sont simplement ignorés pour l'affichage,
+  // mais le nombre réel est conservé pour le calcul de la conversion.
+  // Construction HTML
+  const subW=(SC_local===3)?40:(SC_local>1?55:68);
+  const totalSubCols=NC_local*SC_local;
+  const useOutil=document.getElementById('libre-outil-check').checked;
+  const wrap=document.createElement('div');
+  wrap.id='libre-tab';
+  wrap.className=(SC_local===2?'subcols-2 ':(SC_local===3?'subcols-3 ':''));
+  wrap.style.cssText=`width:${totalSubCols*subW+2}px;max-width:100%;position:relative;border-radius:10px;overflow:visible;`;
+  // Urow
+  const urow=document.createElement('div');
+  urow.className='urow revealed';
+  urow.style.cssText=`display:grid;grid-template-columns:repeat(${totalSubCols},${subW}px);background:#EAF3FB;border:1px solid #7BBDE0;border-radius:10px 10px 0 0;`;
+  for(let ci=0;ci<NC_local;ci++){
+    const isExtra=(ci<EX_local||ci>=EX_local+U_local.length);
+    const u=isExtra?null:U_local[ci-EX_local];
+    if(SC_local===1){
+      const cell=document.createElement('div');
+      cell.className='uc'+(isExtra?' extra':'');
+      cell.dataset.col=ci;
+      if(!isExtra){
+        if(u==='-'){
+          const t=document.createElement('div');t.className='bare-dash';t.textContent='–';cell.appendChild(t);
+        } else {
+          const b=document.createElement('div');b.className='ubadge';b.textContent=u;cell.appendChild(b);
+          const n=document.createElement('div');n.className='unom';n.textContent=NOM_local[u];cell.appendChild(n);
+        }
+      }
+      urow.appendChild(cell);
+    } else {
+      for(let sc=0;sc<SC_local;sc++){
+        const cell=document.createElement('div');
+        cell.className='uc'+(isExtra?' extra':'');
+        cell.dataset.col=ci;cell.dataset.subcol=sc;
+        if(sc<SC_local-1)cell.classList.add('uc-sub-sep');
+        if(!isExtra&&sc===SC_local-1){
+          const b=document.createElement('div');b.className='ubadge';b.textContent=NOM_local[u]||u;cell.appendChild(b);
+        }
+        urow.appendChild(cell);
+      }
+    }
+  }
+  wrap.appendChild(urow);
+  // Crow unique (une seule ligne de chiffres)
+  const crow=document.createElement('div');
+  crow.className='crow last';crow.dataset.li=0;
+  crow.style.cssText=`display:grid;grid-template-columns:repeat(${totalSubCols},${subW}px);border:1px solid #7BBDE0;border-top:none;border-radius:0 0 10px 10px;`;
+  for(let ci=0;ci<NC_local;ci++){
+    const isExtra=(ci<EX_local||ci>=EX_local+U_local.length);
+    for(let sc=0;sc<SC_local;sc++){
+      const s=document.createElement('div');
+      s.className='cs';
+      if(SC_local>1&&sc<SC_local-1)s.classList.add('cs-sub-sep');
+      if(isExtra)s.classList.add('cs-extra');
+      s.dataset.col=ci;s.dataset.subcol=sc;s.dataset.li=0;
+      // Placer le chiffre s'il correspond
+      const d=placed.find(p=>p.col===ci&&p.subcol===sc);
+      if(d){
+        const f=document.createElement('span');
+        f.className='cfix';f.textContent=d.v;
+        s.appendChild(f);
+      }
+      crow.appendChild(s);
+    }
+  }
+  wrap.appendChild(crow);
+  slot.appendChild(wrap);
+  // Bloc résultat : positionné sous le tableau, centré sur l'unité centrale
+  // (on mesure la position réelle dans le DOM après rendu)
+  const resWrap=document.createElement('div');
+  resWrap.id='libre-result';
+  resWrap.style.cssText=`margin-top:16px;position:relative;width:100%;min-height:24px;font-size:16px;font-weight:700;color:#1E3A50;`;
+  const resInner=document.createElement('span');
+  resInner.style.cssText=`position:absolute;transform:translateX(-50%);top:0;white-space:nowrap;`;
+  resWrap.appendChild(resInner);
+  slot.appendChild(resWrap);
+  // Calcul de la position centrale après rendu du DOM (mesure réelle)
+  const computeCenterPx=()=>{
+    const slotRect=slot.getBoundingClientRect();
+    // Helper : récupère le rectangle englobant toutes les sub-cellules d'une colonne d'unité
+    const cellRect=col=>{
+      const cells=urow.querySelectorAll(`.uc[data-col="${col}"]`);
+      if(!cells.length)return null;
+      const first=cells[0].getBoundingClientRect();
+      const last=cells[cells.length-1].getBoundingClientRect();
+      return {left:first.left,right:last.right};
+    };
+    if(parsed.info.g==='masse'){
+      // Centre = bord droit de hg (index 4)
+      const r=cellRect(EX_local+4);
+      if(r)return r.right-slotRect.left;
+    } else {
+      // Centre = milieu de l'unité centrale (index 3)
+      const r=cellRect(EX_local+3);
+      if(r)return (r.left+r.right)/2-slotRect.left;
+    }
+    return 0;
+  };
+  const positionResInner=()=>{
+    resInner.style.left=computeCenterPx()+'px';
+  };
+  requestAnimationFrame(positionResInner);
+  // Met à jour les zéros et le résultat (appelable avec ou sans outil)
+  let currentTgtCol=EX_local+srcUi;
+  const updateLibreLine=(tgtCol)=>{
+    currentTgtCol=tgtCol;
+    crow.querySelectorAll('.czero').forEach(z=>z.remove());
+    const tgtUi=tgtCol-EX_local;
+    if(tgtUi<0||tgtUi>=U_local.length){resInner.textContent='';return;}
+    const tgtU=U_local[tgtUi];
+    if(tgtU==='-'){resInner.textContent='';return;}
+    // Calcul par déplacement de virgule (pas d'arrondi)
+    const diff=tgtUi-srcUi;
+    const factorExp=diff*SC_local;
+    const srcRawDigits=numStr.replace(',','');
+    const srcCommaPos=numStr.includes(',')?numStr.indexOf(','):numStr.length;
+    let resDigits=srcRawDigits;
+    let newCommaPos=srcCommaPos+factorExp;
+    while(newCommaPos>resDigits.length){resDigits+='0';}
+    while(newCommaPos<0){resDigits='0'+resDigits;newCommaPos++;}
+    let resStr;
+    if(newCommaPos===0){
+      let trimmed=resDigits.replace(/0+$/,'');
+      if(!trimmed)trimmed='0';
+      resStr='0,'+trimmed;
+    } else if(newCommaPos>=resDigits.length){
+      resStr=resDigits.replace(/^0+/,'')||'0';
+    } else {
+      const entier=resDigits.slice(0,newCommaPos).replace(/^0+/,'')||'0';
+      let decimal=resDigits.slice(newCommaPos).replace(/0+$/,'');
+      resStr=decimal?entier+','+decimal:entier;
+    }
+    // Placer les 0 dans le tableau
+    const resDigitsDisplay=resStr.replace(',','');
+    const commaPosDisplay=resStr.indexOf(',');
+    const tgtSubPos=(EX_local+tgtUi)*SC_local+(SC_local-1);
+    resDigitsDisplay.split('').forEach((ch,i)=>{
+      if(ch!=='0')return;
+      const charsBeforeComma=commaPosDisplay>=0?commaPosDisplay:resDigitsDisplay.length;
+      const rankFromTgt=charsBeforeComma-1-i;
+      const totalSubPos=tgtSubPos-rankFromTgt;
+      const c=Math.floor(totalSubPos/SC_local);
+      const subcol=totalSubPos-c*SC_local;
+      const slotCell=crow.querySelector(`.cs[data-col="${c}"][data-subcol="${subcol}"]`);
+      if(!slotCell||slotCell.querySelector('.cfix')||slotCell.querySelector('.czero'))return;
+      const sp=document.createElement('span');sp.className='czero';sp.textContent='0';
+      slotCell.appendChild(sp);
+    });
+    // Affichage du résultat
+    if(tgtCol===EX_local+srcUi){
+      resInner.textContent='';
+    } else {
+      const hasExponent=(SC_local>1);
+      const srcAbbr=hasExponent?(NOM_local[parsed.info.u]||parsed.info.u):parsed.info.u;
+      const tgtAbbr=hasExponent?(NOM_local[tgtU]||tgtU):tgtU;
+      resInner.textContent=`${numStr} ${srcAbbr} = ${resStr} ${tgtAbbr}`;
+    }
+  };
+  // Outil orange optionnel
+  if(useOutil){
+    const outil=document.createElement('div');
+    outil.id='libre-outil';
+    outil.style.cssText='position:absolute;cursor:grab;z-index:2;pointer-events:auto;';
+    const cadre=document.createElement('div');
+    cadre.id='libre-outil-cadre';
+    cadre.style.cssText='border:2.5px solid #E07B39;border-radius:7px;background:rgba(224,123,57,0.08);box-sizing:border-box;';
+    const queue=document.createElement('div');
+    queue.id='libre-outil-queue';
+    queue.style.cssText='position:absolute;background:#E07B39;';
+    outil.appendChild(cadre);outil.appendChild(queue);
+    wrap.appendChild(outil);
+    // Positionner outil initial sur la source
+    const positionOutil=(col)=>{
+      const cells=[...urow.querySelectorAll('.uc')];
+      const firstCell=cells[col*SC_local];
+      const lastCell=cells[col*SC_local+SC_local-1];
+      if(!firstCell||!lastCell)return;
+      const wrapRect=wrap.getBoundingClientRect();
+      const fRect=firstCell.getBoundingClientRect();
+      const lRect=lastCell.getBoundingClientRect();
+      const cW=lRect.right-fRect.left;
+      const cH=fRect.height;
+      outil.style.left=(fRect.left-wrapRect.left)+'px';
+      outil.style.top=(fRect.top-wrapRect.top)+'px';
+      cadre.style.width=cW+'px';cadre.style.height=cH+'px';
+      queue.style.width='2.5px';queue.style.left=(cW-2.5)+'px';
+      queue.style.top=(cH-7)+'px';queue.style.height=(7+crow.getBoundingClientRect().height)+'px';
+      outil._col=col;
+      updateLibreLine(col);
+    };
+    // Setup drag
+    let dragging=false;
+    const nearest=cx=>{
+      const cells=[...urow.querySelectorAll('.uc')];
+      let best=outil._col,bestD=Infinity;
+      cells.forEach((c,i)=>{
+        if(c.classList.contains('extra'))return;
+        const r=c.getBoundingClientRect();
+        const mid=(r.left+r.right)/2;
+        const d=Math.abs(cx-mid);
+        const unitIdx=Math.floor(i/SC_local);
+        if(d<bestD){bestD=d;best=unitIdx;}
+      });
+      return best;
+    };
+    outil.addEventListener('mousedown',e=>{dragging=true;e.preventDefault();outil.style.cursor='grabbing';});
+    document.addEventListener('mousemove',e=>{
+      if(!dragging)return;
+      const col=nearest(e.clientX);
+      if(col!==outil._col)positionOutil(col);
+    });
+    document.addEventListener('mouseup',()=>{if(dragging){dragging=false;outil.style.cursor='grab';}});
+    outil.addEventListener('touchstart',e=>{dragging=true;e.preventDefault();},{passive:false});
+    outil.addEventListener('touchmove',e=>{e.preventDefault();if(dragging){const col=nearest(e.touches[0].clientX);if(col!==outil._col)positionOutil(col);}},{passive:false});
+    outil.addEventListener('touchend',()=>{dragging=false;});
+    requestAnimationFrame(()=>{positionOutil(EX_local+srcUi);});
+  } else {
+    // Sans outil : cliquer sur un badge d'unité déclenche la conversion
+    urow.querySelectorAll('.ubadge').forEach(b=>{
+      const cell=b.closest('.uc');
+      if(!cell||cell.classList.contains('extra'))return;
+      b.style.cursor='pointer';
+      b.addEventListener('click',()=>{
+        const col=+cell.dataset.col;
+        // Marquer le badge cliqué visuellement
+        urow.querySelectorAll('.ubadge').forEach(x=>x.classList.remove('libre-badge-active'));
+        b.classList.add('libre-badge-active');
+        updateLibreLine(col);
+      });
+    });
+  }
+}
+
+
 const EX_GRANDEURS={
   longueur:{
     cols:['km','hm','dam','m','dm','cm','mm'],
