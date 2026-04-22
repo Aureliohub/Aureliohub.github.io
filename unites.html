@@ -275,7 +275,7 @@ main{flex:1;display:flex;flex-direction:column;min-height:0;}
   <nav class="nav-tabs">
     <button class="nav-btn active" data-target="page-unites">Unités</button>
     <button class="nav-btn" data-target="page-conversion">Conversion</button>
-    <button class="nav-btn" data-target="page-libre">Libre</button>
+    <button class="nav-btn" data-target="page-libre">Saisie</button>
     <button class="nav-btn" data-target="page-exercice">Exercice</button>
   </nav>
   <a href="index.html" class="back-btn" title="Retour à l'accueil"><span class="back-arrow">←</span>Retour</a>
@@ -313,8 +313,8 @@ main{flex:1;display:flex;flex-direction:column;min-height:0;}
     <div class="card"><div class="body">
       <div id="libre-header">
         <div class="libre-left">
-          <h2 class="libre-title">Entraînement libre</h2>
-          <div class="libre-hint">Saisis un nombre et son unité (ex : 12,5 m² ou 350 cm3)</div>
+          <h2 class="libre-title">Saisis un nombre et son unité</h2>
+          <div class="libre-hint" id="libre-hint">Déplace le curseur sur l'unité cible</div>
         </div>
         <div class="libre-input-row">
           <input type="text" id="libre-input" placeholder="Ex : 12,5 m²" autocomplete="off" />
@@ -322,7 +322,7 @@ main{flex:1;display:flex;flex-direction:column;min-height:0;}
         </div>
         <label class="libre-outil-toggle">
           <input type="checkbox" id="libre-outil-check" checked />
-          <span>Outil de conversion</span>
+          <span>Curseur</span>
         </label>
       </div>
       <div id="libre-error" class="libre-error"></div>
@@ -2127,24 +2127,34 @@ function buildLibrePage(){
   const submit=document.getElementById('libre-submit');
   const err=document.getElementById('libre-error');
   const check=document.getElementById('libre-outil-check');
+  const hint=document.getElementById('libre-hint');
+  const slot=document.getElementById('libre-tab-slot');
+  const updateHint=()=>{
+    if(!slot._current){hint.style.visibility='hidden';return;}
+    hint.style.visibility='visible';
+    hint.textContent=check.checked
+      ?'Déplace le curseur sur l\'unité cible'
+      :'Clique sur l\'unité cible';
+  };
+  updateHint();
   const handle=()=>{
     const raw=input.value;
     err.textContent='';
     const parsed=parseLibreInput(raw);
     if(!parsed){
-      err.textContent='Format non reconnu. Ex : 12,5 m² ou 350 cm3';
+      err.textContent='Format non reconnu. Ex : 12,5 m ou 350 m²';
       return;
     }
     renderLibreTable(parsed);
+    updateHint();
   };
   submit.addEventListener('click',handle);
   input.addEventListener('keydown',e=>{
     if(e.key==='Enter'){e.preventDefault();handle();}
   });
   check.addEventListener('change',()=>{
-    const slot=document.getElementById('libre-tab-slot');
-    if(!slot._current)return;
-    renderLibreTable(slot._current);
+    if(slot._current)renderLibreTable(slot._current);
+    updateHint();
   });
 }
 
