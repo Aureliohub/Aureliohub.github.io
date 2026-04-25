@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vocabulaire des figures planes et solides</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Caveat:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg:#F7F6F2; --surface:#FFFFFF; --border:#E2E0D8; --border2:#C8C6BC;
+    --text:#1E1D1A; --muted:#6B6A64; --accent:#2D6BE4;
+    --radius:14px;
+    --sidebar-w:240px;
+    --header-h:60px;
+  }
+  html, body { height:100%; }
+  body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text); overflow:hidden; }
+
+  /* ══ HEADER ══════════════════════════════════════════════ */
+  .main-header {
+    background:var(--surface); border-bottom:1px solid var(--border);
+    padding:0 1.5rem; height:var(--header-h);
+    display:flex; align-items:center; justify-content:space-between;
+    gap:10px; box-shadow:0 1px 8px rgba(0,0,0,.04);
+    position:fixed; top:0; left:0; right:0; z-index:200;
+  }
+  .header-brand { display:flex; align-items:center; gap:12px; min-width:0; }
+  .header-title { font-size:19px; font-weight:900; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .header-sep { width:1px; height:22px; background:var(--border); flex-shrink:0; }
+  .header-subtitle { font-size:18px; font-weight:800; color:var(--accent); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .back-btn { display:inline-flex; align-items:center; gap:5px; height:30px; padding:0 12px; border-radius:999px; border:1px solid var(--border); background:var(--bg); color:var(--muted); font-family:'Nunito',sans-serif; font-size:12px; font-weight:700; text-decoration:none; transition:all .18s; white-space:nowrap; flex-shrink:0; }
+  .back-btn:hover { background:var(--surface); color:var(--accent); border-color:var(--accent); }
+
+  /* ══ LAYOUT GLOBAL : sidebar + main ══════════════════════ */
+  .layout { position:fixed; top:var(--header-h); left:0; right:0; bottom:0; display:flex; }
+
+  /* ══ SIDEBAR ═════════════════════════════════════════════ */
+  .sidebar {
+    width:var(--sidebar-w); flex-shrink:0;
+    background:var(--surface); border-right:1px solid var(--border);
+    padding:1.5rem .75rem; overflow-y:auto;
+  }
+  .sidebar-label { font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:.1em; color:var(--muted); padding:0 .65rem; margin-bottom:.6rem; }
+  .menu-item {
+    display:flex; align-items:center; gap:10px;
+    width:100%; padding:.65rem .75rem; margin-bottom:4px;
+    border:1px solid transparent; border-radius:10px;
+    background:transparent; cursor:pointer;
+    font-family:'Nunito',sans-serif; font-size:14px; font-weight:700;
+    color:var(--text); text-align:left;
+    transition:background .15s, border-color .15s, color .15s;
+  }
+  .menu-item:hover { background:var(--bg); border-color:var(--border); }
+  .menu-item.active { background:#EBF1FE; border-color:#C9D9F8; color:var(--accent); }
+  .menu-item-icon { width:26px; height:26px; flex-shrink:0; display:flex; align-items:center; justify-content:center; }
+
+  /* ══ MAIN ════════════════════════════════════════════════ */
+  .main {
+    flex:1; min-width:0;
+    display:flex; flex-direction:column;
+    background:var(--bg);
+  }
+  .main-subheader {
+    background:var(--surface); border-bottom:1px solid var(--border);
+    padding:.85rem 1.5rem;
+    display:flex; align-items:center; justify-content:space-between;
+    flex-wrap:wrap; gap:10px;
+    flex-shrink:0;
+  }
+  .main-subheader-title { font-size:18px; font-weight:800; }
+  .main-subheader-title span { color:var(--accent); }
+  .main-subheader-info { display:flex; align-items:center; gap:8px; background:var(--bg); border:1px solid var(--border); border-radius:999px; padding:5px 14px; font-size:12px; font-weight:700; color:var(--muted); }
+  .main-subheader-info .dot-quizlet { width:8px; height:8px; border-radius:50%; background:var(--accent); }
+
+  .main-content {
+    flex:1;
+    padding:1rem 1.25rem 1.25rem;
+    overflow:auto;
+  }
+  .quizlet-card {
+    background:var(--surface); border:1px solid var(--border); border-radius:12px;
+    overflow:hidden; box-shadow:0 1px 8px rgba(0,0,0,.04);
+    height:100%; min-height:540px;
+    display:flex; flex-direction:column;
+  }
+  .quizlet-frame-wrap { flex:1; background:#FAFAF8; }
+  .quizlet-frame-wrap iframe { width:100%; height:100%; min-height:540px; border:none; display:block; }
+
+  /* ══ PANNEAUX (à droite) ═════════════════════════════════ */
+  .panel { display:none; height:100%; flex-direction:column; }
+  .panel.active { display:flex; }
+
+  /* ══ MOBILE ══════════════════════════════════════════════ */
+  .menu-toggle {
+    display:none;
+    background:transparent; border:1px solid var(--border); border-radius:8px;
+    width:34px; height:34px; cursor:pointer; align-items:center; justify-content:center;
+    flex-shrink:0;
+  }
+  .menu-toggle svg { width:18px; height:18px; }
+
+  @media(max-width:760px){
+    .header-title { display:none; }
+    .header-sep { display:none; }
+    .header-subtitle { font-size:16px; }
+    .menu-toggle { display:inline-flex; }
+    .sidebar {
+      position:fixed; top:var(--header-h); left:0; bottom:0;
+      transform:translateX(-100%); transition:transform .25s ease;
+      z-index:150; box-shadow:4px 0 16px rgba(0,0,0,.08);
+    }
+    .sidebar.open { transform:translateX(0); }
+    .sidebar-backdrop {
+      display:none; position:fixed; top:var(--header-h); left:0; right:0; bottom:0;
+      background:rgba(0,0,0,.25); z-index:140;
+    }
+    .sidebar-backdrop.show { display:block; }
+    .main-content { padding:.6rem .6rem 1rem; }
+    .main-subheader { padding:.7rem 1rem; }
+    .main-subheader-title { font-size:16px; }
+    .back-btn .back-label { display:none; }
+    .back-btn { padding:0 10px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="main-header">
+  <div class="header-brand">
+    <button class="menu-toggle" id="menuToggle" aria-label="Ouvrir le menu">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg>
+    </button>
+    <span style="font-size:22px">📘</span>
+    <div class="header-title">Vocabulaire des figures planes et solides</div>
+    <div class="header-sep"></div>
+    <div class="header-subtitle" id="headerSubtitle">Les figures planes</div>
+  </div>
+  <a href="index.html" class="back-btn" title="Retour à l'accueil"><span class="back-arrow">←</span><span class="back-label">Retour</span></a>
+</header>
+
+<div class="layout">
+
+  <!-- ══ MENU LATÉRAL ══════════════════════════════════════ -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-label">Vocabulaire</div>
+
+    <button class="menu-item active" data-target="figures">
+      <span class="menu-item-icon">
+        <svg width="22" height="22" viewBox="0 0 28 28" fill="none"><rect x="4" y="4" width="20" height="20" rx="1.5" fill="#BFDBFE" stroke="#1D4ED8" stroke-width="2"/></svg>
+      </span>
+      Figures planes
+    </button>
+
+    <button class="menu-item" data-target="angles">
+      <span class="menu-item-icon">
+        <svg width="22" height="22" viewBox="0 0 28 28" fill="none">
+          <path d="M5,23 L25,23" stroke="#92400E" stroke-width="2.2" stroke-linecap="round"/>
+          <path d="M5,23 L25,9" stroke="#92400E" stroke-width="2.2" stroke-linecap="round"/>
+          <path d="M14,23 A9,9 0 0,0 11.7,17.4" fill="none" stroke="#D97706" stroke-width="1.6" stroke-linecap="round"/>
+          <circle cx="5" cy="23" r="1.6" fill="#92400E"/>
+        </svg>
+      </span>
+      Angles
+    </button>
+
+    <button class="menu-item" data-target="triangles">
+      <span class="menu-item-icon">
+        <svg width="22" height="22" viewBox="0 0 28 28" fill="none"><polygon points="14,4 25,24 3,24" fill="#FECACA" stroke="#9F1239" stroke-width="2" stroke-linejoin="round"/></svg>
+      </span>
+      Triangles
+    </button>
+
+    <button class="menu-item" data-target="solides">
+      <span class="menu-item-icon">
+        <svg width="22" height="22" viewBox="0 0 28 28" fill="none"><polygon points="14,3 25,9 14,15 3,9" fill="#BBF7D0" stroke="#166534" stroke-width="2" stroke-linejoin="round"/><polygon points="3,9 14,15 14,27 3,21" fill="#86EFAC" stroke="#166534" stroke-width="2" stroke-linejoin="round"/><polygon points="14,15 25,9 25,21 14,27" fill="#DCFCE7" stroke="#166534" stroke-width="2" stroke-linejoin="round"/></svg>
+      </span>
+      Solides
+    </button>
+  </aside>
+  <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+  <!-- ══ ZONE PRINCIPALE ═══════════════════════════════════ -->
+  <main class="main">
+
+    <!-- Figures planes -->
+    <div class="panel active" id="panel-figures">
+      <div class="main-content">
+        <div class="quizlet-card">
+          <div class="quizlet-frame-wrap">
+            <iframe src="https://quizlet.com/988966034/match/embed" title="Figures planes — Quizlet Match" allow="fullscreen" loading="lazy"></iframe>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Angles -->
+    <div class="panel" id="panel-angles">
+      <div class="main-content">
+        <div class="quizlet-card">
+          <div class="quizlet-frame-wrap">
+            <iframe src="https://quizlet.com/821550280/match/embed" title="Les angles — Quizlet Match" allow="fullscreen" loading="lazy"></iframe>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Triangles -->
+    <div class="panel" id="panel-triangles">
+      <div class="main-content">
+        <div class="quizlet-card">
+          <div class="quizlet-frame-wrap">
+            <iframe src="https://wordwall.net/fr/embed/dd2f7f3d64d34a339687c9589e0d86db?themeId=50&templateId=22&fontStackId=0" title="Les triangles — Wordwall" allow="fullscreen" loading="lazy"></iframe>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Solides -->
+    <div class="panel" id="panel-solides">
+      <div class="main-content">
+        <div class="quizlet-card">
+          <div class="quizlet-frame-wrap">
+            <iframe src="https://quizlet.com/988974015/match/embed?i=445yxo&x=1jj1" title="Les solides — Quizlet Match" allow="fullscreen" loading="lazy"></iframe>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+  const items    = document.querySelectorAll('.menu-item');
+  const panels   = document.querySelectorAll('.panel');
+  const sidebar  = document.getElementById('sidebar');
+  const backdrop = document.getElementById('sidebarBackdrop');
+  const toggle   = document.getElementById('menuToggle');
+  const subtitleEl = document.getElementById('headerSubtitle');
+
+  const SUBTITLES = {
+    figures:   'Les figures planes',
+    angles:    'Les angles',
+    triangles: 'Les triangles',
+    solides:   'Les solides'
+  };
+
+  function selectPanel(target){
+    items.forEach(i => i.classList.toggle('active', i.dataset.target === target));
+    panels.forEach(p => p.classList.toggle('active', p.id === 'panel-' + target));
+    if (SUBTITLES[target]) subtitleEl.textContent = SUBTITLES[target];
+    closeSidebar();
+  }
+  items.forEach(i => i.addEventListener('click', () => selectPanel(i.dataset.target)));
+
+  function openSidebar(){ sidebar.classList.add('open'); backdrop.classList.add('show'); }
+  function closeSidebar(){ sidebar.classList.remove('open'); backdrop.classList.remove('show'); }
+  toggle.addEventListener('click', () => sidebar.classList.contains('open') ? closeSidebar() : openSidebar());
+  backdrop.addEventListener('click', closeSidebar);
+</script>
+</body>
+</html>
