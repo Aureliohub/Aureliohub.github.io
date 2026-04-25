@@ -238,7 +238,7 @@ main{flex:1;display:flex;flex-direction:column;min-height:0;}
 #unites-pool{display:flex;flex-wrap:nowrap;gap:10px;justify-content:center;align-items:center;border:1px solid #7BBDE0;border-top:none;background:#EAF3FB;padding:10px 12px;min-height:60px;box-sizing:border-box;}
 .pu-big{display:inline-flex;align-items:center;justify-content:center;width:56px;height:40px;border-radius:10px;font-size:15px;font-weight:800;border:1.5px solid #7BBDE0;background:#F0F7FD;color:#1E3A50;cursor:grab;user-select:none;flex-shrink:0;}
 .pu-big:active{cursor:grabbing;}
-#unites-urow{border:1px solid #7BBDE0;border-top:none;display:grid;background:#EAF3FB;box-sizing:border-box;}
+#unites-urow{border:1px solid #7BBDE0;border-top:none;display:grid;background:#EAF3FB;box-sizing:border-box;border-radius:0 0 10px 10px;}
 #unites-urow .uc-big{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;height:74px;padding:6px 4px;}
 #unites-urow .uc-big+.uc-big{border-left:1px solid #7BBDE0;}
 #unites-urow .uc-big.hover-u{background:#D4EAFB;}
@@ -253,13 +253,13 @@ main{flex:1;display:flex;flex-direction:column;min-height:0;}
 #unites-urow .uc-big.locked .pu-big{cursor:default;}
 /* Pastille centrale, une fois verrouillée, reprend le ton standard */
 #unites-urow .uc-big.locked .pu-big.central{background:#F0F7FD;border-color:#7BBDE0;}
-.bare-dash{font-size:20px;font-weight:800;color:#1E3A50;line-height:1;}
+.bare-dash{font-size:20px;font-weight:800;color:#1E3A50;line-height:1;display:inline-flex;align-items:center;justify-content:center;height:40px;}
 /* Boutons grandeur dans le titre du tableau Conversion */
 .grandeur-btns{position:absolute;left:14px;top:50%;transform:translateY(-50%);display:flex;gap:6px;}
 .grb{width:32px;height:32px;border-radius:50%;border:1.5px solid #7BBDE0;background:#F0F7FD;color:#1E3A50;font-family:'Nunito',sans-serif;font-size:14px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;transition:background .15s,color .15s,border-color .15s;}
 .grb:hover{background:#fff;color:#2D6BE4;border-color:#2D6BE4;}
 .grb.active{background:#2D6BE4;color:#fff;border-color:#2D6BE4;}
-#unites-urow .uc-big.bare-cell .unom-big{display:none;}
+#unites-urow .uc-big.bare-cell .unom-big{visibility:hidden;}
 .uc-slot{display:flex;align-items:center;justify-content:center;min-height:40px;}
 .uc-big .unom-big{font-size:12px;font-weight:700;color:#4A6B80;opacity:0;transition:opacity .4s ease;line-height:1.1;text-align:center;}
 .uc-big .unom-big.revealed{opacity:1;}
@@ -297,8 +297,6 @@ main{flex:1;display:flex;flex-direction:column;min-height:0;}
             </div>
             <div id="unites-pool"></div>
             <div class="urow" id="unites-urow"></div>
-            <div class="crow" id="unites-empty-row-1"></div>
-            <div class="crow last" id="unites-empty-row-2"></div>
           </div>
           <div class="msg" id="unites-msg"></div>
           <button id="unites-reset">↺ Recommencer</button>
@@ -1796,23 +1794,12 @@ function buildUnitesPage(){
     if(u===cat.central)cell.classList.add('central');
     const slot=document.createElement('div');slot.className='uc-slot';
     cell.appendChild(slot);
-    // Nom sous la case (seulement si l'unité a un nom)
-    if(cat.noms[u]){
-      const nom=document.createElement('div');nom.className='unom-big';nom.textContent=cat.noms[u];
-      cell.appendChild(nom);
-    }
+    // Nom sous la case (seulement si l'unité a un nom ; sinon, espace réservé pour l'alignement)
+    const nom=document.createElement('div');nom.className='unom-big';
+    nom.textContent=cat.noms[u]||'\u00A0'; // espace insécable pour réserver la hauteur
+    cell.appendChild(nom);
     setupUnitesSlot(cell);
     ur.appendChild(cell);
-  });
-  // Deux lignes vides en-dessous (pour l'aspect tableau tronqué)
-  [1,2].forEach(n=>{
-    const row=document.getElementById('unites-empty-row-'+n);
-    row.innerHTML='';
-    row.style.gridTemplateColumns=`repeat(${cols.length},${UCW}px)`;
-    for(let i=0;i<cols.length;i++){
-      const s=document.createElement('div');s.className='cs-empty';
-      row.appendChild(s);
-    }
   });
 }
 
@@ -1922,27 +1909,10 @@ function dropUnitesOnPool(){
 function dropUnitesUnit(cell){
   if(!unitesDragUnit)return;
   const origin=unitesDragOrigin;
-  // L'origine est soit le pool, soit un .uc-slot ; on remonte à la cellule .uc-big le cas échéant
   const originCell=origin&&origin.closest&&origin.closest('.uc-big');
-  // Le conteneur du badge à l'intérieur de la cellule cible
   const slotDiv=cell.querySelector('.uc-slot');
   const existing=slotDiv.querySelector('.pu-big');
-  if(existing){
-    // Échange : remettre l'existing à l'origine
-    slotDiv.removeChild(existing);
-    if(originCell){
-      const origSlot=originCell.querySelector('.uc-slot');
-      if(origSlot)origSlot.innerHTML='';
-      originCell.classList.remove('ok-u','ko-u','locked');
-      enableUnitesUnitDrag(existing);
-      (origSlot||originCell).appendChild(existing);
-    } else {
-      // Origine = pool : retour au pool
-      enableUnitesUnitDrag(existing);
-      document.getElementById('unites-pool').appendChild(existing);
-    }
-  }
-  // Retirer dragUnit de son origine
+  // 1) Retirer la pastille draguée de son origine (la case d'origine redevient vide/bleue)
   if(originCell){
     const origSlot=originCell.querySelector('.uc-slot');
     if(origSlot)origSlot.innerHTML='';
@@ -1950,14 +1920,20 @@ function dropUnitesUnit(cell){
   } else if(unitesDragUnit.parentElement){
     unitesDragUnit.parentElement.removeChild(unitesDragUnit);
   }
-  // Déposer dans le slot interne
+  // 2) Si la cellule cible avait déjà une pastille, la renvoyer au pool
+  // (on ne fait pas d'échange automatique vers l'origine pour rester simple et prévisible)
+  if(existing){
+    slotDiv.removeChild(existing);
+    enableUnitesUnitDrag(existing);
+    document.getElementById('unites-pool').appendChild(existing);
+  }
+  // 3) Déposer dragUnit dans le slot interne de la cible
   enableUnitesUnitDrag(unitesDragUnit);
   slotDiv.appendChild(unitesDragUnit);
   const correct=(cell.dataset.expectU===unitesDragUnit.dataset.u);
   cell.classList.remove('ok-u','ko-u','locked');
   cell.classList.add(correct?'ok-u':'ko-u');
   if(correct){
-    // Verrouiller la case : la pastille ne pourra plus être déplacée
     cell.classList.add('locked');
     unitesDragUnit.draggable=false;
   }
