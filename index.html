@@ -336,9 +336,15 @@
 </main>
 
 <script>
-  // Délais (en ms) — ajustables
-  const OPEN_DELAY  = 450;  // temps d'attente avant déploiement des sous-domaines
-  const CLOSE_DELAY = 120;  // petite latence à la sortie pour éviter les clignotements
+  // ─── Détection du type d'appareil ─────────────────────────────────
+  // Un appareil est considéré "tactile pur" s'il n'a pas de vrai survol
+  // ET si son pointeur principal est imprécis (doigt). Sur ces appareils,
+  // on désactive la logique de survol/délais et on bascule sur le clic.
+  const isTouchOnly = window.matchMedia('(hover: none) and (pointer: coarse)').matches;
+
+  // Délais (en ms) — ajustables, utilisés uniquement sur appareils avec souris
+  const OPEN_DELAY  = 450;
+  const CLOSE_DELAY = 120;
 
   const cards = document.querySelectorAll('.domain-card');
 
@@ -351,108 +357,123 @@
       if (closeTimer) { clearTimeout(closeTimer); closeTimer = null; }
     };
 
-    // Survol : ombrage immédiat, déploiement après OPEN_DELAY
-    card.addEventListener('mouseenter', () => {
-      cancelTimers();
-      card.classList.add('hover');
-      openTimer = setTimeout(() => {
-        card.classList.add('open');
-      }, OPEN_DELAY);
-    });
+    // Survol (uniquement si vrai pointeur)
+    if (!isTouchOnly) {
+      card.addEventListener('mouseenter', () => {
+        cancelTimers();
+        card.classList.add('hover');
+        openTimer = setTimeout(() => {
+          card.classList.add('open');
+        }, OPEN_DELAY);
+      });
 
-    // Sortie : on retire l'ombrage, on annule une ouverture en attente, et on ferme après CLOSE_DELAY
-    card.addEventListener('mouseleave', () => {
-      cancelTimers();
-      card.classList.remove('hover');
-      closeTimer = setTimeout(() => {
-        card.classList.remove('open');
-      }, CLOSE_DELAY);
-    });
+      card.addEventListener('mouseleave', () => {
+        cancelTimers();
+        card.classList.remove('hover');
+        closeTimer = setTimeout(() => {
+          card.classList.remove('open');
+        }, CLOSE_DELAY);
+      });
+    }
 
-    // Clic (mobile/tactile) : bascule immédiate, sauf si on clique sur un sous-lien
+    // Clic (mobile/tactile/desktop) : bascule immédiate, sauf si on clique sur un sous-lien
     card.addEventListener('click', (e) => {
       if (e.target.closest('a.sub-link')) return;
+      // Sur tactile, ne pas basculer si on clique sur un sub-group-label
+      // (il a son propre gestionnaire qui s'occupe d'ouvrir le sous-groupe)
+      if (isTouchOnly && e.target.closest('.sub-group-label')) return;
       cancelTimers();
       card.classList.toggle('open');
     });
   });
 
   // ─── Sous-groupes : ouverture au survol avec délai, persistants jusqu'à la sortie de la carte ───
-  // Un délai évite qu'un simple passage de souris sur un titre ouvre immédiatement
-  // ses sous-liens bleus. Si la souris quitte le sous-domaine avant la fin du délai,
-  // l'ouverture est annulée.
+  // Sur tactile pur : pas de survol, uniquement le tap (géré plus bas).
   const GROUP_OPEN_DELAY = 400;
 
   document.querySelectorAll('.sub-group').forEach(group => {
     let openTimer = null;
 
-    group.addEventListener('mouseenter', () => {
-      // Si un groupe est déjà ouvert, ne pas attendre pour les suivants
-      // (navigation fluide à l'intérieur de la même carte)
-      const card = group.closest('.domain-card');
-      const alreadyHasOpenGroup = card && card.querySelector('.sub-group.open-group');
+    if (!isTouchOnly) {
+      group.addEventListener('mouseenter', () => {
+        const card = group.closest('.domain-card');
+        const alreadyHasOpenGroup = card && card.querySelector('.sub-group.open-group');
 
-      if (alreadyHasOpenGroup) {
-        group.classList.add('open-group');
-      } else {
-        if (openTimer) clearTimeout(openTimer);
-        openTimer = setTimeout(() => {
+        if (alreadyHasOpenGroup) {
           group.classList.add('open-group');
+        } else {
+          if (openTimer) clearTimeout(openTimer);
+          openTimer = setTimeout(() => {
+            group.classList.add('open-group');
+            openTimer = null;
+          }, GROUP_OPEN_DELAY);
+        }
+      });
+
+      group.addEventListener('mouseleave', () => {
+        if (openTimer) {
+          clearTimeout(openTimer);
           openTimer = null;
-        }, GROUP_OPEN_DELAY);
-      }
-    });
+        }
+      });
+    }
 
-    group.addEventListener('mouseleave', () => {
-      // Annuler l'ouverture en attente si on quitte avant le délai
-      if (openTimer) {
-        clearTimeout(openTimer);
-        openTimer = null;
-      }
-    });
-
-    // Tactile : un tap sur le titre du sous-groupe le bascule (immédiat, sans délai)
+    // Tap sur le titre du sous-groupe : bascule immédiate (desktop ET tactile)
     const label = group.querySelector('.sub-group-label');
     if (label) {
       label.addEventListener('click', (e) => {
-        e.stopPropagation(); // empêche le click de la carte de se déclencher
+        e.stopPropagation();
         if (openTimer) { clearTimeout(openTimer); openTimer = null; }
         group.classList.toggle('open-group');
       });
     }
   });
 
-  // Au mouseleave d'une carte, on referme tous ses sous-groupes
-  cards.forEach(card => {
-    card.addEventListener('mouseleave', () => {
-      card.querySelectorAll('.sub-group.open-group').forEach(g => {
-        g.classList.remove('open-group');
-      });
-      // Annuler tout timer d'inactivité en cours
-      if (card._idleTimer) { clearTimeout(card._idleTimer); card._idleTimer = null; }
-    });
-  });
-
-  // ─── Repli automatique après inactivité ─────────────────────────
-  // Si la souris reste immobile dans une carte pendant IDLE_CLOSE_DELAY,
-  // les sous-groupes ouverts se replient. Tout mouvement relance le compteur.
-  const IDLE_CLOSE_DELAY = 1500;
-
-  cards.forEach(card => {
-    card._idleTimer = null;
-
-    const resetIdleTimer = () => {
-      if (card._idleTimer) clearTimeout(card._idleTimer);
-      card._idleTimer = setTimeout(() => {
+  // Au mouseleave d'une carte : repli des sous-groupes (desktop uniquement)
+  if (!isTouchOnly) {
+    cards.forEach(card => {
+      card.addEventListener('mouseleave', () => {
         card.querySelectorAll('.sub-group.open-group').forEach(g => {
           g.classList.remove('open-group');
         });
-        card._idleTimer = null;
-      }, IDLE_CLOSE_DELAY);
-    };
+        if (card._idleTimer) { clearTimeout(card._idleTimer); card._idleTimer = null; }
+      });
+    });
+  }
 
-    card.addEventListener('mousemove', resetIdleTimer);
-  });
+  // ─── Repli automatique après inactivité (desktop uniquement) ─────
+  // Inutile sur tactile : sans mousemove continu, le timer expire toujours
+  // et replierait les sous-groupes que l'utilisateur vient juste de taper.
+  if (!isTouchOnly) {
+    const IDLE_CLOSE_DELAY = 1500;
+
+    cards.forEach(card => {
+      card._idleTimer = null;
+
+      const resetIdleTimer = () => {
+        if (card._idleTimer) clearTimeout(card._idleTimer);
+        card._idleTimer = setTimeout(() => {
+          const hovered = card.querySelector('.sub-group:hover');
+          const openGroups = card.querySelectorAll('.sub-group.open-group');
+
+          if (hovered) {
+            const hoveredTop = hovered.getBoundingClientRect().top;
+            openGroups.forEach(g => {
+              if (g === hovered) return;
+              const gTop = g.getBoundingClientRect().top;
+              if (gTop > hoveredTop) g.classList.remove('open-group');
+            });
+          } else {
+            openGroups.forEach(g => g.classList.remove('open-group'));
+          }
+
+          card._idleTimer = null;
+        }, IDLE_CLOSE_DELAY);
+      };
+
+      card.addEventListener('mousemove', resetIdleTimer);
+    });
+  }
 </script>
 </body>
 </html>
