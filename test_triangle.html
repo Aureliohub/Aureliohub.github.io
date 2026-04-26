@@ -17,6 +17,9 @@
   #c-anim{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;}
   #c-traces{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;}
   #info{position:absolute;bottom:12px;left:12px;right:12px;background:rgba(255,255,255,.85);border-radius:8px;padding:6px 10px;font-size:12px;color:#666;pointer-events:none;}
+  .controls{display:flex;gap:6px;padding:.4rem .8rem;background:#fff;border-bottom:1px solid #E2E0D8;flex-shrink:0;align-items:center;}
+  .btn-toggle{padding:5px 13px;border-radius:20px;border:1.5px solid;background:transparent;font-size:12px;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;display:inline-flex;align-items:center;gap:5px;}
+  .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
 </style>
 </head>
 <body>
@@ -30,17 +33,24 @@
 
 <!-- PAGE ANIMATION : zoom + déplacement + déformation -->
 <div id="page-anim" class="page active">
+  <div class="controls">
+    <button class="btn-toggle" id="btn-h" style="color:#3B6D11;border-color:#3B6D11;" onclick="toggleAnim('h')"><span class="dot" style="background:#3B6D11;"></span>Hauteurs</button>
+    <button class="btn-toggle" id="btn-m" style="color:#993C1D;border-color:#993C1D;" onclick="toggleAnim('m')"><span class="dot" style="background:#993C1D;"></span>Médiatrices</button>
+  </div>
   <div class="canvas-wrap">
     <canvas id="c-anim"></canvas>
-    <div id="info">Glisse pour déplacer · Pinch pour zoomer · Drag les sommets</div>
+    <div id="info">Glisse · Pinch pour zoomer · Drag les sommets</div>
   </div>
 </div>
 
-<!-- PAGE TRACÉS : triangle fixe, aucune transformation -->
+<!-- PAGE TRACÉS : triangle fixe + segments hauteurs à placer -->
 <div id="page-traces" class="page">
+  <div class="controls">
+    <button class="btn-toggle" id="btn-th" style="color:#3B6D11;border-color:#3B6D11;opacity:0.55;" onclick="toggleTraces()"><span class="dot" style="background:#3B6D11;"></span>Hauteurs</button>
+  </div>
   <div class="canvas-wrap">
     <canvas id="c-traces"></canvas>
-    <div id="info2" style="position:absolute;bottom:12px;left:12px;right:12px;background:rgba(255,255,255,.85);border-radius:8px;padding:6px 10px;font-size:12px;color:#666;pointer-events:none;">Triangle fixe — pas de zoom ni déplacement</div>
+    <div id="info2" style="position:absolute;bottom:12px;left:12px;right:12px;background:rgba(255,255,255,.85);border-radius:8px;padding:6px 10px;font-size:12px;color:#666;pointer-events:none;">Glisse les segments · Clic droit pour tourner</div>
   </div>
 </div>
 
@@ -57,6 +67,22 @@ function showPage(p){
   if(p==='traces') requestAnimationFrame(()=>resizeTraces());
 }
 
+function dot(a,b){return a.x*b.x+a.y*b.y;}
+function sub(a,b){return{x:a.x-b.x,y:b.y-a.y};}  // note: y inversé pour coords canvas
+function sub2(a,b){return{x:a.x-b.x,y:a.y-b.y};}
+function add(a,b){return{x:a.x+b.x,y:a.y+b.y};}
+function sc(a,f){return{x:a.x*f,y:a.y*f};}
+function norm(a){const l=Math.hypot(a.x,a.y);return l<1e-9?{x:0,y:0}:{x:a.x/l,y:a.y/l};}
+function perp(a){return{x:-a.y,y:a.x};}
+
+// Pied de la hauteur de P sur le segment QR
+function footP(P,Q,R){
+  const qr=sub2(R,Q),qp=sub2(P,Q);
+  const t=dot(qp,qr)/dot(qr,qr);
+  return{x:Q.x+qr.x*t,y:Q.y+qr.y*t};
+}
+function mid(A,B){return{x:(A.x+B.x)/2,y:(A.y+B.y)/2};}
+
 // ═══════════════════════════════════════
 // PAGE ANIMATION
 // ═══════════════════════════════════════
@@ -65,8 +91,17 @@ const ctxA=cvA.getContext('2d');
 const dpr=window.devicePixelRatio||1;
 let WA=0,HA=0;
 let viewA={panX:0,panY:0,zoom:1};
-let ptsA=[]; // [{x,y}] 3 sommets en coords monde
+let ptsA=[];
 let dragA=null,panA=null,pinchA=null;
+let stateA={h:true,m:false};
+
+function toggleAnim(k){
+  stateA[k]=!stateA[k];
+  const btn=document.getElementById('btn-'+k);
+  btn.style.background=stateA[k]?{h:'#3B6D11',m:'#993C1D'}[k]:'transparent';
+  btn.style.color=stateA[k]?'#fff':{h:'#3B6D11',m:'#993C1D'}[k];
+  drawAnim();
+}
 
 function defaultPtsA(w,h){
   const m=Math.min(w,h)*0.7;
@@ -91,50 +126,81 @@ function resizeAnim(){
   drawAnim();
 }
 
-function w2cA(p){return{x:p.x*viewA.zoom+viewA.panX,y:p.y*viewA.zoom+viewA.panY};}
-function c2wA(p){return{x:(p.x-viewA.panX)/viewA.zoom,y:(p.y-viewA.panY)/viewA.zoom};}
+function drawLine(ctx,p1,p2,col,lw,dash=[]){
+  ctx.save();ctx.strokeStyle=col;ctx.lineWidth=lw;ctx.setLineDash(dash);ctx.lineCap='round';
+  ctx.beginPath();ctx.moveTo(p1.x,p1.y);ctx.lineTo(p2.x,p2.y);ctx.stroke();
+  ctx.restore();
+}
+function extend(P,Q,far=2000){
+  const d=norm(sub2(Q,P));
+  return{p1:{x:P.x-d.x*far,y:P.y-d.y*far},p2:{x:P.x+d.x*far,y:P.y+d.y*far}};
+}
 
 function drawAnim(){
-  ctxA.clearRect(0,0,WA,HA);
-  ctxA.fillStyle='#ffffff';ctxA.fillRect(0,0,WA,HA);
+  ctxA.clearRect(0,0,WA,HA);ctxA.fillStyle='#fff';ctxA.fillRect(0,0,WA,HA);
   ctxA.save();ctxA.translate(viewA.panX,viewA.panY);ctxA.scale(viewA.zoom,viewA.zoom);
-  // Triangle
   const[A,B,C]=ptsA;
+  const z=viewA.zoom;
+
+  // Hauteurs
+  if(stateA.h){
+    const fA=footP(A,B,C),fB=footP(B,A,C),fC=footP(C,A,B);
+    [[A,fA],[B,fB],[C,fC]].forEach(([P,F])=>{
+      drawLine(ctxA,P,F,'#3B6D11',2/z);
+      // Carré angle droit
+      const d1=norm(sub2(F,P)),d2=norm(sub2(B.x===P.x&&B.y===P.y?A:B,F));
+      const s=8/z;
+      const sq=[F,{x:F.x+d1.x*s,y:F.y+d1.y*s},{x:F.x+d1.x*s+d2.x*s,y:F.y+d1.y*s+d2.y*s},{x:F.x+d2.x*s,y:F.y+d2.y*s}];
+      ctxA.save();ctxA.strokeStyle='#3B6D11';ctxA.lineWidth=1.5/z;
+      ctxA.beginPath();ctxA.moveTo(sq[0].x,sq[0].y);sq.slice(1).forEach(p=>ctxA.lineTo(p.x,p.y));ctxA.closePath();ctxA.stroke();ctxA.restore();
+    });
+  }
+
+  // Médiatrices
+  if(stateA.m){
+    [[A,B],[B,C],[A,C]].forEach(([P,Q])=>{
+      const m=mid(P,Q);
+      const d=norm(perp(sub2(Q,P)));
+      const far=1000/z;
+      drawLine(ctxA,{x:m.x-d.x*far,y:m.y-d.y*far},{x:m.x+d.x*far,y:m.y+d.y*far},'#993C1D',2/z,[8/z,5/z]);
+    });
+  }
+
+  // Triangle
   ctxA.beginPath();ctxA.moveTo(A.x,A.y);ctxA.lineTo(B.x,B.y);ctxA.lineTo(C.x,C.y);ctxA.closePath();
   ctxA.fillStyle='rgba(136,135,128,0.07)';ctxA.fill();
-  ctxA.strokeStyle='#1a1a1a';ctxA.lineWidth=2/viewA.zoom;ctxA.stroke();
+  ctxA.strokeStyle='#1a1a1a';ctxA.lineWidth=2/z;ctxA.stroke();
+
   // Sommets
   const labels=['A','B','C'];
+  const G={x:(A.x+B.x+C.x)/3,y:(A.y+B.y+C.y)/3};
   ptsA.forEach((p,i)=>{
-    const r=10/viewA.zoom;
+    const r=10/z;
     ctxA.beginPath();ctxA.arc(p.x,p.y,r,0,Math.PI*2);
-    ctxA.fillStyle='#fff';ctxA.fill();
-    ctxA.strokeStyle='#1a1a1a';ctxA.lineWidth=2/viewA.zoom;ctxA.stroke();
-    ctxA.fillStyle='#1a1a1a';ctxA.font=`700 ${14/viewA.zoom}px 'Nunito',sans-serif`;
+    ctxA.fillStyle='#fff';ctxA.fill();ctxA.strokeStyle='#1a1a1a';ctxA.lineWidth=2/z;ctxA.stroke();
+    const off=norm(sub2(p,G));
+    ctxA.fillStyle='#1a1a1a';ctxA.font=`700 ${14/z}px 'Nunito',sans-serif`;
     ctxA.textAlign='center';ctxA.textBaseline='middle';
-    ctxA.fillText(labels[i],p.x,p.y);
+    ctxA.fillText(labels[i],p.x+off.x*20/z,p.y+off.y*20/z);
   });
   ctxA.restore();
 }
 
-// Coords canvas depuis event
+// Events animation
 function cpA(e){
   const src=e.touches?e.touches[0]:e;
   const r=cvA.getBoundingClientRect();
   return{x:(src.clientX-r.left)*(WA/r.width),y:(src.clientY-r.top)*(HA/r.height)};
 }
-
 function nearestVertex(cp){
-  const R=20;
   let best=-1,bestD=Infinity;
   ptsA.forEach((p,i)=>{
-    const sc=w2cA(p);
-    const d=Math.hypot(cp.x-sc.x,cp.y-sc.y);
-    if(d<R&&d<bestD){bestD=d;best=i;}
+    const sc2={x:p.x*viewA.zoom+viewA.panX,y:p.y*viewA.zoom+viewA.panY};
+    const d=Math.hypot(cp.x-sc2.x,cp.y-sc2.y);
+    if(d<25&&d<bestD){bestD=d;best=i;}
   });
   return best;
 }
-
 function onDownA(e){
   if(e.cancelable)e.preventDefault();
   const touches=e.touches;
@@ -181,7 +247,6 @@ function onMoveA(e){
   }
 }
 function onUpA(){dragA=null;panA=null;pinchA=null;}
-
 cvA.addEventListener('mousedown',onDownA);
 cvA.addEventListener('mousemove',onMoveA);
 cvA.addEventListener('mouseup',onUpA);
@@ -193,28 +258,54 @@ cvA.addEventListener('wheel',e=>{
   const r=cvA.getBoundingClientRect();
   const cp={x:(e.clientX-r.left)*(WA/r.width),y:(e.clientY-r.top)*(HA/r.height)};
   const f=e.deltaY<0?1.1:0.91;
-  viewA.panX=cp.x+(viewA.panX-cp.x)*f;
-  viewA.panY=cp.y+(viewA.panY-cp.y)*f;
+  viewA.panX=cp.x+(viewA.panX-cp.x)*f;viewA.panY=cp.y+(viewA.panY-cp.y)*f;
   viewA.zoom=Math.min(Math.max(viewA.zoom*f,0.1),10);
   drawAnim();
 },{passive:false});
 
 // ═══════════════════════════════════════
-// PAGE TRACÉS — triangle fixe, rien d'autre
+// PAGE TRACÉS
 // ═══════════════════════════════════════
 const cvT=document.getElementById('c-traces');
 const ctxT=cvT.getContext('2d');
 let WT=0,HT=0;
 let ptsT=[];
+let segs=[]; // [{x1,y1,x2,y2}] en coords monde
+let tracesOn=false;
+let dragT=null,rotateT=null;
 
 function defaultPtsT(w,h){
   const m=Math.min(w,h)*0.7;
   const cx=w/2,cy=h/2;
   return[
-    {x:cx+m*0.35, y:cy-m*0.40, label:'A'},
-    {x:cx-m*0.40, y:cy+m*0.30, label:'B'},
-    {x:cx+m*0.40, y:cy+m*0.30, label:'C'},
+    {x:cx+m*0.35,y:cy-m*0.40,label:'A'},
+    {x:cx-m*0.40,y:cy+m*0.30,label:'B'},
+    {x:cx+m*0.40,y:cy+m*0.30,label:'C'},
   ];
+}
+
+function initSegs(){
+  segs=[];
+  const[A,B,C]=ptsT;
+  const triH=Math.max(A.y,B.y,C.y)-Math.min(A.y,B.y,C.y);
+  const minX=Math.min(A.x,B.x,C.x);
+  const topY=Math.min(A.y,B.y,C.y)-triH*0.22;
+  const s=triH/310;
+  const len=60*s,rowH=22*s;
+  const cx=minX-60*s;
+  for(let i=0;i<3;i++){
+    segs.push({x1:cx-len/2,y1:topY+i*rowH,x2:cx+len/2,y2:topY+i*rowH,result:null});
+  }
+}
+
+function toggleTraces(){
+  tracesOn=!tracesOn;
+  const btn=document.getElementById('btn-th');
+  btn.style.background=tracesOn?'#3B6D11':'transparent';
+  btn.style.color=tracesOn?'#fff':'#3B6D11';
+  btn.style.opacity='1';
+  if(tracesOn&&segs.length===0)initSegs();
+  drawTraces();
 }
 
 function resizeTraces(){
@@ -224,8 +315,9 @@ function resizeTraces(){
   if(WT>0&&HT>0){
     const sx=w/WT,sy=h/HT;
     ptsT=ptsT.map(p=>({...p,x:p.x*sx,y:p.y*sy}));
+    segs=segs.map(s=>({...s,x1:s.x1*sx,y1:s.y1*sy,x2:s.x2*sx,y2:s.y2*sy}));
   } else {
-    ptsT=defaultPtsT(w,h);
+    ptsT=defaultPtsT(w,h);segs=[];
   }
   WT=w;HT=h;
   cvT.width=Math.round(w*dpr);cvT.height=Math.round(h*dpr);
@@ -234,24 +326,145 @@ function resizeTraces(){
 }
 
 function drawTraces(){
-  ctxT.clearRect(0,0,WT,HT);
-  ctxT.fillStyle='#ffffff';ctxT.fillRect(0,0,WT,HT);
-  if(ptsT.length<3)return;
+  ctxT.clearRect(-200,0,WT+200,HT);ctxT.fillStyle='#fff';ctxT.fillRect(-200,0,WT+200,HT);
+  // Clip élargi pour voir les segments à gauche
+  ctxT.save();ctxT.beginPath();ctxT.rect(-200,0,WT+200,HT);ctxT.clip();
+  if(ptsT.length<3){ctxT.restore();return;}
   const[A,B,C]=ptsT;
+  // Triangle
   ctxT.beginPath();ctxT.moveTo(A.x,A.y);ctxT.lineTo(B.x,B.y);ctxT.lineTo(C.x,C.y);ctxT.closePath();
   ctxT.fillStyle='rgba(136,135,128,0.07)';ctxT.fill();
   ctxT.strokeStyle='#1a1a1a';ctxT.lineWidth=2;ctxT.stroke();
+  // Sommets
   ptsT.forEach(p=>{
     ctxT.beginPath();ctxT.arc(p.x,p.y,9,0,Math.PI*2);
-    ctxT.fillStyle='#fff';ctxT.fill();
-    ctxT.strokeStyle='#1a1a1a';ctxT.lineWidth=2;ctxT.stroke();
+    ctxT.fillStyle='#fff';ctxT.fill();ctxT.strokeStyle='#1a1a1a';ctxT.lineWidth=2;ctxT.stroke();
     ctxT.fillStyle='#1a1a1a';ctxT.font="700 14px 'Nunito',sans-serif";
-    ctxT.textAlign='center';ctxT.textBaseline='middle';
-    ctxT.fillText(p.label,p.x,p.y);
+    ctxT.textAlign='center';ctxT.textBaseline='middle';ctxT.fillText(p.label,p.x,p.y);
   });
+  // Segments tracés
+  if(tracesOn){
+    segs.forEach(s=>{
+      const col=s.result==='ok'?'#22C55E':s.result==='ko'?'#EF4444':'#3B6D11';
+      const mx=(s.x1+s.x2)/2,my=(s.y1+s.y2)/2;
+      ctxT.save();ctxT.strokeStyle=col;ctxT.lineWidth=2.5;ctxT.lineCap='round';
+      ctxT.beginPath();ctxT.moveTo(s.x1,s.y1);ctxT.lineTo(s.x2,s.y2);ctxT.stroke();ctxT.restore();
+      [[s.x1,s.y1],[s.x2,s.y2]].forEach(([ex,ey])=>{
+        ctxT.save();ctxT.fillStyle=col;ctxT.strokeStyle='white';ctxT.lineWidth=2;
+        ctxT.beginPath();ctxT.arc(ex,ey,7,0,Math.PI*2);ctxT.fill();ctxT.stroke();ctxT.restore();
+      });
+      ctxT.save();ctxT.fillStyle='white';ctxT.strokeStyle=col;ctxT.lineWidth=2;
+      ctxT.beginPath();ctxT.arc(mx,my,5,0,Math.PI*2);ctxT.fill();ctxT.stroke();ctxT.restore();
+    });
+  }
+  ctxT.restore();
 }
 
-// Aucun listener sur cvT — pas de zoom, pas de déplacement
+// Hit test segments
+function hitSeg(px,py){
+  const tol=12;
+  for(let si=segs.length-1;si>=0;si--){
+    const s=segs[si];
+    const mx=(s.x1+s.x2)/2,my=(s.y1+s.y2)/2;
+    if(Math.hypot(px-s.x1,py-s.y1)<tol)return{si,end:'e1'};
+    if(Math.hypot(px-s.x2,py-s.y2)<tol)return{si,end:'e2'};
+    if(Math.hypot(px-mx,py-my)<tol)return{si,end:'mid'};
+  }
+  return null;
+}
+function cpT(e){
+  const src=e.touches?e.touches[0]:e;
+  const r=cvT.getBoundingClientRect();
+  return{x:(src.clientX-r.left)*(WT/r.width),y:(src.clientY-r.top)*(HT/r.height)};
+}
+function onDownT(e){
+  if(!tracesOn)return;
+  if(e.cancelable)e.preventDefault();
+  const p=cpT(e);
+  if(e.button===2){
+    // Clic droit : rotation
+    let best=-1,bestD=Infinity;
+    segs.forEach((s,si)=>{const d=Math.hypot(p.x-(s.x1+s.x2)/2,p.y-(s.y1+s.y2)/2);if(d<bestD){bestD=d;best=si;}});
+    if(best>=0){const s=segs[best];const mx=(s.x1+s.x2)/2,my=(s.y1+s.y2)/2;
+      rotateT={si:best,mx,my,len:Math.hypot(s.x2-s.x1,s.y2-s.y1)/2,startAngle:Math.atan2(s.y2-s.y1,s.x2-s.x1),startMouse:Math.atan2(p.y-my,p.x-mx)};
+    }return;
+  }
+  const hit=hitSeg(p.x,p.y);
+  if(hit){const s=segs[hit.si];dragT={...hit,ox:p.x,oy:p.y,sx1:s.x1,sy1:s.y1,sx2:s.x2,sy2:s.y2};}
+}
+function onMoveT(e){
+  if(!tracesOn)return;
+  if(e.cancelable)e.preventDefault();
+  const p=cpT(e);
+  if(rotateT){
+    const a=Math.atan2(p.y-rotateT.my,p.x-rotateT.mx);
+    const na=rotateT.startAngle+(a-rotateT.startMouse);
+    const s=segs[rotateT.si];
+    s.x1=rotateT.mx-Math.cos(na)*rotateT.len;s.y1=rotateT.my-Math.sin(na)*rotateT.len;
+    s.x2=rotateT.mx+Math.cos(na)*rotateT.len;s.y2=rotateT.my+Math.sin(na)*rotateT.len;
+    s.result=null;drawTraces();
+  } else if(dragT){
+    const s=segs[dragT.si];const dx=p.x-dragT.ox,dy=p.y-dragT.oy;
+    if(dragT.end==='e1'){s.x1=dragT.sx1+dx;s.y1=dragT.sy1+dy;}
+    else if(dragT.end==='e2'){s.x2=dragT.sx2+dx;s.y2=dragT.sy2+dy;}
+    else{s.x1=dragT.sx1+dx;s.y1=dragT.sy1+dy;s.x2=dragT.sx2+dx;s.y2=dragT.sy2+dy;}
+    s.result=null;drawTraces();
+  }
+}
+function onUpT(){dragT=null;rotateT=null;}
+
+// Touch avec pinch rotation
+let pinchT=null;
+function onTouchStartT(e){
+  if(!tracesOn)return;
+  if(e.cancelable)e.preventDefault();
+  if(e.touches.length===2){
+    dragT=null;
+    const r=cvT.getBoundingClientRect();
+    const cp0={x:(e.touches[0].clientX-r.left)*(WT/r.width),y:(e.touches[0].clientY-r.top)*(HT/r.height)};
+    const cp1={x:(e.touches[1].clientX-r.left)*(WT/r.width),y:(e.touches[1].clientY-r.top)*(HT/r.height)};
+    const midX=(cp0.x+cp1.x)/2,midY=(cp0.y+cp1.y)/2;
+    let best=-1,bestD=Infinity;
+    segs.forEach((s,si)=>{const d=Math.hypot(midX-(s.x1+s.x2)/2,midY-(s.y1+s.y2)/2);if(d<bestD){bestD=d;best=si;}});
+    if(best>=0){const s=segs[best];
+      pinchT={si:best,startAngle:Math.atan2(cp1.y-cp0.y,cp1.x-cp0.x),
+        sx1:s.x1,sy1:s.y1,sx2:s.x2,sy2:s.y2,mx:(s.x1+s.x2)/2,my:(s.y1+s.y2)/2};
+    }
+  } else {
+    pinchT=null;
+    const p=cpT(e);
+    const hit=hitSeg(p.x,p.y);
+    if(hit){const s=segs[hit.si];dragT={...hit,ox:p.x,oy:p.y,sx1:s.x1,sy1:s.y1,sx2:s.x2,sy2:s.y2};}
+  }
+}
+function onTouchMoveT(e){
+  if(!tracesOn)return;
+  if(e.cancelable)e.preventDefault();
+  if(e.touches.length===2&&pinchT){
+    const r=cvT.getBoundingClientRect();
+    const cp0={x:(e.touches[0].clientX-r.left)*(WT/r.width),y:(e.touches[0].clientY-r.top)*(HT/r.height)};
+    const cp1={x:(e.touches[1].clientX-r.left)*(WT/r.width),y:(e.touches[1].clientY-r.top)*(HT/r.height)};
+    const angle=Math.atan2(cp1.y-cp0.y,cp1.x-cp0.x);
+    const da=angle-pinchT.startAngle;
+    const s=segs[pinchT.si];
+    const len=Math.hypot(pinchT.sx2-pinchT.sx1,pinchT.sy2-pinchT.sy1)/2;
+    const na=Math.atan2(pinchT.sy2-pinchT.sy1,pinchT.sx2-pinchT.sx1)+da;
+    s.x1=pinchT.mx-Math.cos(na)*len;s.y1=pinchT.my-Math.sin(na)*len;
+    s.x2=pinchT.mx+Math.cos(na)*len;s.y2=pinchT.my+Math.sin(na)*len;
+    s.result=null;drawTraces();
+  } else if(e.touches.length===1){
+    onMoveT(e);
+  }
+}
+function onTouchEndT(e){dragT=null;if(e.touches.length<2)pinchT=null;}
+
+cvT.addEventListener('mousedown',onDownT);
+cvT.addEventListener('mousemove',onMoveT);
+cvT.addEventListener('mouseup',onUpT);
+cvT.addEventListener('contextmenu',e=>{if(tracesOn)e.preventDefault();});
+cvT.addEventListener('touchstart',onTouchStartT,{passive:false});
+cvT.addEventListener('touchmove',onTouchMoveT,{passive:false});
+cvT.addEventListener('touchend',onTouchEndT,{passive:false});
 
 // ═══════════════════════════════════════
 // INIT
@@ -262,6 +475,10 @@ window.addEventListener('resize',()=>{
   if(p&&p.id==='page-traces')resizeTraces();
 });
 requestAnimationFrame(resizeAnim);
+
+// ═══════════════════════════════════════
+// PAGE ANIMATION
+// ═══════════════════════════════════════
 </script>
 </body>
 </html>
