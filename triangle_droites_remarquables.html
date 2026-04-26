@@ -3,10 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Propriétés du triangle — Droites remarquables</title>
+<title>Triangle — Droites remarquables</title>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
+
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+
   :root{--bg:#F7F6F2;--surface:#FFFFFF;--border:#E2E0D8;--text:#1E1D1A;--muted:#6B6A64;--accent:#2D6BE4;--radius:14px;
     --c-h:#3B6D11;--c-hl:#7bc950;
     --c-m:#993C1D;--c-ml:#f08050;
@@ -25,19 +27,15 @@
   .nav-btn{padding:5px 14px;border-radius:20px;border:1.5px solid var(--border);background:transparent;font-family:'Nunito',sans-serif;font-size:12px;font-weight:700;cursor:pointer;color:var(--muted);transition:all .18s;white-space:nowrap;}
   .nav-btn.active{background:var(--accent);border-color:var(--accent);color:#fff;}
   .nav-btn:not(.active):hover{background:var(--bg);}
-  /* Bouton retour à l'accueil */
-  .back-btn{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);color:var(--muted);font-family:'Nunito',sans-serif;font-size:12px;font-weight:700;text-decoration:none;cursor:pointer;transition:all .18s;white-space:nowrap;}
-  .back-btn:hover{background:var(--surface);color:var(--accent);border-color:var(--accent);}
-  .back-btn .back-arrow{font-size:14px;line-height:1;}
-  .header-sep{width:1px;height:18px;background:var(--border);margin:0 4px;flex-shrink:0;}
 
   /* ── Pages ── */
   .page{flex:1;display:none;flex-direction:column;min-height:0;}
   .page.active{display:flex;}
 
   /* ── Page 1 layout ── */
-  main#page-anim{padding:.75rem;min-height:0;}
-  main#page-traces{padding:.75rem;min-height:0;}
+  #page-anim{padding:.75rem;min-height:0;}
+  #page-traces{padding:0;min-height:0;}
+  #traces-bar{touch-action:none;}
   .anim-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);flex:1;display:flex;flex-direction:column;min-height:0;overflow:hidden;}
   .card-header{padding:.35rem .9rem;display:flex;align-items:center;gap:6px;border-bottom:1px solid var(--border);background:#FAFAF8;flex-shrink:0;flex-wrap:nowrap;overflow:hidden;}
   .card-header-title{font-size:11px;font-weight:700;color:var(--muted);flex-shrink:0;}
@@ -57,11 +55,12 @@
   #canvas-wrap{flex:1;position:relative;min-height:0;}
   canvas{position:absolute;inset:0;width:100%;height:100%;cursor:default;display:block;touch-action:none;}
   #canvas-wrap-traces{flex:1;position:relative;min-height:0;}
+  /* Bloquer zoom sur tous les éléments de la page tracés */
   #c2{position:absolute;inset:0;width:100%;height:100%;cursor:crosshair;display:block;touch-action:none;}
   #point-name{display:none;}
 
   /* ── Page 2 exercices ── */
-  main#page-ex{padding:.75rem;overflow-y:auto;gap:.75rem;}
+  #page-ex{padding:.75rem;overflow-y:auto;gap:.75rem;}
 
   .ex-header{display:flex;align-items:center;justify-content:space-between;flex-shrink:0;flex-wrap:wrap;gap:.5rem;}
   .score-pill{background:var(--surface);border:1px solid var(--border);border-radius:999px;padding:.35rem 1rem;font-size:13px;font-weight:800;color:var(--accent);}
@@ -115,7 +114,7 @@
   .place-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:.75rem 1rem;display:flex;flex-direction:column;align-items:flex-start;}
   .place-q{font-size:13px;font-weight:700;margin-bottom:.5rem;line-height:1.4;}
   .place-canvas-wrap{position:relative;border-radius:8px;overflow:hidden;background:#FAFAF8;border:1px solid var(--border);cursor:crosshair;}
-  .place-canvas-wrap canvas{display:block;}
+  .place-canvas-wrap canvas{display:block;touch-action:none;}
   .place-feedback{font-size:11.5px;margin-top:.4rem;font-weight:600;display:none;line-height:1.5;}
   .place-feedback.show{display:block;}
   .place-feedback.ok{color:#166534;}
@@ -152,14 +151,14 @@
     header{flex-shrink:0;}
     .page{display:none;flex-direction:column;flex:1;min-height:0;overflow:hidden;}
     .page.active{display:flex;}
-    main#page-anim,main#page-traces{
+    #page-anim,#page-traces{
       padding:.4rem;flex:1;min-height:0;
       display:flex;flex-direction:column;overflow:hidden;
     }
-    main#page-ex{padding:.4rem;flex:1;overflow-y:auto;}
+    #page-ex{padding:.4rem;flex:1;overflow-y:auto;}
     .anim-card{flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden;}
     #canvas-wrap,#canvas-wrap-traces{flex:1;min-height:0;position:relative;}
-    canvas,#c2{position:absolute;inset:0;width:100%;height:100%;}
+    canvas,#c2{position:absolute;inset:0;width:100%;height:100%;touch-action:none;}
     .controls{gap:4px;padding:.35rem .5rem;flex-wrap:wrap;flex-shrink:0;}
     .btn-toggle{padding:5px 8px;font-size:11px;gap:4px;}
     .info-btns{gap:3px;}
@@ -168,8 +167,6 @@
     .header-title{font-size:13px;}
     header{padding:.4rem .6rem;gap:6px;}
     .nav-btn{padding:4px 10px;font-size:11px;}
-    .back-btn{padding:4px 9px;font-size:11px;gap:3px;}
-    .header-sep{height:16px;margin:0 2px;}
     .qcm-grid{grid-template-columns:1fr 1fr;}
     .qcm-inner{flex-direction:column;}
     .qcm-svg-wrap{justify-content:center;}
@@ -190,28 +187,23 @@
     .nav-btn{padding:4px 8px;font-size:10px;}
     #canvas-wrap,#canvas-wrap-traces{height:65vw;min-height:180px;}
     .traces-fam-btn{padding:3px 7px;font-size:10px;}
-    /* Sur très petit écran, on masque le texte du bouton retour, on ne garde que la flèche */
-    .back-btn{padding:4px 8px;font-size:13px;}
-    .back-btn .back-label{display:none;}
   }
+
 </style>
 </head>
 <body>
-
 <header>
   <div class="header-icon">△</div>
   <div class="header-title">Propriétés du triangle — <span>Droites remarquables</span></div>
   <div class="header-nav">
-    <a href="index.html" class="back-btn" title="Retour à l'accueil"><span class="back-arrow">←</span><span class="back-label">Retour</span></a>
-    <div class="header-sep"></div>
+    <a href="index.html" style="display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:20px;border:1.5px solid var(--border);background:transparent;font-family:'Nunito',sans-serif;font-size:12px;font-weight:700;color:var(--muted);text-decoration:none;cursor:pointer;">← Retour</a>
     <button class="nav-btn active" id="nav-anim" onclick="showPage('anim')">Animation</button>
     <button class="nav-btn" id="nav-traces" onclick="showPage('traces')">Tracés</button>
     <button class="nav-btn" id="nav-ex" onclick="showPage('ex')">Exercices</button>
   </div>
 </header>
 
-<!-- ══════════════ PAGE 1 : ANIMATION ══════════════ -->
-<main id="page-anim" class="page active">
+<div id="page-anim" class="page active">
   <div class="anim-card">
     <div class="controls">
       <button class="btn-toggle active" id="btn-hauteurs"    style="color:#fff;background:var(--c-h);border-color:var(--c-h);"><span class="dot" style="background:#fff;"></span>Hauteurs</button>
@@ -237,35 +229,36 @@
         </button>
       </div>
     </div>
-    <div id="canvas-wrap"><canvas id="c"></canvas></div>
+    <div id="canvas-wrap"><canvas id="c" style="touch-action:none;"></canvas></div>
     <div id="point-name"></div>
   </div>
-</main>
+</div>
 
 
 <!-- ══════════════ PAGE TRACÉS ══════════════ -->
-<main id="page-traces" class="page">
-  <div class="anim-card">
-    <div class="controls">
-      <button id="btn-reset-traces" title="Réinitialiser"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.1-5.8"/><polyline points="21 3 21 9 15 9"/></svg></button>
-      <div style="flex:1;"></div>
-      <div id="traces-bar" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-        <span style="font-size:12px;font-weight:700;color:var(--muted);flex-shrink:0;">Tracés :</span>
-        <button class="traces-fam-btn" data-type="hauteurs"    style="color:var(--c-h);border-color:var(--c-h);"><span class="traces-fam-dot" style="background:var(--c-h);"></span><span class="fam-label">Hauteurs</span></button>
-        <button class="traces-fam-btn" data-type="mediatrices" style="color:var(--c-m);border-color:var(--c-m);"><span class="traces-fam-dot" style="background:var(--c-m);"></span><span class="fam-label">Médiatrices</span></button>
-        <button class="traces-fam-btn" data-type="bisectrices" style="color:var(--c-b);border-color:var(--c-b);"><span class="traces-fam-dot" style="background:var(--c-b);"></span><span class="fam-label">Bissectrices</span></button>
-        <button class="traces-fam-btn" data-type="medianes"    style="color:var(--c-g);border-color:var(--c-g);"><span class="traces-fam-dot" style="background:var(--c-g);"></span><span class="fam-label">Médianes</span></button>
-        <div style="width:1px;height:20px;background:var(--border);flex-shrink:0;margin:0 4px;"></div>
-        <button class="btn-valider" id="btn-valider">Valider</button>
-        <button id="btn-corriger" style="padding:5px 14px;border-radius:20px;border:1.5px solid var(--border);background:transparent;color:var(--muted);font-family:'Nunito',sans-serif;font-size:12px;font-weight:700;cursor:pointer;">Corriger</button>
-      </div>
+
+<div id="page-traces" class="page">
+  <div class="controls" style="display:flex;gap:6px;padding:.4rem .8rem;background:#fff;border-bottom:1px solid var(--border);flex-shrink:0;align-items:center;">
+    <button id="btn-reset-traces" style="width:34px;height:34px;border-radius:50%;cursor:pointer;border:1.5px solid var(--border);background:transparent;color:var(--muted);display:inline-flex;align-items:center;justify-content:center;padding:0;" title="Réinitialiser"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.1-5.8"/><polyline points="21 3 21 9 15 9"/></svg></button>
+    <div id="traces-bar" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+      <span style="font-size:12px;font-weight:700;color:var(--muted);flex-shrink:0;">Tracés :</span>
+      <button class="traces-fam-btn" data-type="hauteurs"    style="color:var(--c-h);border-color:var(--c-h);"><span class="traces-fam-dot" style="background:var(--c-h);"></span><span class="fam-label">Hauteurs</span></button>
+      <button class="traces-fam-btn" data-type="mediatrices" style="color:var(--c-m);border-color:var(--c-m);"><span class="traces-fam-dot" style="background:var(--c-m);"></span><span class="fam-label">Médiatrices</span></button>
+      <button class="traces-fam-btn" data-type="bisectrices" style="color:var(--c-b);border-color:var(--c-b);"><span class="traces-fam-dot" style="background:var(--c-b);"></span><span class="fam-label">Bissectrices</span></button>
+      <button class="traces-fam-btn" data-type="medianes"    style="color:var(--c-g);border-color:var(--c-g);"><span class="traces-fam-dot" style="background:var(--c-g);"></span><span class="fam-label">Médianes</span></button>
+      <div style="width:1px;height:20px;background:var(--border);flex-shrink:0;margin:0 4px;"></div>
+      <button class="btn-valider" id="btn-valider">Valider</button>
+      <button id="btn-corriger" style="padding:5px 14px;border-radius:20px;border:1.5px solid var(--border);background:transparent;color:var(--muted);font-family:'Nunito',sans-serif;font-size:12px;font-weight:700;cursor:pointer;">Corriger</button>
     </div>
-    <div id="canvas-wrap-traces"><canvas id="c2"></canvas></div>
   </div>
-</main>
+  <div id="canvas-wrap-traces" style="flex:1;position:relative;min-height:0;">
+    <canvas id="c2" style="position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:crosshair;"></canvas>
+  </div>
+</div>
+
 
 <!-- ══════════════ PAGE 2 : EXERCICES ══════════════ -->
-<main id="page-ex" class="page">
+<div id="page-ex" class="page">
 
   <div class="ex-header">
     <div>
@@ -293,7 +286,7 @@
   </div>
   <div class="place-grid" id="place-grid"></div>
 
-</main>
+</div>
 
 <script>
 /* ═══════════════════════════════════════════════════
@@ -305,19 +298,21 @@ function showPage(p){
   document.getElementById('page-'+p).classList.add('active');
   document.getElementById('nav-'+p).classList.add('active');
   if(p==='anim'){
-    // Restaurer l'état animation
     if(savedAnimState) Object.assign(state,savedAnimState);
     updateBtns();
     requestAnimationFrame(()=>requestAnimationFrame(resize));
+    detachTracesListeners();
   }
   if(p==='traces'){
-    // Sauvegarder l'état animation avant d'entrer en tracés
     savedAnimState={...state};
     requestAnimationFrame(()=>requestAnimationFrame(resizeTraces));
     if(!tracesMode) enterTracesMode('hauteurs');
     else drawTraces();
+    attachTracesListeners();
   }
-  // Conserver les segments tracés et l'état animation entre les pages
+  if(p==='ex'){
+    detachTracesListeners();
+  }
 }
 
 /* ═══════════════════════════════════════════════════
@@ -362,16 +357,16 @@ function drawTraces(){
   if(!ctxT||!ptsT)return;
   const T=getT();
   const margin=200;
-  ctxT.save();ctxT.clearRect(-margin,0,WT+margin,HT);ctxT.beginPath();ctxT.rect(-margin,0,WT+margin,HT);ctxT.clip();
-  ctxT.translate(view.panX,view.panY);ctxT.scale(view.zoom,view.zoom);
+  ctxT.save();ctxT.fillStyle=isDark()?'#1a1a1a':'#ffffff';ctxT.fillRect(-margin,0,WT+margin,HT);ctxT.beginPath();ctxT.rect(-margin,0,WT+margin,HT);ctxT.clip();
+  ctxT.translate(viewT.panX,viewT.panY);ctxT.scale(viewT.zoom,viewT.zoom);
   const[A,B,Cv]=ptsT;
   ctxT.save();ctxT.beginPath();ctxT.moveTo(A.x,A.y);ctxT.lineTo(B.x,B.y);ctxT.lineTo(Cv.x,Cv.y);ctxT.closePath();ctxT.fillStyle=T.triF;ctxT.fill();ctxT.restore();
-  ctxT.save();ctxT.beginPath();ctxT.moveTo(A.x,A.y);ctxT.lineTo(B.x,B.y);ctxT.lineTo(Cv.x,Cv.y);ctxT.closePath();ctxT.strokeStyle=T.triS;ctxT.lineWidth=2.5/view.zoom;ctxT.setLineDash([]);ctxT.stroke();ctxT.restore();
+  ctxT.save();ctxT.beginPath();ctxT.moveTo(A.x,A.y);ctxT.lineTo(B.x,B.y);ctxT.lineTo(Cv.x,Cv.y);ctxT.closePath();ctxT.strokeStyle=T.triS;ctxT.lineWidth=2.5/viewT.zoom;ctxT.setLineDash([]);ctxT.stroke();ctxT.restore();
   const G0={x:(A.x+B.x+Cv.x)/3,y:(A.y+B.y+Cv.y)/3};
-  ptsT.forEach(p=>{const r=9/view.zoom;ctxT.save();ctxT.fillStyle=T.vxF;ctxT.strokeStyle=T.vxS;ctxT.lineWidth=2/view.zoom;ctxT.beginPath();ctxT.arc(p.x,p.y,r,0,2*Math.PI);ctxT.fill();ctxT.stroke();ctxT.restore();const off=norm(sub(p,G0));ctxT.save();ctxT.fillStyle=T.vxT;ctxT.font=`700 ${14/view.zoom}px 'Nunito',sans-serif`;ctxT.textAlign='center';ctxT.textBaseline='middle';ctxT.fillText(p.label,p.x+off.x*22/view.zoom,p.y+off.y*22/view.zoom);ctxT.restore();});
+  ptsT.forEach(p=>{const r=9/viewT.zoom;ctxT.save();ctxT.fillStyle=T.vxF;ctxT.strokeStyle=T.vxS;ctxT.lineWidth=2/viewT.zoom;ctxT.beginPath();ctxT.arc(p.x,p.y,r,0,2*Math.PI);ctxT.fill();ctxT.stroke();ctxT.restore();const off=norm(sub(p,G0));ctxT.save();ctxT.fillStyle=T.vxT;ctxT.font=`700 ${14/viewT.zoom}px 'Nunito',sans-serif`;ctxT.textAlign='center';ctxT.textBaseline='middle';ctxT.fillText(p.label,p.x+off.x*22/viewT.zoom,p.y+off.y*22/viewT.zoom);ctxT.restore();});
   // Segments tracés
   if(tracesSegs.length){
-    const z2=view.zoom;
+    const z2=viewT.zoom;
     tracesSegs.forEach(s=>{
       const famCol=s.color; // toujours la couleur de famille
       const valCol=s.result==='ok'?'#22C55E':s.result==='ko'?'#EF4444':null;
@@ -402,7 +397,7 @@ function drawTraces(){
     tracesActive.forEach(type=>{
       const targets=getTargetAngles(type);
       const col=tracesColors[type].line;
-      const z2=view.zoom;
+      const z2=viewT.zoom;
       ctxT.save();ctxT.globalAlpha=0.45;ctxT.strokeStyle=col;ctxT.lineWidth=2/z2;ctxT.setLineDash([8/z2,5/z2]);
       targets.forEach(t=>{
         ctxT.beginPath();ctxT.moveTo(t.p1.x,t.p1.y);ctxT.lineTo(t.p2.x,t.p2.y);ctxT.stroke();
@@ -418,19 +413,20 @@ function defaultPts(){
   // Coordonnées normalisées : B(0,0), C(1,0), A(0.200, 0.746)
   const m=Math.min(W,H);
   const cx=W/2, cy=H/2;
-  const base=m*0.88;
+  const base=m*0.72;
   const bx=cx-base*0.52;
-  const by=cy+m*0.28;
+  const by=cy+m*0.22;
   const Bpt={x:bx,            y:by,            label:'B'};
   const Cpt={x:bx+base,       y:by,            label:'C'};
   const Apt={x:bx+base*0.200, y:by-base*0.746, label:'A'};
   return[Apt,Bpt,Cpt];
 }
 function defaultView(){return{panX:0,panY:0,zoom:1};}
-function isDark(){return window.matchMedia('(prefers-color-scheme: dark)').matches;}
-function getT(){const d=isDark();return{triF:d?'rgba(200,200,200,0.06)':'rgba(136,135,128,0.07)',triS:d?'#e0e0e0':'#1a1a1a',vxF:'#ffffff',vxS:'#1a1a1a',vxT:'#1a1a1a',gray:d?'#888':'#888780'};}
+function isDark(){return false;} // Toujours mode clair — fond blanc
+function getT(){const d=isDark();return{triF:d?'rgba(200,200,200,0.06)':'rgba(136,135,128,0.07)',triS:d?'#e0e0e0':'#1a1a1a',vxF:d?'#2a2a2a':'#ffffff',vxS:d?'#e0e0e0':'#1a1a1a',vxT:d?'#e0e0e0':'#1a1a1a',gray:d?'#888':'#888780'};}
 
 let view=defaultView();
+const viewT={panX:0,panY:0,zoom:1}; // vue fixe pour les tracés — pas de zoom
 const CS={hauteurs:{line:'#7bc950',fill:'#3B6D11',dL:'#8dde5a',dF:'#5a9e1f'},mediatrices:{line:'#f08050',fill:'#993C1D',dL:'#ff9966',dF:'#c04d28'},bisectrices:{line:'#5aabf5',fill:'#185FA5',dL:'#74bbff',dF:'#2278cc'},medianes:{line:'#a898ee',fill:'#534AB7',dL:'#bbb0ff',dF:'#6e64d0'}};
 function C(k){const d=isDark();return{line:d?CS[k].dL:CS[k].line,fill:d?CS[k].dF:CS[k].fill};}
 const btns={hauteurs:document.getElementById('btn-hauteurs'),mediatrices:document.getElementById('btn-mediatrices'),bisectrices:document.getElementById('btn-bisectrices'),medianes:document.getElementById('btn-medianes')};
@@ -566,14 +562,52 @@ function doReset(){
 function applyZoom(f,piv){view.panX=piv.x+(view.panX-piv.x)*f;view.panY=piv.y+(view.panY-piv.y)*f;view.zoom=Math.min(Math.max(view.zoom*f,0.1),10);}
 function startDrag(cp){const hit=nearestDraggable(cp);if(hit){const comp=computeCenters(pts[0],pts[1],pts[2]);const sc2=hit.type==='center'?{...comp[hit.key]}:null;const go=sc2?sub(c2w(cp),sc2):{x:0,y:0};dragging={hit,startCP:{...cp},startPts:pts.map(p=>({...p})),startCenter:sc2,grabOffset:go};canvas.style.cursor='grabbing';}else{panning={startCP:{...cp},startPan:{x:view.panX,y:view.panY}};canvas.style.cursor='move';}}
 function applyDrag(cp){const cw=c2w(cp);if(dragging.hit.type==='vertex'){const delta=sub(cw,c2w(dragging.startCP));const i=dragging.hit.idx,sp=dragging.startPts[i];pts[i]={...sp,x:sp.x+delta.x,y:sp.y+delta.y};document.getElementById('point-name').textContent=`Sommet ${pts[i].label}`;}else{const target=sub(cw,dragging.grabOffset);pts=solve(dragging.hit.key,target,dragging);document.getElementById('point-name').textContent=`Centre ${dragging.hit.key}`;}}
-canvas.addEventListener('mousedown',e=>{startDrag(getCP(e));});
-canvas.addEventListener('mousemove',e=>{const cp=getCP(e);if(dragging){applyDrag(cp);draw();}else if(panning){view.panX=panning.startPan.x+(cp.x-panning.startCP.x);view.panY=panning.startPan.y+(cp.y-panning.startCP.y);draw();}else{const hit=nearestDraggable(cp);canvas.style.cursor=hit?'grab':'move';document.getElementById('point-name').textContent=hit?(hit.type==='vertex'?`Sommet ${pts[hit.idx].label} — déformer`:`Centre ${hit.key} — ajuste le triangle`):'Glissez pour déplacer la vue';}});
-canvas.addEventListener('mouseup',()=>{dragging=null;panning=null;canvas.style.cursor='default';document.getElementById('point-name').textContent='';});
-canvas.addEventListener('mouseleave',()=>{dragging=null;panning=null;canvas.style.cursor='default';});
-canvas.addEventListener('wheel',e=>{e.preventDefault();applyZoom(e.deltaY<0?1.1:0.91,getCP(e));draw();},{passive:false});
-canvas.addEventListener('touchstart',e=>{e.preventDefault();for(const t of e.changedTouches)activeTouches[t.identifier]=getCP(e,t);const ids=Object.keys(activeTouches);if(ids.length===1){startDrag(activeTouches[ids[0]]);}else if(ids.length===2){dragging=null;panning=null;const[p0,p1]=[activeTouches[ids[0]],activeTouches[ids[1]]];const px=(p0.x+p1.x)/2,py=(p0.y+p1.y)/2;pinchStart={dist:Math.hypot(p1.x-p0.x,p1.y-p0.y),pivotX:px,pivotY:py,startZoom:view.zoom,startPanX:view.panX,startPanY:view.panY};}},{passive:false});
-canvas.addEventListener('touchmove',e=>{e.preventDefault();for(const t of e.changedTouches)activeTouches[t.identifier]=getCP(e,t);const ids=Object.keys(activeTouches);if(ids.length>=2&&pinchStart){const[p0,p1]=[activeTouches[ids[0]],activeTouches[ids[1]]];const dist=Math.hypot(p1.x-p0.x,p1.y-p0.y),f=dist/pinchStart.dist,nz=Math.min(Math.max(pinchStart.startZoom*f,0.1),10),px=(p0.x+p1.x)/2,py=(p0.y+p1.y)/2;view.zoom=nz;view.panX=px-(pinchStart.pivotX-pinchStart.startPanX)*nz/pinchStart.startZoom;view.panY=py-(pinchStart.pivotY-pinchStart.startPanY)*nz/pinchStart.startZoom;draw();}else if(ids.length===1){const cp=activeTouches[ids[0]];if(dragging){applyDrag(cp);draw();}else if(panning){view.panX=panning.startPan.x+(cp.x-panning.startCP.x);view.panY=panning.startPan.y+(cp.y-panning.startCP.y);draw();}}},{passive:false});
-canvas.addEventListener('touchend',e=>{e.preventDefault();for(const t of e.changedTouches)delete activeTouches[t.identifier];const ids=Object.keys(activeTouches);if(ids.length<2)pinchStart=null;if(ids.length===0){dragging=null;panning=null;document.getElementById('point-name').textContent='';}},{passive:false});
+// ── Events canvas Animation (touch + mouse, comme volumes.html) ──
+function animCP(e){
+  const src=e.touches?e.touches[0]:e;
+  const r=canvas.getBoundingClientRect();
+  return{x:(src.clientX-r.left)*(W/r.width),y:(src.clientY-r.top)*(H/r.height)};
+}
+let animPinch=null;
+function animDown(e){
+  if(e.cancelable)e.preventDefault();
+  if(e.touches&&e.touches.length===2){
+    dragging=null;panning=null;
+    const r=canvas.getBoundingClientRect();
+    const p0={x:(e.touches[0].clientX-r.left)*(W/r.width),y:(e.touches[0].clientY-r.top)*(H/r.height)};
+    const p1={x:(e.touches[1].clientX-r.left)*(W/r.width),y:(e.touches[1].clientY-r.top)*(H/r.height)};
+    animPinch={dist:Math.hypot(p1.x-p0.x,p1.y-p0.y),px:(p0.x+p1.x)/2,py:(p0.y+p1.y)/2,startZoom:view.zoom,startPanX:view.panX,startPanY:view.panY};
+  } else {
+    animPinch=null;
+    startDrag(animCP(e));
+  }
+}
+function animMove(e){
+  if(e.cancelable)e.preventDefault();
+  if(e.touches&&e.touches.length>=2&&animPinch){
+    const r=canvas.getBoundingClientRect();
+    const p0={x:(e.touches[0].clientX-r.left)*(W/r.width),y:(e.touches[0].clientY-r.top)*(H/r.height)};
+    const p1={x:(e.touches[1].clientX-r.left)*(W/r.width),y:(e.touches[1].clientY-r.top)*(H/r.height)};
+    const dist=Math.hypot(p1.x-p0.x,p1.y-p0.y),f=dist/animPinch.dist;
+    const nz=Math.min(Math.max(animPinch.startZoom*f,0.1),10);
+    const px=(p0.x+p1.x)/2,py=(p0.y+p1.y)/2;
+    view.zoom=nz;view.panX=px-(animPinch.px-animPinch.startPanX)*nz/animPinch.startZoom;view.panY=py-(animPinch.py-animPinch.startPanY)*nz/animPinch.startZoom;
+    draw();
+  } else {
+    const cp=animCP(e);
+    if(dragging){applyDrag(cp);draw();}
+    else if(panning){view.panX=panning.startPan.x+(cp.x-panning.startCP.x);view.panY=panning.startPan.y+(cp.y-panning.startCP.y);draw();}
+    else if(!e.touches){const hit=nearestDraggable(cp);canvas.style.cursor=hit?'grab':'move';document.getElementById('point-name').textContent=hit?(hit.type==='vertex'?`Sommet ${pts[hit.idx].label} — déformer`:`Centre ${hit.key} — ajuste le triangle`):'Glissez pour déplacer la vue';}
+  }
+}
+function animUp(){dragging=null;panning=null;animPinch=null;canvas.style.cursor='default';document.getElementById('point-name').textContent='';}
+canvas.addEventListener('mousedown',animDown);
+canvas.addEventListener('mousemove',animMove);
+canvas.addEventListener('mouseup',animUp);
+canvas.addEventListener('touchstart',animDown,{passive:false});
+canvas.addEventListener('touchmove',animMove,{passive:false});
+canvas.addEventListener('touchend',animUp,{passive:false});
+canvas.addEventListener('wheel',e=>{e.preventDefault();const r=canvas.getBoundingClientRect();const cp={x:(e.clientX-r.left)*(W/r.width),y:(e.clientY-r.top)*(H/r.height)};applyZoom(e.deltaY<0?1.1:0.91,cp);draw();},{passive:false});
 Object.entries(btns).forEach(([k,b])=>{b.addEventListener('click',()=>{state[k]=!state[k];updateBtns();draw();});});
 document.getElementById('btn-reset').addEventListener('click',doReset);
 
@@ -627,10 +661,10 @@ function addFamilySegs(type){
   }
   const A=pts[0],B=pts[1],Cv=pts[2];
   const triH=Math.max(A.y,B.y,Cv.y)-Math.min(A.y,B.y,Cv.y);
-  const topY=A.y-triH*0.22; // remonter davantage
   const minX=Math.min(A.x,B.x,Cv.x);
   const s=triH/310;
-  const segLen=60*s,rowH=22*s;
+  const segLen=60*s,rowH=18*s;
+  const topY=Math.min(A.y,B.y,Cv.y)-triH*0.15;
   const cx=minX-60*s;
   const rowIdx=[...tracesActive].length;
   for(let i=0;i<3;i++){
@@ -725,10 +759,10 @@ function validerTraces(){
   const tp=ptsT||pts;
   const triLen=Math.hypot(tp[1].x-tp[2].x,tp[1].y-tp[2].y);
   const tolByType={
-    hauteurs:   {angle:Math.PI/36, dist:0.02},
-    medianes:   {angle:Math.PI/72, dist:0.02},
-    mediatrices:{angle:Math.PI/48, dist:0.04},
-    bisectrices:{angle:Math.PI/36, dist:0.04},
+    hauteurs:   {angle:Math.PI/24, dist:0.05},
+    medianes:   {angle:Math.PI/24, dist:0.05},
+    mediatrices:{angle:Math.PI/24, dist:0.05},
+    bisectrices:{angle:Math.PI/24, dist:0.05},
   };
   tracesActive.forEach(type=>{
     const targets=getTargetAngles(type);
@@ -763,7 +797,7 @@ function validerTraces(){
 }
 
 // Drag des segments — tout en coordonnées monde
-function getWorldPos(e,touch){
+function getWorldPos_unused(e,touch){
   const r=canvasT.getBoundingClientRect(),t=touch||e;
   const cx=(t.clientX-r.left)*(canvas.width/dpr/r.width);
   const cy=(t.clientY-r.top)*(canvas.height/dpr/r.height);
@@ -771,7 +805,7 @@ function getWorldPos(e,touch){
 }
 
 function tracesHit(pos){
-  const tol=10/view.zoom;
+  const tol=22/viewT.zoom;
   for(let si=0;si<tracesSegs.length;si++){
     const s=tracesSegs[si];
     const mx=(s.x1+s.x2)/2,my=(s.y1+s.y2)/2;
@@ -804,6 +838,8 @@ function tracesMoveDir(pos){
 // Menu Tracés — événements UI
 // bouton tracés déplacé dans la page dédiée
 document.getElementById('btn-valider').addEventListener('click',validerTraces);
+// Bloquer zoom sur tous les éléments interactifs de la page tracés
+document.querySelectorAll('#page-traces, #page-traces *').forEach(el=>{el.style.touchAction='none';});
 document.getElementById('btn-corriger').addEventListener('click',()=>{
   tracesCorrection=!tracesCorrection;
   const btn=document.getElementById('btn-corriger');
@@ -822,154 +858,74 @@ document.querySelectorAll('.traces-fam-btn').forEach(btn=>{
   btn.addEventListener('click',()=>{if(tracesMode)toggleTraceFamily(btn.dataset.type);});
 });
 
+// ── Events canvas Tracés (touch + mouse, comme volumes.html) ──
+canvasT.style.touchAction='none';
 let tracesRotate=null;
 
-// Intercepter les événements canvas en mode tracé (capture=true = priorité)
-canvasT.addEventListener('mousedown',e=>{
-  if(!tracesMode)return;
-  e.stopPropagation();e.preventDefault();
-  const pos=getWorldPos(e);
-  if(e.button===2){
-    // Clic droit : rotation du segment le plus proche
-    let best=-1,bestD=Infinity;
-    tracesSegs.forEach((s,si)=>{
-      const d=Math.hypot(pos.x-(s.x1+s.x2)/2,pos.y-(s.y1+s.y2)/2);
-      if(d<bestD){bestD=d;best=si;}
-    });
-    if(best>=0){
-      const s=tracesSegs[best];
-      const mx=(s.x1+s.x2)/2,my=(s.y1+s.y2)/2;
-      tracesRotate={si:best,mx,my,
-        len:Math.hypot(s.x2-s.x1,s.y2-s.y1)/2,
-        startAngle:Math.atan2(s.y2-s.y1,s.x2-s.x1),
-        startMouse:Math.atan2(pos.y-my,pos.x-mx)};
-    }
-  } else {
-    tracesRotate=null;
-    tracesStartDrag(pos);
-  }
-},{capture:true});
-canvasT.addEventListener('contextmenu',e=>{if(tracesMode)e.preventDefault();},{capture:true});
-canvasT.addEventListener('mousemove',e=>{
-  if(!tracesMode)return;
-  e.stopPropagation();
-  const pos=getWorldPos(e);
-  if(tracesRotate){
-    const a=Math.atan2(pos.y-tracesRotate.my,pos.x-tracesRotate.mx);
-    const da=a-tracesRotate.startMouse;
-    const na=tracesRotate.startAngle+da;
-    const s=tracesSegs[tracesRotate.si];
-    s.x1=tracesRotate.mx-Math.cos(na)*tracesRotate.len;
-    s.y1=tracesRotate.my-Math.sin(na)*tracesRotate.len;
-    s.x2=tracesRotate.mx+Math.cos(na)*tracesRotate.len;
-    s.y2=tracesRotate.my+Math.sin(na)*tracesRotate.len;
-    s.result=null;drawTraces();
-    canvasT.style.cursor='alias';
-  } else if(tracesDrag){
-    tracesMoveDir(pos);
-    canvasT.style.cursor='grabbing';
-  } else {
-    canvasT.style.cursor=tracesHit(pos)?'grab':'crosshair';
-  }
-},{capture:true});
-canvasT.addEventListener('mouseup',e=>{
-  if(tracesMode){e.stopPropagation();tracesDrag=null;tracesRotate=null;canvasT.style.cursor='crosshair';}
-},{capture:true});
-let tracesPinch=null; // {si, startAngle, sx1,sy1,sx2,sy2, mx,my}
-
-let tracesPanStart=null;
-let tracesZoomStart=null;
-
-function getCanvasPos2(e,touch){
-  const r=canvasT.getBoundingClientRect(),t=touch||e;
+function getWP(e){
+  const t=e.touches?e.touches[0]:e;
+  const r=canvasT.getBoundingClientRect();
+  const cx=(t.clientX-r.left)*(canvasT.width/dpr/r.width);
+  const cy=(t.clientY-r.top)*(canvasT.height/dpr/r.height);
+  return{x:(cx-viewT.panX)/viewT.zoom,y:(cy-viewT.panY)/viewT.zoom};
+}
+function getCP2(e){
+  const t=e.touches?e.touches[0]:e;
+  const r=canvasT.getBoundingClientRect();
   return{x:(t.clientX-r.left)*(canvasT.width/dpr/r.width),y:(t.clientY-r.top)*(canvasT.height/dpr/r.height)};
 }
 
-canvasT.addEventListener('touchstart',e=>{
-  if(!tracesMode)return;
-  e.preventDefault();e.stopPropagation();
-  if(e.touches.length===2){
-    tracesDrag=null;
-    // Vérifier si le centre des 2 doigts est proche d'un segment
-    const t0=getWorldPos(e,e.touches[0]),t1=getWorldPos(e,e.touches[1]);
-    const midW={x:(t0.x+t1.x)/2,y:(t0.y+t1.y)/2};
+// Touch start — listeners nommés pour pouvoir les retirer
+function _tStart(e){if(e.cancelable)e.preventDefault();tracesDrag=null;tracesRotate=null;if(e.touches.length===2){const t0=getWP({touches:e.touches}),t1=getWP({touches:[e.touches[1]]});const r=canvasT.getBoundingClientRect();const cp0={x:(e.touches[0].clientX-r.left)*(canvasT.width/dpr/r.width),y:(e.touches[0].clientY-r.top)*(canvasT.height/dpr/r.height)};const cp1={x:(e.touches[1].clientX-r.left)*(canvasT.width/dpr/r.width),y:(e.touches[1].clientY-r.top)*(canvasT.height/dpr/r.height)};const midW={x:(t0.x+t1.x)/2,y:(t0.y+t1.y)/2};let best=-1,bestD=Infinity;tracesSegs.forEach((s,si)=>{const d=Math.hypot(midW.x-(s.x1+s.x2)/2,midW.y-(s.y1+s.y2)/2);if(d<bestD){bestD=d;best=si;}});if(best>=0){const s=tracesSegs[best];tracesPinchState={si:best,mode:'rotate',startAngle:Math.atan2(cp1.y-cp0.y,cp1.x-cp0.x),sx1:s.x1,sy1:s.y1,sx2:s.x2,sy2:s.y2,mx:(s.x1+s.x2)/2,my:(s.y1+s.y2)/2};}else{tracesPinchState=null;}}else{tracesPinchState=null;tracesStartDrag(getWP(e));}}
+function _tMove(e){if(e.cancelable)e.preventDefault();if(e.touches.length===2&&tracesPinchState&&tracesPinchState.mode==='rotate'){const r=canvasT.getBoundingClientRect();const cp0={x:(e.touches[0].clientX-r.left)*(canvasT.width/dpr/r.width),y:(e.touches[0].clientY-r.top)*(canvasT.height/dpr/r.height)};const cp1={x:(e.touches[1].clientX-r.left)*(canvasT.width/dpr/r.width),y:(e.touches[1].clientY-r.top)*(canvasT.height/dpr/r.height)};const angle=Math.atan2(cp1.y-cp0.y,cp1.x-cp0.x);const da=angle-tracesPinchState.startAngle;const s=tracesSegs[tracesPinchState.si];const len=Math.hypot(tracesPinchState.sx2-tracesPinchState.sx1,tracesPinchState.sy2-tracesPinchState.sy1)/2;const na=Math.atan2(tracesPinchState.sy2-tracesPinchState.sy1,tracesPinchState.sx2-tracesPinchState.sx1)+da;s.x1=tracesPinchState.mx-Math.cos(na)*len;s.y1=tracesPinchState.my-Math.sin(na)*len;s.x2=tracesPinchState.mx+Math.cos(na)*len;s.y2=tracesPinchState.my+Math.sin(na)*len;s.result=null;drawTraces();}else if(e.touches.length===1){tracesMoveDir(getWP(e));}}
+function _tEnd(e){if(e.cancelable)e.preventDefault();tracesDrag=null;if(e.touches.length<2)tracesPinchState=null;if(e.touches.length===0)tracesRotate=null;}
+
+function attachTracesListeners(){
+  canvasT.addEventListener('touchstart',_tStart,{passive:false});
+  canvasT.addEventListener('touchmove',_tMove,{passive:false});
+  canvasT.addEventListener('touchend',_tEnd,{passive:false});
+}
+function detachTracesListeners(){
+  canvasT.removeEventListener('touchstart',_tStart);
+  canvasT.removeEventListener('touchmove',_tMove);
+  canvasT.removeEventListener('touchend',_tEnd);
+}
+// Pas de listeners au départ — on les ajoute seulement quand la page tracés est active
+
+// Mouse (desktop / clic droit rotation)
+canvasT.addEventListener('mousedown',e=>{
+  e.preventDefault();
+  const pos=getWP(e);
+  if(e.button===2){
     let best=-1,bestD=Infinity;
-    tracesSegs.forEach((s,si)=>{
-      const d=Math.hypot(midW.x-(s.x1+s.x2)/2,midW.y-(s.y1+s.y2)/2);
-      if(d<50/view.zoom&&d<bestD){bestD=d;best=si;}
-    });
+    tracesSegs.forEach((s,si)=>{const d=Math.hypot(pos.x-(s.x1+s.x2)/2,pos.y-(s.y1+s.y2)/2);if(d<bestD){bestD=d;best=si;}});
     if(best>=0){
-      // Rotation du segment
-      const s=tracesSegs[best];
-      tracesPinch={si:best,startAngle:Math.atan2(t1.y-t0.y,t1.x-t0.x),
-        sx1:s.x1,sy1:s.y1,sx2:s.x2,sy2:s.y2,
-        mx:(s.x1+s.x2)/2,my:(s.y1+s.y2)/2};
-      tracesZoomStart=null;tracesPanStart=null;
-    } else {
-      // Zoom/pan
-      tracesPinch=null;
-      const cp0=getCanvasPos2(e,e.touches[0]),cp1=getCanvasPos2(e,e.touches[1]);
-      tracesZoomStart={dist:Math.hypot(cp1.x-cp0.x,cp1.y-cp0.y),
-        px:(cp0.x+cp1.x)/2,py:(cp0.y+cp1.y)/2,
-        startZoom:view.zoom,startPanX:view.panX,startPanY:view.panY};
+      const s=tracesSegs[best];const mx=(s.x1+s.x2)/2,my=(s.y1+s.y2)/2;
+      tracesRotate={si:best,mx,my,len:Math.hypot(s.x2-s.x1,s.y2-s.y1)/2,
+        startAngle:Math.atan2(s.y2-s.y1,s.x2-s.x1),startMouse:Math.atan2(pos.y-my,pos.x-mx)};
     }
-  } else {
-    tracesPinch=null;tracesZoomStart=null;
-    const pos=getWorldPos(e,e.touches[0]);
-    if(!tracesStartDrag(pos)){
-      // Pan si aucun segment touché
-      tracesPanStart={cp:getCanvasPos2(e,e.touches[0]),panX:view.panX,panY:view.panY};
-    }
-  }
-},{capture:true,passive:false});
+  } else {tracesStartDrag(pos);}
+});
+canvasT.addEventListener('mousemove',e=>{
+  const pos=getWP(e);
+  if(tracesRotate){
+    const a=Math.atan2(pos.y-tracesRotate.my,pos.x-tracesRotate.mx);
+    const na=tracesRotate.startAngle+(a-tracesRotate.startMouse);
+    const s=tracesSegs[tracesRotate.si];
+    s.x1=tracesRotate.mx-Math.cos(na)*tracesRotate.len;s.y1=tracesRotate.my-Math.sin(na)*tracesRotate.len;
+    s.x2=tracesRotate.mx+Math.cos(na)*tracesRotate.len;s.y2=tracesRotate.my+Math.sin(na)*tracesRotate.len;
+    s.result=null;drawTraces();canvasT.style.cursor='alias';
+  } else if(tracesDrag){tracesMoveDir(pos);canvasT.style.cursor='grabbing';}
+  else{canvasT.style.cursor=tracesHit(pos)?'grab':'crosshair';}
+});
+canvasT.addEventListener('mouseup',()=>{tracesDrag=null;tracesRotate=null;canvasT.style.cursor='crosshair';});
+canvasT.addEventListener('contextmenu',e=>e.preventDefault());
+let tracesPinchState=null;
 
-canvasT.addEventListener('touchmove',e=>{
-  if(!tracesMode)return;
-  e.preventDefault();e.stopPropagation();
-  if(e.touches.length===2&&tracesPinch){
-    // Rotation segment
-    const t0=getWorldPos(e,e.touches[0]),t1=getWorldPos(e,e.touches[1]);
-    const angle=Math.atan2(t1.y-t0.y,t1.x-t0.x);
-    const da=angle-tracesPinch.startAngle;
-    const s=tracesSegs[tracesPinch.si];
-    const len=Math.hypot(tracesPinch.sx2-tracesPinch.sx1,tracesPinch.sy2-tracesPinch.sy1)/2;
-    const na=Math.atan2(tracesPinch.sy2-tracesPinch.sy1,tracesPinch.sx2-tracesPinch.sx1)+da;
-    s.x1=tracesPinch.mx-Math.cos(na)*len;s.y1=tracesPinch.my-Math.sin(na)*len;
-    s.x2=tracesPinch.mx+Math.cos(na)*len;s.y2=tracesPinch.my+Math.sin(na)*len;
-    s.result=null;drawTraces();
-  } else if(e.touches.length===2&&tracesZoomStart){
-    // Zoom/pan
-    const cp0=getCanvasPos2(e,e.touches[0]),cp1=getCanvasPos2(e,e.touches[1]);
-    const dist=Math.hypot(cp1.x-cp0.x,cp1.y-cp0.y);
-    const f=dist/tracesZoomStart.dist;
-    const nz=Math.min(Math.max(tracesZoomStart.startZoom*f,0.1),10);
-    const px=(cp0.x+cp1.x)/2,py=(cp0.y+cp1.y)/2;
-    view.zoom=nz;
-    view.panX=px-(tracesZoomStart.px-tracesZoomStart.startPanX)*nz/tracesZoomStart.startZoom;
-    view.panY=py-(tracesZoomStart.py-tracesZoomStart.startPanY)*nz/tracesZoomStart.startZoom;
-    drawTraces();
-  } else if(e.touches.length===1){
-    if(tracesDrag){
-      tracesMoveDir(getWorldPos(e,e.touches[0]));
-    } else if(tracesPanStart){
-      const cp=getCanvasPos2(e,e.touches[0]);
-      view.panX=tracesPanStart.panX+(cp.x-tracesPanStart.cp.x);
-      view.panY=tracesPanStart.panY+(cp.y-tracesPanStart.cp.y);
-      drawTraces();
-    }
-  }
-},{capture:true,passive:false});
-
-canvasT.addEventListener('touchend',e=>{
-  if(tracesMode){
-    e.stopPropagation();
-    if(e.touches.length===0){tracesDrag=null;tracesPinch=null;tracesZoomStart=null;tracesPanStart=null;}
-    else if(e.touches.length<2){tracesPinch=null;tracesZoomStart=null;}
-  }
-},{capture:true});
 let firstResize=true;
 function resize(){const wrap=document.getElementById('canvas-wrap');const cw=wrap.clientWidth,ch=wrap.clientHeight;if(cw<1||ch<1)return;const oldW=W,oldH=H;W=cw;H=ch;canvas.width=Math.round(W*dpr);canvas.height=Math.round(H*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);if(firstResize){pts=defaultPts();view=defaultView();firstResize=false;}else if(oldW>0&&oldH>0){const sx=W/oldW,sy=H/oldH;pts=pts.map(p=>({...p,x:p.x*sx,y:p.y*sy}));view.panX*=sx;view.panY*=sy;}updateBtns();draw();}
 window.addEventListener('resize',resize);
+// Zoom bloqué uniquement par touch-action:none sur les canvas (comme volumes.html)
 requestAnimationFrame(()=>requestAnimationFrame(resize));
 document.querySelectorAll('.btn-info').forEach(btn=>{
   const tip=btn.querySelector('.tip');
@@ -1236,7 +1192,7 @@ function buildDrag(){
     dragState[qi]={x1:8,y1:12,x2:70,y2:12};
     const card=document.createElement('div');card.className='place-card';card.id=`place-${qi}`;
     const wrap=document.createElement('div');wrap.className='place-canvas-wrap';wrap.style.cssText=`width:100%;height:${CH}px;display:flex;justify-content:center;align-items:center;`;
-    const pc=document.createElement('canvas');pc.id=`dc-${qi}`;pc.width=CW;pc.height=CH;pc.style.cssText=`width:${CW}px;height:${CH}px;display:block;flex-shrink:0;`;
+    const pc=document.createElement('canvas');pc.id=`dc-${qi}`;pc.width=CW;pc.height=CH;pc.style.cssText=`width:${CW}px;height:${CH}px;display:block;flex-shrink:0;touch-action:none;`;
     wrap.appendChild(pc);
     card.innerHTML=`<div class="place-q"><span style="font-size:10px;font-weight:800;color:var(--muted);display:block;margin-bottom:3px;">${offset+qi+1}.</span>${q.q}</div>`;
     card.appendChild(wrap);
@@ -1268,12 +1224,13 @@ function buildDrag(){
       drawDragCanvas(qi);
     }
     function endD(){dragMode=null;}
+    pc.style.touchAction='none';
     pc.addEventListener('mousedown',e=>{startD(getPos(e));});
-    pc.addEventListener('mousemove',e=>{moveD(getPos(e));if(dragMode)e.preventDefault();});
-    pc.addEventListener('mouseup',endD);pc.addEventListener('mouseleave',endD);
-    pc.addEventListener('touchstart',e=>{e.preventDefault();startD(getPos(e,e.touches[0]));},{passive:false});
-    pc.addEventListener('touchmove',e=>{e.preventDefault();moveD(getPos(e,e.touches[0]));},{passive:false});
-    pc.addEventListener('touchend',endD);
+    pc.addEventListener('mousemove',e=>{moveD(getPos(e));});
+    pc.addEventListener('mouseup',endD);
+    pc.addEventListener('touchstart',e=>{if(e.cancelable)e.preventDefault();startD(getPos(e));},{passive:false});
+    pc.addEventListener('touchmove',e=>{if(e.cancelable)e.preventDefault();moveD(getPos(e));},{passive:false});
+    pc.addEventListener('touchend',endD,{passive:false});
   });
 }
 
@@ -1370,6 +1327,7 @@ function resetEx(){
 }
 
 buildExercices();
+
 </script>
 </body>
 </html>
