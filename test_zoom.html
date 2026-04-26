@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Test zoom</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{height:100%;overflow:hidden;touch-action:none;background:#f5f4f0;font-family:'Nunito',sans-serif;}
+  #zone{margin:20px;height:250px;background:#e8f4e8;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:#2d5a2d;border:2px solid #3B6D11;border-radius:12px;touch-action:none;user-select:none;}
+  #log{margin:0 20px;font-size:13px;color:#333;height:200px;overflow-y:auto;background:#fff;border:1px solid #ddd;border-radius:8px;padding:8px;}
+  h2{padding:20px 20px 8px;font-size:15px;color:#444;}
+</style>
+</head>
+<body>
+<div id="zone">Pinch ici avec 2 doigts</div>
+<h2>Log :</h2>
+<div id="log">En attente...</div>
+<script>
+const log=document.getElementById('log');
+function L(msg){
+  const d=document.createElement('div');
+  d.textContent=new Date().toLocaleTimeString()+' — '+msg;
+  log.prepend(d);
+}
+
+document.addEventListener('touchstart',e=>{
+  L('touchstart touches='+e.touches.length+(e.touches.length>1?' → preventDefault':''));
+  if(e.touches.length>1)e.preventDefault();
+},{passive:false});
+
+document.addEventListener('touchmove',e=>{
+  if(e.touches.length>1){e.preventDefault();L('touchmove bloqué');}
+},{passive:false});
+
+document.addEventListener('gesturestart',e=>{e.preventDefault();L('gesturestart bloqué');},{passive:false});
+document.addEventListener('gesturechange',e=>{e.preventDefault();L('gesturechange');},{passive:false});
+document.addEventListener('wheel',e=>{if(e.ctrlKey){e.preventDefault();L('wheel+ctrl bloqué');}},{passive:false});
+
+const zone=document.getElementById('zone');
+const ptrs={};
+zone.addEventListener('pointerdown',e=>{
+  e.preventDefault();zone.setPointerCapture(e.pointerId);
+  ptrs[e.pointerId]=1;
+  L('pointerdown id='+e.pointerId+' total='+Object.keys(ptrs).length+' type='+e.pointerType);
+},{passive:false});
+zone.addEventListener('pointermove',e=>{
+  ptrs[e.pointerId]=1;
+  if(Object.keys(ptrs).length>=2)L('pointermove 2 ptrs actifs');
+},{passive:false});
+zone.addEventListener('pointerup',e=>{delete ptrs[e.pointerId];L('pointerup');});
+zone.addEventListener('pointercancel',e=>{delete ptrs[e.pointerId];L('pointercancel');});
+
+if(window.visualViewport){
+  window.visualViewport.addEventListener('resize',()=>{
+    L('⚠️ visualViewport scale='+window.visualViewport.scale.toFixed(3));
+  });
+  window.visualViewport.addEventListener('scroll',()=>{
+    L('visualViewport scroll');
+  });
+}
+L('Prêt — visualViewport '+(window.visualViewport?'disponible':'NON disponible'));
+</script>
+</body>
+</html>
