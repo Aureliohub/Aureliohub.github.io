@@ -846,123 +846,103 @@ document.querySelectorAll('.traces-fam-btn').forEach(btn=>{
   btn.addEventListener('click',()=>{if(tracesMode)toggleTraceFamily(btn.dataset.type);});
 });
 
-// ── Pointer Events unifiés — canvas Tracés ──
+// ── Events canvas Tracés (touch + mouse, comme volumes.html) ──
 canvasT.style.touchAction='none';
 let tracesRotate=null;
-const tracesPtrs={};
-let tracesPinchState=null;
 
 function getWP(e){
+  const t=e.touches?e.touches[0]:e;
   const r=canvasT.getBoundingClientRect();
-  const cx=(e.clientX-r.left)*(canvasT.width/dpr/r.width);
-  const cy=(e.clientY-r.top)*(canvasT.height/dpr/r.height);
+  const cx=(t.clientX-r.left)*(canvasT.width/dpr/r.width);
+  const cy=(t.clientY-r.top)*(canvasT.height/dpr/r.height);
   return{x:(cx-viewT.panX)/viewT.zoom,y:(cy-viewT.panY)/viewT.zoom};
 }
 function getCP2(e){
+  const t=e.touches?e.touches[0]:e;
   const r=canvasT.getBoundingClientRect();
-  return{x:(e.clientX-r.left)*(canvasT.width/dpr/r.width),y:(e.clientY-r.top)*(canvasT.height/dpr/r.height)};
+  return{x:(t.clientX-r.left)*(canvasT.width/dpr/r.width),y:(t.clientY-r.top)*(canvasT.height/dpr/r.height)};
 }
 
-canvasT.addEventListener('pointerdown',e=>{
-  if(!tracesMode)return;
-  e.preventDefault();canvasT.setPointerCapture(e.pointerId);
-  tracesPtrs[e.pointerId]=e;
-  const ids=Object.keys(tracesPtrs);
-  if(ids.length===2){
-    // Deux pointeurs
-    tracesDrag=null;tracesPanState=null;tracesRotate=null;
-    const e0=tracesPtrs[ids[0]],e1=tracesPtrs[ids[1]];
-    const w0=getWP(e0),w1=getWP(e1);
-    const midW={x:(w0.x+w1.x)/2,y:(w0.y+w1.y)/2};
+// Touch start — bloquer le zoom dès le 1er doigt
+canvasT.addEventListener('touchstart',e=>{
+  if(e.cancelable)e.preventDefault();
+  tracesDrag=null;tracesRotate=null;
+  if(e.touches.length===2){
+    // 2 doigts : rotation du segment le plus proche
+    const t0=getWP({touches:e.touches}),t1=getWP({touches:[e.touches[1]]});
+    const r=canvasT.getBoundingClientRect();
+    const cp0={x:(e.touches[0].clientX-r.left)*(canvasT.width/dpr/r.width),y:(e.touches[0].clientY-r.top)*(canvasT.height/dpr/r.height)};
+    const cp1={x:(e.touches[1].clientX-r.left)*(canvasT.width/dpr/r.width),y:(e.touches[1].clientY-r.top)*(canvasT.height/dpr/r.height)};
+    const midW={x:(t0.x+t1.x)/2,y:(t0.y+t1.y)/2};
     let best=-1,bestD=Infinity;
-    tracesSegs.forEach((s,si)=>{
-      const d=Math.hypot(midW.x-(s.x1+s.x2)/2,midW.y-(s.y1+s.y2)/2);
-      if(d<50/viewT.zoom&&d<bestD){bestD=d;best=si;}
-    });
+    tracesSegs.forEach((s,si)=>{const d=Math.hypot(midW.x-(s.x1+s.x2)/2,midW.y-(s.y1+s.y2)/2);if(d<bestD){bestD=d;best=si;}});
     if(best>=0){
       const s=tracesSegs[best];
-      const cp0=getCP2(e0),cp1=getCP2(e1);
-      tracesPinchState={si:best,startAngle:Math.atan2(cp1.y-cp0.y,cp1.x-cp0.x),
-        sx1:s.x1,sy1:s.y1,sx2:s.x2,sy2:s.y2,mx:(s.x1+s.x2)/2,my:(s.y1+s.y2)/2,mode:'rotate'};
-    } else {
-      tracesPinchState=null; // pas de zoom sur la page tracés
-    }
-  } else if(ids.length===1){
+      tracesPinchState={si:best,mode:'rotate',
+        startAngle:Math.atan2(cp1.y-cp0.y,cp1.x-cp0.x),
+        sx1:s.x1,sy1:s.y1,sx2:s.x2,sy2:s.y2,mx:(s.x1+s.x2)/2,my:(s.y1+s.y2)/2};
+    } else {tracesPinchState=null;}
+  } else {
     tracesPinchState=null;
-    const pos=getWP(e);
-    if(e.button===2){
-      // Clic droit : rotation
-      let best=-1,bestD=Infinity;
-      tracesSegs.forEach((s,si)=>{
-        const d=Math.hypot(pos.x-(s.x1+s.x2)/2,pos.y-(s.y1+s.y2)/2);
-        if(d<bestD){bestD=d;best=si;}
-      });
-      if(best>=0){
-        const s=tracesSegs[best];const mx=(s.x1+s.x2)/2,my=(s.y1+s.y2)/2;
-        tracesRotate={si:best,mx,my,len:Math.hypot(s.x2-s.x1,s.y2-s.y1)/2,
-          startAngle:Math.atan2(s.y2-s.y1,s.x2-s.x1),startMouse:Math.atan2(pos.y-my,pos.x-mx)};
-      }
-    } else {
-      tracesStartDrag(pos);
-    }
+    tracesStartDrag(getWP(e));
   }
 },{passive:false});
 
-canvasT.addEventListener('pointermove',e=>{
-  if(!tracesMode)return;
+canvasT.addEventListener('touchmove',e=>{
+  if(e.cancelable)e.preventDefault();
+  if(e.touches.length===2&&tracesPinchState&&tracesPinchState.mode==='rotate'){
+    const r=canvasT.getBoundingClientRect();
+    const cp0={x:(e.touches[0].clientX-r.left)*(canvasT.width/dpr/r.width),y:(e.touches[0].clientY-r.top)*(canvasT.height/dpr/r.height)};
+    const cp1={x:(e.touches[1].clientX-r.left)*(canvasT.width/dpr/r.width),y:(e.touches[1].clientY-r.top)*(canvasT.height/dpr/r.height)};
+    const angle=Math.atan2(cp1.y-cp0.y,cp1.x-cp0.x);
+    const da=angle-tracesPinchState.startAngle;
+    const s=tracesSegs[tracesPinchState.si];
+    const len=Math.hypot(tracesPinchState.sx2-tracesPinchState.sx1,tracesPinchState.sy2-tracesPinchState.sy1)/2;
+    const na=Math.atan2(tracesPinchState.sy2-tracesPinchState.sy1,tracesPinchState.sx2-tracesPinchState.sx1)+da;
+    s.x1=tracesPinchState.mx-Math.cos(na)*len;s.y1=tracesPinchState.my-Math.sin(na)*len;
+    s.x2=tracesPinchState.mx+Math.cos(na)*len;s.y2=tracesPinchState.my+Math.sin(na)*len;
+    s.result=null;drawTraces();
+  } else if(e.touches.length===1){
+    tracesMoveDir(getWP(e));
+  }
+},{passive:false});
+
+canvasT.addEventListener('touchend',e=>{
+  if(e.cancelable)e.preventDefault();
+  tracesDrag=null;
+  if(e.touches.length<2)tracesPinchState=null;
+  if(e.touches.length===0)tracesRotate=null;
+},{passive:false});
+
+// Mouse (desktop / clic droit rotation)
+canvasT.addEventListener('mousedown',e=>{
   e.preventDefault();
-  tracesPtrs[e.pointerId]=e;
-  const ids=Object.keys(tracesPtrs);
-  if(ids.length>=2&&tracesPinchState){
-    const e0=tracesPtrs[ids[0]],e1=tracesPtrs[ids[1]];
-    if(tracesPinchState.mode==='rotate'){
-      const cp0=getCP2(e0),cp1=getCP2(e1);
-      const angle=Math.atan2(cp1.y-cp0.y,cp1.x-cp0.x);
-      const da=angle-tracesPinchState.startAngle;
-      const s=tracesSegs[tracesPinchState.si];
-      const len=Math.hypot(tracesPinchState.sx2-tracesPinchState.sx1,tracesPinchState.sy2-tracesPinchState.sy1)/2;
-      const na=Math.atan2(tracesPinchState.sy2-tracesPinchState.sy1,tracesPinchState.sx2-tracesPinchState.sx1)+da;
-      s.x1=tracesPinchState.mx-Math.cos(na)*len;s.y1=tracesPinchState.my-Math.sin(na)*len;
-      s.x2=tracesPinchState.mx+Math.cos(na)*len;s.y2=tracesPinchState.my+Math.sin(na)*len;
-      s.result=null;drawTraces();
-    } else {
-      const cp0=getCP2(e0),cp1=getCP2(e1);
-      const dist=Math.hypot(cp1.x-cp0.x,cp1.y-cp0.y);
-      const f=dist/tracesPinchState.dist;
-      const nz=Math.min(Math.max(tracesPinchState.startZoom*f,0.1),10);
-      const px=(cp0.x+cp1.x)/2,py=(cp0.y+cp1.y)/2;
-      view.zoom=nz;
-      view.panX=px-(tracesPinchState.px-tracesPinchState.startPanX)*nz/tracesPinchState.startZoom;
-      view.panY=py-(tracesPinchState.py-tracesPinchState.startPanY)*nz/tracesPinchState.startZoom;
-      drawTraces();
+  const pos=getWP(e);
+  if(e.button===2){
+    let best=-1,bestD=Infinity;
+    tracesSegs.forEach((s,si)=>{const d=Math.hypot(pos.x-(s.x1+s.x2)/2,pos.y-(s.y1+s.y2)/2);if(d<bestD){bestD=d;best=si;}});
+    if(best>=0){
+      const s=tracesSegs[best];const mx=(s.x1+s.x2)/2,my=(s.y1+s.y2)/2;
+      tracesRotate={si:best,mx,my,len:Math.hypot(s.x2-s.x1,s.y2-s.y1)/2,
+        startAngle:Math.atan2(s.y2-s.y1,s.x2-s.x1),startMouse:Math.atan2(pos.y-my,pos.x-mx)};
     }
-  } else if(ids.length===1){
-    const pos=getWP(e);
-    if(tracesRotate){
-      const a=Math.atan2(pos.y-tracesRotate.my,pos.x-tracesRotate.mx);
-      const na=tracesRotate.startAngle+(a-tracesRotate.startMouse);
-      const s=tracesSegs[tracesRotate.si];
-      s.x1=tracesRotate.mx-Math.cos(na)*tracesRotate.len;s.y1=tracesRotate.my-Math.sin(na)*tracesRotate.len;
-      s.x2=tracesRotate.mx+Math.cos(na)*tracesRotate.len;s.y2=tracesRotate.my+Math.sin(na)*tracesRotate.len;
-      s.result=null;drawTraces();canvasT.style.cursor='alias';
-    } else if(tracesDrag){
-      tracesMoveDir(pos);canvasT.style.cursor='grabbing';
-    } else {
-      canvasT.style.cursor=tracesHit(pos)?'grab':'crosshair';
-    }
-  }
-},{passive:false});
-
-canvasT.addEventListener('pointerup',e=>{
-  if(!tracesMode)return;
-  delete tracesPtrs[e.pointerId];
-  const n=Object.keys(tracesPtrs).length;
-  if(n<2){tracesPinchState=null;}
-  if(n===0){tracesDrag=null;tracesRotate=null;canvasT.style.cursor='crosshair';}
+  } else {tracesStartDrag(pos);}
 });
-canvasT.addEventListener('pointercancel',e=>{delete tracesPtrs[e.pointerId];});
-canvasT.addEventListener('contextmenu',e=>{if(tracesMode)e.preventDefault();});
-
+canvasT.addEventListener('mousemove',e=>{
+  const pos=getWP(e);
+  if(tracesRotate){
+    const a=Math.atan2(pos.y-tracesRotate.my,pos.x-tracesRotate.mx);
+    const na=tracesRotate.startAngle+(a-tracesRotate.startMouse);
+    const s=tracesSegs[tracesRotate.si];
+    s.x1=tracesRotate.mx-Math.cos(na)*tracesRotate.len;s.y1=tracesRotate.my-Math.sin(na)*tracesRotate.len;
+    s.x2=tracesRotate.mx+Math.cos(na)*tracesRotate.len;s.y2=tracesRotate.my+Math.sin(na)*tracesRotate.len;
+    s.result=null;drawTraces();canvasT.style.cursor='alias';
+  } else if(tracesDrag){tracesMoveDir(pos);canvasT.style.cursor='grabbing';}
+  else{canvasT.style.cursor=tracesHit(pos)?'grab':'crosshair';}
+});
+canvasT.addEventListener('mouseup',()=>{tracesDrag=null;tracesRotate=null;canvasT.style.cursor='crosshair';});
+canvasT.addEventListener('contextmenu',e=>e.preventDefault());
+let tracesPinchState=null;
 
 let firstResize=true;
 function resize(){const wrap=document.getElementById('canvas-wrap');const cw=wrap.clientWidth,ch=wrap.clientHeight;if(cw<1||ch<1)return;const oldW=W,oldH=H;W=cw;H=ch;canvas.width=Math.round(W*dpr);canvas.height=Math.round(H*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);if(firstResize){pts=defaultPts();view=defaultView();firstResize=false;}else if(oldW>0&&oldH>0){const sx=W/oldW,sy=H/oldH;pts=pts.map(p=>({...p,x:p.x*sx,y:p.y*sy}));view.panX*=sx;view.panY*=sy;}updateBtns();draw();}
