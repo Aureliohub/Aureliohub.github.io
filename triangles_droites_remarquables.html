@@ -351,15 +351,15 @@ function drawTraces(){
   const T=getT();
   const margin=200;
   ctxT.save();ctxT.clearRect(-margin,0,WT+margin,HT);ctxT.beginPath();ctxT.rect(-margin,0,WT+margin,HT);ctxT.clip();
-  ctxT.translate(view.panX,view.panY);ctxT.scale(view.zoom,view.zoom);
+  ctxT.translate(viewT.panX,viewT.panY);ctxT.scale(viewT.zoom,viewT.zoom);
   const[A,B,Cv]=ptsT;
   ctxT.save();ctxT.beginPath();ctxT.moveTo(A.x,A.y);ctxT.lineTo(B.x,B.y);ctxT.lineTo(Cv.x,Cv.y);ctxT.closePath();ctxT.fillStyle=T.triF;ctxT.fill();ctxT.restore();
-  ctxT.save();ctxT.beginPath();ctxT.moveTo(A.x,A.y);ctxT.lineTo(B.x,B.y);ctxT.lineTo(Cv.x,Cv.y);ctxT.closePath();ctxT.strokeStyle=T.triS;ctxT.lineWidth=2.5/view.zoom;ctxT.setLineDash([]);ctxT.stroke();ctxT.restore();
+  ctxT.save();ctxT.beginPath();ctxT.moveTo(A.x,A.y);ctxT.lineTo(B.x,B.y);ctxT.lineTo(Cv.x,Cv.y);ctxT.closePath();ctxT.strokeStyle=T.triS;ctxT.lineWidth=2.5/viewT.zoom;ctxT.setLineDash([]);ctxT.stroke();ctxT.restore();
   const G0={x:(A.x+B.x+Cv.x)/3,y:(A.y+B.y+Cv.y)/3};
-  ptsT.forEach(p=>{const r=9/view.zoom;ctxT.save();ctxT.fillStyle=T.vxF;ctxT.strokeStyle=T.vxS;ctxT.lineWidth=2/view.zoom;ctxT.beginPath();ctxT.arc(p.x,p.y,r,0,2*Math.PI);ctxT.fill();ctxT.stroke();ctxT.restore();const off=norm(sub(p,G0));ctxT.save();ctxT.fillStyle=T.vxT;ctxT.font=`700 ${14/view.zoom}px 'Nunito',sans-serif`;ctxT.textAlign='center';ctxT.textBaseline='middle';ctxT.fillText(p.label,p.x+off.x*22/view.zoom,p.y+off.y*22/view.zoom);ctxT.restore();});
+  ptsT.forEach(p=>{const r=9/viewT.zoom;ctxT.save();ctxT.fillStyle=T.vxF;ctxT.strokeStyle=T.vxS;ctxT.lineWidth=2/viewT.zoom;ctxT.beginPath();ctxT.arc(p.x,p.y,r,0,2*Math.PI);ctxT.fill();ctxT.stroke();ctxT.restore();const off=norm(sub(p,G0));ctxT.save();ctxT.fillStyle=T.vxT;ctxT.font=`700 ${14/viewT.zoom}px 'Nunito',sans-serif`;ctxT.textAlign='center';ctxT.textBaseline='middle';ctxT.fillText(p.label,p.x+off.x*22/viewT.zoom,p.y+off.y*22/viewT.zoom);ctxT.restore();});
   // Segments tracés
   if(tracesSegs.length){
-    const z2=view.zoom;
+    const z2=viewT.zoom;
     tracesSegs.forEach(s=>{
       const famCol=s.color; // toujours la couleur de famille
       const valCol=s.result==='ok'?'#22C55E':s.result==='ko'?'#EF4444':null;
@@ -390,7 +390,7 @@ function drawTraces(){
     tracesActive.forEach(type=>{
       const targets=getTargetAngles(type);
       const col=tracesColors[type].line;
-      const z2=view.zoom;
+      const z2=viewT.zoom;
       ctxT.save();ctxT.globalAlpha=0.45;ctxT.strokeStyle=col;ctxT.lineWidth=2/z2;ctxT.setLineDash([8/z2,5/z2]);
       targets.forEach(t=>{
         ctxT.beginPath();ctxT.moveTo(t.p1.x,t.p1.y);ctxT.lineTo(t.p2.x,t.p2.y);ctxT.stroke();
@@ -419,6 +419,7 @@ function isDark(){return window.matchMedia('(prefers-color-scheme: dark)').match
 function getT(){const d=isDark();return{triF:d?'rgba(200,200,200,0.06)':'rgba(136,135,128,0.07)',triS:d?'#e0e0e0':'#1a1a1a',vxF:'#ffffff',vxS:'#1a1a1a',vxT:'#1a1a1a',gray:d?'#888':'#888780'};}
 
 let view=defaultView();
+const viewT={panX:0,panY:0,zoom:1}; // vue fixe pour les tracés — pas de zoom
 const CS={hauteurs:{line:'#7bc950',fill:'#3B6D11',dL:'#8dde5a',dF:'#5a9e1f'},mediatrices:{line:'#f08050',fill:'#993C1D',dL:'#ff9966',dF:'#c04d28'},bisectrices:{line:'#5aabf5',fill:'#185FA5',dL:'#74bbff',dF:'#2278cc'},medianes:{line:'#a898ee',fill:'#534AB7',dL:'#bbb0ff',dF:'#6e64d0'}};
 function C(k){const d=isDark();return{line:d?CS[k].dL:CS[k].line,fill:d?CS[k].dF:CS[k].fill};}
 const btns={hauteurs:document.getElementById('btn-hauteurs'),mediatrices:document.getElementById('btn-mediatrices'),bisectrices:document.getElementById('btn-bisectrices'),medianes:document.getElementById('btn-medianes')};
@@ -785,7 +786,7 @@ function validerTraces(){
 }
 
 // Drag des segments — tout en coordonnées monde
-function getWorldPos(e,touch){
+function getWorldPos_unused(e,touch){
   const r=canvasT.getBoundingClientRect(),t=touch||e;
   const cx=(t.clientX-r.left)*(canvas.width/dpr/r.width);
   const cy=(t.clientY-r.top)*(canvas.height/dpr/r.height);
@@ -793,7 +794,7 @@ function getWorldPos(e,touch){
 }
 
 function tracesHit(pos){
-  const tol=10/view.zoom;
+  const tol=10/viewT.zoom;
   for(let si=0;si<tracesSegs.length;si++){
     const s=tracesSegs[si];
     const mx=(s.x1+s.x2)/2,my=(s.y1+s.y2)/2;
@@ -854,7 +855,7 @@ function getWP(e){
   const r=canvasT.getBoundingClientRect();
   const cx=(e.clientX-r.left)*(canvasT.width/dpr/r.width);
   const cy=(e.clientY-r.top)*(canvasT.height/dpr/r.height);
-  return{x:(cx-view.panX)/view.zoom,y:(cy-view.panY)/view.zoom};
+  return{x:(cx-viewT.panX)/viewT.zoom,y:(cy-viewT.panY)/viewT.zoom};
 }
 function getCP2(e){
   const r=canvasT.getBoundingClientRect();
@@ -875,7 +876,7 @@ canvasT.addEventListener('pointerdown',e=>{
     let best=-1,bestD=Infinity;
     tracesSegs.forEach((s,si)=>{
       const d=Math.hypot(midW.x-(s.x1+s.x2)/2,midW.y-(s.y1+s.y2)/2);
-      if(d<50/view.zoom&&d<bestD){bestD=d;best=si;}
+      if(d<50/viewT.zoom&&d<bestD){bestD=d;best=si;}
     });
     if(best>=0){
       const s=tracesSegs[best];
