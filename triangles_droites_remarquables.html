@@ -114,7 +114,7 @@
   .place-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:.75rem 1rem;display:flex;flex-direction:column;align-items:flex-start;}
   .place-q{font-size:13px;font-weight:700;margin-bottom:.5rem;line-height:1.4;}
   .place-canvas-wrap{position:relative;border-radius:8px;overflow:hidden;background:#FAFAF8;border:1px solid var(--border);cursor:crosshair;}
-  .place-canvas-wrap canvas{display:block;}
+  .place-canvas-wrap canvas{display:block;touch-action:none;}
   .place-feedback{font-size:11.5px;margin-top:.4rem;font-weight:600;display:none;line-height:1.5;}
   .place-feedback.show{display:block;}
   .place-feedback.ok{color:#166534;}
@@ -229,7 +229,7 @@
         </button>
       </div>
     </div>
-    <div id="canvas-wrap"><canvas id="c"></canvas></div>
+    <div id="canvas-wrap"><canvas id="c" style="touch-action:none;"></canvas></div>
     <div id="point-name"></div>
   </div>
 </main>
@@ -252,7 +252,7 @@
         <button id="btn-corriger" style="padding:5px 14px;border-radius:20px;border:1.5px solid var(--border);background:transparent;color:var(--muted);font-family:'Nunito',sans-serif;font-size:12px;font-weight:700;cursor:pointer;">Corriger</button>
       </div>
     </div>
-    <div id="canvas-wrap-traces"><canvas id="c2"></canvas></div>
+    <div id="canvas-wrap-traces"><canvas id="c2" style="touch-action:none;"></canvas></div>
   </div>
 </main>
 
@@ -1221,7 +1221,7 @@ function buildDrag(){
     dragState[qi]={x1:8,y1:12,x2:70,y2:12};
     const card=document.createElement('div');card.className='place-card';card.id=`place-${qi}`;
     const wrap=document.createElement('div');wrap.className='place-canvas-wrap';wrap.style.cssText=`width:100%;height:${CH}px;display:flex;justify-content:center;align-items:center;`;
-    const pc=document.createElement('canvas');pc.id=`dc-${qi}`;pc.width=CW;pc.height=CH;pc.style.cssText=`width:${CW}px;height:${CH}px;display:block;flex-shrink:0;`;
+    const pc=document.createElement('canvas');pc.id=`dc-${qi}`;pc.width=CW;pc.height=CH;pc.style.cssText=`width:${CW}px;height:${CH}px;display:block;flex-shrink:0;touch-action:none;`;
     wrap.appendChild(pc);
     card.innerHTML=`<div class="place-q"><span style="font-size:10px;font-weight:800;color:var(--muted);display:block;margin-bottom:3px;">${offset+qi+1}.</span>${q.q}</div>`;
     card.appendChild(wrap);
