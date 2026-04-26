@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Test zoom 3</title>
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  html,body{height:100%;height:100dvh;overflow:hidden;}
+  body{font-family:sans-serif;background:#F7F6F2;display:flex;flex-direction:column;}
+  header{background:#fff;border-bottom:1px solid #ddd;padding:.5rem 1rem;display:flex;align-items:center;gap:8px;flex-shrink:0;}
+  /* Barre de contrôles AU-DESSUS du canvas — comme notre page tracés */
+  #controls{background:#fff;border-bottom:1px solid #ddd;padding:.4rem .8rem;display:flex;align-items:center;gap:8px;flex-shrink:0;}
+  button{padding:5px 14px;border-radius:20px;border:1px solid #ddd;background:transparent;font-size:12px;font-weight:700;cursor:pointer;}
+  #canvas-wrap{flex:1;position:relative;min-height:0;}
+  #cv{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:crosshair;}
+  #log{position:absolute;bottom:8px;left:8px;right:8px;background:rgba(255,255,255,0.9);border-radius:8px;padding:8px;font-size:11px;max-height:120px;overflow-y:auto;}
+</style>
+</head>
+<body>
+<header>▷ Test zoom — barre + canvas</header>
+<div id="controls">
+  <span style="font-size:12px;font-weight:700;color:#888;">Tracés :</span>
+  <button>Hauteurs</button>
+  <button>Médiatrices</button>
+  <button>Bissectrices</button>
+  <button>Médianes</button>
+  <button style="background:#2D6BE4;color:#fff;border-color:#2D6BE4;">Valider</button>
+</div>
+<div id="canvas-wrap">
+  <canvas id="cv"></canvas>
+  <div id="log">En attente de gestes...</div>
+</div>
+<script>
+const cv=document.getElementById('cv');
+const ctx=cv.getContext('2d');
+const log=document.getElementById('log');
+function L(m){const d=document.createElement('div');d.textContent=new Date().toLocaleTimeString()+' '+m;log.prepend(d);}
+
+function resize(){
+  const r=cv.parentElement.getBoundingClientRect();
+  cv.width=r.width*devicePixelRatio;cv.height=r.height*devicePixelRatio;
+  ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+  // Dessiner un triangle simple
+  ctx.clearRect(0,0,r.width,r.height);
+  ctx.beginPath();ctx.moveTo(r.width/2,50);ctx.lineTo(100,r.height-80);ctx.lineTo(r.width-100,r.height-80);ctx.closePath();
+  ctx.fillStyle='rgba(200,200,200,0.2)';ctx.fill();ctx.strokeStyle='#333';ctx.lineWidth=2;ctx.stroke();
+  ctx.fillStyle='#333';ctx.font='14px sans-serif';ctx.textAlign='center';
+  ctx.fillText('Pinch ici — zoom doit être bloqué',r.width/2,r.height/2);
+}
+resize();
+window.addEventListener('resize',resize);
+
+// Exactement comme volumes.html
+function onDown(e){if(e.cancelable)e.preventDefault();L('down touches='+(e.touches?e.touches.length:1));}
+function onMove(e){if(e.cancelable)e.preventDefault();}
+function onUp(){L('up');}
+
+cv.addEventListener('mousedown',onDown);
+cv.addEventListener('mousemove',onMove);
+cv.addEventListener('mouseup',onUp);
+cv.addEventListener('touchstart',onDown,{passive:false});
+cv.addEventListener('touchmove',onMove,{passive:false});
+cv.addEventListener('touchend',onUp,{passive:false});
+
+if(window.visualViewport){
+  window.visualViewport.addEventListener('resize',()=>{
+    L('⚠️ ZOOM scale='+window.visualViewport.scale.toFixed(3));
+  });
+}
+L('Prêt');
+</script>
+</body>
+</html>
