@@ -6,6 +6,7 @@
 <title>Propriétés du triangle — Droites remarquables</title>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
+
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 
   :root{--bg:#F7F6F2;--surface:#FFFFFF;--border:#E2E0D8;--text:#1E1D1A;--muted:#6B6A64;--accent:#2D6BE4;--radius:14px;
@@ -33,7 +34,7 @@
 
   /* ── Page 1 layout ── */
   #page-anim{padding:.75rem;min-height:0;}
-  #page-traces{padding:.75rem;min-height:0;touch-action:none;}
+  #page-traces{padding:0;min-height:0;}
   #traces-bar{touch-action:none;}
   .anim-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);flex:1;display:flex;flex-direction:column;min-height:0;overflow:hidden;}
   .card-header{padding:.35rem .9rem;display:flex;align-items:center;gap:6px;border-bottom:1px solid var(--border);background:#FAFAF8;flex-shrink:0;flex-wrap:nowrap;overflow:hidden;}
@@ -53,9 +54,8 @@
   #btn-reset:hover{transform:rotate(-45deg);}
   #canvas-wrap{flex:1;position:relative;min-height:0;}
   canvas{position:absolute;inset:0;width:100%;height:100%;cursor:default;display:block;touch-action:none;}
-  #canvas-wrap-traces{flex:1;position:relative;min-height:0;touch-action:none;}
+  #canvas-wrap-traces{flex:1;position:relative;min-height:0;}
   /* Bloquer zoom sur tous les éléments de la page tracés */
-  #page-traces *{touch-action:none;}
   #c2{position:absolute;inset:0;width:100%;height:100%;cursor:crosshair;display:block;touch-action:none;}
   #point-name{display:none;}
 
@@ -188,10 +188,10 @@
     #canvas-wrap,#canvas-wrap-traces{height:65vw;min-height:180px;}
     .traces-fam-btn{padding:3px 7px;font-size:10px;}
   }
+
 </style>
 </head>
 <body>
-
 <header>
   <div class="header-icon">△</div>
   <div class="header-title">Propriétés du triangle — <span>Droites remarquables</span></div>
@@ -202,7 +202,6 @@
   </div>
 </header>
 
-<!-- ══════════════ PAGE 1 : ANIMATION ══════════════ -->
 <div id="page-anim" class="page active">
   <div class="anim-card">
     <div class="controls">
@@ -236,25 +235,26 @@
 
 
 <!-- ══════════════ PAGE TRACÉS ══════════════ -->
+
 <div id="page-traces" class="page">
-  <div class="anim-card">
-    <div class="controls">
-      <button id="btn-reset-traces" title="Réinitialiser"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.1-5.8"/><polyline points="21 3 21 9 15 9"/></svg></button>
-      <div style="flex:1;"></div>
-      <div id="traces-bar" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-        <span style="font-size:12px;font-weight:700;color:var(--muted);flex-shrink:0;">Tracés :</span>
-        <button class="traces-fam-btn" data-type="hauteurs"    style="color:var(--c-h);border-color:var(--c-h);"><span class="traces-fam-dot" style="background:var(--c-h);"></span><span class="fam-label">Hauteurs</span></button>
-        <button class="traces-fam-btn" data-type="mediatrices" style="color:var(--c-m);border-color:var(--c-m);"><span class="traces-fam-dot" style="background:var(--c-m);"></span><span class="fam-label">Médiatrices</span></button>
-        <button class="traces-fam-btn" data-type="bisectrices" style="color:var(--c-b);border-color:var(--c-b);"><span class="traces-fam-dot" style="background:var(--c-b);"></span><span class="fam-label">Bissectrices</span></button>
-        <button class="traces-fam-btn" data-type="medianes"    style="color:var(--c-g);border-color:var(--c-g);"><span class="traces-fam-dot" style="background:var(--c-g);"></span><span class="fam-label">Médianes</span></button>
-        <div style="width:1px;height:20px;background:var(--border);flex-shrink:0;margin:0 4px;"></div>
-        <button class="btn-valider" id="btn-valider">Valider</button>
-        <button id="btn-corriger" style="padding:5px 14px;border-radius:20px;border:1.5px solid var(--border);background:transparent;color:var(--muted);font-family:'Nunito',sans-serif;font-size:12px;font-weight:700;cursor:pointer;">Corriger</button>
-      </div>
+  <div class="controls" style="display:flex;gap:6px;padding:.4rem .8rem;background:#fff;border-bottom:1px solid var(--border);flex-shrink:0;align-items:center;">
+    <button id="btn-reset-traces" style="width:34px;height:34px;border-radius:50%;cursor:pointer;border:1.5px solid var(--border);background:transparent;color:var(--muted);display:inline-flex;align-items:center;justify-content:center;padding:0;" title="Réinitialiser"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.1-5.8"/><polyline points="21 3 21 9 15 9"/></svg></button>
+    <div id="traces-bar" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+      <span style="font-size:12px;font-weight:700;color:var(--muted);flex-shrink:0;">Tracés :</span>
+      <button class="traces-fam-btn" data-type="hauteurs"    style="color:var(--c-h);border-color:var(--c-h);"><span class="traces-fam-dot" style="background:var(--c-h);"></span><span class="fam-label">Hauteurs</span></button>
+      <button class="traces-fam-btn" data-type="mediatrices" style="color:var(--c-m);border-color:var(--c-m);"><span class="traces-fam-dot" style="background:var(--c-m);"></span><span class="fam-label">Médiatrices</span></button>
+      <button class="traces-fam-btn" data-type="bisectrices" style="color:var(--c-b);border-color:var(--c-b);"><span class="traces-fam-dot" style="background:var(--c-b);"></span><span class="fam-label">Bissectrices</span></button>
+      <button class="traces-fam-btn" data-type="medianes"    style="color:var(--c-g);border-color:var(--c-g);"><span class="traces-fam-dot" style="background:var(--c-g);"></span><span class="fam-label">Médianes</span></button>
+      <div style="width:1px;height:20px;background:var(--border);flex-shrink:0;margin:0 4px;"></div>
+      <button class="btn-valider" id="btn-valider">Valider</button>
+      <button id="btn-corriger" style="padding:5px 14px;border-radius:20px;border:1.5px solid var(--border);background:transparent;color:var(--muted);font-family:'Nunito',sans-serif;font-size:12px;font-weight:700;cursor:pointer;">Corriger</button>
     </div>
-    <div id="canvas-wrap-traces"><canvas id="c2" style="touch-action:none;"></canvas></div>
+  </div>
+  <div id="canvas-wrap-traces" style="flex:1;position:relative;min-height:0;">
+    <canvas id="c2" style="position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:crosshair;"></canvas>
   </div>
 </div>
+
 
 <!-- ══════════════ PAGE 2 : EXERCICES ══════════════ -->
 <div id="page-ex" class="page">
@@ -1326,6 +1326,7 @@ function resetEx(){
 }
 
 buildExercices();
+
 </script>
 </body>
 </html>
