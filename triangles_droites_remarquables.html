@@ -297,19 +297,21 @@ function showPage(p){
   document.getElementById('page-'+p).classList.add('active');
   document.getElementById('nav-'+p).classList.add('active');
   if(p==='anim'){
-    // Restaurer l'état animation
     if(savedAnimState) Object.assign(state,savedAnimState);
     updateBtns();
     requestAnimationFrame(()=>requestAnimationFrame(resize));
+    detachTracesListeners();
   }
   if(p==='traces'){
-    // Sauvegarder l'état animation avant d'entrer en tracés
     savedAnimState={...state};
     requestAnimationFrame(()=>requestAnimationFrame(resizeTraces));
     if(!tracesMode) enterTracesMode('hauteurs');
     else drawTraces();
+    attachTracesListeners();
   }
-  // Conserver les segments tracés et l'état animation entre les pages
+  if(p==='ex'){
+    detachTracesListeners();
+  }
 }
 
 /* ═══════════════════════════════════════════════════
@@ -872,56 +874,22 @@ function getCP2(e){
   return{x:(t.clientX-r.left)*(canvasT.width/dpr/r.width),y:(t.clientY-r.top)*(canvasT.height/dpr/r.height)};
 }
 
-// Touch start — bloquer le zoom dès le 1er doigt
-canvasT.addEventListener('touchstart',e=>{
-  if(e.cancelable)e.preventDefault();
-  tracesDrag=null;tracesRotate=null;
-  if(e.touches.length===2){
-    // 2 doigts : rotation du segment le plus proche
-    const t0=getWP({touches:e.touches}),t1=getWP({touches:[e.touches[1]]});
-    const r=canvasT.getBoundingClientRect();
-    const cp0={x:(e.touches[0].clientX-r.left)*(canvasT.width/dpr/r.width),y:(e.touches[0].clientY-r.top)*(canvasT.height/dpr/r.height)};
-    const cp1={x:(e.touches[1].clientX-r.left)*(canvasT.width/dpr/r.width),y:(e.touches[1].clientY-r.top)*(canvasT.height/dpr/r.height)};
-    const midW={x:(t0.x+t1.x)/2,y:(t0.y+t1.y)/2};
-    let best=-1,bestD=Infinity;
-    tracesSegs.forEach((s,si)=>{const d=Math.hypot(midW.x-(s.x1+s.x2)/2,midW.y-(s.y1+s.y2)/2);if(d<bestD){bestD=d;best=si;}});
-    if(best>=0){
-      const s=tracesSegs[best];
-      tracesPinchState={si:best,mode:'rotate',
-        startAngle:Math.atan2(cp1.y-cp0.y,cp1.x-cp0.x),
-        sx1:s.x1,sy1:s.y1,sx2:s.x2,sy2:s.y2,mx:(s.x1+s.x2)/2,my:(s.y1+s.y2)/2};
-    } else {tracesPinchState=null;}
-  } else {
-    tracesPinchState=null;
-    tracesStartDrag(getWP(e));
-  }
-},{passive:false});
+// Touch start — listeners nommés pour pouvoir les retirer
+function _tStart(e){if(e.cancelable)e.preventDefault();tracesDrag=null;tracesRotate=null;if(e.touches.length===2){const t0=getWP({touches:e.touches}),t1=getWP({touches:[e.touches[1]]});const r=canvasT.getBoundingClientRect();const cp0={x:(e.touches[0].clientX-r.left)*(canvasT.width/dpr/r.width),y:(e.touches[0].clientY-r.top)*(canvasT.height/dpr/r.height)};const cp1={x:(e.touches[1].clientX-r.left)*(canvasT.width/dpr/r.width),y:(e.touches[1].clientY-r.top)*(canvasT.height/dpr/r.height)};const midW={x:(t0.x+t1.x)/2,y:(t0.y+t1.y)/2};let best=-1,bestD=Infinity;tracesSegs.forEach((s,si)=>{const d=Math.hypot(midW.x-(s.x1+s.x2)/2,midW.y-(s.y1+s.y2)/2);if(d<bestD){bestD=d;best=si;}});if(best>=0){const s=tracesSegs[best];tracesPinchState={si:best,mode:'rotate',startAngle:Math.atan2(cp1.y-cp0.y,cp1.x-cp0.x),sx1:s.x1,sy1:s.y1,sx2:s.x2,sy2:s.y2,mx:(s.x1+s.x2)/2,my:(s.y1+s.y2)/2};}else{tracesPinchState=null;}}else{tracesPinchState=null;tracesStartDrag(getWP(e));}}
+function _tMove(e){if(e.cancelable)e.preventDefault();if(e.touches.length===2&&tracesPinchState&&tracesPinchState.mode==='rotate'){const r=canvasT.getBoundingClientRect();const cp0={x:(e.touches[0].clientX-r.left)*(canvasT.width/dpr/r.width),y:(e.touches[0].clientY-r.top)*(canvasT.height/dpr/r.height)};const cp1={x:(e.touches[1].clientX-r.left)*(canvasT.width/dpr/r.width),y:(e.touches[1].clientY-r.top)*(canvasT.height/dpr/r.height)};const angle=Math.atan2(cp1.y-cp0.y,cp1.x-cp0.x);const da=angle-tracesPinchState.startAngle;const s=tracesSegs[tracesPinchState.si];const len=Math.hypot(tracesPinchState.sx2-tracesPinchState.sx1,tracesPinchState.sy2-tracesPinchState.sy1)/2;const na=Math.atan2(tracesPinchState.sy2-tracesPinchState.sy1,tracesPinchState.sx2-tracesPinchState.sx1)+da;s.x1=tracesPinchState.mx-Math.cos(na)*len;s.y1=tracesPinchState.my-Math.sin(na)*len;s.x2=tracesPinchState.mx+Math.cos(na)*len;s.y2=tracesPinchState.my+Math.sin(na)*len;s.result=null;drawTraces();}else if(e.touches.length===1){tracesMoveDir(getWP(e));}}
+function _tEnd(e){if(e.cancelable)e.preventDefault();tracesDrag=null;if(e.touches.length<2)tracesPinchState=null;if(e.touches.length===0)tracesRotate=null;}
 
-canvasT.addEventListener('touchmove',e=>{
-  if(e.cancelable)e.preventDefault();
-  if(e.touches.length===2&&tracesPinchState&&tracesPinchState.mode==='rotate'){
-    const r=canvasT.getBoundingClientRect();
-    const cp0={x:(e.touches[0].clientX-r.left)*(canvasT.width/dpr/r.width),y:(e.touches[0].clientY-r.top)*(canvasT.height/dpr/r.height)};
-    const cp1={x:(e.touches[1].clientX-r.left)*(canvasT.width/dpr/r.width),y:(e.touches[1].clientY-r.top)*(canvasT.height/dpr/r.height)};
-    const angle=Math.atan2(cp1.y-cp0.y,cp1.x-cp0.x);
-    const da=angle-tracesPinchState.startAngle;
-    const s=tracesSegs[tracesPinchState.si];
-    const len=Math.hypot(tracesPinchState.sx2-tracesPinchState.sx1,tracesPinchState.sy2-tracesPinchState.sy1)/2;
-    const na=Math.atan2(tracesPinchState.sy2-tracesPinchState.sy1,tracesPinchState.sx2-tracesPinchState.sx1)+da;
-    s.x1=tracesPinchState.mx-Math.cos(na)*len;s.y1=tracesPinchState.my-Math.sin(na)*len;
-    s.x2=tracesPinchState.mx+Math.cos(na)*len;s.y2=tracesPinchState.my+Math.sin(na)*len;
-    s.result=null;drawTraces();
-  } else if(e.touches.length===1){
-    tracesMoveDir(getWP(e));
-  }
-},{passive:false});
-
-canvasT.addEventListener('touchend',e=>{
-  if(e.cancelable)e.preventDefault();
-  tracesDrag=null;
-  if(e.touches.length<2)tracesPinchState=null;
-  if(e.touches.length===0)tracesRotate=null;
-},{passive:false});
+function attachTracesListeners(){
+  canvasT.addEventListener('touchstart',_tStart,{passive:false});
+  canvasT.addEventListener('touchmove',_tMove,{passive:false});
+  canvasT.addEventListener('touchend',_tEnd,{passive:false});
+}
+function detachTracesListeners(){
+  canvasT.removeEventListener('touchstart',_tStart);
+  canvasT.removeEventListener('touchmove',_tMove);
+  canvasT.removeEventListener('touchend',_tEnd);
+}
+// Pas de listeners au départ — on les ajoute seulement quand la page tracés est active
 
 // Mouse (desktop / clic droit rotation)
 canvasT.addEventListener('mousedown',e=>{
