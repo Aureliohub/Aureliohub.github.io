@@ -559,46 +559,51 @@ function doReset(){
 function applyZoom(f,piv){view.panX=piv.x+(view.panX-piv.x)*f;view.panY=piv.y+(view.panY-piv.y)*f;view.zoom=Math.min(Math.max(view.zoom*f,0.1),10);}
 function startDrag(cp){const hit=nearestDraggable(cp);if(hit){const comp=computeCenters(pts[0],pts[1],pts[2]);const sc2=hit.type==='center'?{...comp[hit.key]}:null;const go=sc2?sub(c2w(cp),sc2):{x:0,y:0};dragging={hit,startCP:{...cp},startPts:pts.map(p=>({...p})),startCenter:sc2,grabOffset:go};canvas.style.cursor='grabbing';}else{panning={startCP:{...cp},startPan:{x:view.panX,y:view.panY}};canvas.style.cursor='move';}}
 function applyDrag(cp){const cw=c2w(cp);if(dragging.hit.type==='vertex'){const delta=sub(cw,c2w(dragging.startCP));const i=dragging.hit.idx,sp=dragging.startPts[i];pts[i]={...sp,x:sp.x+delta.x,y:sp.y+delta.y};document.getElementById('point-name').textContent=`Sommet ${pts[i].label}`;}else{const target=sub(cw,dragging.grabOffset);pts=solve(dragging.hit.key,target,dragging);document.getElementById('point-name').textContent=`Centre ${dragging.hit.key}`;}}
-// ── Pointer Events unifiés — canvas Animation ──
-canvas.style.touchAction='none';
-const animPtrs={};
+// ── Events canvas Animation (touch + mouse, comme volumes.html) ──
+function animCP(e){
+  const src=e.touches?e.touches[0]:e;
+  const r=canvas.getBoundingClientRect();
+  return{x:(src.clientX-r.left)*(W/r.width),y:(src.clientY-r.top)*(H/r.height)};
+}
 let animPinch=null;
-function animCP(e){const r=canvas.getBoundingClientRect();return{x:(e.clientX-r.left)*(W/r.width),y:(e.clientY-r.top)*(H/r.height)};}
-canvas.addEventListener('pointerdown',e=>{
-  e.preventDefault();canvas.setPointerCapture(e.pointerId);
-  const ids=Object.keys(animPtrs);
-  if(ids.length===1){startDrag(animPtrs[e.pointerId]);}
-  else if(ids.length===2){
-    dragging=null;panning=null;animPinch=null;
-    const[p0,p1]=[animPtrs[ids[0]],animPtrs[ids[1]]];
-    const px=(p0.x+p1.x)/2,py=(p0.y+p1.y)/2;
-    animPinch={dist:Math.hypot(p1.x-p0.x,p1.y-p0.y),px,py,startZoom:view.zoom,startPanX:view.panX,startPanY:view.panY};
+function animDown(e){
+  if(e.cancelable)e.preventDefault();
+  if(e.touches&&e.touches.length===2){
+    dragging=null;panning=null;
+    const r=canvas.getBoundingClientRect();
+    const p0={x:(e.touches[0].clientX-r.left)*(W/r.width),y:(e.touches[0].clientY-r.top)*(H/r.height)};
+    const p1={x:(e.touches[1].clientX-r.left)*(W/r.width),y:(e.touches[1].clientY-r.top)*(H/r.height)};
+    animPinch={dist:Math.hypot(p1.x-p0.x,p1.y-p0.y),px:(p0.x+p1.x)/2,py:(p0.y+p1.y)/2,startZoom:view.zoom,startPanX:view.panX,startPanY:view.panY};
+  } else {
+    animPinch=null;
+    startDrag(animCP(e));
   }
-},{passive:false});
-canvas.addEventListener('pointermove',e=>{
-  e.preventDefault();
-  animPtrs[e.pointerId]=animCP(e);
-  const ids=Object.keys(animPtrs);
-  if(ids.length>=2&&animPinch){
-    const[p0,p1]=[animPtrs[ids[0]],animPtrs[ids[1]]];
+}
+function animMove(e){
+  if(e.cancelable)e.preventDefault();
+  if(e.touches&&e.touches.length>=2&&animPinch){
+    const r=canvas.getBoundingClientRect();
+    const p0={x:(e.touches[0].clientX-r.left)*(W/r.width),y:(e.touches[0].clientY-r.top)*(H/r.height)};
+    const p1={x:(e.touches[1].clientX-r.left)*(W/r.width),y:(e.touches[1].clientY-r.top)*(H/r.height)};
     const dist=Math.hypot(p1.x-p0.x,p1.y-p0.y),f=dist/animPinch.dist;
     const nz=Math.min(Math.max(animPinch.startZoom*f,0.1),10);
     const px=(p0.x+p1.x)/2,py=(p0.y+p1.y)/2;
     view.zoom=nz;view.panX=px-(animPinch.px-animPinch.startPanX)*nz/animPinch.startZoom;view.panY=py-(animPinch.py-animPinch.startPanY)*nz/animPinch.startZoom;
     draw();
-  } else if(ids.length===1){
-    const cp=animPtrs[e.pointerId];
+  } else {
+    const cp=animCP(e);
     if(dragging){applyDrag(cp);draw();}
     else if(panning){view.panX=panning.startPan.x+(cp.x-panning.startCP.x);view.panY=panning.startPan.y+(cp.y-panning.startCP.y);draw();}
-    else{const hit=nearestDraggable(cp);canvas.style.cursor=hit?'grab':'move';document.getElementById('point-name').textContent=hit?(hit.type==='vertex'?`Sommet ${pts[hit.idx].label} — déformer`:`Centre ${hit.key} — ajuste le triangle`):'Glissez pour déplacer la vue';}
+    else if(!e.touches){const hit=nearestDraggable(cp);canvas.style.cursor=hit?'grab':'move';document.getElementById('point-name').textContent=hit?(hit.type==='vertex'?`Sommet ${pts[hit.idx].label} — déformer`:`Centre ${hit.key} — ajuste le triangle`):'Glissez pour déplacer la vue';}
   }
-},{passive:false});
-canvas.addEventListener('pointerup',e=>{
-  delete animPtrs[e.pointerId];
-  if(Object.keys(animPtrs).length<2)animPinch=null;
-  if(Object.keys(animPtrs).length===0){dragging=null;panning=null;canvas.style.cursor='default';document.getElementById('point-name').textContent='';}
-});
-canvas.addEventListener('pointercancel',e=>{delete animPtrs[e.pointerId];if(Object.keys(animPtrs).length<2)animPinch=null;});
+}
+function animUp(){dragging=null;panning=null;animPinch=null;canvas.style.cursor='default';document.getElementById('point-name').textContent='';}
+canvas.addEventListener('mousedown',animDown);
+canvas.addEventListener('mousemove',animMove);
+canvas.addEventListener('mouseup',animUp);
+canvas.addEventListener('touchstart',animDown,{passive:false});
+canvas.addEventListener('touchmove',animMove,{passive:false});
+canvas.addEventListener('touchend',animUp,{passive:false});
 canvas.addEventListener('wheel',e=>{e.preventDefault();const r=canvas.getBoundingClientRect();const cp={x:(e.clientX-r.left)*(W/r.width),y:(e.clientY-r.top)*(H/r.height)};applyZoom(e.deltaY<0?1.1:0.91,cp);draw();},{passive:false});
 Object.entries(btns).forEach(([k,b])=>{b.addEventListener('click',()=>{state[k]=!state[k];updateBtns();draw();});});
 document.getElementById('btn-reset').addEventListener('click',doReset);
@@ -1249,10 +1254,12 @@ function buildDrag(){
     }
     function endD(){dragMode=null;}
     pc.style.touchAction='none';
-    pc.addEventListener('pointerdown',e=>{e.preventDefault();pc.setPointerCapture(e.pointerId);startD(getPos(e));},{passive:false});
-    pc.addEventListener('pointermove',e=>{e.preventDefault();moveD(getPos(e));},{passive:false});
-    pc.addEventListener('pointerup',endD);
-    pc.addEventListener('pointercancel',endD);
+    pc.addEventListener('mousedown',e=>{startD(getPos(e));});
+    pc.addEventListener('mousemove',e=>{moveD(getPos(e));});
+    pc.addEventListener('mouseup',endD);
+    pc.addEventListener('touchstart',e=>{if(e.cancelable)e.preventDefault();startD(getPos(e));},{passive:false});
+    pc.addEventListener('touchmove',e=>{if(e.cancelable)e.preventDefault();moveD(getPos(e));},{passive:false});
+    pc.addEventListener('touchend',endD,{passive:false});
   });
 }
 
