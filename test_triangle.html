@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Test Triangle</title>
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  html,body{height:100%;height:100dvh;overflow:hidden;}
+  body{font-family:'Nunito',sans-serif;background:#F7F6F2;display:flex;flex-direction:column;}
+  header{background:#fff;border-bottom:1px solid #E2E0D8;padding:.5rem 1rem;display:flex;align-items:center;gap:8px;flex-shrink:0;}
+  .nav-btn{padding:5px 16px;border-radius:20px;border:1.5px solid #E2E0D8;background:transparent;font-size:13px;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;}
+  .nav-btn.active{background:#1a1a1a;color:#fff;border-color:#1a1a1a;}
+  .page{display:none;flex:1;flex-direction:column;min-height:0;overflow:hidden;}
+  .page.active{display:flex;}
+  .canvas-wrap{flex:1;position:relative;min-height:0;}
+  #c-anim{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;}
+  #c-traces{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;}
+  #info{position:absolute;bottom:12px;left:12px;right:12px;background:rgba(255,255,255,.85);border-radius:8px;padding:6px 10px;font-size:12px;color:#666;pointer-events:none;}
+</style>
+</head>
+<body>
+<header>
+  <span style="font-weight:800;">Test Triangle</span>
+  <div style="margin-left:auto;display:flex;gap:6px;">
+    <button class="nav-btn active" id="nav-anim" onclick="showPage('anim')">Animation</button>
+    <button class="nav-btn" id="nav-traces" onclick="showPage('traces')">Tracés</button>
+  </div>
+</header>
+
+<!-- PAGE ANIMATION : zoom + déplacement + déformation -->
+<div id="page-anim" class="page active">
+  <div class="canvas-wrap">
+    <canvas id="c-anim"></canvas>
+    <div id="info">Glisse pour déplacer · Pinch pour zoomer · Drag les sommets</div>
+  </div>
+</div>
+
+<!-- PAGE TRACÉS : triangle fixe, aucune transformation -->
+<div id="page-traces" class="page">
+  <div class="canvas-wrap">
+    <canvas id="c-traces"></canvas>
+    <div id="info2" style="position:absolute;bottom:12px;left:12px;right:12px;background:rgba(255,255,255,.85);border-radius:8px;padding:6px 10px;font-size:12px;color:#666;pointer-events:none;">Triangle fixe — pas de zoom ni déplacement</div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════
+function showPage(p){
+  document.querySelectorAll('.page').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(el=>el.classList.remove('active'));
+  document.getElementById('page-'+p).classList.add('active');
+  document.getElementById('nav-'+p).classList.add('active');
+  if(p==='anim') requestAnimationFrame(()=>resizeAnim());
+  if(p==='traces') requestAnimationFrame(()=>resizeTraces());
+}
+
+// ═══════════════════════════════════════
+// PAGE ANIMATION
+// ═══════════════════════════════════════
+const cvA=document.getElementById('c-anim');
+const ctxA=cvA.getContext('2d');
+const dpr=window.devicePixelRatio||1;
+let WA=0,HA=0;
+let viewA={panX:0,panY:0,zoom:1};
+let ptsA=[]; // [{x,y}] 3 sommets en coords monde
+let dragA=null,panA=null,pinchA=null;
+
+function defaultPtsA(w,h){
+  const m=Math.min(w,h)*0.7;
+  const cx=w/2,cy=h/2;
+  return[
+    {x:cx,        y:cy-m*0.45},
+    {x:cx-m*0.45, y:cy+m*0.35},
+    {x:cx+m*0.45, y:cy+m*0.35},
+  ];
+}
+
+function resizeAnim(){
+  const wrap=cvA.parentElement.getBoundingClientRect();
+  const w=wrap.width,h=wrap.height;
+  if(w<1||h<1)return;
+  const rescale=(WA>0&&HA>0);
+  if(rescale){const sx=w/WA,sy=h/HA;ptsA=ptsA.map(p=>({x:p.x*sx,y:p.y*sy}));viewA.panX*=sx;viewA.panY*=sy;}
+  WA=w;HA=h;
+  cvA.width=Math.round(w*dpr);cvA.height=Math.round(h*dpr);
+  ctxA.setTransform(dpr,0,0,dpr,0,0);
+  if(!rescale||ptsA.length===0){ptsA=defaultPtsA(w,h);viewA={panX:0,panY:0,zoom:1};}
+  drawAnim();
+}
+
+function w2cA(p){return{x:p.x*viewA.zoom+viewA.panX,y:p.y*viewA.zoom+viewA.panY};}
+function c2wA(p){return{x:(p.x-viewA.panX)/viewA.zoom,y:(p.y-viewA.panY)/viewA.zoom};}
+
+function drawAnim(){
+  ctxA.clearRect(0,0,WA,HA);
+  ctxA.fillStyle='#ffffff';ctxA.fillRect(0,0,WA,HA);
+  ctxA.save();ctxA.translate(viewA.panX,viewA.panY);ctxA.scale(viewA.zoom,viewA.zoom);
+  // Triangle
+  const[A,B,C]=ptsA;
+  ctxA.beginPath();ctxA.moveTo(A.x,A.y);ctxA.lineTo(B.x,B.y);ctxA.lineTo(C.x,C.y);ctxA.closePath();
+  ctxA.fillStyle='rgba(136,135,128,0.07)';ctxA.fill();
+  ctxA.strokeStyle='#1a1a1a';ctxA.lineWidth=2/viewA.zoom;ctxA.stroke();
+  // Sommets
+  const labels=['A','B','C'];
+  ptsA.forEach((p,i)=>{
+    const r=10/viewA.zoom;
+    ctxA.beginPath();ctxA.arc(p.x,p.y,r,0,Math.PI*2);
+    ctxA.fillStyle='#fff';ctxA.fill();
+    ctxA.strokeStyle='#1a1a1a';ctxA.lineWidth=2/viewA.zoom;ctxA.stroke();
+    ctxA.fillStyle='#1a1a1a';ctxA.font=`700 ${14/viewA.zoom}px 'Nunito',sans-serif`;
+    ctxA.textAlign='center';ctxA.textBaseline='middle';
+    ctxA.fillText(labels[i],p.x,p.y);
+  });
+  ctxA.restore();
+}
+
+// Coords canvas depuis event
+function cpA(e){
+  const src=e.touches?e.touches[0]:e;
+  const r=cvA.getBoundingClientRect();
+  return{x:(src.clientX-r.left)*(WA/r.width),y:(src.clientY-r.top)*(HA/r.height)};
+}
+
+function nearestVertex(cp){
+  const R=20;
+  let best=-1,bestD=Infinity;
+  ptsA.forEach((p,i)=>{
+    const sc=w2cA(p);
+    const d=Math.hypot(cp.x-sc.x,cp.y-sc.y);
+    if(d<R&&d<bestD){bestD=d;best=i;}
+  });
+  return best;
+}
+
+function onDownA(e){
+  if(e.cancelable)e.preventDefault();
+  const touches=e.touches;
+  if(touches&&touches.length===2){
+    dragA=null;panA=null;
+    const r=cvA.getBoundingClientRect();
+    const p0={x:(touches[0].clientX-r.left)*(WA/r.width),y:(touches[0].clientY-r.top)*(HA/r.height)};
+    const p1={x:(touches[1].clientX-r.left)*(WA/r.width),y:(touches[1].clientY-r.top)*(HA/r.height)};
+    pinchA={dist:Math.hypot(p1.x-p0.x,p1.y-p0.y),cx:(p0.x+p1.x)/2,cy:(p0.y+p1.y)/2,startZoom:viewA.zoom,startPanX:viewA.panX,startPanY:viewA.panY};
+  } else {
+    pinchA=null;
+    const cp=cpA(e);
+    const vi=nearestVertex(cp);
+    if(vi>=0){dragA={vi,startCP:cp,startPt:{...ptsA[vi]}};}
+    else{panA={startCP:cp,startPan:{...viewA}};}
+  }
+}
+function onMoveA(e){
+  if(e.cancelable)e.preventDefault();
+  const touches=e.touches;
+  if(touches&&touches.length===2&&pinchA){
+    const r=cvA.getBoundingClientRect();
+    const p0={x:(touches[0].clientX-r.left)*(WA/r.width),y:(touches[0].clientY-r.top)*(HA/r.height)};
+    const p1={x:(touches[1].clientX-r.left)*(WA/r.width),y:(touches[1].clientY-r.top)*(HA/r.height)};
+    const dist=Math.hypot(p1.x-p0.x,p1.y-p0.y);
+    const f=dist/pinchA.dist;
+    const nz=Math.min(Math.max(pinchA.startZoom*f,0.1),10);
+    const cx=(p0.x+p1.x)/2,cy=(p0.y+p1.y)/2;
+    viewA.zoom=nz;
+    viewA.panX=cx-(pinchA.cx-pinchA.startPanX)*nz/pinchA.startZoom;
+    viewA.panY=cy-(pinchA.cy-pinchA.startPanY)*nz/pinchA.startZoom;
+    drawAnim();
+  } else {
+    const cp=cpA(e);
+    if(dragA){
+      const dx=cp.x-dragA.startCP.x,dy=cp.y-dragA.startCP.y;
+      ptsA[dragA.vi]={x:dragA.startPt.x+dx/viewA.zoom,y:dragA.startPt.y+dy/viewA.zoom};
+      drawAnim();
+    } else if(panA){
+      viewA.panX=panA.startPan.panX+(cp.x-panA.startCP.x);
+      viewA.panY=panA.startPan.panY+(cp.y-panA.startCP.y);
+      drawAnim();
+    }
+  }
+}
+function onUpA(){dragA=null;panA=null;pinchA=null;}
+
+cvA.addEventListener('mousedown',onDownA);
+cvA.addEventListener('mousemove',onMoveA);
+cvA.addEventListener('mouseup',onUpA);
+cvA.addEventListener('touchstart',onDownA,{passive:false});
+cvA.addEventListener('touchmove',onMoveA,{passive:false});
+cvA.addEventListener('touchend',onUpA,{passive:false});
+cvA.addEventListener('wheel',e=>{
+  e.preventDefault();
+  const r=cvA.getBoundingClientRect();
+  const cp={x:(e.clientX-r.left)*(WA/r.width),y:(e.clientY-r.top)*(HA/r.height)};
+  const f=e.deltaY<0?1.1:0.91;
+  viewA.panX=cp.x+(viewA.panX-cp.x)*f;
+  viewA.panY=cp.y+(viewA.panY-cp.y)*f;
+  viewA.zoom=Math.min(Math.max(viewA.zoom*f,0.1),10);
+  drawAnim();
+},{passive:false});
+
+// ═══════════════════════════════════════
+// PAGE TRACÉS — triangle fixe, rien d'autre
+// ═══════════════════════════════════════
+const cvT=document.getElementById('c-traces');
+const ctxT=cvT.getContext('2d');
+let WT=0,HT=0;
+let ptsT=[];
+
+function defaultPtsT(w,h){
+  const m=Math.min(w,h)*0.7;
+  const cx=w/2,cy=h/2;
+  return[
+    {x:cx+m*0.35, y:cy-m*0.40, label:'A'},
+    {x:cx-m*0.40, y:cy+m*0.30, label:'B'},
+    {x:cx+m*0.40, y:cy+m*0.30, label:'C'},
+  ];
+}
+
+function resizeTraces(){
+  const wrap=cvT.parentElement.getBoundingClientRect();
+  const w=wrap.width,h=wrap.height;
+  if(w<1||h<1)return;
+  if(WT>0&&HT>0){
+    const sx=w/WT,sy=h/HT;
+    ptsT=ptsT.map(p=>({...p,x:p.x*sx,y:p.y*sy}));
+  } else {
+    ptsT=defaultPtsT(w,h);
+  }
+  WT=w;HT=h;
+  cvT.width=Math.round(w*dpr);cvT.height=Math.round(h*dpr);
+  ctxT.setTransform(dpr,0,0,dpr,0,0);
+  drawTraces();
+}
+
+function drawTraces(){
+  ctxT.clearRect(0,0,WT,HT);
+  ctxT.fillStyle='#ffffff';ctxT.fillRect(0,0,WT,HT);
+  if(ptsT.length<3)return;
+  const[A,B,C]=ptsT;
+  ctxT.beginPath();ctxT.moveTo(A.x,A.y);ctxT.lineTo(B.x,B.y);ctxT.lineTo(C.x,C.y);ctxT.closePath();
+  ctxT.fillStyle='rgba(136,135,128,0.07)';ctxT.fill();
+  ctxT.strokeStyle='#1a1a1a';ctxT.lineWidth=2;ctxT.stroke();
+  ptsT.forEach(p=>{
+    ctxT.beginPath();ctxT.arc(p.x,p.y,9,0,Math.PI*2);
+    ctxT.fillStyle='#fff';ctxT.fill();
+    ctxT.strokeStyle='#1a1a1a';ctxT.lineWidth=2;ctxT.stroke();
+    ctxT.fillStyle='#1a1a1a';ctxT.font="700 14px 'Nunito',sans-serif";
+    ctxT.textAlign='center';ctxT.textBaseline='middle';
+    ctxT.fillText(p.label,p.x,p.y);
+  });
+}
+
+// Aucun listener sur cvT — pas de zoom, pas de déplacement
+
+// ═══════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════
+window.addEventListener('resize',()=>{
+  const p=document.querySelector('.page.active');
+  if(p&&p.id==='page-anim')resizeAnim();
+  if(p&&p.id==='page-traces')resizeTraces();
+});
+requestAnimationFrame(resizeAnim);
+</script>
+</body>
+</html>
