@@ -554,14 +554,48 @@ function doReset(){
 function applyZoom(f,piv){view.panX=piv.x+(view.panX-piv.x)*f;view.panY=piv.y+(view.panY-piv.y)*f;view.zoom=Math.min(Math.max(view.zoom*f,0.1),10);}
 function startDrag(cp){const hit=nearestDraggable(cp);if(hit){const comp=computeCenters(pts[0],pts[1],pts[2]);const sc2=hit.type==='center'?{...comp[hit.key]}:null;const go=sc2?sub(c2w(cp),sc2):{x:0,y:0};dragging={hit,startCP:{...cp},startPts:pts.map(p=>({...p})),startCenter:sc2,grabOffset:go};canvas.style.cursor='grabbing';}else{panning={startCP:{...cp},startPan:{x:view.panX,y:view.panY}};canvas.style.cursor='move';}}
 function applyDrag(cp){const cw=c2w(cp);if(dragging.hit.type==='vertex'){const delta=sub(cw,c2w(dragging.startCP));const i=dragging.hit.idx,sp=dragging.startPts[i];pts[i]={...sp,x:sp.x+delta.x,y:sp.y+delta.y};document.getElementById('point-name').textContent=`Sommet ${pts[i].label}`;}else{const target=sub(cw,dragging.grabOffset);pts=solve(dragging.hit.key,target,dragging);document.getElementById('point-name').textContent=`Centre ${dragging.hit.key}`;}}
-canvas.addEventListener('mousedown',e=>{startDrag(getCP(e));});
-canvas.addEventListener('mousemove',e=>{const cp=getCP(e);if(dragging){applyDrag(cp);draw();}else if(panning){view.panX=panning.startPan.x+(cp.x-panning.startCP.x);view.panY=panning.startPan.y+(cp.y-panning.startCP.y);draw();}else{const hit=nearestDraggable(cp);canvas.style.cursor=hit?'grab':'move';document.getElementById('point-name').textContent=hit?(hit.type==='vertex'?`Sommet ${pts[hit.idx].label} — déformer`:`Centre ${hit.key} — ajuste le triangle`):'Glissez pour déplacer la vue';}});
-canvas.addEventListener('mouseup',()=>{dragging=null;panning=null;canvas.style.cursor='default';document.getElementById('point-name').textContent='';});
-canvas.addEventListener('mouseleave',()=>{dragging=null;panning=null;canvas.style.cursor='default';});
-canvas.addEventListener('wheel',e=>{e.preventDefault();applyZoom(e.deltaY<0?1.1:0.91,getCP(e));draw();},{passive:false});
-canvas.addEventListener('touchstart',e=>{e.preventDefault();for(const t of e.changedTouches)activeTouches[t.identifier]=getCP(e,t);const ids=Object.keys(activeTouches);if(ids.length===1){startDrag(activeTouches[ids[0]]);}else if(ids.length===2){dragging=null;panning=null;const[p0,p1]=[activeTouches[ids[0]],activeTouches[ids[1]]];const px=(p0.x+p1.x)/2,py=(p0.y+p1.y)/2;pinchStart={dist:Math.hypot(p1.x-p0.x,p1.y-p0.y),pivotX:px,pivotY:py,startZoom:view.zoom,startPanX:view.panX,startPanY:view.panY};}},{passive:false});
-canvas.addEventListener('touchmove',e=>{e.preventDefault();for(const t of e.changedTouches)activeTouches[t.identifier]=getCP(e,t);const ids=Object.keys(activeTouches);if(ids.length>=2&&pinchStart){const[p0,p1]=[activeTouches[ids[0]],activeTouches[ids[1]]];const dist=Math.hypot(p1.x-p0.x,p1.y-p0.y),f=dist/pinchStart.dist,nz=Math.min(Math.max(pinchStart.startZoom*f,0.1),10),px=(p0.x+p1.x)/2,py=(p0.y+p1.y)/2;view.zoom=nz;view.panX=px-(pinchStart.pivotX-pinchStart.startPanX)*nz/pinchStart.startZoom;view.panY=py-(pinchStart.pivotY-pinchStart.startPanY)*nz/pinchStart.startZoom;draw();}else if(ids.length===1){const cp=activeTouches[ids[0]];if(dragging){applyDrag(cp);draw();}else if(panning){view.panX=panning.startPan.x+(cp.x-panning.startCP.x);view.panY=panning.startPan.y+(cp.y-panning.startCP.y);draw();}}},{passive:false});
-canvas.addEventListener('touchend',e=>{e.preventDefault();for(const t of e.changedTouches)delete activeTouches[t.identifier];const ids=Object.keys(activeTouches);if(ids.length<2)pinchStart=null;if(ids.length===0){dragging=null;panning=null;document.getElementById('point-name').textContent='';}},{passive:false});
+// ── Pointer Events unifiés — canvas Animation ──
+canvas.style.touchAction='none';
+const animPtrs={};
+let animPinch=null;
+function animCP(e){const r=canvas.getBoundingClientRect();return{x:(e.clientX-r.left)*(W/r.width),y:(e.clientY-r.top)*(H/r.height)};}
+canvas.addEventListener('pointerdown',e=>{
+  e.preventDefault();canvas.setPointerCapture(e.pointerId);
+  animPtrs[e.pointerId]=animCP(e);
+  const ids=Object.keys(animPtrs);
+  if(ids.length===1){startDrag(animPtrs[e.pointerId]);}
+  else if(ids.length===2){
+    dragging=null;panning=null;animPinch=null;
+    const[p0,p1]=[animPtrs[ids[0]],animPtrs[ids[1]]];
+    const px=(p0.x+p1.x)/2,py=(p0.y+p1.y)/2;
+    animPinch={dist:Math.hypot(p1.x-p0.x,p1.y-p0.y),px,py,startZoom:view.zoom,startPanX:view.panX,startPanY:view.panY};
+  }
+},{passive:false});
+canvas.addEventListener('pointermove',e=>{
+  e.preventDefault();
+  animPtrs[e.pointerId]=animCP(e);
+  const ids=Object.keys(animPtrs);
+  if(ids.length>=2&&animPinch){
+    const[p0,p1]=[animPtrs[ids[0]],animPtrs[ids[1]]];
+    const dist=Math.hypot(p1.x-p0.x,p1.y-p0.y),f=dist/animPinch.dist;
+    const nz=Math.min(Math.max(animPinch.startZoom*f,0.1),10);
+    const px=(p0.x+p1.x)/2,py=(p0.y+p1.y)/2;
+    view.zoom=nz;view.panX=px-(animPinch.px-animPinch.startPanX)*nz/animPinch.startZoom;view.panY=py-(animPinch.py-animPinch.startPanY)*nz/animPinch.startZoom;
+    draw();
+  } else if(ids.length===1){
+    const cp=animPtrs[e.pointerId];
+    if(dragging){applyDrag(cp);draw();}
+    else if(panning){view.panX=panning.startPan.x+(cp.x-panning.startCP.x);view.panY=panning.startPan.y+(cp.y-panning.startCP.y);draw();}
+    else{const hit=nearestDraggable(cp);canvas.style.cursor=hit?'grab':'move';document.getElementById('point-name').textContent=hit?(hit.type==='vertex'?`Sommet ${pts[hit.idx].label} — déformer`:`Centre ${hit.key} — ajuste le triangle`):'Glissez pour déplacer la vue';}
+  }
+},{passive:false});
+canvas.addEventListener('pointerup',e=>{
+  delete animPtrs[e.pointerId];
+  if(Object.keys(animPtrs).length<2)animPinch=null;
+  if(Object.keys(animPtrs).length===0){dragging=null;panning=null;canvas.style.cursor='default';document.getElementById('point-name').textContent='';}
+});
+canvas.addEventListener('pointercancel',e=>{delete animPtrs[e.pointerId];if(Object.keys(animPtrs).length<2)animPinch=null;});
+canvas.addEventListener('wheel',e=>{e.preventDefault();const r=canvas.getBoundingClientRect();const cp={x:(e.clientX-r.left)*(W/r.width),y:(e.clientY-r.top)*(H/r.height)};applyZoom(e.deltaY<0?1.1:0.91,cp);draw();},{passive:false});
 Object.entries(btns).forEach(([k,b])=>{b.addEventListener('click',()=>{state[k]=!state[k];updateBtns();draw();});});
 document.getElementById('btn-reset').addEventListener('click',doReset);
 
@@ -810,151 +844,124 @@ document.querySelectorAll('.traces-fam-btn').forEach(btn=>{
   btn.addEventListener('click',()=>{if(tracesMode)toggleTraceFamily(btn.dataset.type);});
 });
 
+// ── Pointer Events unifiés — canvas Tracés ──
+canvasT.style.touchAction='none';
 let tracesRotate=null;
+const tracesPtrs={};
+let tracesPinchState=null;
 
-// Intercepter les événements canvas en mode tracé (capture=true = priorité)
-canvasT.addEventListener('mousedown',e=>{
-  if(!tracesMode)return;
-  e.stopPropagation();e.preventDefault();
-  const pos=getWorldPos(e);
-  if(e.button===2){
-    // Clic droit : rotation du segment le plus proche
-    let best=-1,bestD=Infinity;
-    tracesSegs.forEach((s,si)=>{
-      const d=Math.hypot(pos.x-(s.x1+s.x2)/2,pos.y-(s.y1+s.y2)/2);
-      if(d<bestD){bestD=d;best=si;}
-    });
-    if(best>=0){
-      const s=tracesSegs[best];
-      const mx=(s.x1+s.x2)/2,my=(s.y1+s.y2)/2;
-      tracesRotate={si:best,mx,my,
-        len:Math.hypot(s.x2-s.x1,s.y2-s.y1)/2,
-        startAngle:Math.atan2(s.y2-s.y1,s.x2-s.x1),
-        startMouse:Math.atan2(pos.y-my,pos.x-mx)};
-    }
-  } else {
-    tracesRotate=null;
-    tracesStartDrag(pos);
-  }
-},{capture:true});
-canvasT.addEventListener('contextmenu',e=>{if(tracesMode)e.preventDefault();},{capture:true});
-canvasT.addEventListener('mousemove',e=>{
-  if(!tracesMode)return;
-  e.stopPropagation();
-  const pos=getWorldPos(e);
-  if(tracesRotate){
-    const a=Math.atan2(pos.y-tracesRotate.my,pos.x-tracesRotate.mx);
-    const da=a-tracesRotate.startMouse;
-    const na=tracesRotate.startAngle+da;
-    const s=tracesSegs[tracesRotate.si];
-    s.x1=tracesRotate.mx-Math.cos(na)*tracesRotate.len;
-    s.y1=tracesRotate.my-Math.sin(na)*tracesRotate.len;
-    s.x2=tracesRotate.mx+Math.cos(na)*tracesRotate.len;
-    s.y2=tracesRotate.my+Math.sin(na)*tracesRotate.len;
-    s.result=null;drawTraces();
-    canvasT.style.cursor='alias';
-  } else if(tracesDrag){
-    tracesMoveDir(pos);
-    canvasT.style.cursor='grabbing';
-  } else {
-    canvasT.style.cursor=tracesHit(pos)?'grab':'crosshair';
-  }
-},{capture:true});
-canvasT.addEventListener('mouseup',e=>{
-  if(tracesMode){e.stopPropagation();tracesDrag=null;tracesRotate=null;canvasT.style.cursor='crosshair';}
-},{capture:true});
-let tracesPinch=null; // {si, startAngle, sx1,sy1,sx2,sy2, mx,my}
-
-let tracesPanStart=null;
-let tracesZoomStart=null;
-
-function getCanvasPos2(e,touch){
-  const r=canvasT.getBoundingClientRect(),t=touch||e;
-  return{x:(t.clientX-r.left)*(canvasT.width/dpr/r.width),y:(t.clientY-r.top)*(canvasT.height/dpr/r.height)};
+function getWP(e){
+  const r=canvasT.getBoundingClientRect();
+  const cx=(e.clientX-r.left)*(canvasT.width/dpr/r.width);
+  const cy=(e.clientY-r.top)*(canvasT.height/dpr/r.height);
+  return{x:(cx-view.panX)/view.zoom,y:(cy-view.panY)/view.zoom};
+}
+function getCP2(e){
+  const r=canvasT.getBoundingClientRect();
+  return{x:(e.clientX-r.left)*(canvasT.width/dpr/r.width),y:(e.clientY-r.top)*(canvasT.height/dpr/r.height)};
 }
 
-canvasT.addEventListener('touchstart',e=>{
+canvasT.addEventListener('pointerdown',e=>{
   if(!tracesMode)return;
-  e.preventDefault();e.stopPropagation();
-  if(e.touches.length===2){
-    tracesDrag=null;
-    // Vérifier si le centre des 2 doigts est proche d'un segment
-    const t0=getWorldPos(e,e.touches[0]),t1=getWorldPos(e,e.touches[1]);
-    const midW={x:(t0.x+t1.x)/2,y:(t0.y+t1.y)/2};
+  e.preventDefault();canvasT.setPointerCapture(e.pointerId);
+  tracesPtrs[e.pointerId]=e;
+  const ids=Object.keys(tracesPtrs);
+  if(ids.length===2){
+    // Deux pointeurs
+    tracesDrag=null;tracesPanState=null;tracesRotate=null;
+    const e0=tracesPtrs[ids[0]],e1=tracesPtrs[ids[1]];
+    const w0=getWP(e0),w1=getWP(e1);
+    const midW={x:(w0.x+w1.x)/2,y:(w0.y+w1.y)/2};
     let best=-1,bestD=Infinity;
     tracesSegs.forEach((s,si)=>{
       const d=Math.hypot(midW.x-(s.x1+s.x2)/2,midW.y-(s.y1+s.y2)/2);
       if(d<50/view.zoom&&d<bestD){bestD=d;best=si;}
     });
     if(best>=0){
-      // Rotation du segment
       const s=tracesSegs[best];
-      tracesPinch={si:best,startAngle:Math.atan2(t1.y-t0.y,t1.x-t0.x),
-        sx1:s.x1,sy1:s.y1,sx2:s.x2,sy2:s.y2,
-        mx:(s.x1+s.x2)/2,my:(s.y1+s.y2)/2};
-      tracesZoomStart=null;tracesPanStart=null;
+      const cp0=getCP2(e0),cp1=getCP2(e1);
+      tracesPinchState={si:best,startAngle:Math.atan2(cp1.y-cp0.y,cp1.x-cp0.x),
+        sx1:s.x1,sy1:s.y1,sx2:s.x2,sy2:s.y2,mx:(s.x1+s.x2)/2,my:(s.y1+s.y2)/2,mode:'rotate'};
     } else {
-      // Zoom/pan
-      tracesPinch=null;
-      const cp0=getCanvasPos2(e,e.touches[0]),cp1=getCanvasPos2(e,e.touches[1]);
-      tracesZoomStart={dist:Math.hypot(cp1.x-cp0.x,cp1.y-cp0.y),
-        px:(cp0.x+cp1.x)/2,py:(cp0.y+cp1.y)/2,
-        startZoom:view.zoom,startPanX:view.panX,startPanY:view.panY};
+      tracesPinchState=null; // pas de zoom sur la page tracés
     }
-  } else {
-    tracesPinch=null;tracesZoomStart=null;
-    const pos=getWorldPos(e,e.touches[0]);
-    if(!tracesStartDrag(pos)){
-      // Pan si aucun segment touché
-      tracesPanStart={cp:getCanvasPos2(e,e.touches[0]),panX:view.panX,panY:view.panY};
+  } else if(ids.length===1){
+    tracesPinchState=null;
+    const pos=getWP(e);
+    if(e.button===2){
+      // Clic droit : rotation
+      let best=-1,bestD=Infinity;
+      tracesSegs.forEach((s,si)=>{
+        const d=Math.hypot(pos.x-(s.x1+s.x2)/2,pos.y-(s.y1+s.y2)/2);
+        if(d<bestD){bestD=d;best=si;}
+      });
+      if(best>=0){
+        const s=tracesSegs[best];const mx=(s.x1+s.x2)/2,my=(s.y1+s.y2)/2;
+        tracesRotate={si:best,mx,my,len:Math.hypot(s.x2-s.x1,s.y2-s.y1)/2,
+          startAngle:Math.atan2(s.y2-s.y1,s.x2-s.x1),startMouse:Math.atan2(pos.y-my,pos.x-mx)};
+      }
+    } else {
+      tracesStartDrag(pos);
     }
   }
-},{capture:true,passive:false});
+},{passive:false});
 
-canvasT.addEventListener('touchmove',e=>{
+canvasT.addEventListener('pointermove',e=>{
   if(!tracesMode)return;
-  e.preventDefault();e.stopPropagation();
-  if(e.touches.length===2&&tracesPinch){
-    // Rotation segment
-    const t0=getWorldPos(e,e.touches[0]),t1=getWorldPos(e,e.touches[1]);
-    const angle=Math.atan2(t1.y-t0.y,t1.x-t0.x);
-    const da=angle-tracesPinch.startAngle;
-    const s=tracesSegs[tracesPinch.si];
-    const len=Math.hypot(tracesPinch.sx2-tracesPinch.sx1,tracesPinch.sy2-tracesPinch.sy1)/2;
-    const na=Math.atan2(tracesPinch.sy2-tracesPinch.sy1,tracesPinch.sx2-tracesPinch.sx1)+da;
-    s.x1=tracesPinch.mx-Math.cos(na)*len;s.y1=tracesPinch.my-Math.sin(na)*len;
-    s.x2=tracesPinch.mx+Math.cos(na)*len;s.y2=tracesPinch.my+Math.sin(na)*len;
-    s.result=null;drawTraces();
-  } else if(e.touches.length===2&&tracesZoomStart){
-    // Zoom/pan
-    const cp0=getCanvasPos2(e,e.touches[0]),cp1=getCanvasPos2(e,e.touches[1]);
-    const dist=Math.hypot(cp1.x-cp0.x,cp1.y-cp0.y);
-    const f=dist/tracesZoomStart.dist;
-    const nz=Math.min(Math.max(tracesZoomStart.startZoom*f,0.1),10);
-    const px=(cp0.x+cp1.x)/2,py=(cp0.y+cp1.y)/2;
-    view.zoom=nz;
-    view.panX=px-(tracesZoomStart.px-tracesZoomStart.startPanX)*nz/tracesZoomStart.startZoom;
-    view.panY=py-(tracesZoomStart.py-tracesZoomStart.startPanY)*nz/tracesZoomStart.startZoom;
-    drawTraces();
-  } else if(e.touches.length===1){
-    if(tracesDrag){
-      tracesMoveDir(getWorldPos(e,e.touches[0]));
-    } else if(tracesPanStart){
-      const cp=getCanvasPos2(e,e.touches[0]);
-      view.panX=tracesPanStart.panX+(cp.x-tracesPanStart.cp.x);
-      view.panY=tracesPanStart.panY+(cp.y-tracesPanStart.cp.y);
+  e.preventDefault();
+  tracesPtrs[e.pointerId]=e;
+  const ids=Object.keys(tracesPtrs);
+  if(ids.length>=2&&tracesPinchState){
+    const e0=tracesPtrs[ids[0]],e1=tracesPtrs[ids[1]];
+    if(tracesPinchState.mode==='rotate'){
+      const cp0=getCP2(e0),cp1=getCP2(e1);
+      const angle=Math.atan2(cp1.y-cp0.y,cp1.x-cp0.x);
+      const da=angle-tracesPinchState.startAngle;
+      const s=tracesSegs[tracesPinchState.si];
+      const len=Math.hypot(tracesPinchState.sx2-tracesPinchState.sx1,tracesPinchState.sy2-tracesPinchState.sy1)/2;
+      const na=Math.atan2(tracesPinchState.sy2-tracesPinchState.sy1,tracesPinchState.sx2-tracesPinchState.sx1)+da;
+      s.x1=tracesPinchState.mx-Math.cos(na)*len;s.y1=tracesPinchState.my-Math.sin(na)*len;
+      s.x2=tracesPinchState.mx+Math.cos(na)*len;s.y2=tracesPinchState.my+Math.sin(na)*len;
+      s.result=null;drawTraces();
+    } else {
+      const cp0=getCP2(e0),cp1=getCP2(e1);
+      const dist=Math.hypot(cp1.x-cp0.x,cp1.y-cp0.y);
+      const f=dist/tracesPinchState.dist;
+      const nz=Math.min(Math.max(tracesPinchState.startZoom*f,0.1),10);
+      const px=(cp0.x+cp1.x)/2,py=(cp0.y+cp1.y)/2;
+      view.zoom=nz;
+      view.panX=px-(tracesPinchState.px-tracesPinchState.startPanX)*nz/tracesPinchState.startZoom;
+      view.panY=py-(tracesPinchState.py-tracesPinchState.startPanY)*nz/tracesPinchState.startZoom;
       drawTraces();
     }
+  } else if(ids.length===1){
+    const pos=getWP(e);
+    if(tracesRotate){
+      const a=Math.atan2(pos.y-tracesRotate.my,pos.x-tracesRotate.mx);
+      const na=tracesRotate.startAngle+(a-tracesRotate.startMouse);
+      const s=tracesSegs[tracesRotate.si];
+      s.x1=tracesRotate.mx-Math.cos(na)*tracesRotate.len;s.y1=tracesRotate.my-Math.sin(na)*tracesRotate.len;
+      s.x2=tracesRotate.mx+Math.cos(na)*tracesRotate.len;s.y2=tracesRotate.my+Math.sin(na)*tracesRotate.len;
+      s.result=null;drawTraces();canvasT.style.cursor='alias';
+    } else if(tracesDrag){
+      tracesMoveDir(pos);canvasT.style.cursor='grabbing';
+    } else {
+      canvasT.style.cursor=tracesHit(pos)?'grab':'crosshair';
+    }
   }
-},{capture:true,passive:false});
+},{passive:false});
 
-canvasT.addEventListener('touchend',e=>{
-  if(tracesMode){
-    e.stopPropagation();
-    if(e.touches.length===0){tracesDrag=null;tracesPinch=null;tracesZoomStart=null;tracesPanStart=null;}
-    else if(e.touches.length<2){tracesPinch=null;tracesZoomStart=null;}
-  }
-},{capture:true});
+canvasT.addEventListener('pointerup',e=>{
+  if(!tracesMode)return;
+  delete tracesPtrs[e.pointerId];
+  const n=Object.keys(tracesPtrs).length;
+  if(n<2){tracesPinchState=null;}
+  if(n===0){tracesDrag=null;tracesRotate=null;canvasT.style.cursor='crosshair';}
+});
+canvasT.addEventListener('pointercancel',e=>{delete tracesPtrs[e.pointerId];});
+canvasT.addEventListener('contextmenu',e=>{if(tracesMode)e.preventDefault();});
+
+
 let firstResize=true;
 function resize(){const wrap=document.getElementById('canvas-wrap');const cw=wrap.clientWidth,ch=wrap.clientHeight;if(cw<1||ch<1)return;const oldW=W,oldH=H;W=cw;H=ch;canvas.width=Math.round(W*dpr);canvas.height=Math.round(H*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);if(firstResize){pts=defaultPts();view=defaultView();firstResize=false;}else if(oldW>0&&oldH>0){const sx=W/oldW,sy=H/oldH;pts=pts.map(p=>({...p,x:p.x*sx,y:p.y*sy}));view.panX*=sx;view.panY*=sy;}updateBtns();draw();}
 window.addEventListener('resize',resize);
@@ -1256,12 +1263,11 @@ function buildDrag(){
       drawDragCanvas(qi);
     }
     function endD(){dragMode=null;}
-    pc.addEventListener('mousedown',e=>{startD(getPos(e));});
-    pc.addEventListener('mousemove',e=>{moveD(getPos(e));if(dragMode)e.preventDefault();});
-    pc.addEventListener('mouseup',endD);pc.addEventListener('mouseleave',endD);
-    pc.addEventListener('touchstart',e=>{e.preventDefault();startD(getPos(e,e.touches[0]));},{passive:false});
-    pc.addEventListener('touchmove',e=>{e.preventDefault();moveD(getPos(e,e.touches[0]));},{passive:false});
-    pc.addEventListener('touchend',endD);
+    pc.style.touchAction='none';
+    pc.addEventListener('pointerdown',e=>{e.preventDefault();pc.setPointerCapture(e.pointerId);startD(getPos(e));},{passive:false});
+    pc.addEventListener('pointermove',e=>{e.preventDefault();moveD(getPos(e));},{passive:false});
+    pc.addEventListener('pointerup',endD);
+    pc.addEventListener('pointercancel',endD);
   });
 }
 
