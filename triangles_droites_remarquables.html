@@ -2,11 +2,12 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Propriétés du triangle — Droites remarquables</title>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  html,body{touch-action:pan-x pan-y;}
   :root{--bg:#F7F6F2;--surface:#FFFFFF;--border:#E2E0D8;--text:#1E1D1A;--muted:#6B6A64;--accent:#2D6BE4;--radius:14px;
     --c-h:#3B6D11;--c-hl:#7bc950;
     --c-m:#993C1D;--c-ml:#f08050;
@@ -966,6 +967,11 @@ canvasT.addEventListener('contextmenu',e=>{if(tracesMode)e.preventDefault();});
 let firstResize=true;
 function resize(){const wrap=document.getElementById('canvas-wrap');const cw=wrap.clientWidth,ch=wrap.clientHeight;if(cw<1||ch<1)return;const oldW=W,oldH=H;W=cw;H=ch;canvas.width=Math.round(W*dpr);canvas.height=Math.round(H*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);if(firstResize){pts=defaultPts();view=defaultView();firstResize=false;}else if(oldW>0&&oldH>0){const sx=W/oldW,sy=H/oldH;pts=pts.map(p=>({...p,x:p.x*sx,y:p.y*sy}));view.panX*=sx;view.panY*=sy;}updateBtns();draw();}
 window.addEventListener('resize',resize);
+// Bloquer le zoom navigateur (pinch sur fond de page)
+document.addEventListener('gesturestart',e=>e.preventDefault(),{passive:false});
+document.addEventListener('gesturechange',e=>e.preventDefault(),{passive:false});
+document.addEventListener('gestureend',e=>e.preventDefault(),{passive:false});
+document.addEventListener('wheel',e=>{if(e.ctrlKey)e.preventDefault();},{passive:false});
 requestAnimationFrame(()=>requestAnimationFrame(resize));
 document.querySelectorAll('.btn-info').forEach(btn=>{
   const tip=btn.querySelector('.tip');
