@@ -563,7 +563,6 @@ let animPinch=null;
 function animCP(e){const r=canvas.getBoundingClientRect();return{x:(e.clientX-r.left)*(W/r.width),y:(e.clientY-r.top)*(H/r.height)};}
 canvas.addEventListener('pointerdown',e=>{
   e.preventDefault();canvas.setPointerCapture(e.pointerId);
-  animPtrs[e.pointerId]=animCP(e);
   const ids=Object.keys(animPtrs);
   if(ids.length===1){startDrag(animPtrs[e.pointerId]);}
   else if(ids.length===2){
@@ -967,7 +966,9 @@ canvasT.addEventListener('contextmenu',e=>{if(tracesMode)e.preventDefault();});
 let firstResize=true;
 function resize(){const wrap=document.getElementById('canvas-wrap');const cw=wrap.clientWidth,ch=wrap.clientHeight;if(cw<1||ch<1)return;const oldW=W,oldH=H;W=cw;H=ch;canvas.width=Math.round(W*dpr);canvas.height=Math.round(H*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);if(firstResize){pts=defaultPts();view=defaultView();firstResize=false;}else if(oldW>0&&oldH>0){const sx=W/oldW,sy=H/oldH;pts=pts.map(p=>({...p,x:p.x*sx,y:p.y*sy}));view.panX*=sx;view.panY*=sy;}updateBtns();draw();}
 window.addEventListener('resize',resize);
-// Bloquer le zoom navigateur (pinch sur fond de page)
+// Bloquer le zoom navigateur sur tout le document
+document.addEventListener('touchstart',e=>{if(e.touches.length>1)e.preventDefault();},{passive:false});
+document.addEventListener('touchmove',e=>{if(e.touches.length>1)e.preventDefault();},{passive:false});
 document.addEventListener('gesturestart',e=>e.preventDefault(),{passive:false});
 document.addEventListener('gesturechange',e=>e.preventDefault(),{passive:false});
 document.addEventListener('gestureend',e=>e.preventDefault(),{passive:false});
