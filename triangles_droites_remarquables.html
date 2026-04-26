@@ -419,7 +419,7 @@ function defaultPts(){
   return[Apt,Bpt,Cpt];
 }
 function defaultView(){return{panX:0,panY:0,zoom:1};}
-function isDark(){return window.matchMedia('(prefers-color-scheme: dark)').matches;}
+function isDark(){return false;} // Toujours mode clair — fond blanc
 function getT(){const d=isDark();return{triF:d?'rgba(200,200,200,0.06)':'rgba(136,135,128,0.07)',triS:d?'#e0e0e0':'#1a1a1a',vxF:d?'#2a2a2a':'#ffffff',vxS:d?'#e0e0e0':'#1a1a1a',vxT:d?'#e0e0e0':'#1a1a1a',gray:d?'#888':'#888780'};}
 
 let view=defaultView();
