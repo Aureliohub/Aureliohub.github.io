@@ -175,7 +175,23 @@ main{flex:1;display:flex;flex-direction:column;min-height:0;}
 .ex-header-left{grid-column:1;}
 .ex-grandeur-btns{grid-column:2;display:flex;gap:8px;justify-content:center;}
 .ex-title-row{display:flex;align-items:baseline;gap:16px;flex-wrap:wrap;}
-.ex-title{font-size:16px;font-weight:800;color:#2D6BE4;margin:0;}
+.ex-title-wrap{position:relative;display:inline-flex;align-items:baseline;padding:2px 8px;margin-left:-8px;border-radius:6px;cursor:pointer;transition:background .15s;}
+.ex-title-wrap:hover,.ex-title-wrap.open{background:#EAF3FB;}
+.ex-title{font-size:16px;font-weight:800;color:#2D6BE4;margin:0;cursor:pointer;display:inline;}
+.ex-title-caret{font-size:11px;color:#2D6BE4;margin-left:4px;opacity:.6;cursor:pointer;}
+.ex-type-menu{position:absolute;top:100%;left:0;margin-top:4px;background:#fff;border:1.5px solid #7BBDE0;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.08);padding:4px;min-width:300px;z-index:100;display:none;}
+.ex-title-wrap.open .ex-type-menu{display:block;}
+.ex-type-row{display:flex;align-items:stretch;gap:4px;padding:2px;border-radius:5px;}
+.ex-type-row.active{background:#2D6BE4;}
+.ex-type-row.active .ex-type-practice{color:#fff;background:transparent;}
+.ex-type-practice{flex:1;text-align:left;padding:8px 12px;font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;color:#1E3A50;background:transparent;border:none;border-radius:4px;cursor:pointer;}
+.ex-type-practice:hover{background:rgba(45,107,228,0.08);color:#2D6BE4;}
+.ex-type-row.active .ex-type-practice:hover{background:rgba(255,255,255,0.12);color:#fff;}
+.ex-type-pdf{padding:6px 10px;font-family:'Nunito',sans-serif;font-size:11px;font-weight:700;color:#2D6BE4;background:#F0F7FD;border:1px solid #C7DEF0;border-radius:4px;cursor:pointer;white-space:nowrap;}
+.ex-type-pdf:hover{background:#2D6BE4;color:#fff;border-color:#2D6BE4;}
+.ex-type-pdf:disabled{opacity:.6;cursor:wait;}
+.ex-type-row-mix{margin-top:4px;border-top:1px solid #E5E7EA;padding-top:8px;}
+.ex-type-mix-label{flex:1;padding:8px 12px;font-size:13px;font-weight:700;color:#1E3A50;}
 .ex-instruction{font-size:13px;font-weight:600;color:var(--muted);margin-top:3px;}
 .ex-units-reminder{font-size:12px;font-weight:600;color:#A9A69B;letter-spacing:.5px;}
 .ex-grb{width:32px;height:32px;border-radius:50%;border:1.5px solid #7BBDE0;background:#F0F7FD;color:#1E3A50;font-family:'Nunito',sans-serif;font-size:14px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;transition:background .15s,color .15s,border-color .15s;}
@@ -195,7 +211,129 @@ main{flex:1;display:flex;flex-direction:column;min-height:0;}
 #libre-tab-slot{flex:1;display:flex;flex-direction:column;min-height:0;overflow:auto;}
 .ex-grb:hover{background:#fff;color:#2D6BE4;border-color:#2D6BE4;}
 .ex-grb.active{background:#2D6BE4;color:#fff;border-color:#2D6BE4;}
-#ex-reset{grid-column:3;justify-self:end;padding:5px 14px;font-size:12px;font-weight:700;font-family:'Nunito',sans-serif;cursor:pointer;border:1.5px solid var(--border);border-radius:20px;background:transparent;color:var(--muted);}
+#ex-reset{padding:5px 14px;font-size:12px;font-weight:700;font-family:'Nunito',sans-serif;cursor:pointer;border:1.5px solid var(--border);border-radius:20px;background:transparent;color:var(--muted);}
+.ex-actions{grid-column:3;justify-self:end;display:flex;flex-direction:column;gap:6px;align-items:stretch;}
+.ex-actions #ex-reset{grid-column:auto;justify-self:auto;}
+#ex-print{padding:5px 14px;font-size:12px;font-weight:700;font-family:'Nunito',sans-serif;cursor:pointer;border:1.5px solid #7BBDE0;border-radius:20px;background:#F0F7FD;color:#1E3A50;}
+#ex-print:hover{background:#7BBDE0;color:#fff;}
+
+/* ── Impression / export PDF ── */
+@media print {
+  @page{size:A4 portrait;margin:14mm;}
+  html,body{background:#fff!important;margin:0!important;padding:0!important;}
+  /* Masquer toute la navigation et les pages non actives */
+  nav, header, .nav-bar, #nav, .nav, .navbar{display:none!important;}
+  .page[hidden]{display:none!important;}
+  /* Carte partagée (utilisée pour Conversion) : masquée à l'impression */
+  #exercise-card{display:none!important;}
+  /* Masquer les contrôles non utiles à l'impression */
+  .ex-actions, .ex-grandeur-btns, .ex-validate-serie, .ex-arrows-h{display:none!important;}
+  .ex-title-caret{display:none!important;}
+  .ex-type-menu{display:none!important;}
+  .ex-instruction{display:none!important;}
+  /* Conteneurs : virer flex/overflow qui bloquent les sauts de page */
+  html,body,#app,main,.page-slot,.card,.card>.body{
+    display:block!important;
+    overflow:visible!important;
+    box-shadow:none!important;
+    border:none!important;
+    background:transparent!important;
+    width:auto!important;
+    max-width:none!important;
+    height:auto!important;
+    min-height:0!important;
+    flex:none!important;
+    padding:0!important;
+  }
+  /* La page visible passe en block ; les pages cachées restent cachées */
+  .page:not([hidden]){
+    display:block!important;
+    overflow:visible!important;
+    width:auto!important;
+    max-width:none!important;
+    height:auto!important;
+    min-height:0!important;
+    flex:none!important;
+    padding:0!important;
+    box-shadow:none!important;
+    border:none!important;
+    background:transparent!important;
+  }
+  .page[hidden]{display:none!important;}
+  /* Séries empilées verticalement (Série B sous Série A) */
+  #ex-grid{display:block!important;}
+  .ex-column{margin-bottom:14px;}
+  .ex-column+.ex-column{page-break-before:auto;}
+  /* Réinitialiser les couleurs de feedback */
+  .ex-line.ok, .ex-line.ko{background:transparent!important;}
+
+  /* Type 1 — Conversions */
+  .ex-line.type-virgule .ex-digits{
+    border:none!important;
+    border-bottom:1.5px dotted #555!important;
+    background:transparent!important;
+    border-radius:0!important;
+    min-width:120px;
+    padding:0!important;
+  }
+  .ex-line.type-virgule .ex-digits *{visibility:hidden!important;}
+
+  /* Type 2 — Trouver l'unité */
+  .ex-line.type-unite .ex-unit-select{
+    appearance:none;-webkit-appearance:none;-moz-appearance:none;
+    border:none!important;
+    border-bottom:1.5px dotted #555!important;
+    background:transparent!important;
+    color:transparent!important;
+    border-radius:0!important;
+    width:60px!important;
+    padding:0!important;
+  }
+  .ex-line.type-unite .ex-unit-select::-ms-expand{display:none;}
+
+  /* Type 3 — Comparaison */
+  .ex-line.type-comp .ex-comp-select{
+    appearance:none;-webkit-appearance:none;-moz-appearance:none;
+    border:none!important;
+    border-bottom:1.5px dotted #555!important;
+    background:transparent!important;
+    color:transparent!important;
+    border-radius:0!important;
+    width:50px!important;
+    padding:0!important;
+  }
+  .ex-line.type-comp .ex-comp-select::-ms-expand{display:none;}
+
+  /* Pagination */
+  .ex-line{break-inside:avoid;}
+
+  /* ── Page 2 : corrigé ── */
+  #print-corrige{
+    display:block!important;
+    break-before:page!important;
+    page-break-before:always!important;
+  }
+  #ex-grid{display:block!important;}
+  #print-corrige h2{font-size:16px;font-weight:800;color:#2D6BE4;margin:0 0 16px 0;}
+  #ex-grid-corrige{display:block!important;}
+  #ex-grid-corrige .ex-column{margin-bottom:14px;}
+  /* Pastille solution : reprend l'apparence des pastilles bleues mais avec la solution en gras */
+  .ex-corrige-ans{
+    display:inline-flex;align-items:center;justify-content:center;
+    padding:5px 14px;
+    border:1.5px solid #7BBDE0;
+    border-radius:8px;
+    background:#F0F7FD!important;
+    font-size:15px;font-weight:800;color:#1E3A50;
+    min-height:30px;
+    min-width:60px;
+  }
+  .ex-corrige-ans-virgule{font-size:15px;}
+  .ex-corrige-ans-comp{font-size:18px;color:#2D6BE4;width:60px;}
+  .ex-corrige-ans-unite{width:80px;}
+}
+/* Le bloc corrigé est masqué à l'écran, visible uniquement à l'impression */
+#print-corrige{display:none;}
 #ex-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px 36px;}
 .ex-column{display:flex;flex-direction:column;}
 .ex-serie-title{font-size:14px;font-weight:800;color:#2D6BE4;margin-bottom:8px;text-align:center;}
@@ -203,7 +341,8 @@ main{flex:1;display:flex;flex-direction:column;min-height:0;}
 .ex-validate-serie{margin-top:12px;padding:6px 16px;font-size:12px;font-weight:700;font-family:'Nunito',sans-serif;cursor:pointer;border:1.5px solid #7BBDE0;background:#F0F7FD;color:#1E3A50;border-radius:18px;align-self:center;}
 .ex-validate-serie:hover{background:#7BBDE0;color:#fff;}
 .ex-column>div:not(.ex-serie-title){display:flex;flex-direction:column;gap:6px;}
-.ex-line{display:grid;grid-template-columns:20px 100px auto 140px 40px auto;align-items:center;gap:8px;padding:4px 6px;border-radius:6px;transition:background .2s;}
+.ex-line{display:grid;grid-template-columns:20px 100px auto auto auto auto 1fr;align-items:center;gap:8px;padding:4px 6px;border-radius:6px;transition:background .2s;}
+.ex-field-container{display:flex;align-items:center;justify-content:flex-start;gap:4px;justify-self:start;min-width:120px;}
 .ex-line.ok{background:#E9F5D9;}
 .ex-line.ko{background:#FBE8E8;animation:shakehoriz .4s;}
 @keyframes shakehoriz{0%,100%{transform:translateX(0);}25%{transform:translateX(-4px);}75%{transform:translateX(4px);}}
@@ -215,14 +354,29 @@ main{flex:1;display:flex;flex-direction:column;min-height:0;}
 .ex-digit-ghost{color:#C8C6BC;}
 .ex-digit-implicit{color:#1E3A50;}
 .ex-comma-drag{font-size:22px;font-weight:800;color:#E07B39;padding:0 1px;line-height:1;user-select:none;}
-.ex-field-container{display:flex;align-items:center;justify-content:flex-start;gap:4px;}
 .ex-arrows-h{display:flex;gap:3px;}
 .ex-arrow{width:26px;height:26px;padding:0;border-radius:5px;border:1.5px solid #7BBDE0;background:#F0F7FD;color:#1E3A50;font-family:'Nunito',sans-serif;font-size:18px;font-weight:normal;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center;}
 .ex-arrow:hover{background:#7BBDE0;color:#fff;}
 .ex-arrow:active{transform:scale(0.95);}
-.ex-target-unit{font-size:14px;font-weight:700;color:#4A6B80;min-width:28px;}
+.ex-target-unit{font-size:14px;font-weight:700;color:#4A6B80;min-width:40px;text-align:left;}
 .ex-validate{display:none!important;}
 .ex-line.ok .ex-digits{border-color:#5BAD5B;background:#F0FEF0;}
+
+/* ── Type 2 : trouver l'unité ── */
+.ex-line.type-unite{grid-template-columns:20px 100px auto 110px 70px 1fr;gap:6px;}
+.ex-fixed-num{font-size:15px;font-weight:800;color:#1E3A50;padding:3px 14px;border:1.5px solid #C8C6BC;border-radius:8px;background:#F7F6F2;min-height:30px;display:flex;align-items:center;justify-content:center;white-space:nowrap;width:110px;box-sizing:border-box;}
+.ex-unit-select{font-family:'Nunito',sans-serif;font-size:14px;font-weight:700;color:#1E3A50;padding:5px 4px 5px 8px;border:1.5px solid #7BBDE0;border-radius:8px;background:#F0F7FD;cursor:pointer;outline:none;width:70px;box-sizing:border-box;margin-left:8px;}
+.ex-unit-select:focus{border-color:#2D6BE4;}
+.ex-line.type-unite.ok .ex-unit-select{border-color:#5BAD5B;background:#F0FEF0;}
+
+/* ── Type 3 : comparaison <>= ── */
+.ex-line.type-comp{grid-template-columns:20px 130px 70px 130px 1fr;gap:14px;align-items:center;}
+.ex-comp-pill{display:grid;grid-template-columns:1fr 36px;align-items:baseline;gap:6px;padding:5px 14px;border:1.5px solid #C8C6BC;border-radius:8px;background:#F7F6F2;min-height:30px;width:130px;box-sizing:border-box;}
+.ex-comp-pill .ex-comp-num{font-size:14px;font-weight:800;color:#1E3A50;text-align:right;white-space:nowrap;}
+.ex-comp-pill .ex-comp-unit{font-size:13px;font-weight:700;color:#4A6B80;text-align:left;white-space:nowrap;}
+.ex-comp-select{font-family:'Nunito',sans-serif;font-size:14px;font-weight:800;color:#2D6BE4;padding:4px 4px 4px 8px;border:1.5px solid #7BBDE0;border-radius:8px;background:#F0F7FD;cursor:pointer;outline:none;text-align:center;text-align-last:center;width:70px;box-sizing:border-box;}
+.ex-comp-select:focus{border-color:#2D6BE4;}
+.ex-line.type-comp.ok .ex-comp-select{border-color:#5BAD5B;background:#F0FEF0;}
 
 /* ── Page Unités : layout dédié ── */
 #unites-layout{display:flex;align-items:flex-start;gap:18px;width:100%;}
@@ -276,7 +430,7 @@ main{flex:1;display:flex;flex-direction:column;min-height:0;}
     <button class="nav-btn active" data-target="page-unites">Unités</button>
     <button class="nav-btn" data-target="page-conversion">Conversion</button>
     <button class="nav-btn" data-target="page-libre">Saisie</button>
-    <button class="nav-btn" data-target="page-exercice">Exercice</button>
+    <button class="nav-btn" data-target="page-exercice">Exercices</button>
   </nav>
   <a href="index.html" class="back-btn" title="Retour à l'accueil"><span class="back-arrow">←</span>EVA</a>
 </header>
@@ -332,7 +486,27 @@ main{flex:1;display:flex;flex-direction:column;min-height:0;}
       <div id="ex-header">
         <div class="ex-header-left">
           <div class="ex-title-row">
-            <h2 class="ex-title" id="ex-title">Conversions de longueurs</h2>
+            <span class="ex-title-wrap">
+              <h2 class="ex-title" id="ex-title">Conversions de longueurs</h2><span class="ex-title-caret">▾</span>
+              <div class="ex-type-menu" id="ex-type-menu">
+                <div class="ex-type-row active" data-type="virgule">
+                  <button class="ex-type-practice" data-type="virgule">Conversions</button>
+                  <button class="ex-type-pdf" data-type="virgule" title="Télécharger en PDF">🖨 PDF</button>
+                </div>
+                <div class="ex-type-row" data-type="unite">
+                  <button class="ex-type-practice" data-type="unite">Trouver l'unité</button>
+                  <button class="ex-type-pdf" data-type="unite" title="Télécharger en PDF">🖨 PDF</button>
+                </div>
+                <div class="ex-type-row" data-type="comparaison">
+                  <button class="ex-type-practice" data-type="comparaison">Comparer (&lt; &gt; =)</button>
+                  <button class="ex-type-pdf" data-type="comparaison" title="Télécharger en PDF">🖨 PDF</button>
+                </div>
+                <div class="ex-type-row ex-type-row-mix">
+                  <span class="ex-type-mix-label">📄 Mélange des 3 types</span>
+                  <button class="ex-type-pdf" data-type="mix" title="Télécharger en PDF">🖨 PDF</button>
+                </div>
+              </div>
+            </span>
             <div class="ex-units-reminder" id="ex-units-reminder">km · hm · dam · m · dm · cm · mm</div>
           </div>
           <div class="ex-instruction">Déplace la virgule</div>
@@ -344,7 +518,9 @@ main{flex:1;display:flex;flex-direction:column;min-height:0;}
           <button class="ex-grb" data-g="surface">m²</button>
           <button class="ex-grb" data-g="volume">m³</button>
         </div>
-        <button id="ex-reset">↺ Nouvelle série</button>
+        <div class="ex-actions">
+          <button id="ex-reset">↺ Nouvelle série</button>
+        </div>
       </div>
       <div id="ex-grid">
         <div class="ex-column">
@@ -357,6 +533,11 @@ main{flex:1;display:flex;flex-direction:column;min-height:0;}
           <div id="ex-col-2"></div>
           <button class="ex-validate-serie" data-serie="B">Valider la série B</button>
         </div>
+      </div>
+      <!-- Page 2 d'impression : corrigé (masqué à l'écran) -->
+      <div id="print-corrige">
+        <h2 id="print-corrige-title">Corrigé</h2>
+        <div id="print-corrige-content"></div>
       </div>
     </div></div>
   </section>
@@ -2456,6 +2637,31 @@ const EX_GRANDEURS={
   }
 };
 let activeExG='longueur';
+// Type d'exercice : 'virgule' (déplacer la virgule), 'unite' (trouver l'unité cible), 'comparaison' (<>=)
+let activeExType='virgule';
+
+// Format d'affichage français pour un nombre (séparateur décimal = virgule, max 6 décimales)
+function fmtFr(n){
+  if(!isFinite(n))return ''+n;
+  // Limiter à 12 chiffres significatifs pour éviter les artefacts flottants
+  let s=parseFloat(n.toPrecision(12)).toString();
+  return s.replace('.',',');
+}
+
+// Liste plate de toutes les unités (toutes grandeurs) pour le type comparaison.
+// Chaque item : {grandeur, unite, displayed, idx, SC}
+function allComparableUnits(){
+  const out=[];
+  Object.entries(EX_GRANDEURS).forEach(([gKey,g])=>{
+    const SC=g.subCols||1;
+    g.cols.forEach((u,i)=>{
+      if(u==='-')return;
+      const displayed=(g.display&&g.display[u])||u;
+      out.push({grandeur:gKey,unite:u,displayed,idx:i,SC});
+    });
+  });
+  return out;
+}
 
 function exRandom(n){return Math.floor(Math.random()*n);}
 function exRndNZ(a,b){let v=0;while(!v)v=Math.floor(Math.random()*(b-a+1))+a;return v;}
@@ -2468,8 +2674,15 @@ function exUsableIndices(){
   return out;
 }
 
-// Génère une conversion dans la grandeur active
+// Router : génère un exercice selon activeExType
 function genExercise(){
+  if(activeExType==='unite')return genExerciseUnite();
+  if(activeExType==='comparaison')return genExerciseComp();
+  return genExerciseVirgule();
+}
+
+// TYPE 1 — Déplacer la virgule
+function genExerciseVirgule(){
   const grandeur=EX_GRANDEURS[activeExG];
   const cols=grandeur.cols;
   const SC=grandeur.subCols||1;
@@ -2508,7 +2721,111 @@ function genExercise(){
   let targetCommaPos=srcCommaPos+delta;
   while(targetCommaPos>digits.length){digits+='0';}
   while(targetCommaPos<0){digits='0'+digits;targetCommaPos++;}
-  return {sourceStr,srcU,tgtU,digits,commaPos:targetCommaPos,srcCommaPos,srcI,tgtI,SC};
+  return {type:'virgule',sourceStr,srcU,tgtU,digits,commaPos:targetCommaPos,srcCommaPos,srcI,tgtI,SC};
+}
+
+// TYPE 2 — Trouver l'unité cible
+// On donne : valeur source + unité source + valeur cible (en chiffres) → choisir l'unité cible parmi un menu.
+function genExerciseUnite(){
+  const grandeur=EX_GRANDEURS[activeExG];
+  const cols=grandeur.cols;
+  const SC=grandeur.subCols||1;
+  const usable=exUsableIndices();
+  const srcI=usable[exRandom(usable.length)];
+  const srcU=cols[srcI];
+  const maxStep=SC>1?2:3;
+  const candidates=usable.filter(i=>i!==srcI&&Math.abs(i-srcI)<=maxStep);
+  const tgtI=candidates[exRandom(candidates.length)];
+  const tgtU=cols[tgtI];
+  // Valeur source : entier ou décimal simple
+  let srcVal;
+  if(Math.random()<0.5){
+    // Entier
+    srcVal=exRndNZ(1,9999);
+  } else {
+    // Décimal 1-2 chiffres après virgule
+    const nDec=1+exRandom(2);
+    const intPart=exRndNZ(1,999);
+    const decMax=Math.pow(10,nDec);
+    const decPart=exRndNZ(1,decMax-1);
+    srcVal=intPart+decPart/decMax;
+    srcVal=parseFloat(srcVal.toFixed(nDec));
+  }
+  const sourceStr=fmtFr(srcVal);
+  // Valeur cible (calculée) — affichée comme chiffres figés
+  const factor=Math.pow(10,(tgtI-srcI)*SC);
+  const tgtVal=srcVal*factor;
+  const targetStr=fmtFr(tgtVal);
+  return {type:'unite',sourceStr,srcU,tgtU,targetStr,srcI,tgtI,SC};
+}
+
+// TYPE 3 — Comparaison <>=
+// Les deux côtés partagent les mêmes chiffres significatifs ; seule la position de la virgule
+// (ou l'ajout de zéros) varie. Mêmes unités possibles, mais alors les deux nombres doivent différer.
+function genExerciseComp(){
+  // 1) Choisir la grandeur
+  const gKeys=Object.keys(EX_GRANDEURS);
+  const gKey=gKeys[exRandom(gKeys.length)];
+  const grandeur=EX_GRANDEURS[gKey];
+  const cols=grandeur.cols;
+  const SC=grandeur.subCols||1;
+  const usable=[];
+  cols.forEach((u,i)=>{if(u!=='-')usable.push(i);});
+  // 2) Tirer deux unités DIFFÉRENTES (à ±maxStep)
+  const i1=usable[exRandom(usable.length)];
+  const maxStep=SC>1?2:3;
+  const cands=usable.filter(i=>i!==i1&&Math.abs(i-i1)<=maxStep);
+  const i2=cands[exRandom(cands.length)];
+  const u1=cols[i1], u2=cols[i2];
+  const disp=u=>(grandeur.display&&grandeur.display[u])||u;
+  // 3) Tirer une suite de 1 à 3 chiffres significatifs (sans 0 inutile au début/fin)
+  const nDig=1+exRandom(3); // 1..3 chiffres
+  let digits=''+exRndNZ(1,9);
+  for(let i=1;i<nDig;i++)digits+=exRandom(10);
+  // Retirer les 0 de queue éventuels (pour éviter "350" qui fait doublon avec "35" + zéro)
+  while(digits.length>1&&digits[digits.length-1]==='0')digits=digits.slice(0,-1);
+  // 4) Choisir deux placements de virgule.
+  // Bornes : on autorise au plus 1 zéro ajouté à gauche (p=-1) et au plus 1 à droite (p=length+1).
+  const lo=-1, hi=digits.length+1;
+  const allPositions=[];
+  for(let p=lo;p<=hi;p++)allPositions.push(p);
+  const p1=allPositions[exRandom(allPositions.length)];
+  const p2=allPositions[exRandom(allPositions.length)];
+  // 5) Construire les deux strings d'affichage à partir de digits + position
+  const buildStr=(d,p)=>{
+    if(p<=0){
+      // p=0 : "0,XYZ" ; p<0 : ajouter |p| zéros après la virgule => "0,00XYZ"
+      const zeros='0'.repeat(-p);
+      return '0,'+zeros+d;
+    }
+    if(p>=d.length){
+      // Entier ; ajouter des zéros à droite si p>length
+      const zeros='0'.repeat(p-d.length);
+      return d+zeros;
+    }
+    return d.slice(0,p)+','+d.slice(p);
+  };
+  const leftStr=buildStr(digits,p1);
+  const rightStr=buildStr(digits,p2);
+  // 6) Calculer les valeurs numériques pour la comparaison
+  const v1=parseFloat(leftStr.replace(',','.'));
+  const v2=parseFloat(rightStr.replace(',','.'));
+  // Convertir dans une unité commune (la plus petite des deux)
+  const idxRef=Math.max(i1,i2);
+  const v1Ref=v1*Math.pow(10,(idxRef-i1)*SC);
+  const v2Ref=v2*Math.pow(10,(idxRef-i2)*SC);
+  const eps=1e-9;
+  let answer;
+  if(Math.abs(v1Ref-v2Ref)<eps)answer='=';
+  else if(v1Ref<v2Ref)answer='<';
+  else answer='>';
+  return {
+    type:'comparaison',
+    grandeur:gKey,
+    leftStr, leftU:disp(u1),
+    rightStr, rightU:disp(u2),
+    answer
+  };
 }
 
 let exExercises=[];
@@ -2516,33 +2833,51 @@ let exExercises=[];
 const exStates={};
 
 function snapshotExState(){
-  // Snapshot des exercices + état de chaque ligne (digits, commaPos, ok/ko)
+  // Snapshot des exercices + état de chaque ligne, selon son type
   return {
     exercises:JSON.parse(JSON.stringify(exExercises)),
-    lines:[...document.querySelectorAll('.ex-line')].map(line=>({
-      digits:line._state?line._state.digits:'',
-      commaPos:line._state?line._state.commaPos:0,
-      minCommaPos:line._state?line._state.minCommaPos:0,
-      maxCommaPos:line._state?line._state.maxCommaPos:0,
-      ok:line.classList.contains('ok')
-    }))
+    lines:[...document.querySelectorAll('.ex-line')].map(line=>{
+      const s=line._state||{};
+      return {
+        // Type virgule
+        digits:s.digits||'',
+        commaPos:s.commaPos||0,
+        minCommaPos:s.minCommaPos||0,
+        maxCommaPos:s.maxCommaPos||0,
+        // Type unite / comparaison
+        selected:s.selected||'',
+        ok:line.classList.contains('ok')
+      };
+    })
   };
 }
 
 function restoreExState(snapshot){
   exExercises=JSON.parse(JSON.stringify(snapshot.exercises));
   renderExercicePage();
-  // Réappliquer l'état de chaque ligne
+  // Réappliquer l'état de chaque ligne selon son type
   const lines=document.querySelectorAll('.ex-line');
   snapshot.lines.forEach((ls,i)=>{
     const line=lines[i];
     if(!line||!line._state)return;
-    line._state.digits=ls.digits;
-    line._state.commaPos=ls.commaPos;
-    line._state.minCommaPos=ls.minCommaPos;
-    line._state.maxCommaPos=ls.maxCommaPos;
-    const digitsEl=line.querySelector('.ex-digits');
-    if(digitsEl)renderDragDigits(digitsEl,line._state);
+    const ex=exExercises[i];
+    if(ex.type==='unite'){
+      line._state.selected=ls.selected||'';
+      const sel=line.querySelector('.ex-unit-select');
+      if(sel)sel.value=line._state.selected;
+    } else if(ex.type==='comparaison'){
+      line._state.selected=ls.selected||'';
+      const sel=line.querySelector('.ex-comp-select');
+      if(sel)sel.value=line._state.selected;
+    } else {
+      // virgule
+      line._state.digits=ls.digits;
+      line._state.commaPos=ls.commaPos;
+      line._state.minCommaPos=ls.minCommaPos;
+      line._state.maxCommaPos=ls.maxCommaPos;
+      const digitsEl=line.querySelector('.ex-digits');
+      if(digitsEl)renderDragDigits(digitsEl,line._state);
+    }
     if(ls.ok)line.classList.add('ok');
   });
 }
@@ -2550,33 +2885,49 @@ function restoreExState(snapshot){
 function buildExercicePage(){
   exExercises=[];
   for(let i=0;i<10;i++)exExercises.push(genExercise());
-  // Pour la masse : garantir au moins un exercice utilisant t ou q
-  if(activeExG==='masse'){
-    const hasTQ=exExercises.some(ex=>['t','q'].includes(ex.srcU)||['t','q'].includes(ex.tgtU));
-    if(!hasTQ){
-      for(let tries=0;tries<30;tries++){
-        const ex=genExercise();
-        if(['t','q'].includes(ex.srcU)||['t','q'].includes(ex.tgtU)){
-          exExercises[exRandom(10)]=ex;
-          break;
+  // Contraintes spécifiques au type virgule (sur conversions de masse / écart d'unités)
+  if(activeExType==='virgule'){
+    if(activeExG==='masse'){
+      const hasTQ=exExercises.some(ex=>['t','q'].includes(ex.srcU)||['t','q'].includes(ex.tgtU));
+      if(!hasTQ){
+        for(let tries=0;tries<30;tries++){
+          const ex=genExercise();
+          if(['t','q'].includes(ex.srcU)||['t','q'].includes(ex.tgtU)){
+            exExercises[exRandom(10)]=ex;
+            break;
+          }
         }
       }
     }
-  }
-  // Pour chaque série (A = 0..4, B = 5..9) : garantir au moins une conversion à ≥2 unités d'écart
-  [[0,4],[5,9]].forEach(([start,end])=>{
-    const hasFar=exExercises.slice(start,end+1).some(ex=>Math.abs(ex.tgtI-ex.srcI)>=2);
-    if(hasFar)return;
-    // Remplacer un exercice au hasard dans cette série par un à ≥2 d'écart
-    for(let tries=0;tries<30;tries++){
-      const ex=genExercise();
-      if(Math.abs(ex.tgtI-ex.srcI)>=2){
-        const replaceIdx=start+exRandom(end-start+1);
-        exExercises[replaceIdx]=ex;
-        break;
+    // Pour chaque série (A = 0..4, B = 5..9) : garantir au moins une conversion à ≥2 unités d'écart
+    [[0,4],[5,9]].forEach(([start,end])=>{
+      const hasFar=exExercises.slice(start,end+1).some(ex=>Math.abs(ex.tgtI-ex.srcI)>=2);
+      if(hasFar)return;
+      for(let tries=0;tries<30;tries++){
+        const ex=genExercise();
+        if(Math.abs(ex.tgtI-ex.srcI)>=2){
+          const replaceIdx=start+exRandom(end-start+1);
+          exExercises[replaceIdx]=ex;
+          break;
+        }
       }
-    }
-  });
+    });
+  }
+  // Type comparaison : garantir au moins un "=" par série (sinon trop binaire)
+  if(activeExType==='comparaison'){
+    [[0,4],[5,9]].forEach(([start,end])=>{
+      const hasEq=exExercises.slice(start,end+1).some(ex=>ex.answer==='=');
+      if(hasEq)return;
+      for(let tries=0;tries<40;tries++){
+        const ex=genExercise();
+        if(ex.answer==='='){
+          const replaceIdx=start+exRandom(end-start+1);
+          exExercises[replaceIdx]=ex;
+          break;
+        }
+      }
+    });
+  }
   renderExercicePage();
 }
 
@@ -2591,7 +2942,13 @@ function renderExercicePage(){
 }
 
 function buildExLine(ex,idx){
-  const line=document.createElement('div');line.className='ex-line';line.dataset.idx=idx;
+  if(ex.type==='unite')return buildExLineUnite(ex,idx);
+  if(ex.type==='comparaison')return buildExLineComp(ex,idx);
+  return buildExLineVirgule(ex,idx);
+}
+
+function buildExLineVirgule(ex,idx){
+  const line=document.createElement('div');line.className='ex-line type-virgule';line.dataset.idx=idx;
   // Helper : afficher l'unité avec exposant si la grandeur en a un (surface/volume)
   const grandeur=EX_GRANDEURS[activeExG];
   const disp=u=>(grandeur.display&&grandeur.display[u])||u;
@@ -2644,6 +3001,81 @@ function buildExLine(ex,idx){
     renderDragDigits(digits,state);
   });
   line.append(num,src,eq,container,tgt,arrows);
+  return line;
+}
+
+// TYPE 2 — Trouver l'unité
+function buildExLineUnite(ex,idx){
+  const line=document.createElement('div');line.className='ex-line type-unite';line.dataset.idx=idx;
+  const grandeur=EX_GRANDEURS[activeExG];
+  const disp=u=>(grandeur.display&&grandeur.display[u])||u;
+  const num=document.createElement('span');num.className='ex-num';
+  num.textContent=((idx%5)+1)+'.';
+  const src=document.createElement('span');src.className='ex-source';
+  src.textContent=ex.sourceStr+' '+disp(ex.srcU);
+  const eq=document.createElement('span');eq.className='ex-equals';eq.textContent='=';
+  // Valeur cible figée (déjà calculée)
+  const fixedNum=document.createElement('span');fixedNum.className='ex-fixed-num';
+  fixedNum.textContent=ex.targetStr;
+  // Menu déroulant des unités de la grandeur
+  const select=document.createElement('select');select.className='ex-unit-select';
+  // Option vide par défaut
+  const optEmpty=document.createElement('option');optEmpty.value='';optEmpty.textContent='— ?';
+  select.appendChild(optEmpty);
+  exUsableIndices().forEach(i=>{
+    const u=grandeur.cols[i];
+    const opt=document.createElement('option');
+    opt.value=u;
+    opt.textContent=disp(u);
+    select.appendChild(opt);
+  });
+  // Spacer (vide) pour que la grille reste alignée
+  const spacer=document.createElement('span');
+  // État
+  const state={selected:'',expected:ex.tgtU};
+  line._state=state;
+  select.addEventListener('change',()=>{
+    state.selected=select.value;
+    // Si la ligne avait été marquée OK et qu'on change : on retire l'état
+    line.classList.remove('ok','ko');
+  });
+  line.append(num,src,eq,fixedNum,select,spacer);
+  return line;
+}
+
+// TYPE 3 — Comparaison <>=
+function buildExLineComp(ex,idx){
+  const line=document.createElement('div');line.className='ex-line type-comp';line.dataset.idx=idx;
+  const num=document.createElement('span');num.className='ex-num';
+  num.textContent=((idx%5)+1)+'.';
+  // Pastille gauche : nombre + unité
+  const leftPill=document.createElement('span');leftPill.className='ex-comp-pill';
+  const leftN=document.createElement('span');leftN.className='ex-comp-num';leftN.textContent=ex.leftStr;
+  const leftU=document.createElement('span');leftU.className='ex-comp-unit';leftU.textContent=ex.leftU;
+  leftPill.append(leftN,leftU);
+  // Select <>=
+  const select=document.createElement('select');select.className='ex-comp-select';
+  const placeholder=document.createElement('option');
+  placeholder.value='';placeholder.textContent='<>=';
+  placeholder.disabled=true;placeholder.hidden=true;placeholder.selected=true;
+  select.appendChild(placeholder);
+  ['<','>','='].forEach(op=>{
+    const opt=document.createElement('option');opt.value=op;opt.textContent=op;
+    select.appendChild(opt);
+  });
+  // Pastille droite
+  const rightPill=document.createElement('span');rightPill.className='ex-comp-pill';
+  const rightN=document.createElement('span');rightN.className='ex-comp-num';rightN.textContent=ex.rightStr;
+  const rightU=document.createElement('span');rightU.className='ex-comp-unit';rightU.textContent=ex.rightU;
+  rightPill.append(rightN,rightU);
+  const state={selected:'',expected:ex.answer};
+  line._state=state;
+  select.addEventListener('change',()=>{
+    state.selected=select.value;
+    line.classList.remove('ok','ko');
+  });
+  // Ordre dans la grille (4 colonnes) : num | leftPill | select | rightPill
+  line.append(num,leftPill,select,rightPill);
   return line;
 }
 
@@ -2773,6 +3205,27 @@ function renderDigits(digits,digitStr,state){
 }
 
 function validateExLine(line,ex,state){
+  if(ex.type==='unite'){
+    if(state.selected===''){return;} // rien sélectionné : pas de feedback
+    if(state.selected===state.expected){
+      line.classList.remove('ko');line.classList.add('ok');
+    } else {
+      line.classList.remove('ok');line.classList.add('ko');
+      setTimeout(()=>line.classList.remove('ko'),500);
+    }
+    return;
+  }
+  if(ex.type==='comparaison'){
+    if(state.selected===''){return;}
+    if(state.selected===state.expected){
+      line.classList.remove('ko');line.classList.add('ok');
+    } else {
+      line.classList.remove('ok');line.classList.add('ko');
+      setTimeout(()=>line.classList.remove('ko'),500);
+    }
+    return;
+  }
+  // Type virgule (par défaut)
   // Construire la valeur actuelle à partir de state.digits + state.commaPos
   const cur=formatWithComma(state.digits,state.commaPos);
   const curVal=parseFloat(cur.replace(',','.'));
@@ -2796,38 +3249,821 @@ function formatWithComma(digitStr,commaPos){
   return digitStr.slice(0,commaPos)+','+digitStr.slice(commaPos);
 }
 
+// Clé d'état : couple (type, grandeur). Pour comparaison, la grandeur est ignorée → '*'.
+function exStateKey(){
+  if(activeExType==='comparaison')return 'comparaison:*';
+  return activeExType+':'+activeExG;
+}
+
+// Met à jour le titre, le rappel d'unités et l'instruction selon (type, grandeur)
+function updateExHeader(){
+  const titre=document.getElementById('ex-title');
+  const reminder=document.getElementById('ex-units-reminder');
+  const instruction=document.querySelector('.ex-instruction');
+  const grandeurBtns=document.querySelector('.ex-grandeur-btns');
+  if(activeExType==='comparaison'){
+    if(titre)titre.textContent='Comparer des grandeurs';
+    if(reminder)reminder.textContent='< · > · =';
+    if(instruction)instruction.textContent='Choisis le bon symbole';
+    // Masquer le sélecteur de grandeur (mélange toutes les grandeurs)
+    if(grandeurBtns)grandeurBtns.style.visibility='hidden';
+  } else {
+    const g=EX_GRANDEURS[activeExG];
+    if(titre)titre.textContent=g.titre;
+    if(reminder)reminder.textContent=g.reminder;
+    if(instruction){
+      instruction.textContent=(activeExType==='unite')?"Choisis l'unité manquante":'Déplace la virgule';
+    }
+    if(grandeurBtns)grandeurBtns.style.visibility='visible';
+  }
+  // Mettre à jour la ligne active dans le menu type
+  document.querySelectorAll('.ex-type-row').forEach(b=>{
+    b.classList.toggle('active',b.dataset.type===activeExType);
+  });
+  // Mettre à jour l'item actif dans les boutons de grandeur
+  document.querySelectorAll('.ex-grb').forEach(b=>{
+    b.classList.toggle('active',b.dataset.g===activeExG);
+  });
+}
+
 function setActiveExGrandeur(g){
   if(!EX_GRANDEURS[g])return;
   if(g===activeExG)return;
-  // Sauvegarder l'état de la grandeur courante
+  if(activeExType==='comparaison')return; // grandeur sans effet en mode comparaison
+  // Sauvegarder l'état courant
   if(exExercises.length){
-    exStates[activeExG]=snapshotExState();
+    exStates[exStateKey()]=snapshotExState();
   }
   activeExG=g;
-  document.querySelectorAll('.ex-grb').forEach(b=>{
-    b.classList.toggle('active',b.dataset.g===g);
-  });
-  const titre=document.getElementById('ex-title');
-  if(titre)titre.textContent=EX_GRANDEURS[g].titre;
-  const reminder=document.getElementById('ex-units-reminder');
-  if(reminder)reminder.textContent=EX_GRANDEURS[g].reminder;
-  // Restaurer ou générer
-  if(exStates[g]){
-    restoreExState(exStates[g]);
+  updateExHeader();
+  const k=exStateKey();
+  if(exStates[k]){
+    restoreExState(exStates[k]);
+  } else {
+    buildExercicePage();
+  }
+}
+
+function setActiveExType(t){
+  if(!['virgule','unite','comparaison'].includes(t))return;
+  if(t===activeExType)return;
+  // Sauvegarder l'état courant
+  if(exExercises.length){
+    exStates[exStateKey()]=snapshotExState();
+  }
+  activeExType=t;
+  updateExHeader();
+  const k=exStateKey();
+  if(exStates[k]){
+    restoreExState(exStates[k]);
   } else {
     buildExercicePage();
   }
 }
 
 document.getElementById('ex-reset').addEventListener('click',()=>{
-  delete exStates[activeExG];
+  delete exStates[exStateKey()];
   buildExercicePage();
 });
+// Génère un PDF pour un type spécifique (sans changer le type actif). Si forType n'est pas
+// fourni, utilise le type courant. C'est une généralisation de l'ancien listener #ex-print.
+async function triggerTypePdf(forType,btn){
+  const originalText=btn?btn.textContent:'';
+  if(btn){btn.disabled=true;btn.textContent='⏳…';}
+  // Mémoriser le type courant et basculer temporairement
+  const savedType=activeExType;
+  const savedExercises=exExercises.slice();
+  if(forType&&forType!==activeExType){
+    activeExType=forType;
+    // Régénérer 10 exos pour ce type (sans toucher à l'affichage écran)
+    exExercises=[];
+    for(let i=0;i<10;i++)exExercises.push(genExercise());
+    // Appliquer les contraintes minimales
+    if(activeExType==='virgule'){
+      [[0,4],[5,9]].forEach(([start,end])=>{
+        const hasFar=exExercises.slice(start,end+1).some(ex=>Math.abs(ex.tgtI-ex.srcI)>=2);
+        if(hasFar)return;
+        for(let tries=0;tries<30;tries++){
+          const ex=genExercise();
+          if(Math.abs(ex.tgtI-ex.srcI)>=2){exExercises[start+exRandom(end-start+1)]=ex;break;}
+        }
+      });
+    } else if(activeExType==='comparaison'){
+      [[0,4],[5,9]].forEach(([start,end])=>{
+        const hasEq=exExercises.slice(start,end+1).some(ex=>ex.answer==='=');
+        if(hasEq)return;
+        for(let tries=0;tries<40;tries++){
+          const ex=genExercise();
+          if(ex.answer==='='){exExercises[start+exRandom(end-start+1)]=ex;break;}
+        }
+      });
+    }
+  }
+  try{
+    await loadPdfLibs();
+    await renderPdfFromExercice();
+  } catch(e){
+    console.error('Erreur PDF :',e);
+    alert('Erreur lors de la génération du PDF : '+e.message);
+  } finally {
+    // Restaurer le type courant et les exercices d'écran
+    activeExType=savedType;
+    exExercises=savedExercises;
+    if(btn){btn.disabled=false;btn.textContent=originalText;}
+  }
+}
+
+// Charge jsPDF + html2canvas depuis CDN (une seule fois)
+let pdfLibsLoaded=false;
+function loadPdfLibs(){
+  if(pdfLibsLoaded)return Promise.resolve();
+  const loadScript=src=>new Promise((res,rej)=>{
+    const s=document.createElement('script');s.src=src;s.onload=res;s.onerror=()=>rej(new Error('Impossible de charger '+src));
+    document.head.appendChild(s);
+  });
+  return Promise.all([
+    loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'),
+    loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js')
+  ]).then(()=>{pdfLibsLoaded=true;});
+}
+
+// Génère un PDF A4 portrait avec page 1 = exercices, page 2 = corrigé
+async function renderPdfFromExercice(){
+  const { jsPDF } = window.jspdf;
+  const exPage=document.getElementById('page-exercice');
+  if(!exPage)throw new Error('Page Exercice introuvable');
+
+  // Générer 10 exercices supplémentaires pour les séries C et D (sans toucher à exExercises)
+  const exCD=[];
+  const savedExercises=exExercises.slice();
+  // Ré-utiliser la même logique de contraintes (au moins une conv loin, etc.) pour C et D
+  for(let i=0;i<10;i++)exCD.push(genExercise());
+  if(activeExType==='virgule'){
+    if(activeExG==='masse'){
+      const hasTQ=exCD.some(ex=>['t','q'].includes(ex.srcU)||['t','q'].includes(ex.tgtU));
+      if(!hasTQ){
+        for(let tries=0;tries<30;tries++){
+          const ex=genExercise();
+          if(['t','q'].includes(ex.srcU)||['t','q'].includes(ex.tgtU)){
+            exCD[exRandom(10)]=ex;break;
+          }
+        }
+      }
+    }
+    [[0,4],[5,9]].forEach(([start,end])=>{
+      const hasFar=exCD.slice(start,end+1).some(ex=>Math.abs(ex.tgtI-ex.srcI)>=2);
+      if(hasFar)return;
+      for(let tries=0;tries<30;tries++){
+        const ex=genExercise();
+        if(Math.abs(ex.tgtI-ex.srcI)>=2){
+          const replaceIdx=start+exRandom(end-start+1);
+          exCD[replaceIdx]=ex;break;
+        }
+      }
+    });
+  }
+  if(activeExType==='comparaison'){
+    [[0,4],[5,9]].forEach(([start,end])=>{
+      const hasEq=exCD.slice(start,end+1).some(ex=>ex.answer==='=');
+      if(hasEq)return;
+      for(let tries=0;tries<40;tries++){
+        const ex=genExercise();
+        if(ex.answer==='='){
+          const replaceIdx=start+exRandom(end-start+1);
+          exCD[replaceIdx]=ex;break;
+        }
+      }
+    });
+  }
+
+  // Conteneur de rendu hors écran
+  const sandbox=document.createElement('div');
+  sandbox.style.cssText='position:absolute;left:-99999px;top:0;width:794px;background:#fff;box-sizing:border-box;font-family:Nunito,sans-serif;';
+  document.body.appendChild(sandbox);
+
+  // Page 1 : exercices (séries A, B, C, D en grille 2×2)
+  const page1=buildPdfPageExercices(savedExercises,exCD);
+  sandbox.appendChild(page1);
+  await new Promise(r=>setTimeout(r,50));
+  const canvas1=await html2canvas(page1,{scale:2,backgroundColor:'#ffffff',logging:false});
+
+  // Page 2 : corrigé (mêmes 4 séries)
+  sandbox.removeChild(page1);
+  const page2=buildPdfPageCorrige(savedExercises,exCD);
+  sandbox.appendChild(page2);
+  await new Promise(r=>setTimeout(r,50));
+  const canvas2=await html2canvas(page2,{scale:2,backgroundColor:'#ffffff',logging:false});
+
+  document.body.removeChild(sandbox);
+
+  // Assembler le PDF
+  const pdf=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+  const pdfW=210, pdfH=297;
+  const addImg=(canvas)=>{
+    const img=canvas.toDataURL('image/png');
+    const ratio=canvas.height/canvas.width;
+    const w=pdfW;
+    const h=pdfW*ratio;
+    pdf.addImage(img,'PNG',0,0,w,Math.min(h,pdfH));
+  };
+  addImg(canvas1);
+  pdf.addPage();
+  addImg(canvas2);
+
+  const typeLabel={virgule:'Conversions',unite:'Unite',comparaison:'Comparaison'}[activeExType]||'Exercices';
+  const grandeurLabel=(activeExType==='comparaison')?'':'_'+activeExG;
+  pdf.save('Exercices_'+typeLabel+grandeurLabel+'.pdf');
+}
+
+// Génère un PDF mixant les 3 types : 10 conversions + 10 trouver l'unité + 10 comparaisons sur 1 page
+async function renderMixedPdf(){
+  const { jsPDF } = window.jspdf;
+  // Sauvegarder le contexte actuel
+  const savedType=activeExType;
+  const savedG=activeExG;
+
+  // Générer 10 exos par type
+  const types=['virgule','unite','comparaison'];
+  const exByType={};
+  types.forEach(t=>{
+    activeExType=t;
+    // Pour virgule et unite, on prend la grandeur active courante (ou longueur par défaut)
+    if(t!=='comparaison')activeExG=savedG||'longueur';
+    const list=[];
+    for(let i=0;i<10;i++)list.push(genExercise());
+    // Contraintes minimales
+    if(t==='virgule'){
+      // Au moins une conversion à ≥2 d'écart
+      const hasFar=list.some(ex=>Math.abs(ex.tgtI-ex.srcI)>=2);
+      if(!hasFar){
+        for(let tries=0;tries<30;tries++){
+          const ex=genExercise();
+          if(Math.abs(ex.tgtI-ex.srcI)>=2){list[exRandom(10)]=ex;break;}
+        }
+      }
+    }
+    if(t==='comparaison'){
+      const hasEq=list.some(ex=>ex.answer==='=');
+      if(!hasEq){
+        for(let tries=0;tries<40;tries++){
+          const ex=genExercise();
+          if(ex.answer==='='){list[exRandom(10)]=ex;break;}
+        }
+      }
+    }
+    exByType[t]=list;
+  });
+
+  // Restaurer le contexte
+  activeExType=savedType;
+  activeExG=savedG;
+
+  // Sandbox
+  const sandbox=document.createElement('div');
+  sandbox.style.cssText='position:absolute;left:-99999px;top:0;width:794px;background:#fff;box-sizing:border-box;font-family:Nunito,sans-serif;';
+  document.body.appendChild(sandbox);
+
+  // Page 1 : exercices mixés
+  const page1=buildPdfMixedExercices(exByType,savedG||'longueur');
+  sandbox.appendChild(page1);
+  await new Promise(r=>setTimeout(r,50));
+  const canvas1=await html2canvas(page1,{scale:2,backgroundColor:'#ffffff',logging:false});
+
+  // Page 2 : corrigé mixé
+  sandbox.removeChild(page1);
+  const page2=buildPdfMixedCorrige(exByType,savedG||'longueur');
+  sandbox.appendChild(page2);
+  await new Promise(r=>setTimeout(r,50));
+  const canvas2=await html2canvas(page2,{scale:2,backgroundColor:'#ffffff',logging:false});
+
+  document.body.removeChild(sandbox);
+
+  // Assembler
+  const pdf=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+  const pdfW=210, pdfH=297;
+  const addImg=(canvas)=>{
+    const img=canvas.toDataURL('image/png');
+    const ratio=canvas.height/canvas.width;
+    const w=pdfW;
+    const h=pdfW*ratio;
+    pdf.addImage(img,'PNG',0,0,w,Math.min(h,pdfH));
+  };
+  addImg(canvas1);
+  pdf.addPage();
+  addImg(canvas2);
+  pdf.save('Exercices_Melange.pdf');
+}
+
+// Page exercice mixée : 3 sections (1 par type), chacune en grille 2×5
+function buildPdfMixedExercices(exByType,grandeurForType12){
+  const wrap=document.createElement('div');
+  wrap.style.cssText='font-family:Nunito,sans-serif;color:#1E3A50;width:794px;box-sizing:border-box;padding:50px 60px 40px 60px;background:#fff;';
+  // Titre principal
+  const titleEl=document.createElement('h2');
+  titleEl.textContent='Conversions';
+  titleEl.style.cssText='font-size:17px;font-weight:800;color:#2D6BE4;margin:0 0 14px 0;';
+  wrap.appendChild(titleEl);
+
+  const sections=[
+    {type:'virgule', label:'1. Transforme', g:grandeurForType12},
+    {type:'unite',   label:"2. Ajoute l'unité pour respecter l'égalité", g:grandeurForType12},
+    {type:'comparaison', label:'3. Complète avec les signes : < > =', g:grandeurForType12},
+  ];
+  const savedG=activeExG;
+  sections.forEach(s=>{
+    activeExG=s.g; // les builders de ligne lisent activeExG via EX_GRANDEURS[activeExG]
+    const sectionTitle=document.createElement('div');
+    sectionTitle.textContent=s.label;
+    sectionTitle.style.cssText='font-size:13px;font-weight:800;color:#2D6BE4;margin:18px 0 10px 0;border-bottom:1px solid #DDE6EE;padding-bottom:4px;';
+    wrap.appendChild(sectionTitle);
+    // Grille 2 colonnes × 5 lignes
+    const grid=document.createElement('div');
+    grid.style.cssText='display:grid;grid-template-columns:1fr 1fr;gap:0 24px;';
+    const items=exByType[s.type];
+    const colA=document.createElement('div');
+    const colB=document.createElement('div');
+    items.slice(0,5).forEach((ex,i)=>colA.appendChild(buildPdfLineExerciceCompact(ex,i,s.type)));
+    items.slice(5,10).forEach((ex,i)=>colB.appendChild(buildPdfLineExerciceCompact(ex,i+5,s.type)));
+    grid.appendChild(colA);
+    grid.appendChild(colB);
+    wrap.appendChild(grid);
+  });
+  activeExG=savedG;
+  return wrap;
+}
+
+// Variante compacte de la ligne, utilisée dans le PDF mixé (police plus petite, padding réduit)
+function buildPdfLineExerciceCompact(ex,idx,type){
+  const grandeur=EX_GRANDEURS[activeExG];
+  const disp=u=>(grandeur.display&&grandeur.display[u])||u;
+  const line=document.createElement('div');
+  line.style.cssText='display:flex;align-items:center;gap:5px;padding:8px 0;font-size:12px;font-weight:700;';
+  const num=document.createElement('span');
+  num.textContent=((idx%10)+1)+'.';
+  num.style.cssText='display:inline-block;min-width:18px;color:#888;font-weight:700;text-align:right;margin-right:2px;';
+  line.appendChild(num);
+  if(type==='unite'){
+    const src=document.createElement('span');src.textContent=ex.sourceStr+' '+disp(ex.srcU);
+    src.style.cssText='display:inline-block;min-width:60px;text-align:right;font-weight:800;';
+    line.appendChild(src);
+    const eq=document.createElement('span');eq.textContent='=';eq.style.cssText='color:#888;';
+    line.appendChild(eq);
+    const tgtN=document.createElement('span');tgtN.textContent=ex.targetStr;
+    tgtN.style.cssText='display:inline-block;font-weight:800;min-width:50px;text-align:center;';
+    line.appendChild(tgtN);
+    const blank=document.createElement('span');
+    blank.style.cssText='display:inline-block;min-width:40px;border-bottom:1.5px dotted #555;height:14px;';
+    line.appendChild(blank);
+  } else if(type==='comparaison'){
+    const left=document.createElement('span');left.textContent=ex.leftStr+' '+ex.leftU;
+    left.style.cssText='display:inline-block;font-weight:800;min-width:70px;text-align:center;';
+    line.appendChild(left);
+    const blank=document.createElement('span');
+    blank.style.cssText='display:inline-block;min-width:28px;border-bottom:1.5px dotted #555;height:14px;';
+    line.appendChild(blank);
+    const right=document.createElement('span');right.textContent=ex.rightStr+' '+ex.rightU;
+    right.style.cssText='display:inline-block;font-weight:800;min-width:70px;text-align:center;';
+    line.appendChild(right);
+  } else {
+    const src=document.createElement('span');src.textContent=ex.sourceStr+' '+disp(ex.srcU);
+    src.style.cssText='display:inline-block;min-width:60px;text-align:right;font-weight:800;';
+    line.appendChild(src);
+    const eq=document.createElement('span');eq.textContent='=';eq.style.cssText='color:#888;';
+    line.appendChild(eq);
+    const blank=document.createElement('span');
+    blank.style.cssText='display:inline-block;min-width:65px;border-bottom:1.5px dotted #555;height:14px;';
+    line.appendChild(blank);
+    const tgtU=document.createElement('span');tgtU.textContent=disp(ex.tgtU);
+    tgtU.style.cssText='font-weight:700;color:#4A6B80;min-width:24px;';
+    line.appendChild(tgtU);
+  }
+  return line;
+}
+
+// Page corrigé mixée
+function buildPdfMixedCorrige(exByType,grandeurForType12){
+  const wrap=document.createElement('div');
+  wrap.style.cssText='font-family:Nunito,sans-serif;color:#1E3A50;width:794px;box-sizing:border-box;padding:50px 60px 40px 60px;background:#fff;';
+  const titleEl=document.createElement('h2');
+  titleEl.textContent='Corrigé — Conversions';
+  titleEl.style.cssText='font-size:17px;font-weight:800;color:#2D6BE4;margin:0 0 14px 0;';
+  wrap.appendChild(titleEl);
+  const sections=[
+    {type:'virgule', label:'1. Transforme', g:grandeurForType12},
+    {type:'unite',   label:"2. Ajoute l'unité pour respecter l'égalité", g:grandeurForType12},
+    {type:'comparaison', label:'3. Complète avec les signes : < > =', g:grandeurForType12},
+  ];
+  const savedG=activeExG;
+  sections.forEach(s=>{
+    activeExG=s.g;
+    const sectionTitle=document.createElement('div');
+    sectionTitle.textContent=s.label;
+    sectionTitle.style.cssText='font-size:13px;font-weight:800;color:#2D6BE4;margin:18px 0 10px 0;border-bottom:1px solid #DDE6EE;padding-bottom:4px;';
+    wrap.appendChild(sectionTitle);
+    const grid=document.createElement('div');
+    grid.style.cssText='display:grid;grid-template-columns:1fr 1fr;gap:0 24px;';
+    const items=exByType[s.type];
+    const colA=document.createElement('div');
+    const colB=document.createElement('div');
+    items.slice(0,5).forEach((ex,i)=>colA.appendChild(buildPdfLineCorrigeCompact(ex,i,s.type)));
+    items.slice(5,10).forEach((ex,i)=>colB.appendChild(buildPdfLineCorrigeCompact(ex,i+5,s.type)));
+    grid.appendChild(colA);
+    grid.appendChild(colB);
+    wrap.appendChild(grid);
+  });
+  activeExG=savedG;
+  return wrap;
+}
+
+function buildPdfLineCorrigeCompact(ex,idx,type){
+  const grandeur=EX_GRANDEURS[activeExG];
+  const disp=u=>(grandeur.display&&grandeur.display[u])||u;
+  const line=document.createElement('div');
+  line.style.cssText='display:flex;align-items:center;gap:5px;padding:8px 0;font-size:12px;font-weight:700;';
+  const num=document.createElement('span');
+  num.textContent=((idx%10)+1)+'.';
+  num.style.cssText='display:inline-block;min-width:18px;color:#888;font-weight:700;text-align:right;margin-right:2px;';
+  line.appendChild(num);
+  const ansStyle='display:inline-block;padding:2px 7px;border:1.5px solid #7BBDE0;border-radius:5px;background:#F0F7FD;font-weight:800;color:#1E3A50;text-align:center;font-size:11px;';
+  if(type==='unite'){
+    const src=document.createElement('span');src.textContent=ex.sourceStr+' '+disp(ex.srcU);
+    src.style.cssText='display:inline-block;min-width:60px;text-align:right;font-weight:800;';
+    line.appendChild(src);
+    const eq=document.createElement('span');eq.textContent='=';eq.style.cssText='color:#888;';
+    line.appendChild(eq);
+    const tgtN=document.createElement('span');tgtN.textContent=ex.targetStr;
+    tgtN.style.cssText='display:inline-block;font-weight:800;min-width:50px;text-align:center;';
+    line.appendChild(tgtN);
+    const ans=document.createElement('span');ans.textContent=disp(ex.tgtU);
+    ans.style.cssText=ansStyle+'min-width:40px;';
+    line.appendChild(ans);
+  } else if(type==='comparaison'){
+    const left=document.createElement('span');left.textContent=ex.leftStr+' '+ex.leftU;
+    left.style.cssText='display:inline-block;font-weight:800;min-width:70px;text-align:center;';
+    line.appendChild(left);
+    const ans=document.createElement('span');ans.textContent=ex.answer;
+    ans.style.cssText=ansStyle+'font-size:14px;color:#2D6BE4;min-width:28px;';
+    line.appendChild(ans);
+    const right=document.createElement('span');right.textContent=ex.rightStr+' '+ex.rightU;
+    right.style.cssText='display:inline-block;font-weight:800;min-width:70px;text-align:center;';
+    line.appendChild(right);
+  } else {
+    const srcVal=parseFloat(ex.sourceStr.replace(',','.'));
+    const SC=ex.SC||1;
+    const tgtVal=srcVal*Math.pow(10,(ex.tgtI-ex.srcI)*SC);
+    const tgtStr=parseFloat(tgtVal.toPrecision(12)).toString().replace('.',',');
+    const src=document.createElement('span');src.textContent=ex.sourceStr+' '+disp(ex.srcU);
+    src.style.cssText='display:inline-block;min-width:60px;text-align:right;font-weight:800;';
+    line.appendChild(src);
+    const eq=document.createElement('span');eq.textContent='=';eq.style.cssText='color:#888;';
+    line.appendChild(eq);
+    const ans=document.createElement('span');ans.textContent=tgtStr;
+    ans.style.cssText=ansStyle+'min-width:65px;';
+    line.appendChild(ans);
+    const tgtU=document.createElement('span');tgtU.textContent=disp(ex.tgtU);
+    tgtU.style.cssText='font-weight:700;color:#4A6B80;min-width:24px;';
+    line.appendChild(tgtU);
+  }
+  return line;
+}
+
+// Construit la "page 1 imprimable" : titre + rappel + 4 séries en grille 2×2
+function buildPdfPageExercices(exAB,exCD){
+  const wrap=document.createElement('div');
+  wrap.style.cssText='font-family:Nunito,sans-serif;color:#1E3A50;width:794px;box-sizing:border-box;padding:80px 70px 60px 70px;background:#fff;';
+  const title=document.getElementById('ex-title');
+  const reminder=document.getElementById('ex-units-reminder');
+  const titleEl=document.createElement('h2');
+  // Pour le type comparaison, le titre est générique (mélange toutes grandeurs) : « Unités »
+  titleEl.textContent=(activeExType==='comparaison')?'Unités':(title?title.textContent:'Exercices');
+  titleEl.style.cssText='font-size:18px;font-weight:800;color:#2D6BE4;margin:0 0 8px 0;';
+  wrap.appendChild(titleEl);
+  // Rappel d'unités : uniquement pour les types virgule et unite (pas pour comparaison où on mélange)
+  if(reminder&&activeExType!=='comparaison'){
+    const remEl=document.createElement('div');
+    remEl.textContent=reminder.textContent;
+    remEl.style.cssText='font-size:12px;font-weight:600;color:#A9A69B;letter-spacing:.5px;margin-bottom:8px;';
+    wrap.appendChild(remEl);
+  }
+  // Consigne adaptée au type
+  const consigne={
+    virgule:'Transforme',
+    unite:"Ajoute l'unité pour respecter l'égalité",
+    comparaison:'Complète avec les signes : < > ='
+  }[activeExType]||'';
+  if(consigne){
+    const consEl=document.createElement('div');
+    consEl.textContent=consigne;
+    consEl.style.cssText='font-size:13px;font-weight:700;color:#1E3A50;margin-bottom:18px;';
+    wrap.appendChild(consEl);
+  }
+  // Grille 2 colonnes × 2 rangées : A | B (puis) C | D
+  const grid=document.createElement('div');
+  grid.style.cssText='display:grid;grid-template-columns:1fr 1fr;gap:20px 30px;';
+  const series=[
+    {label:'A', items:exAB.slice(0,5)},
+    {label:'B', items:exAB.slice(5,10)},
+    {label:'C', items:exCD.slice(0,5)},
+    {label:'D', items:exCD.slice(5,10)},
+  ];
+  series.forEach(s=>{
+    const col=document.createElement('div');
+    const sTitle=document.createElement('div');
+    sTitle.textContent='Série '+s.label;
+    sTitle.style.cssText='font-size:14px;font-weight:800;color:#2D6BE4;text-align:center;margin:0 0 8px 0;';
+    col.appendChild(sTitle);
+    s.items.forEach((ex,i)=>{
+      col.appendChild(buildPdfLineExercice(ex,i));
+    });
+    grid.appendChild(col);
+  });
+  wrap.appendChild(grid);
+  return wrap;
+}
+
+// Construit une ligne de la page 1 dans son état "imprimable" (champ vide à compléter)
+function buildPdfLineExercice(ex,localIdx){
+  const grandeur=EX_GRANDEURS[activeExG];
+  const disp=u=>(grandeur.display&&grandeur.display[u])||u;
+  const line=document.createElement('div');
+  line.style.cssText='display:flex;align-items:center;gap:6px;padding:9px 0;font-size:13px;font-weight:700;';
+  const num=document.createElement('span');
+  num.textContent=(localIdx+1)+'.';
+  num.style.cssText='display:inline-block;min-width:18px;color:#888;font-weight:700;text-align:right;margin-right:2px;';
+  line.appendChild(num);
+  if(ex.type==='unite'){
+    const src=document.createElement('span');src.textContent=ex.sourceStr+' '+disp(ex.srcU);
+    src.style.cssText='display:inline-block;min-width:80px;text-align:right;font-weight:800;';
+    line.appendChild(src);
+    const eq=document.createElement('span');eq.textContent='=';eq.style.cssText='color:#888;';
+    line.appendChild(eq);
+    const tgtN=document.createElement('span');tgtN.textContent=ex.targetStr;
+    tgtN.style.cssText='display:inline-block;font-weight:800;min-width:60px;text-align:center;';
+    line.appendChild(tgtN);
+    const blank=document.createElement('span');
+    blank.style.cssText='display:inline-block;min-width:50px;border-bottom:1.5px dotted #555;height:16px;';
+    line.appendChild(blank);
+  } else if(ex.type==='comparaison'){
+    const left=document.createElement('span');left.textContent=ex.leftStr+' '+ex.leftU;
+    left.style.cssText='display:inline-block;font-weight:800;min-width:80px;text-align:center;';
+    line.appendChild(left);
+    const blank=document.createElement('span');
+    blank.style.cssText='display:inline-block;min-width:32px;border-bottom:1.5px dotted #555;height:16px;';
+    line.appendChild(blank);
+    const right=document.createElement('span');right.textContent=ex.rightStr+' '+ex.rightU;
+    right.style.cssText='display:inline-block;font-weight:800;min-width:80px;text-align:center;';
+    line.appendChild(right);
+  } else {
+    const src=document.createElement('span');src.textContent=ex.sourceStr+' '+disp(ex.srcU);
+    src.style.cssText='display:inline-block;min-width:80px;text-align:right;font-weight:800;';
+    line.appendChild(src);
+    const eq=document.createElement('span');eq.textContent='=';eq.style.cssText='color:#888;';
+    line.appendChild(eq);
+    const blank=document.createElement('span');
+    blank.style.cssText='display:inline-block;min-width:80px;border-bottom:1.5px dotted #555;height:16px;';
+    line.appendChild(blank);
+    const tgtU=document.createElement('span');tgtU.textContent=disp(ex.tgtU);
+    tgtU.style.cssText='font-weight:700;color:#4A6B80;min-width:30px;';
+    line.appendChild(tgtU);
+  }
+  return line;
+}
+
+// Construit la "page 2 imprimable" : corrigé en grille 2×2 (mêmes séries que page 1)
+function buildPdfPageCorrige(exAB,exCD){
+  const wrap=document.createElement('div');
+  wrap.style.cssText='font-family:Nunito,sans-serif;color:#1E3A50;width:794px;box-sizing:border-box;padding:80px 70px 60px 70px;background:#fff;';
+  const typeLabel={virgule:'Conversions',unite:"Trouver l'unité",comparaison:'Comparaison'}[activeExType]||'Corrigé';
+  const titleEl=document.createElement('h2');
+  titleEl.textContent='Corrigé — '+typeLabel;
+  titleEl.style.cssText='font-size:18px;font-weight:800;color:#2D6BE4;margin:0 0 16px 0;';
+  wrap.appendChild(titleEl);
+  const grid=document.createElement('div');
+  grid.style.cssText='display:grid;grid-template-columns:1fr 1fr;gap:20px 30px;';
+  const series=[
+    {label:'A', items:exAB.slice(0,5)},
+    {label:'B', items:exAB.slice(5,10)},
+    {label:'C', items:exCD.slice(0,5)},
+    {label:'D', items:exCD.slice(5,10)},
+  ];
+  series.forEach(s=>{
+    const col=document.createElement('div');
+    const sTitle=document.createElement('div');
+    sTitle.textContent='Série '+s.label;
+    sTitle.style.cssText='font-size:14px;font-weight:800;color:#2D6BE4;text-align:center;margin:0 0 8px 0;';
+    col.appendChild(sTitle);
+    s.items.forEach((ex,i)=>{
+      col.appendChild(buildPdfLineCorrige(ex,i));
+    });
+    grid.appendChild(col);
+  });
+  wrap.appendChild(grid);
+  return wrap;
+}
+
+function buildPdfLineCorrige(ex,localIdx){
+  const grandeur=EX_GRANDEURS[activeExG];
+  const disp=u=>(grandeur.display&&grandeur.display[u])||u;
+  const line=document.createElement('div');
+  line.style.cssText='display:flex;align-items:center;gap:6px;padding:9px 0;font-size:13px;font-weight:700;';
+  const num=document.createElement('span');
+  num.textContent=(localIdx+1)+'.';
+  num.style.cssText='display:inline-block;min-width:18px;color:#888;font-weight:700;text-align:right;margin-right:2px;';
+  line.appendChild(num);
+  const ansStyle='display:inline-block;padding:3px 8px;border:1.5px solid #7BBDE0;border-radius:6px;background:#F0F7FD;font-weight:800;color:#1E3A50;text-align:center;font-size:12px;';
+  if(ex.type==='unite'){
+    const src=document.createElement('span');src.textContent=ex.sourceStr+' '+disp(ex.srcU);
+    src.style.cssText='display:inline-block;min-width:80px;text-align:right;font-weight:800;';
+    line.appendChild(src);
+    const eq=document.createElement('span');eq.textContent='=';eq.style.cssText='color:#888;';
+    line.appendChild(eq);
+    const tgtN=document.createElement('span');tgtN.textContent=ex.targetStr;
+    tgtN.style.cssText='display:inline-block;font-weight:800;min-width:60px;text-align:center;';
+    line.appendChild(tgtN);
+    const ans=document.createElement('span');ans.textContent=disp(ex.tgtU);
+    ans.style.cssText=ansStyle+'min-width:50px;';
+    line.appendChild(ans);
+  } else if(ex.type==='comparaison'){
+    const left=document.createElement('span');left.textContent=ex.leftStr+' '+ex.leftU;
+    left.style.cssText='display:inline-block;font-weight:800;min-width:80px;text-align:center;';
+    line.appendChild(left);
+    const ans=document.createElement('span');ans.textContent=ex.answer;
+    ans.style.cssText=ansStyle+'font-size:16px;color:#2D6BE4;min-width:32px;';
+    line.appendChild(ans);
+    const right=document.createElement('span');right.textContent=ex.rightStr+' '+ex.rightU;
+    right.style.cssText='display:inline-block;font-weight:800;min-width:80px;text-align:center;';
+    line.appendChild(right);
+  } else {
+    const srcVal=parseFloat(ex.sourceStr.replace(',','.'));
+    const SC=ex.SC||1;
+    const tgtVal=srcVal*Math.pow(10,(ex.tgtI-ex.srcI)*SC);
+    const tgtStr=parseFloat(tgtVal.toPrecision(12)).toString().replace('.',',');
+    const src=document.createElement('span');src.textContent=ex.sourceStr+' '+disp(ex.srcU);
+    src.style.cssText='display:inline-block;min-width:80px;text-align:right;font-weight:800;';
+    line.appendChild(src);
+    const eq=document.createElement('span');eq.textContent='=';eq.style.cssText='color:#888;';
+    line.appendChild(eq);
+    const ans=document.createElement('span');ans.textContent=tgtStr;
+    ans.style.cssText=ansStyle+'min-width:80px;';
+    line.appendChild(ans);
+    const tgtU=document.createElement('span');tgtU.textContent=disp(ex.tgtU);
+    tgtU.style.cssText='font-weight:700;color:#4A6B80;min-width:30px;';
+    line.appendChild(tgtU);
+  }
+  return line;
+}
+
+// Construit le contenu du corrigé pour l'impression (page 2),
+// avec la même mise en page que la page d'exercice mais la solution mise en évidence.
+function buildCorrigeForPrint(){
+  const titleEl=document.getElementById('print-corrige-title');
+  const container=document.getElementById('print-corrige-content');
+  if(!container)return;
+  const typeLabel={virgule:'Conversions',unite:"Trouver l'unité",comparaison:'Comparaison'}[activeExType]||'Corrigé';
+  titleEl.textContent='Corrigé — '+typeLabel;
+  container.innerHTML='';
+  // Recréer la même structure : grid 2 colonnes (Série A et B), avec lignes type-virgule/type-unite/type-comp
+  const grid=document.createElement('div');grid.id='ex-grid-corrige';
+  ['A','B'].forEach((label,sIdx)=>{
+    const start=sIdx*5, end=start+5;
+    const col=document.createElement('div');col.className='ex-column';
+    const sTitle=document.createElement('div');sTitle.className='ex-serie-title';
+    sTitle.textContent='Série '+label;
+    col.appendChild(sTitle);
+    const inner=document.createElement('div');
+    for(let idx=start;idx<end;idx++){
+      const ex=exExercises[idx];if(!ex)continue;
+      const line=buildCorrigeLine(ex,idx);
+      inner.appendChild(line);
+    }
+    col.appendChild(inner);
+    grid.appendChild(col);
+  });
+  container.appendChild(grid);
+}
+
+// Construit une ligne de corrigé avec la solution affichée
+function buildCorrigeLine(ex,idx){
+  const grandeur=EX_GRANDEURS[activeExG];
+  const disp=u=>(grandeur.display&&grandeur.display[u])||u;
+
+  if(ex.type==='unite'){
+    // Reprendre la même mise en page que buildExLineUnite, avec l'unité solution dans la pastille à la place du select
+    const line=document.createElement('div');line.className='ex-line type-unite';
+    const num=document.createElement('span');num.className='ex-num';
+    num.textContent=((idx%5)+1)+'.';
+    const src=document.createElement('span');src.className='ex-source';
+    src.textContent=ex.sourceStr+' '+disp(ex.srcU);
+    const eq=document.createElement('span');eq.className='ex-equals';eq.textContent='=';
+    const fixedNum=document.createElement('span');fixedNum.className='ex-fixed-num';
+    fixedNum.textContent=ex.targetStr;
+    // À la place du select : pastille bleue avec l'unité (solution en gras)
+    const ansBox=document.createElement('span');ansBox.className='ex-corrige-ans ex-corrige-ans-unite';
+    ansBox.textContent=disp(ex.tgtU);
+    const spacer=document.createElement('span');
+    line.append(num,src,eq,fixedNum,ansBox,spacer);
+    return line;
+  }
+
+  if(ex.type==='comparaison'){
+    const line=document.createElement('div');line.className='ex-line type-comp';
+    const num=document.createElement('span');num.className='ex-num';
+    num.textContent=((idx%5)+1)+'.';
+    const leftPill=document.createElement('span');leftPill.className='ex-comp-pill';
+    const leftN=document.createElement('span');leftN.className='ex-comp-num';leftN.textContent=ex.leftStr;
+    const leftU=document.createElement('span');leftU.className='ex-comp-unit';leftU.textContent=ex.leftU;
+    leftPill.append(leftN,leftU);
+    // À la place du select : pastille avec le symbole solution
+    const ansBox=document.createElement('span');ansBox.className='ex-corrige-ans ex-corrige-ans-comp';
+    ansBox.textContent=ex.answer;
+    const rightPill=document.createElement('span');rightPill.className='ex-comp-pill';
+    const rightN=document.createElement('span');rightN.className='ex-comp-num';rightN.textContent=ex.rightStr;
+    const rightU=document.createElement('span');rightU.className='ex-comp-unit';rightU.textContent=ex.rightU;
+    rightPill.append(rightN,rightU);
+    line.append(num,leftPill,ansBox,rightPill);
+    return line;
+  }
+
+  // Type virgule : pastille bleue contenant directement la valeur cible (en gras)
+  const line=document.createElement('div');line.className='ex-line type-virgule';
+  const num=document.createElement('span');num.className='ex-num';
+  num.textContent=((idx%5)+1)+'.';
+  const src=document.createElement('span');src.className='ex-source';
+  src.textContent=ex.sourceStr+' '+disp(ex.srcU);
+  const eq=document.createElement('span');eq.className='ex-equals';eq.textContent='=';
+  // Calcul de la valeur cible
+  const srcVal=parseFloat(ex.sourceStr.replace(',','.'));
+  const SC=ex.SC||1;
+  const tgtVal=srcVal*Math.pow(10,(ex.tgtI-ex.srcI)*SC);
+  let tgtStr=parseFloat(tgtVal.toPrecision(12)).toString().replace('.',',');
+  // Reprendre l'apparence d'un container avec pastille
+  const container=document.createElement('div');container.className='ex-field-container';
+  const ansBox=document.createElement('span');ansBox.className='ex-corrige-ans ex-corrige-ans-virgule';
+  ansBox.textContent=tgtStr;
+  container.appendChild(ansBox);
+  const tgt=document.createElement('span');tgt.className='ex-target-unit';tgt.textContent=disp(ex.tgtU);
+  const spacer=document.createElement('span');
+  line.append(num,src,eq,container,tgt,spacer);
+  return line;
+}
 // Boutons de grandeur (délégation pour résister au DOM éventuellement régénéré)
 document.addEventListener('click',e=>{
   const btn=e.target.closest('.ex-grb');
   if(!btn)return;
   setActiveExGrandeur(btn.dataset.g);
+});
+// Items du menu de type d'exercice
+document.addEventListener('click',e=>{
+  // Bouton PDF (générer un PDF)
+  const pdfBtn=e.target.closest('.ex-type-pdf');
+  if(pdfBtn){
+    e.stopPropagation();
+    const t=pdfBtn.dataset.type;
+    if(t==='mix'){
+      triggerMixedPdf(pdfBtn);
+    } else {
+      triggerTypePdf(t,pdfBtn);
+    }
+    // Refermer le menu après lancement
+    document.querySelector('.ex-title-wrap')?.classList.remove('open');
+    return;
+  }
+  // Bouton Pratiquer (changer de mode)
+  const practiceBtn=e.target.closest('.ex-type-practice');
+  if(practiceBtn){
+    setActiveExType(practiceBtn.dataset.type);
+    document.querySelector('.ex-title-wrap')?.classList.remove('open');
+  }
+});
+
+// Génère un PDF mélangeant les 3 types (10 de chaque, 30 au total, sur une seule page)
+async function triggerMixedPdf(btn){
+  const originalText=btn?btn.textContent:'';
+  if(btn){btn.disabled=true;btn.textContent='⏳…';}
+  try{
+    await loadPdfLibs();
+    await renderMixedPdf();
+  } catch(e){
+    console.error('Erreur PDF mixé :',e);
+    alert('Erreur lors de la génération du PDF : '+e.message);
+  } finally {
+    if(btn){btn.disabled=false;btn.textContent=originalText;}
+  }
+}
+// Toggle d'ouverture du menu type au clic sur le titre ou le caret
+document.addEventListener('click',e=>{
+  const wrap=document.querySelector('.ex-title-wrap');
+  if(!wrap)return;
+  const inside=e.target.closest('.ex-title-wrap');
+  if(inside===wrap){
+    // Clic dans le wrap : on toggle uniquement si on a cliqué sur le titre/caret (pas un élément du menu)
+    if(!e.target.closest('.ex-type-menu')){
+      wrap.classList.toggle('open');
+    }
+  } else {
+    // Clic ailleurs : fermer
+    wrap.classList.remove('open');
+  }
 });
 // Bouton Valider la série (délégation)
 document.addEventListener('click',e=>{
@@ -2845,6 +4081,7 @@ document.addEventListener('click',e=>{
 });
 
 // Initialisation : page "Unités" par défaut
+updateExHeader();
 showPage('page-unites');
 </script>
 </body>
