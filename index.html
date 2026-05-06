@@ -132,12 +132,23 @@
   .sub-link.nested:hover { color:#1E4FB8; background:var(--bg); border-color:var(--border); }
 
   /* ── État désactivé (lien non disponible) ── */
-  /* Carte entière voilée */
+  /* Carte entière voilée : cliquable pour révéler les sous-domaines prévus,
+     mais les sous-liens individuels restent inactifs */
   .domain-card.disabled {
-    opacity:.45;
+    opacity:.55;
+    cursor:pointer;
+  }
+  .domain-card.disabled.open {
+    opacity:.85;
+  }
+  .domain-card.disabled .sub-link,
+  .domain-card.disabled .sub-link.nested {
     pointer-events:none;
     cursor:default;
+    color:var(--muted);
   }
+  .domain-card.disabled .sub-link .arrow,
+  .domain-card.disabled .sub-link.nested::before { display:none; }
   .domain-card.disabled::after {
     content:"Bientôt disponible";
     position:absolute;
@@ -360,8 +371,11 @@
       if (closeTimer) { clearTimeout(closeTimer); closeTimer = null; }
     };
 
-    // Survol (uniquement si vrai pointeur)
-    if (!isTouchOnly) {
+    const isDisabled = card.classList.contains('disabled');
+
+    // Survol : uniquement pour les cartes actives sur appareils avec vrai pointeur.
+    // Les cartes voilées ne s'ouvrent qu'au clic explicite.
+    if (!isTouchOnly && !isDisabled) {
       card.addEventListener('mouseenter', () => {
         cancelTimers();
         card.classList.add('hover');
