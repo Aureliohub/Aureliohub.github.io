@@ -1400,7 +1400,15 @@
   .sel-wrap { display: flex; align-items: center; gap: 20px; }
   .sel-solid { flex: 0 0 96px; width: 96px; }
   .sel-solid svg { width: 100%; height: auto; max-height: 120px; display: block; }
+  .sel-name { flex: 0 0 132px; width: 132px; font-weight: 800; font-size: 21px; color: #1F2937; line-height: 1.2; }
   .sel-grid { display: flex; flex-wrap: wrap; gap: 12px; justify-content: flex-start; }
+  /* Mode multi-lignes (droites remarquables du triangle) : un nom par ligne. */
+  .sel-grid.sel-rows { flex-direction: column; flex-wrap: nowrap; gap: 8px; }
+  .sel-row { display: flex; align-items: center; gap: 14px; }
+  .sel-row .sel-name { flex: 0 0 120px; width: 120px; font-size: 18px; }
+  .sel-row-figs { display: flex; flex-wrap: wrap; gap: 8px; flex: 1; }
+  .sel-row .sel-cell { padding: 5px; }
+  .sel-row .sel-fig { width: 92px; height: 92px; }
   .sel-cell { position: relative; cursor: pointer; border: 2px solid var(--border, #E5E7EB); border-radius: 12px; padding: 8px; background: #fff; transition: border-color .12s, background .12s; }
   .sel-cell:hover { border-color: #BFDBFE; background: rgba(37,99,235,.04); }
   .sel-cell.sel { border-color: #2563EB; background: rgba(37,99,235,.07); }
@@ -1418,14 +1426,48 @@
   .sel-badge.ok { color: #16A34A; }
   .sel-badge.no { color: #DC2626; }
   .match-sol .match-pill { background: #16A34A; }
+  /* Niveau 4 « Cercle » — associer étiquettes ↔ éléments d'un disque (clic) */
+  .clic-wrap { display: flex; align-items: center; gap: 28px; flex-wrap: wrap; margin-top: 10px; }
+  .clic-figure { flex: 0 0 auto; }
+  .cercle-svg { width: 290px; height: 290px; display: block; }
+  .clic-side { flex: 0 0 auto; }
+  .clic-hint { color: #6B7280; font-size: 13px; margin-bottom: 12px; }
+  .clic-reset { font: inherit; font-size: 13px; font-weight: 600; border: 1px solid var(--border); background: var(--surface); color: var(--text); border-radius: 8px; padding: 3px 10px; cursor: pointer; margin-left: 8px; }
+  .clic-chips { display: flex; flex-direction: column; gap: 9px; align-items: flex-start; }
+  .clic-chip { display: inline-flex; align-items: center; gap: 9px; font: inherit; font-size: 15px; font-weight: 600; color: var(--text); background: #fff; border: 1.5px solid var(--border, #E5E7EB); border-radius: 999px; padding: 5px 16px 5px 6px; cursor: pointer; transition: border-color .12s, background .12s, opacity .12s; }
+  .clic-chip:hover { border-color: #BFDBFE; background: rgba(37,99,235,.04); }
+  .clic-chip-sel { border-color: #2563EB; background: rgba(37,99,235,.08); box-shadow: 0 0 0 2px rgba(37,99,235,.15); }
+  .clic-chip-used { opacity: .5; }
+  .clic-chip-used .clic-chip-term { text-decoration: line-through; }
+  .clic-chip-dot { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 999px; color: #fff; font-weight: 800; font-size: 13px; flex: 0 0 22px; box-shadow: 0 1px 2px rgba(0,0,0,.18); }
+  /* Variante : étiquettes (noms) au-dessus de la figure */
+  .clic-wrap-col { flex-direction: column; align-items: flex-start; gap: 12px; }
+  .clic-wrap-col .clic-chips { flex-direction: row; flex-wrap: wrap; gap: 8px; }
+  /* Cartes (figures à associer) — sans cadre permanent (léger surlignage au survol/sélection) */
+  .clic-card { cursor: pointer; transition: stroke .12s, fill .12s; }
+  .clic-card:hover { stroke: #BFDBFE; }
+  /* Les deux exercices (niveau Triangle) réunis dans UN SEUL cadre */
+  .exo-sidebyside { display: flex; gap: 22px; align-items: flex-start; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 20px; margin-bottom: 12px; }
+  .exo-sidebyside > .exercise { flex: 1 1 0; min-width: 0; margin: 0; padding: 0; border: none; background: none; box-shadow: none; border-radius: 0; }
+  .exo-sidebyside > .exercise + .exercise { border-left: 1px solid var(--border); padding-left: 22px; }
+  .exo-sidebyside .clic-chip { font-size: 13px; padding: 3px 11px 3px 5px; gap: 6px; }
+  .exo-sidebyside .clic-chip-dot { width: 18px; height: 18px; font-size: 11px; flex-basis: 18px; }
+  @media (max-width: 760px) { .exo-sidebyside { flex-direction: column; } .exo-sidebyside > .exercise + .exercise { border-left: none; padding-left: 0; border-top: 1px solid var(--border); padding-top: 16px; } }
   /* Vocabulaire — tableau de dénombrement (horizontal à l'écran) */
   .count-wrap { overflow-x: auto; }
   .count-table { border-collapse: collapse; margin-top: 6px; }
   .count-table th, .count-table td { border: 1px solid var(--border, #E5E7EB); text-align: center; }
   .count-table .count-head th { padding: 4px 6px; vertical-align: bottom; }
-  .count-corner { border: none !important; }
+  .count-table .count-head th.count-corner { vertical-align: middle; }
+  .count-tight .count-head th { vertical-align: middle; padding: 2px 6px; }
+  .count-tight .count-fig { height: auto; }
+  .count-corner { border: none !important; vertical-align: middle; font-weight: 800; color: #1F2937; }
   .count-fig { width: 70px; height: 64px; margin: 0 auto; }
-  .count-name { font-size: 11px; color: #6B7280; max-width: 84px; margin: 2px auto 0; line-height: 1.1; }
+  .count-name { font-size: 10.5px; color: #6B7280; max-width: 96px; margin: 2px auto 0; line-height: 1.15; }
+  .count-merged { table-layout: fixed; }
+  .count-col-label { width: 200px; }
+  .count-col-fig { width: 100px; }
+  .count-empty { border: none !important; background: none !important; }
   .count-attr { padding: 4px 10px; text-align: right; font-weight: 700; color: #1F2937; background: rgba(0,0,0,.02); white-space: nowrap; }
   .count-table td { padding: 4px; position: relative; }
   .count-input { width: 44px; height: 30px; text-align: center; font-size: 15px; font-weight: 700; border: 1.5px solid var(--border2, #D1D5DB); border-radius: 7px; background: #fff; }
@@ -1437,6 +1479,7 @@
   .fill-input:focus { outline: none; border-color: #2563EB; }
   .fill-input.count-ok { border-color: #16A34A; background: rgba(22,163,74,.10); color: #16A34A; }
   .fill-input.count-no { border-color: #DC2626; background: rgba(220,38,38,.08); color: #DC2626; }
+  .count-grouped + .count-grouped { margin-top: 20px; }
   .count-input:focus { outline: none; border-color: #2563EB; }
   .count-input.count-ok { border-color: #16A34A; background: rgba(22,163,74,.10); color: #16A34A; }
   .count-input.count-no { border-color: #DC2626; background: rgba(220,38,38,.08); color: #DC2626; }
@@ -11827,13 +11870,18 @@ function vocabSolides() {
 
 function genVocab() {
   // Niveau 1 : propriétés des quadrilatères ; Niveau 2 : dénombrement sur les solides ;
-  // Niveau 3 : phrases à compléter (mélange solides + figures planes).
+  // Niveau 3 : phrases à compléter (solides) ; Niveau 4 : vocabulaire du cercle (clic) ;
+  // Niveau 5 : droites remarquables du triangle (sélection).
+  if (typeof state !== 'undefined' && state.niveau === 6) return genTriangleAssoc2();
+  if (typeof state !== 'undefined' && state.niveau === 5) return genTriangleAssoc();
+  if (typeof state !== 'undefined' && state.niveau === 4) return genCercleVocab();
   if (typeof state !== 'undefined' && state.niveau === 3) return genVocabComplete();
   if (!(typeof state !== 'undefined' && state.niveau === 2)) return genQuadProps();
   const solids = vocabSolides();
   for (let i = solids.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [solids[i], solids[j]] = [solids[j], solids[i]]; }
   return {
     countTable: true,
+    introInTitle: true,
     intro: 'Pour chaque solide, dénombre ses faces, ses sommets et ses arêtes.',
     attrs: ['Faces', 'Sommets', 'Arêtes'],
     solids
@@ -11877,7 +11925,295 @@ function genSymetries() {
 }
 
 
+// ============================================================
+// Niveau 4 du vocabulaire — « Cercle » : associer chaque étiquette
+// (centre, rayon, diamètre, corde, arc, flèche) à l'élément correspondant
+// d'un disque, par clic (clique une étiquette puis l'élément). Type clicMap.
+// ============================================================
+const CERCLE_PARTS = [
+  { key: 'centre',   term: 'centre',   letter: 'A', n: 1, color: '#2563EB' },
+  { key: 'rayon',    term: 'rayon',    letter: 'B', n: 2, color: '#EA580C' },
+  { key: 'diametre', term: 'diamètre', letter: 'C', n: 3, color: '#7C3AED' },
+  { key: 'corde',    term: 'corde',    letter: 'D', n: 4, color: '#0891B2' },
+  { key: 'arc',      term: 'arc',      letter: 'E', n: 5, color: '#DB2777' },
+  { key: 'fleche',   term: 'flèche',   letter: 'F', n: 6, color: '#CA8A04' }
+];
+
+// Géométrie (constante) : O centre, R rayon. Le rayon part vers la droite,
+// le diamètre traverse O en oblique, la corde est à gauche, l'arc est la
+// portion de cercle qu'elle sous-tend et la flèche en est la sagitta.
+// Géométrie du disque, paramétrée par une rotation (deg) et un miroir éventuel,
+// appliqués autour du centre O. La disposition relative (rayon, diamètre, corde
+// + arc + flèche) reste rigide et lisible ; seules l'orientation et la latéralité
+// changent → chaque « nouvel exercice » propose une configuration différente.
+function cercleGeo(rotDeg, mirror) {
+  const O = [100, 100], R = 82;
+  const f = n => (+n).toFixed(1);
+  const rot = (rotDeg || 0) * Math.PI / 180, cosT = Math.cos(rot), sinT = Math.sin(rot);
+  const sx = mirror ? -1 : 1;
+  // Transforme un point (coords absolues) : miroir x puis rotation, autour de O.
+  const T = p => { const x = (p[0] - 100) * sx, y = (p[1] - 100); return [100 + x * cosT - y * sinT, 100 + x * sinT + y * cosT]; };
+  const P = d => { const a = d * Math.PI / 180; return T([100 + R * Math.cos(a), 100 + R * Math.sin(a)]); };
+  const mid = (a, b) => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+  const A = P(0), Bd = P(75), Cd = P(255), cc = 150, half = 50, P1 = P(cc + half), P2 = P(cc - half), N = P(cc);
+  const M = mid(P1, P2);
+  const baseAnchor = { centre: [114, 86], rayon: [150, 86], diametre: [99, 44], corde: [72, 92], arc: [11, 128], fleche: [56, 151] };
+  const anchor = {};
+  for (const k in baseAnchor) anchor[k] = T(baseAnchor[k]);
+  const lerp = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
+  // Position des lettres POSÉES SUR chaque élément (PDF) : milieux de segments,
+  // point sur l'arc, etc. — choisies pour rester bien séparées (le trio
+  // corde/arc/flèche est resserré) quelle que soit la rotation.
+  const letterPos = {
+    centre:   [O[0], O[1]],
+    rayon:    mid(O, A),
+    diametre: lerp(Cd, Bd, 0.30),
+    corde:    lerp(P2, P1, 0.72),
+    fleche:   mid(M, N),
+    arc:      P(cc + 25)
+  };
+  const sweep = mirror ? 0 : 1;   // le miroir inverse le sens d'enroulement de l'arc
+  return {
+    O, R, f,
+    seg: {
+      rayon:    [O[0], O[1], A[0], A[1]],
+      diametre: [Cd[0], Cd[1], Bd[0], Bd[1]],
+      corde:    [P2[0], P2[1], P1[0], P1[1]],
+      fleche:   [M[0], M[1], N[0], N[1]]
+    },
+    arcPath: `M ${f(P2[0])} ${f(P2[1])} A ${R} ${R} 0 0 ${sweep} ${f(P1[0])} ${f(P1[1])}`,
+    anchor, letterPos
+  };
+}
+const CERCLE_GEO = cercleGeo(0, false);   // configuration par défaut
+
+// Construit le SVG du disque.
+//  - exIdx numérique (et !opts.tags) → éléments cliquables + badges de l'élève
+//  - opts.tags → pastilles A–F figées (rendu PDF, sans interaction)
+//  - geo : géométrie à utiliser (défaut = CERCLE_GEO)
+function cercleVocabSvg(exIdx, opts, geo) {
+  opts = opts || {};
+  const G = geo || CERCLE_GEO, f = G.f, base = '#94A3B8', neutral = '#334155';
+  const interactive = (exIdx !== null && exIdx !== undefined && !opts.tags);
+  const hitLine = (key, x1, y1, x2, y2) => interactive
+    ? `<line x1="${f(x1)}" y1="${f(y1)}" x2="${f(x2)}" y2="${f(y2)}" stroke="#000" stroke-opacity="0" stroke-width="15" stroke-linecap="round" style="pointer-events:stroke;cursor:pointer" onclick="clicPick(${exIdx},'part','${key}')"/>`
+    : '';
+  const idAttr = key => interactive ? ` id="clicel-${exIdx}-${key}"` : '';
+  const seg = (key) => {
+    const [x1, y1, x2, y2] = G.seg[key];
+    return `<line${idAttr(key)} x1="${f(x1)}" y1="${f(y1)}" x2="${f(x2)}" y2="${f(y2)}" fill="none" stroke="${neutral}" stroke-width="2.3" stroke-linecap="round"/>`
+         + hitLine(key, x1, y1, x2, y2);
+  };
+  let s = `<svg viewBox="-6 -6 212 212" class="cercle-svg" xmlns="http://www.w3.org/2000/svg">`;
+  s += `<circle cx="${G.O[0]}" cy="${G.O[1]}" r="${G.R}" fill="#FFFFFF" stroke="${base}" stroke-width="1.5"/>`;
+  // arc (portion de cercle) + zone de clic
+  s += `<path${idAttr('arc')} d="${G.arcPath}" fill="none" stroke="${neutral}" stroke-width="2.3" stroke-linecap="round"/>`;
+  if (interactive) s += `<path d="${G.arcPath}" fill="none" stroke="#000" stroke-opacity="0" stroke-width="15" stroke-linecap="round" style="pointer-events:stroke;cursor:pointer" onclick="clicPick(${exIdx},'part','arc')"/>`;
+  s += seg('diametre') + seg('corde') + seg('rayon') + seg('fleche');
+  // centre (point) + grande zone de clic
+  s += `<circle${idAttr('centre')} cx="${G.O[0]}" cy="${G.O[1]}" r="3.6" fill="${neutral}"/>`;
+  if (interactive) s += `<circle cx="${G.O[0]}" cy="${G.O[1]}" r="11" fill="#000" fill-opacity="0" style="pointer-events:all;cursor:pointer" onclick="clicPick(${exIdx},'part','centre')"/>`;
+  // pastilles A–F (PDF) ou badges-élève masqués (interactif)
+  for (const p of CERCLE_PARTS) {
+    if (opts.tags) {
+      const [x, y] = G.letterPos[p.key];   // lettre POSÉE sur l'élément
+      s += `<circle cx="${f(x)}" cy="${f(y)}" r="8.5" fill="#fff" stroke="#1F2937" stroke-width="1.2"/>`
+         + `<text x="${f(x)}" y="${f(y + 3.6)}" text-anchor="middle" font-size="11" font-weight="700" fill="#1F2937" style="font-family:inherit">${p.letter}</text>`;
+    } else if (interactive) {
+      const [x, y] = G.anchor[p.key];      // badge de feedback à côté de l'élément
+      s += `<g id="clicbadge-${exIdx}-${p.key}" style="display:none">`
+         + `<circle class="clicbadge-ring" cx="${f(x)}" cy="${f(y)}" r="12" fill="none" stroke="none" stroke-width="2.5"/>`
+         + `<circle class="clicbadge-disc" cx="${f(x)}" cy="${f(y)}" r="9" fill="#999" stroke="#fff" stroke-width="1.5"/>`
+         + `<text class="clicbadge-num" x="${f(x)}" y="${f(y + 3.6)}" text-anchor="middle" font-size="11" font-weight="700" fill="#fff" style="font-family:inherit"></text>`
+         + `</g>`;
+    }
+  }
+  s += `</svg>`;
+  return s;
+}
+
+function genCercleVocab() {
+  const rot = Math.floor(Math.random() * 360);
+  const mirror = Math.random() < 0.5;
+  const names = CERCLE_PARTS.map(p => p.term);
+  for (let i = names.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [names[i], names[j]] = [names[j], names[i]]; }
+  return {
+    clicMap: true,
+    introInTitle: true,
+    intro: 'Clique sur une étiquette et sur l’élément correspondant.',
+    introPdf: names.join(' &nbsp;·&nbsp; '),
+    geo: cercleGeo(rot, mirror),
+    parts: CERCLE_PARTS.map(p => ({ key: p.key, correct: p.key })),
+    labels: CERCLE_PARTS.map(p => ({ key: p.key, term: p.term, n: p.n, color: p.color }))
+  };
+}
+
+// ============================================================
+// Niveau 5 du vocabulaire — droites remarquables du triangle : sélectionner
+// les illustrations correspondant au nom donné (hauteur, médiane, médiatrice,
+// bissectrice). Réutilise le type `select` (cocher les bonnes figures), avec
+// un libellé texte à gauche (leftLabel).
+// ============================================================
+// ============================================================
+// Niveau 5 du vocabulaire — droites remarquables du triangle :
+// UN triangle portant ses 4 droites (hauteur, médiane, médiatrice, bissectrice),
+// chacune à associer à son nom. Réutilise la machinerie « clic » (étiquette →
+// élément) de l'exercice du cercle.
+// ============================================================
+const TRI_TERMS = { hauteur: 'Hauteur', mediane: 'Médiane', mediatrice: 'Médiatrice', bissectrice: 'Bissectrice' };
+
+// Figure : triangle scalène fixe avec ses 4 droites (couleurs = simples repères
+// visuels pour pouvoir cliquer chaque droite ; elles n'indiquent pas le type).
+function triAssocSvg(exIdx, opts, cfg) {
+  opts = opts || {};
+  const F = n => (+n).toFixed(1);
+  const sub = (p, q) => [p[0] - q[0], p[1] - q[1]], add = (p, q) => [p[0] + q[0], p[1] + q[1]], mul = (p, s) => [p[0] * s, p[1] * s];
+  const dot = (a, b) => a[0] * b[0] + a[1] * b[1], len = v => Math.hypot(v[0], v[1]), unit = v => { const L = len(v) || 1; return [v[0] / L, v[1] / L]; };
+  const mid = (a, b) => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+  const A = [250, 70], B = [50, 540], C = [900, 540], H = [250, 540], M = [475, 540];
+  const bis = unit(add(unit(sub(B, A)), unit(sub(C, A)))); const tb = (540 - A[1]) / bis[1]; const Fb = [A[0] + bis[0] * tb, 540];
+  const colors = (cfg && cfg.colors) || { hauteur: '#16A34A', mediane: '#2563EB', mediatrice: '#7C3AED', bissectrice: '#EA580C' };
+  const letters = (cfg && cfg.letters) || { hauteur: 'A', mediane: 'B', mediatrice: 'C', bissectrice: 'D' };
+  const interactive = (exIdx !== null && !opts.tags && !opts.answers);
+  const MK = '#1F2937';
+  const seg = (a, b, col, w, extra) => `<line x1="${F(a[0])}" y1="${F(a[1])}" x2="${F(b[0])}" y2="${F(b[1])}" fill="none" stroke="${col}" stroke-width="${w}" stroke-linecap="round" ${extra || ''}/>`;
+  const sq = (X, u1, u2, s) => { const p1 = add(X, mul(u1, s)), p3 = add(X, mul(u2, s)), p2 = add(add(X, mul(u1, s)), mul(u2, s)); return `<polyline points="${F(p1[0])},${F(p1[1])} ${F(p2[0])},${F(p2[1])} ${F(p3[0])},${F(p3[1])}" fill="none" stroke="${MK}" stroke-width="2.2"/>`; };
+  const tick = (a, b) => { const m = mid(a, b), d = unit(sub(b, a)), nn = [-d[1], d[0]], s = 10; return `<line x1="${F(m[0] - nn[0] * s)}" y1="${F(m[1] - nn[1] * s)}" x2="${F(m[0] + nn[0] * s)}" y2="${F(m[1] + nn[1] * s)}" stroke="${MK}" stroke-width="2.2"/>`; };
+  const arc = (V, P, Q, r) => { const a = unit(sub(P, V)), b = unit(sub(Q, V)), p1 = add(V, mul(a, r)), p2 = add(V, mul(b, r)), cr = a[0] * b[1] - a[1] * b[0], sw = cr < 0 ? 1 : 0; return `<path d="M ${F(p1[0])} ${F(p1[1])} A ${r} ${r} 0 0 ${sw} ${F(p2[0])} ${F(p2[1])}" fill="none" stroke="${MK}" stroke-width="2.2"/>`; };
+  const LINES = { hauteur: [A, H], mediane: [A, M], bissectrice: [A, Fb], mediatrice: [[475, 180], [475, 600]] };
+  const ANCHOR = { hauteur: [250, 300], bissectrice: [342, 400], mediane: [422, 432], mediatrice: [475, 250] };
+  let s = `<svg viewBox="0 0 960 650" xmlns="http://www.w3.org/2000/svg" class="tri-assoc-svg" style="width:460px;max-width:100%;height:auto;display:block;">`;
+  s += `<polygon points="${A.map(F).join(',')} ${B.map(F).join(',')} ${C.map(F).join(',')}" fill="#FAFAFA" stroke="${MK}" stroke-width="3.4" stroke-linejoin="round"/>`;
+  // Ex 1 : aucune marque (ni angle droit, ni tirets, ni arcs, ni point milieu) :
+  // on reconnaît chaque droite par sa géométrie.
+  ['hauteur', 'mediane', 'bissectrice', 'mediatrice'].forEach(k => {
+    const a = LINES[k][0], b = LINES[k][1], col = colors[k];
+    if (interactive) s += seg(a, b, 'transparent', 26, `pointer-events="stroke" style="cursor:pointer" onclick="clicPick(${exIdx},'part','${k}')"`);
+    s += seg(a, b, col, 4.5, `id="clicel-${exIdx}-${k}"`);
+    if (opts.tags || opts.answers) {
+      const mp = ANCHOR[k];
+      if (opts.tags) s += `<circle cx="${F(mp[0])}" cy="${F(mp[1])}" r="18" fill="#fff" stroke="${col}" stroke-width="2.6"/>`
+        + `<text x="${F(mp[0])}" y="${F(mp[1] + 7)}" text-anchor="middle" font-size="22" font-weight="800" fill="${MK}" style="font-family:inherit">${letters[k]}</text>`;
+      else s += `<rect x="${F(mp[0] - 64)}" y="${F(mp[1] - 19)}" width="128" height="34" rx="7" fill="#fff" stroke="${col}" stroke-width="2.4"/>`
+        + `<text x="${F(mp[0])}" y="${F(mp[1] + 7)}" text-anchor="middle" font-size="21" font-weight="800" fill="#16A34A" style="font-family:inherit">${TRI_TERMS[k]}</text>`;
+    }
+    if (interactive) {
+      const [x, y] = ANCHOR[k];
+      s += `<g id="clicbadge-${exIdx}-${k}" style="display:none">`
+        + `<circle class="clicbadge-ring" cx="${F(x)}" cy="${F(y)}" r="20" fill="none" stroke="none" stroke-width="3"/>`
+        + `<circle class="clicbadge-disc" cx="${F(x)}" cy="${F(y)}" r="16" fill="#475569" stroke="#fff" stroke-width="2.4"/>`
+        + `<text class="clicbadge-num" x="${F(x)}" y="${F(y + 6)}" text-anchor="middle" font-size="20" font-weight="800" fill="#fff" style="font-family:inherit"></text>`
+        + `</g>`;
+    }
+  });
+  s += `</svg>`;
+  return s;
+}
+
+function genTriangleAssoc() {
+  const palette = ['#16A34A', '#2563EB', '#7C3AED', '#EA580C'];
+  for (let i = palette.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [palette[i], palette[j]] = [palette[j], palette[i]]; }
+  const keys = ['hauteur', 'mediane', 'mediatrice', 'bissectrice'];
+  const colors = {}; keys.forEach((k, i) => colors[k] = palette[i]);
+  const letterOrder = keys.slice();
+  for (let i = letterOrder.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [letterOrder[i], letterOrder[j]] = [letterOrder[j], letterOrder[i]]; }
+  const letters = {}; letterOrder.forEach((k, i) => letters[k] = String.fromCharCode(65 + i));
+  // étiquettes (noms) dans un ordre mélangé pour les chips
+  const order = keys.slice();
+  for (let i = order.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [order[i], order[j]] = [order[j], order[i]]; }
+  const labels = order.map((k, i) => ({ key: k, term: TRI_TERMS[k], n: i + 1, color: '#475569', letter: letters[k] }));
+  const parts = keys.map(k => ({ key: k }));
+  return {
+    clicMap: true, figure: 'triangle', keepColor: true, cfg: { colors, letters },
+    introInTitle: true,
+    intro: 'Associe chaque droite à son nom.',
+    introPdf: 'Écris, à côté de chaque nom, la lettre de la droite correspondante.',
+    labels, parts
+  };
+}
+
+// ============================================================
+// Niveau 6 du vocabulaire — associer chacune des 4 FIGURES (les 3 droites
+// concourantes d'un type, avec leurs marques) à son nom. Réutilise la
+// machinerie « clic » avec une figure « cards » (4 cartes cliquables).
+// Les droites sont toutes d'une même couleur : c'est la MARQUE qui révèle le
+// type (3 angles droits = hauteurs ; angles droits au milieu = médiatrices ;
+// points milieux = médianes ; arcs aux sommets = bissectrices).
+// ============================================================
+function triAssoc2Svg(exIdx, opts, cfg) {
+  opts = opts || {};
+  const F = n => (+n).toFixed(1);
+  const sub = (p, q) => [p[0] - q[0], p[1] - q[1]], add = (p, q) => [p[0] + q[0], p[1] + q[1]], mul = (p, s) => [p[0] * s, p[1] * s];
+  const dotp = (a, b) => a[0] * b[0] + a[1] * b[1], len = v => Math.hypot(v[0], v[1]), unit = v => { const L = len(v) || 1; return [v[0] / L, v[1] / L]; };
+  const mid = (a, b) => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+  const foot = (V, P, Q) => { const d = sub(Q, P), t = dotp(sub(V, P), d) / dotp(d, d); return add(P, mul(d, t)); };
+  const circ = (A, B, C) => { const ax = A[0], ay = A[1], bx = B[0], by = B[1], cx = C[0], cy = C[1]; const d = 2 * (ax * (by - cy) + bx * (cy - ay) + cx * (ay - by)); return [((ax * ax + ay * ay) * (by - cy) + (bx * bx + by * by) * (cy - ay) + (cx * cx + cy * cy) * (ay - by)) / d, ((ax * ax + ay * ay) * (cx - bx) + (bx * bx + by * by) * (ax - cx) + (cx * cx + cy * cy) * (bx - ax)) / d]; };
+  const MK = '#1F2937';
+  const COLORS = { hauteur: '#16A34A', mediane: '#8B5CF6', mediatrice: '#EA8A4E', bissectrice: '#3B82F6' };
+  const seg = (a, b, col, w) => `<line x1="${F(a[0])}" y1="${F(a[1])}" x2="${F(b[0])}" y2="${F(b[1])}" fill="none" stroke="${col}" stroke-width="${w}" stroke-linecap="round" vector-effect="non-scaling-stroke"/>`;
+  const sq = (X, u1, u2, s) => { const p1 = add(X, mul(u1, s)), p3 = add(X, mul(u2, s)), p2 = add(add(X, mul(u1, s)), mul(u2, s)); return `<polyline points="${F(p1[0])},${F(p1[1])} ${F(p2[0])},${F(p2[1])} ${F(p3[0])},${F(p3[1])}" fill="none" stroke="${MK}" stroke-width="1"/>`; };
+  const tick = (a, b) => { const m = mid(a, b), d = unit(sub(b, a)), nn = [-d[1], d[0]], s = 4; return `<line x1="${F(m[0] - nn[0] * s)}" y1="${F(m[1] - nn[1] * s)}" x2="${F(m[0] + nn[0] * s)}" y2="${F(m[1] + nn[1] * s)}" stroke="${MK}" stroke-width="1"/>`; };
+  const angArc = (V, dirA, dirB, r) => { let aA = Math.atan2(dirA[1], dirA[0]), aB = Math.atan2(dirB[1], dirB[0]); let d = aB - aA; while (d > Math.PI) d -= 2 * Math.PI; while (d < -Math.PI) d += 2 * Math.PI; let pts = []; for (let k = 0; k <= 14; k++) { const a = aA + d * k / 14; pts.push(F(V[0] + r * Math.cos(a)) + ',' + F(V[1] + r * Math.sin(a))); } return `<polyline points="${pts.join(' ')}" fill="none" stroke="${MK}" stroke-width="1"/>`; };
+  const angTick = (V, dirA, dirB, r) => { let aA = Math.atan2(dirA[1], dirA[0]), aB = Math.atan2(dirB[1], dirB[0]); let d = aB - aA; while (d > Math.PI) d -= 2 * Math.PI; while (d < -Math.PI) d += 2 * Math.PI; const a = aA + d / 2, c = [Math.cos(a), Math.sin(a)]; return `<line x1="${F(V[0] + (r - 2.6) * c[0])}" y1="${F(V[1] + (r - 2.6) * c[1])}" x2="${F(V[0] + (r + 2.6) * c[0])}" y2="${F(V[1] + (r + 2.6) * c[1])}" stroke="${MK}" stroke-width="1"/>`; };
+  const dotc = (X, r) => `<circle cx="${F(X[0])}" cy="${F(X[1])}" r="${r}" fill="${MK}"/>`;
+  const ext2 = (a, b, e) => { const d = unit(sub(b, a)); return [sub(a, mul(d, e)), add(b, mul(d, e))]; };
+  function lineFor(tri, type, i) {
+    const V = tri[i], P = tri[(i + 1) % 3], Q = tri[(i + 2) % 3], col = COLORS[type], W = 1.6;
+    if (type === 'hauteur') { const Hf = foot(V, P, Q); return seg(V, Hf, col, W) + sq(Hf, unit(sub(V, Hf)), unit(sub(P, Hf)), 6); }
+    if (type === 'mediane') { const Mm = mid(P, Q); const e = ext2(V, Mm, 8); return seg(e[0], e[1], col, W) + tick(P, Mm) + tick(Mm, Q) + dotc(Mm, 2.4); }
+    if (type === 'mediatrice') { const Mm = mid(P, Q), d = unit(sub(Q, P)), n = [-d[1], d[0]], Oc = circ(tri[0], tri[1], tri[2]), ins = dotp(sub(Oc, Mm), n) > 0 ? 1 : -1, N = mul(n, ins); const a = add(Mm, mul(N, -9)), b = add(Mm, mul(N, len(sub(Oc, Mm)) + 9)); return seg(a, b, col, W) + sq(Mm, mul(N, 1), d, 6) + tick(P, Mm) + tick(Mm, Q); }
+    const bis = unit(add(unit(sub(P, V)), unit(sub(Q, V)))), dd = sub(Q, P), detm = bis[0] * (-dd[1]) - bis[1] * (-dd[0]), ex = sub(P, V), t = (ex[0] * (-dd[1]) - ex[1] * (-dd[0])) / detm, Fb = add(V, mul(bis, t)); const e = ext2(V, Fb, 8);
+    const dP = sub(P, V), dQ = sub(Q, V), dB = sub(Fb, V);
+    return seg(e[0], e[1], col, W) + angArc(V, dP, dQ, 13) + angTick(V, dP, dB, 13) + angTick(V, dB, dQ, 13);
+  }
+  function cardBody(tri, type) { let b = `<polygon points="${tri.map(p => p.map(F).join(',')).join(' ')}" fill="#FFFFFF" stroke="${MK}" stroke-width="1.7" stroke-linejoin="round"/>`; [0, 1, 2].forEach(i => b += lineFor(tri, type, i)); return b; }
+  const cells = (cfg && cfg.cells) || [];
+  const cw = 214, ch = 162, pos = [[2, 2], [218, 2], [2, 166], [218, 166]];
+  const interactive = (exIdx !== null && !opts.tags && !opts.answers);
+  let s = `<svg viewBox="0 0 434 330" xmlns="http://www.w3.org/2000/svg" class="tri-assoc-svg" style="width:460px;max-width:100%;height:auto;display:block;">`;
+  cells.forEach((c, idx) => {
+    const ox = pos[idx][0], oy = pos[idx][1];
+    s += `<rect id="clicel-${exIdx}-${c.key}" class="clic-card" x="${ox}" y="${oy}" width="${cw}" height="${ch}" rx="8" fill="#FFFFFF" stroke="transparent" stroke-width="1.2"/>`;
+    s += `<g transform="translate(${ox + 2},${oy - 22})">${cardBody(c.tri, c.key)}</g>`;
+    if (opts.tags) s += `<circle cx="${ox + 22}" cy="${oy + 22}" r="14" fill="#fff" stroke="${MK}" stroke-width="2"/><text x="${ox + 22}" y="${oy + 28}" text-anchor="middle" font-size="18" font-weight="800" fill="${MK}" style="font-family:inherit">${c.letter}</text>`;
+    if (opts.answers) s += `<rect x="${ox + cw / 2 - 58}" y="${oy + ch - 28}" width="116" height="23" rx="6" fill="#fff" stroke="#16A34A" stroke-width="2"/><text x="${ox + cw / 2}" y="${oy + ch - 11}" text-anchor="middle" font-size="16" font-weight="800" fill="#16A34A" style="font-family:inherit">${TRI_TERMS[c.key]}</text>`;
+    if (interactive) {
+      s += `<g id="clicbadge-${exIdx}-${c.key}" style="display:none">`
+        + `<circle class="clicbadge-ring" cx="${ox + 22}" cy="${oy + 22}" r="16" fill="none" stroke="none" stroke-width="3"/>`
+        + `<circle class="clicbadge-disc" cx="${ox + 22}" cy="${oy + 22}" r="13" fill="#475569" stroke="#fff" stroke-width="2"/>`
+        + `<text class="clicbadge-num" x="${ox + 22}" y="${oy + 28}" text-anchor="middle" font-size="17" font-weight="800" fill="#fff" style="font-family:inherit"></text>`
+        + `</g>`;
+      s += `<rect x="${ox}" y="${oy}" width="${cw}" height="${ch}" rx="8" fill="#000" fill-opacity="0" style="cursor:pointer" onclick="clicPick(${exIdx},'part','${c.key}')"/>`;
+    }
+  });
+  s += `</svg>`;
+  return s;
+}
+
+function genTriangleAssoc2() {
+  const keys = ['hauteur', 'mediane', 'mediatrice', 'bissectrice'];
+  // Le MÊME triangle scalène (apex en haut à droite, comme les images) pour les 4 cartes.
+  const TRI = [[14, 160], [196, 166], [170, 44]];
+  const order = keys.slice();
+  for (let i = order.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [order[i], order[j]] = [order[j], order[i]]; }
+  const cells = order.map((k, i) => ({ key: k, letter: String.fromCharCode(65 + i), tri: TRI }));
+  const letters = {}; cells.forEach(c => letters[c.key] = c.letter);
+  const nameOrder = keys.slice();
+  for (let i = nameOrder.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [nameOrder[i], nameOrder[j]] = [nameOrder[j], nameOrder[i]]; }
+  const labels = nameOrder.map((k, i) => ({ key: k, term: TRI_TERMS[k], n: i + 1, color: '#475569', letter: letters[k] }));
+  const parts = keys.map(k => ({ key: k }));
+  return {
+    clicMap: true, figure: 'cards', cfg: { cells, letters },
+    introInTitle: true,
+    intro: 'Associe chaque figure à son nom.',
+    introPdf: 'Écris, à côté de chaque nom, la lettre de la figure correspondante.',
+    labels, parts
+  };
+}
+
 // Niveau 1 du vocabulaire — propriétés des quadrilatères : nombre de paires de
+
+
 // côtés parallèles, nombre d'axes de symétrie, présence d'un centre de symétrie.
 function genQuadProps() {
   const W = 'fill="#FFFFFF" stroke="#1F2937" stroke-width="1.6" stroke-linejoin="round" vector-effect="non-scaling-stroke"';
@@ -11892,21 +12228,34 @@ function genQuadProps() {
   const rang = (c, a, b, s) => { const da = unit(sub(a, c)), db = unit(sub(b, c)); const bis = unit([da[0] + db[0], da[1] + db[1]]); const off = 3.2; const o = [c[0] + bis[0] * off, c[1] + bis[1] * off]; const p1 = [o[0] + da[0] * s, o[1] + da[1] * s], p3 = [o[0] + db[0] * s, o[1] + db[1] * s]; return `<polyline points="${p1[0].toFixed(1)},${p1[1].toFixed(1)} ${o[0].toFixed(1)},${o[1].toFixed(1)} ${p3[0].toFixed(1)},${p3[1].toFixed(1)}" ${MK}/>`; };
   // marque les 4 angles droits d'un quadrilatère (sommet ↔ ses deux voisins)
   const corners = (pts, s) => pts.map((c, i) => rang(c, pts[(i + 1) % 4], pts[(i + 3) % 4], s)).join('');
-  const svgOf = (pts, marks, axes) => `<svg viewBox="0 0 64 52" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%;display:block;"><polygon points="${pts.map(p => p.join(',')).join(' ')}" ${W}/>${marks || ''}${(axes || []).map(axLine).join('')}</svg>`;
+  // arc d'angle (petit) au sommet c, entre les côtés vers a et vers b — marque les angles isométriques
+  const arc = (c, a, b, r) => { const da = unit(sub(a, c)), db = unit(sub(b, c)); const p1 = [c[0] + da[0] * r, c[1] + da[1] * r], p2 = [c[0] + db[0] * r, c[1] + db[1] * r]; const sweep = (da[0] * db[1] - da[1] * db[0]) < 0 ? 1 : 0; return `<path d="M ${p1[0].toFixed(1)} ${p1[1].toFixed(1)} A ${r} ${r} 0 0 ${sweep} ${p2[0].toFixed(1)} ${p2[1].toFixed(1)}" ${MK}/>`; };
+  // arcs sur une liste de sommets d'un triangle (indices), neighbours = les deux autres
+  const triArcs = (pts, idxs, r) => idxs.map(i => arc(pts[i], pts[(i + 1) % 3], pts[(i + 2) % 3], r)).join('');
+  // viewBox SERRÉ sur le contenu (peu de blanc), mais taille en PIXELS à échelle
+  // CONSTANTE k → toutes les figures gardent exactement la même taille qu'avant ;
+  // la hauteur de chaque svg suit le contenu → lignes plus basses.
+  const svgOf = (pts, marks, axes) => {
+    const xs = pts.map(p => p[0]), ys = pts.map(p => p[1]), pad = 3.5, k = 1.1;
+    const minx = Math.min(...xs) - pad, miny = Math.min(...ys) - pad;
+    const w = (Math.max(...xs) - Math.min(...xs)) + 2 * pad, h = (Math.max(...ys) - Math.min(...ys)) + 2 * pad;
+    return `<svg viewBox="${minx.toFixed(1)} ${miny.toFixed(1)} ${w.toFixed(1)} ${h.toFixed(1)}" style="display:block; margin:0 auto; width:${(w * k).toFixed(1)}px; height:${(h * k).toFixed(1)}px;"><polygon points="${pts.map(p => p.join(',')).join(' ')}" ${W}/>${marks || ''}${(axes || []).map(axLine).join('')}</svg>`;
+  };
 
   const carre = [[14, 6], [50, 6], [50, 42], [14, 42]];
-  const los = [[32, 11], [58, 26], [32, 41], [6, 26]];    // aplati : diagonales nettement inégales
+  const los = [[32, 11], [58, 26], [32, 41], [6, 26]];
   const para = [[18, 8], [58, 8], [46, 44], [6, 44]];
   const rect = [[6, 12], [58, 12], [58, 40], [6, 40]];
   const iso = [[20, 8], [44, 8], [56, 44], [8, 44]];
   const trec = [[10, 8], [40, 8], [56, 44], [10, 44]];
-  const quel = [[14, 10], [30, 10], [58, 44], [6, 44]];   // nettement scalène (sommet décalé)
-  const isoMarks = tick(iso[0], iso[3]) + tick(iso[1], iso[2]);          // les deux côtés (jambes) isométriques
-  const trecMarks = rang(trec[0], trec[1], trec[3], 5) + rang(trec[3], trec[0], trec[2], 5); // 2 angles droits
-  const carreMarks = corners(carre, 4.5);   // 4 angles droits
-  const rectMarks = corners(rect, 4.5);      // 4 angles droits
+  const quel = [[14, 10], [30, 10], [58, 44], [6, 44]];
+  const isoMarks = tick(iso[0], iso[3]) + tick(iso[1], iso[2]);
+  const trecMarks = rang(trec[0], trec[1], trec[3], 5) + rang(trec[3], trec[0], trec[2], 5);
+  const carreMarks = corners(carre, 4.5);
+  const rectMarks = corners(rect, 4.5);
 
-  const defs = [
+  // Quadrilatères : lignes d'origine (paires de côtés parallèles, axes, centre).
+  const quadDefs = [
     { nom: 'carré',             pts: carre, marks: carreMarks, axes: [[32, 6, 32, 42], [14, 24, 50, 24], [14, 6, 50, 42], [50, 6, 14, 42]], P: 2, X: 4, C: 'oui' },
     { nom: 'losange',           pts: los,   marks: '',         axes: [[32, 11, 32, 41], [6, 26, 58, 26]], P: 2, X: 2, C: 'oui' },
     { nom: 'parallélogramme',   pts: para,  marks: '',         axes: [], P: 2, X: 0, C: 'oui' },
@@ -11915,15 +12264,34 @@ function genQuadProps() {
     { nom: 'trapèze isocèle',   pts: iso,   marks: isoMarks,   axes: [[32, 8, 32, 44]], P: 1, X: 1, C: 'non' },
     { nom: 'trapèze rectangle', pts: trec,  marks: trecMarks,  axes: [], P: 1, X: 0, C: 'non' }
   ];
-  const items = defs.map(d => ({ nom: d.nom, svg: svgOf(d.pts, d.marks, []), svgAxes: svgOf(d.pts, d.marks, d.axes), P: d.P, X: d.X, C: d.C }));
-  // ordre fixe (celui du modèle) — pas de mélange
+
+  // Triangles.
+  const tEq = [[32, 8], [10, 46], [54, 46]];
+  const tIs = [[32, 6], [16, 46], [48, 46]];
+  const tRe = [[12, 12], [12, 44], [52, 44]];
+  const tRi = [[12, 12], [12, 44], [44, 44]];
+  const triDefs = [
+    { nom: 'triangle équilatéral',      pts: tEq, marks: tick(tEq[0], tEq[1]) + tick(tEq[1], tEq[2]) + tick(tEq[2], tEq[0]),
+      marksValid: triArcs(tEq, [0, 1, 2], 9), axes: [[32, 8, 32, 46], [10, 46, 43, 27], [54, 46, 21, 27]], CI: 3, AI: 3, X: 3, C: 'non' },
+    { nom: 'triangle isocèle',          pts: tIs, marks: tick(tIs[0], tIs[1]) + tick(tIs[0], tIs[2]),
+      marksValid: triArcs(tIs, [1, 2], 8), axes: [[32, 6, 32, 46]], CI: 2, AI: 2, X: 1, C: 'non' },
+    { nom: 'triangle rectangle',        pts: tRe, marks: rang(tRe[1], tRe[0], tRe[2], 5),
+      marksValid: '', axes: [], CI: 0, AI: 0, X: 0, C: 'non' },
+    { nom: 'triangle rectangle isocèle',pts: tRi, marks: rang(tRi[1], tRi[0], tRi[2], 5) + tick(tRi[0], tRi[1]) + tick(tRi[1], tRi[2]),
+      marksValid: triArcs(tRi, [0, 2], 8), axes: [[12, 44, 28, 28]], CI: 2, AI: 2, X: 1, C: 'non' }
+  ];
+
+  // svg = version énoncé (marques permanentes) ; svgAxes = version validation
+  // (marques permanentes + arcs d'angles isométriques + axes de symétrie).
+  const mk = d => ({ nom: d.nom, svg: svgOf(d.pts, d.marks, []), svgAxes: svgOf(d.pts, (d.marks || '') + (d.marksValid || ''), d.axes), P: d.P, CI: d.CI, AI: d.AI, X: d.X, C: d.C });
   return {
     countTable: true,
-    colLabel: 'Figure',
-    intro: 'Indique le nombre de paires de côtés parallèles, d’axes de symétrie, et s’il possède un centre de symétrie (o / n).',
-    attrs: ['Paires de côtés parallèles', 'Axes de symétrie', 'Centre de symétrie'],
-    keys: ['P', 'X', 'C'],
-    items
+    introInTitle: true,
+    intro: 'Complète : nombres, et oui / non pour le centre de symétrie.',
+    groups: [
+      { label: 'Quadrilatères', attrs: ['Paires de côtés parallèles', 'Axes de symétrie', 'Centre de symétrie'], keys: ['P', 'X', 'C'], items: quadDefs.map(mk) },
+      { label: 'Triangles',     attrs: ['Côtés isométriques', 'Angles isométriques', 'Axes de symétrie', 'Centre de symétrie'], keys: ['CI', 'AI', 'X', 'C'], items: triDefs.map(mk) }
+    ]
   };
 }
 
@@ -12178,7 +12546,7 @@ const DOMAINS = [
     icon: "△",
     color: "c5",
     subdomains: [
-      { id: 'vocab',            title: "Connaître le vocabulaire relatif aux figures planes et aux solides", gen: genVocab, hasNiveau2: true, niveauLabels: ['Quadrilatères', 'Solides', 'Compléter'], patrons: () => [genVocab] },
+      { id: 'vocab',            title: "Connaître le vocabulaire relatif aux figures planes et aux solides", gen: genVocab, hasNiveau2: true, niveauLabels: ['Figures planes', 'Solides', 'Compléter', 'Cercle', 'Droites du triangle'], patrons: () => (typeof state !== 'undefined' && state.niveau === 5) ? [genTriangleAssoc, genTriangleAssoc2] : [genVocab] },
       { id: 'prop-figures',     title: "Appliquer les propriétés des figures planes (triangles, cercles)",   gen: genPropFigures, patrons: () => [genPropFigures] },
       { id: 'instruments',      title: "Connaître l'utilisation des instruments de géométrie",               gen: null },
       { id: 'developpements',   title: "Associer les solides à leurs développements",                            gen: genDeveloppements, hasNiveau2: true, niveauLabels: ['Associer', 'Sélectionner'], patrons: () => state.niveau === 2 ? [genDevSelectPave, genDevSelectCube, genDevSelectPrismeTri] : [genDeveloppements] },
@@ -12365,7 +12733,7 @@ function generateExercisesForActive() {
   const found = findSubdomain(state.activeSubId);
   if (!found || !found.sub.gen) return;
   state.showSolutions = false;
-  matchState = {}; selectState = {}; countState = {}; fillState = {}; // repart à zéro pour le nouvel ensemble
+  matchState = {}; selectState = {}; countState = {}; fillState = {}; clicState = {}; // repart à zéro pour le nouvel ensemble
   // Cache : si on a déjà des exercices pour cette combinaison
   // (subId × variante × niveau), on les réutilise.
   const cacheKey = currentCacheKey();
@@ -12388,8 +12756,8 @@ function generateExercisesForActive() {
     } else {
       const patrons = found.sub.patrons();
       const ordre = [...Array(patrons.length).keys()];
-      // Développements : conserver l'ordre fixe (pavé, cube, prisme) ; ailleurs on mélange.
-      if (found.sub.id !== 'developpements') {
+      // Développements + vocab/Triangle (les 2 exercices) : conserver l'ordre fixe ; ailleurs on mélange.
+      if (found.sub.id !== 'developpements' && !(found.sub.id === 'vocab' && typeof state !== 'undefined' && state.niveau === 5)) {
         for (let i = ordre.length - 1; i > 0; i--) {
           const j = Math.floor(Math.random() * (i + 1));
           [ordre[i], ordre[j]] = [ordre[j], ordre[i]];
@@ -12507,9 +12875,12 @@ function renderMain() {
       <h2>${found.sub.title}</h2>
     </div>
   `;
+  const sideBySide = (found.sub.id === 'vocab' && state.niveau === 5 && state.exercises.length === 2);
+  if (sideBySide) html += `<div class="exo-sidebyside">`;
   state.exercises.forEach((ex, idx) => {
     html += renderExercise(ex, idx + 1, idx);
   });
+  if (sideBySide) html += `</div>`;
 
   main.innerHTML = html;
   // Masque l'astuce des exposants si l'élève a déjà commencé à saisir
@@ -12526,6 +12897,7 @@ function renderMain() {
   selectRefreshAll();
   countRefreshAll();
   fillRefreshAll();
+  clicRefreshAll();
 }
 
 // Recadre verticalement les figures « propriétés » à leur contenu réel pour
@@ -13370,15 +13742,24 @@ let selectState = {};
 
 function renderSelect(ex, exIdx) {
   if (!selectState[exIdx]) selectState[exIdx] = { sel: {}, checked: false };
-  let h = `<div class="match-intro">${ex.intro}</div>`;
+  const cell = o => `<div class="sel-cell" data-opt="${o.id}" data-valid="${o.valid ? 1 : 0}" onclick="selectPick(${exIdx},'${o.id}')">`
+    + `<span class="sel-check no-print"></span><div class="sel-fig">${o.svg}</div></div>`;
+  let h = ex.introInTitle ? '' : `<div class="match-intro">${ex.intro}</div>`;
+  // Mode multi-lignes : un nom par ligne (ex. droites remarquables du triangle).
+  if (ex.rows) {
+    h += `<div class="sel-grid sel-rows" id="sel-${exIdx}">`;
+    ex.rows.forEach(row => {
+      h += `<div class="sel-row"><div class="sel-name">${row.label}</div>`
+        + `<div class="sel-row-figs">${row.options.map(cell).join('')}</div></div>`;
+    });
+    h += `</div>`;
+    return h;
+  }
   h += `<div class="sel-wrap">`;
-  if (ex.solid) h += `<div class="sel-solid">${ex.solid}</div>`;
+  if (ex.leftLabel) h += `<div class="sel-name">${ex.leftLabel}</div>`;
+  else if (ex.solid) h += `<div class="sel-solid">${ex.solid}</div>`;
   h += `<div class="sel-grid" id="sel-${exIdx}">`;
-  ex.options.forEach(o => {
-    h += `<div class="sel-cell" data-opt="${o.id}" data-valid="${o.valid ? 1 : 0}" onclick="selectPick(${exIdx},'${o.id}')">`
-       + `<span class="sel-check no-print"></span>`
-       + `<div class="sel-fig">${o.svg}</div></div>`;
-  });
+  ex.options.forEach(o => { h += cell(o); });
   h += `</div></div>`;
   return h;
 }
@@ -13441,31 +13822,44 @@ function renderCountTable(ex, exIdx) {
   if (!countState[exIdx]) countState[exIdx] = { vals: {}, checked: false };
   const st = countState[exIdx];
   const showSol = (typeof state !== 'undefined' && state.showSolutions);
-  const items = ex.items || ex.solids;
   const keys = ex.keys || COUNT_KEYS;
-  let h = `<div class="match-intro">${ex.intro} <button type="button" class="match-reset no-print" onclick="countReset(${exIdx})">↺ Effacer</button></div>`;
-  h += `<div class="count-wrap" id="count-${exIdx}" data-keys="${keys.join(',')}"><table class="count-table"><tbody>`;
-  h += `<tr class="count-head"><th class="count-corner">${ex.colLabel || ''}</th>`;
-  items.forEach(s => {
-    const showAx = st.checked || showSol;
+  const showAx = st.checked || showSol;
+  // Un groupe = une étiquette + ses figures. Sans groupes : un seul groupe implicite.
+  const groups = ex.groups || [{ label: ex.colLabel || '', items: ex.items || ex.solids }];
+
+  const figCell = s => {
     const fig = s.svgAxes
       ? `<div class="qfig-plain"${showAx ? ' style="display:none"' : ''}>${s.svg}</div><div class="qfig-axes"${showAx ? '' : ' style="display:none"'}>${s.svgAxes}</div>`
       : s.svg;
-    h += `<th><div class="count-fig">${fig}</div><div class="count-name">${s.nom}</div></th>`;
-  });
-  h += `</tr>`;
-  ex.attrs.forEach((attr, ai) => {
-    const kAttr = keys[ai];
-    h += `<tr><th class="count-attr">${attr}</th>`;
-    items.forEach((s, ci) => {
-      const correct = String(s[kAttr]);
-      const numeric = /^\d+$/.test(correct);
-      const kk = ci + '_' + kAttr;
-      const v = st.vals[kk] !== undefined ? st.vals[kk] : '';
-      const sol = showSol ? `<span class="count-sol no-print">${correct}</span>` : '';
-      h += `<td><input type="text" inputmode="${numeric ? 'numeric' : 'text'}" class="count-input" maxlength="${numeric ? 2 : 4}"${numeric ? '' : ' placeholder="o/n"'} data-k="${kk}" data-correct="${correct}" value="${v}" oninput="countInput(${exIdx},'${kk}',this)" onkeydown="countKey(${exIdx},this,event)">${sol}</td>`;
+    return `<th><div class="count-fig">${fig}</div><div class="count-name">${s.nom}</div></th>`;
+  };
+  const cell = (gi, ci, s, kAttr) => {
+    const correct = String(s[kAttr]);
+    const numeric = /^\d+$/.test(correct);
+    const kk = gi + '_' + ci + '_' + kAttr;
+    const v = st.vals[kk] !== undefined ? st.vals[kk] : '';
+    const sol = showSol ? `<span class="count-sol no-print">${correct}</span>` : '';
+    return `<td><input type="text" inputmode="${numeric ? 'numeric' : 'text'}" class="count-input" maxlength="${numeric ? 2 : 4}"${numeric ? '' : ' placeholder="o/n"'} data-k="${kk}" data-correct="${correct}" value="${v}" oninput="countInput(${exIdx},'${kk}',this)" onkeydown="countKey(${exIdx},this,event)">${sol}</td>`;
+  };
+  const maxCols = Math.max(...groups.map(g => g.items.length));
+  const padH = n => '<th class="count-empty"></th>'.repeat(n);
+  const padT = n => '<td class="count-empty"></td>'.repeat(n);
+
+  // Commentaire dans le titre (introInTitle) → pas de ligne au-dessus du tableau.
+  // Sinon, intro au-dessus (sans bouton Effacer).
+  let h = ex.introInTitle ? '' : `<div class="match-intro">${ex.intro}</div>`;
+  h += `<div class="count-wrap" id="count-${exIdx}" data-keys="${(ex.keys || COUNT_KEYS).join(',')}">`;
+  // UN SEUL tableau : colonnes fixes et uniformes (largeur calée sur les triangles).
+  h += `<table class="count-table count-merged${ex.groups ? ' count-tight' : ''}"><colgroup><col class="count-col-label">${'<col class="count-col-fig">'.repeat(maxCols)}</colgroup><tbody>`;
+  groups.forEach((g, gi) => {
+    const gAttrs = g.attrs || ex.attrs;
+    const gKeys = g.keys || ex.keys || COUNT_KEYS;
+    const pad = maxCols - g.items.length;
+    h += `<tr class="count-head"><th class="count-corner">${g.label || ''}</th>${g.items.map(figCell).join('')}${padH(pad)}</tr>`;
+    gAttrs.forEach((attr, ai) => {
+      const kAttr = gKeys[ai];
+      h += `<tr><th class="count-attr">${attr}</th>${g.items.map((s, ci) => cell(gi, ci, s, kAttr)).join('')}${padT(pad)}</tr>`;
     });
-    h += `</tr>`;
   });
   h += `</tbody></table></div>`;
   return h;
@@ -13478,28 +13872,27 @@ function countInput(exIdx, kk, el) {
   el.classList.remove('count-ok', 'count-no');
 }
 
-// Navigation au clavier entre les champs (flèches + Entrée).
+// Navigation au clavier entre les champs (flèches + Entrée), compatible groupes.
 function countKey(exIdx, el, ev) {
   const board = document.getElementById('count-' + exIdx);
   if (!board) return;
-  const keys = (board.dataset.keys || COUNT_KEYS.join(',')).split(','); // lignes
-  const ncols = board.querySelectorAll('.count-input[data-k$="_' + keys[0] + '"]').length;
-  const [colS, attr] = el.dataset.k.split('_');
-  let col = +colS, row = keys.indexOf(attr);
   const k = ev.key;
-  if (k === 'ArrowRight') { col++; if (col >= ncols) { col = 0; row++; } }
-  else if (k === 'ArrowLeft') { col--; if (col < 0) { col = ncols - 1; row--; } }
-  else if (k === 'ArrowUp') row--;
-  else if (k === 'ArrowDown') row++;
-  else if (k === 'Enter') { col++; if (col >= ncols) { col = 0; row++; } }
-  else return;
+  if (!['ArrowRight', 'ArrowLeft', 'ArrowUp', 'ArrowDown', 'Enter'].includes(k)) return;
   ev.preventDefault();
-  if (col < 0) col = ncols - 1;
-  if (col >= ncols) col = 0;
-  if (row < 0) row = keys.length - 1;
-  if (row >= keys.length) row = 0;
-  const target = board.querySelector('.count-input[data-k="' + col + '_' + keys[row] + '"]');
-  if (target) { target.focus(); target.select(); }
+  const all = Array.from(board.querySelectorAll('.count-input'));
+  const i = all.indexOf(el);
+  const go = t => { if (t) { t.focus(); t.select(); } };
+  if (k === 'Enter' || k === 'ArrowRight') { go(all[(i + 1) % all.length]); return; }
+  if (k === 'ArrowLeft') { go(all[(i - 1 + all.length) % all.length]); return; }
+  // Haut / bas : même colonne, ligne adjacente DANS le même tableau (même groupe).
+  const row = el.closest('tr');
+  const table = el.closest('table');
+  const rowInputs = Array.from(row.querySelectorAll('.count-input'));
+  const col = rowInputs.indexOf(el);
+  const attrRows = Array.from(table.querySelectorAll('tr')).filter(r => r.querySelector('.count-input'));
+  const ri = attrRows.indexOf(row);
+  const target = attrRows[k === 'ArrowDown' ? ri + 1 : ri - 1];
+  if (target) go(Array.from(target.querySelectorAll('.count-input'))[col]);
 }
 
 function countRefresh(exIdx) {
@@ -13624,10 +14017,145 @@ function fillReset(exIdx) {
   fillRefresh(exIdx);
 }
 
+// ====================================================================
+// Niveau 4 « Cercle » — association étiquette ↔ élément du disque (clic).
+// On clique une étiquette puis l'élément (ou l'inverse) ; chaque étiquette
+// ne sert qu'une fois ; chaque élément ne porte qu'une étiquette.
+// ====================================================================
+let clicState = {};
+const clicPart = (exIdx, key) => {
+  const labs = (clicState[exIdx] && clicState[exIdx].labels) || CERCLE_PARTS;
+  return labs.find(p => p.key === key) || { color: '#999', n: '' };
+};
+
+function renderClicMap(ex, exIdx) {
+  if (!clicState[exIdx]) clicState[exIdx] = { map: {}, pending: null, checked: false };
+  clicState[exIdx].labels = ex.labels;
+  clicState[exIdx].parts = ex.parts;
+  clicState[exIdx].keepColor = !!ex.keepColor;
+  clicState[exIdx].cardFrame = (ex.figure === 'cards');
+  const above = (ex.figure === 'triangle' || ex.figure === 'cards');
+  let h = `<div class="clic-wrap${above ? ' clic-wrap-col' : ''}" id="clic-${exIdx}">`;
+  const chips = ex.labels.map(l =>
+    `<button type="button" class="clic-chip" data-label="${l.key}" onclick="clicPick(${exIdx},'label','${l.key}')">`
+    + `<span class="clic-chip-dot" style="background:${l.color}">${l.n}</span>`
+    + `<span class="clic-chip-term">${l.term}</span></button>`).join('');
+  const chipsHtml = `<div class="clic-chips">${chips}</div>`;
+  const figSvg = ex.figure === 'cards' ? triAssoc2Svg(exIdx, {}, ex.cfg)
+    : ex.figure === 'triangle' ? triAssocSvg(exIdx, {}, ex.cfg)
+    : cercleVocabSvg(exIdx, {}, ex.geo);
+  if (above) {
+    h += chipsHtml + `<div class="clic-figure">${figSvg}</div>`;
+  } else {
+    h += `<div class="clic-side">${chipsHtml}</div>` + `<div class="clic-figure">${figSvg}</div>`;
+  }
+  h += `</div>`;
+  return h;
+}
+
+function clicPick(exIdx, type, key) {
+  const st = clicState[exIdx] || (clicState[exIdx] = { map: {}, pending: null, checked: false });
+  const wrap = document.getElementById('clic-' + exIdx);
+  if (!wrap) return;
+  st.checked = false;
+  if (type === 'label') {
+    if (st.pending && st.pending.type === 'part') { clicConnect(exIdx, st.pending.key, key); st.pending = null; }
+    else { st.pending = { type: 'label', key }; }
+  } else { // part
+    if (st.pending && st.pending.type === 'label') { clicConnect(exIdx, key, st.pending.key); st.pending = null; }
+    else { st.pending = { type: 'part', key }; }
+  }
+  clicRefresh(exIdx);
+}
+
+function clicConnect(exIdx, partKey, labelKey) {
+  const st = clicState[exIdx]; if (!st) return;
+  // une étiquette ne sert qu'une fois : on la retire d'un éventuel autre élément
+  Object.keys(st.map).forEach(p => { if (st.map[p] === labelKey) delete st.map[p]; });
+  st.map[partKey] = labelKey;
+}
+
+function clicRefresh(exIdx) {
+  const wrap = document.getElementById('clic-' + exIdx);
+  if (!wrap) return;
+  const st = clicState[exIdx] || { map: {}, pending: null, checked: false };
+  const showSol = (typeof state !== 'undefined' && state.showSolutions);
+  const keepColor = !!st.keepColor;
+  const parts = st.parts || CERCLE_PARTS.map(p => ({ key: p.key }));
+  const used = {};
+  Object.keys(st.map).forEach(p => { used[st.map[p]] = true; });
+  parts.forEach(p => {
+    const correct = p.correct || p.key;
+    const el = wrap.querySelector('#clicel-' + exIdx + '-' + p.key);
+    const badge = wrap.querySelector('#clicbadge-' + exIdx + '-' + p.key);
+    const isDot = el && el.tagName.toLowerCase() === 'circle';
+    const shown = showSol ? correct : st.map[p.key];
+    const pendingHere = st.pending && st.pending.type === 'part' && st.pending.key === p.key;
+    if (el) {
+      if (st.cardFrame) {
+        // Pas de cadre permanent : la pastille numérotée sert de repère.
+        // Seul un léger contour bleu apparaît pendant la sélection en cours.
+        if (pendingHere) { el.setAttribute('stroke', '#2563EB'); el.setAttribute('stroke-width', '1.8'); }
+        else { el.setAttribute('stroke', 'transparent'); el.setAttribute('stroke-width', '1.2'); }
+      } else if (keepColor) {
+        // la droite garde sa couleur fixe ; on signale seulement la sélection en cours
+        el.setAttribute('stroke-width', pendingHere ? '7.5' : '4.5');
+      } else if (shown) {
+        const col = clicPart(exIdx, shown).color;
+        if (isDot) el.setAttribute('fill', col);
+        else { el.setAttribute('stroke', col); el.setAttribute('stroke-width', '3.4'); }
+      } else if (pendingHere) {
+        if (isDot) el.setAttribute('fill', '#111827');
+        else { el.setAttribute('stroke', '#111827'); el.setAttribute('stroke-width', '3.4'); }
+      } else {
+        if (isDot) el.setAttribute('fill', '#334155');
+        else { el.setAttribute('stroke', '#334155'); el.setAttribute('stroke-width', '2.3'); }
+      }
+    }
+    if (badge) {
+      if (shown) {
+        badge.style.display = '';
+        const disc = badge.querySelector('.clicbadge-disc');
+        const num = badge.querySelector('.clicbadge-num');
+        const ring = badge.querySelector('.clicbadge-ring');
+        disc.setAttribute('fill', clicPart(exIdx, shown).color);
+        num.textContent = clicPart(exIdx, shown).n;
+        if (showSol) ring.setAttribute('stroke', '#16A34A');
+        else if (st.checked) ring.setAttribute('stroke', st.map[p.key] === correct ? '#16A34A' : '#DC2626');
+        else ring.setAttribute('stroke', 'none');
+      } else {
+        badge.style.display = 'none';
+      }
+    }
+  });
+  wrap.querySelectorAll('.clic-chip').forEach(c => {
+    const k = c.dataset.label;
+    c.classList.toggle('clic-chip-used', showSol || !!used[k]);
+    c.classList.toggle('clic-chip-sel', !showSol && st.pending && st.pending.type === 'label' && st.pending.key === k);
+  });
+}
+
+function clicRefreshAll() {
+  document.querySelectorAll('.clic-wrap').forEach(b => clicRefresh(b.id.replace('clic-', '')));
+}
+
+function clicValidate(exIdx) {
+  const st = clicState[exIdx]; if (!st) return;
+  st.checked = true; st.pending = null;
+  clicRefresh(exIdx);
+}
+
+function clicReset(exIdx) {
+  clicState[exIdx] = { map: {}, pending: null, checked: false };
+  clicRefresh(exIdx);
+}
+
 function renderExercise(ex, num, exIdx) {
   // L'en-tête de l'exercice : numéro à gauche, bouton Valider à droite pour les multi/tableMode
   const validateBtn = ex.matching
     ? `<button class="btn-validate no-print" onclick="matchValidate(${exIdx})">✓ Valider</button>`
+    : ex.clicMap
+    ? `<button class="btn-validate no-print" onclick="clicValidate(${exIdx})">✓ Valider</button>`
     : ex.select
     ? `<button class="btn-validate no-print" onclick="selectValidate(${exIdx})">✓ Valider</button>`
     : ex.countTable
@@ -13649,6 +14177,11 @@ function renderExercise(ex, num, exIdx) {
   if (ex.matching) {
     content += renderMatching(ex, exIdx);
     return `<div class="exercise exo-matching"><div class="exercise-content">${content}</div></div>`;
+  }
+  // Association étiquette ↔ élément d'un disque (vocabulaire du cercle, niveau 4).
+  if (ex.clicMap) {
+    content += renderClicMap(ex, exIdx);
+    return `<div class="exercise exo-clic"><div class="exercise-content">${content}</div></div>`;
   }
   // Exercice de sélection (niveau 2) : cocher les développements corrects.
   if (ex.select) {
@@ -17216,8 +17749,22 @@ async function downloadPdf() {
       try {
         exercisesForPdf = [];
         state.niveau = 1; exercisesForPdf.push(genVocab());   // quadrilatères
-        state.niveau = 2; exercisesForPdf.push(genVocab());   // solides
+        state.niveau = 2;
+        {
+          // Solides : ordre FIXE sur le PDF (uniquement) demandé par l'utilisateur.
+          const exS = genVocab();
+          const ordreSolides = ['cube', 'pavé droit', 'prisme à base triangulaire', 'cylindre', 'prisme à base pentagonale', 'pyramide à base carrée', 'pyramide à base triangulaire', 'cône'];
+          if (Array.isArray(exS.solids)) {
+            const reordonne = ordreSolides.map(n => exS.solids.find(s => s.nom === n)).filter(Boolean);
+            // Sécurité : on n'écrase que si on retrouve bien tous les solides.
+            if (reordonne.length === exS.solids.length) exS.solids = reordonne;
+          }
+          exercisesForPdf.push(exS);                          // solides (ordre fixe)
+        }
         state.niveau = 3; exercisesForPdf.push(genVocab());   // à compléter
+        state.niveau = 4; exercisesForPdf.push(genVocab());   // cercle (étiquettes)
+        state.niveau = 5; exercisesForPdf.push(genVocab());   // triangle : 4 droites → nom
+        state.niveau = 6; exercisesForPdf.push(genVocab());   // triangle : 4 figures → nom
       } finally {
         state.niveau = savedNiveau;
       }
@@ -17520,8 +18067,11 @@ async function downloadPdf() {
       }
       // Sélection (niveau 2) au PDF : figures réduites, sans cadre ni case à cocher.
       if (ex.select) {
-        exoDiv.querySelectorAll('.sel-fig').forEach(f => { f.style.width = '74px'; f.style.height = '74px'; });
-        exoDiv.querySelectorAll('.sel-grid').forEach(g => { g.style.gap = '16px'; });
+        const figPx = ex.rows ? '66px' : '74px';
+        exoDiv.querySelectorAll('.sel-fig').forEach(f => { f.style.width = figPx; f.style.height = figPx; });
+        exoDiv.querySelectorAll('.sel-grid').forEach(g => { if (!ex.rows) g.style.gap = '16px'; });
+        exoDiv.querySelectorAll('.sel-row').forEach(r => { r.style.gap = '12px'; r.style.marginBottom = '6px'; });
+        exoDiv.querySelectorAll('.sel-row-figs').forEach(g => { g.style.gap = '10px'; });
         exoDiv.querySelectorAll('.sel-solid').forEach(s => { s.style.flex = '0 0 72px'; s.style.width = '72px'; });
         exoDiv.querySelectorAll('.sel-cell').forEach(c => {
           c.style.border = 'none';
@@ -17530,25 +18080,33 @@ async function downloadPdf() {
         });
         // « Entoure » au lieu de « Sélectionne » (sur papier on entoure au stylo).
         exoDiv.querySelectorAll('.match-intro').forEach(el => {
-          el.innerHTML = el.innerHTML.replace('Sélectionne les développements', 'Entoure les développements');
+          el.innerHTML = el.innerHTML
+            .replace('Sélectionne les développements', 'Entoure les développements')
+            .replace('Sélectionne les illustrations', 'Entoure les illustrations');
         });
+        // Libellé texte à gauche (droites du triangle) : un peu plus compact au PDF.
+        exoDiv.querySelectorAll('.sel-name').forEach(s => { s.style.flex = '0 0 110px'; s.style.width = '110px'; s.style.fontSize = '18px'; });
       }
-      // Vocabulaire au PDF : tableau VERTICAL (solides en lignes) à compléter.
+      // Vocabulaire au PDF : tableau(x) VERTICAL(aux) à compléter. Gère les groupes.
       if (ex.countTable) {
         const wrap = exoDiv.querySelector('.count-wrap');
         if (wrap) {
-          const items = ex.items || ex.solids;
-          const colLabel = ex.colLabel || 'Solide';
-          const cell = 'border:1px solid #333; padding:4px; text-align:center;';
-          const cellL = 'border:1px solid #333; padding:4px; text-align:left;';
-          let html = `<table style="border-collapse:collapse; width:100%; table-layout:fixed; font-size:13px;">`;
-          html += `<colgroup><col style="width:74px"><col>` + '<col>'.repeat(ex.attrs.length) + `</colgroup>`;
-          html += `<tr><th style="${cell}">${colLabel}</th><th style="${cell}">Nom</th>` + ex.attrs.map(a => `<th style="${cell}">${a}</th>`).join('') + `</tr>`;
-          items.forEach(s => {
-            html += `<tr><td style="${cell} height:52px;"><div style="width:50px; height:46px; margin:0 auto;">${s.svg}</div></td>`
-                 + `<td style="${cellL}">${s.nom}</td>` + ex.attrs.map(() => `<td style="${cell}"></td>`).join('') + `</tr>`;
+          const groups = ex.groups || [{ label: ex.colLabel || 'Solide', items: ex.items || ex.solids, attrs: ex.attrs, keys: ex.keys }];
+          const fitSvg = svg => svg.replace(/style="[^"]*"/, 'style="display:block;width:100%;height:100%;"');
+          const cell = 'border:0.75px solid #6B7280; padding:4px; text-align:center;';
+          const cellL = 'border:0.75px solid #6B7280; padding:4px; text-align:left;';
+          let html = '';
+          groups.forEach((g, gi) => {
+            const gAttrs = g.attrs || ex.attrs;
+            html += `<table style="border-collapse:collapse; width:100%; table-layout:fixed; font-size:13px;${gi ? ' margin-top:14px;' : ''}">`;
+            html += `<colgroup><col style="width:112px"><col>` + '<col>'.repeat(gAttrs.length) + `</colgroup>`;
+            html += `<tr><th style="${cell}">${g.label || ''}</th><th style="${cell}">Nom</th>` + gAttrs.map(a => `<th style="${cell}">${a}</th>`).join('') + `</tr>`;
+            g.items.forEach(s => {
+              html += `<tr><td style="${cell} height:52px;"><div style="width:50px; height:46px; margin:0 auto;">${fitSvg(s.svg)}</div></td>`
+                   + `<td style="${cellL}">${s.nom}</td>` + gAttrs.map(() => `<td style="${cell}"></td>`).join('') + `</tr>`;
+            });
+            html += `</table>`;
           });
-          html += `</table>`;
           wrap.innerHTML = html;
         }
       }
@@ -17560,6 +18118,30 @@ async function downloadPdf() {
           blank.style.cssText = 'display:inline-block; min-width:42px; text-align:center; color:#6B7280; margin:0 3px; letter-spacing:1px;';
           inp.replaceWith(blank);
         });
+      }
+      // Cercle (niveau 4) au PDF : disque avec lettres A–F posées sur les
+      // éléments + lignes « A : …… » à compléter (les noms sont dans la consigne).
+      if (ex.clicMap) {
+        const wrap = exoDiv.querySelector('.clic-wrap');
+        if (wrap) {
+          let html;
+          if (ex.figure === 'cards' || ex.figure === 'triangle') {
+            // Noms au-dessus (chacun avec une case pour la lettre), figure dessous.
+            const figSvg = ex.figure === 'cards' ? triAssoc2Svg(null, { tags: true }, ex.cfg) : triAssocSvg(null, { tags: true }, ex.cfg);
+            const row = ex.labels.map(l => `<span style="white-space:nowrap;"><strong>${l.term}</strong> :&nbsp;<span style="display:inline-block; min-width:24px; border-bottom:1px solid #9CA3AF; text-align:center;">&nbsp;</span></span>`).join('');
+            html = `<div style="display:flex; flex-direction:column; align-items:center; gap:9px; margin-top:4px;">`
+                 + `<div style="display:flex; flex-wrap:wrap; gap:5px 14px; justify-content:center; font-size:14px; line-height:1.9;">${row}</div>`
+                 + `<div style="width:100%; max-width:360px;">${figSvg}</div></div>`;
+          } else {
+            html = `<div style="display:flex; align-items:center; gap:34px; flex-wrap:nowrap; margin-top:6px;">`;
+            html += `<div style="flex:0 0 auto; font-size:15px; line-height:2.6;">`
+                  + CERCLE_PARTS.map(p => `<div><strong>${p.letter}</strong> : <span style="display:inline-block; min-width:120px; border-bottom:1px dotted #9CA3AF;">&nbsp;</span></div>`).join('')
+                  + `</div>`;
+            html += `<div style="flex:0 0 260px;">${cercleVocabSvg(null, { tags: true }, ex.geo).replace('class="cercle-svg"', 'style="width:260px;height:260px;display:block;"')}</div>`;
+            html += `</div>`;
+          }
+          wrap.innerHTML = html;
+        }
       }
       // Nettoyage : retirer .no-print, .feedback, .inline-solution
       exoDiv.querySelectorAll('.no-print').forEach(el => {
@@ -17741,22 +18323,48 @@ async function downloadPdf() {
         cCor.appendChild(exDiv);
         return;
       }
-      // Cas spécial : vocabulaire → tableau vertical rempli (faces/sommets/arêtes).
+      // Cas spécial : cercle (niveau 4) → disque avec lettres A–F sur les
+      // éléments + correspondance « A : centre … F : flèche » en vert.
+      if (ex.clicMap) {
+        if (ex.figure === 'cards' || ex.figure === 'triangle') {
+          const figSvg = ex.figure === 'cards' ? triAssoc2Svg(null, { tags: true }, ex.cfg) : triAssocSvg(null, { tags: true }, ex.cfg);
+          const row = ex.labels.map(l => `<span style="white-space:nowrap;"><strong>${l.term}</strong> :&nbsp;<span style="color:#16A34A; font-weight:800;">${ex.cfg.letters[l.key]}</span></span>`).join('');
+          inner += `<div style="display:flex; flex-direction:column; align-items:center; gap:9px;">`
+                + `<div style="display:flex; flex-wrap:wrap; gap:5px 14px; justify-content:center; font-size:14px; line-height:1.9;">${row}</div>`
+                + `<div style="width:100%; max-width:360px;">${figSvg}</div></div>`;
+        } else {
+          inner += `<div style="display:flex; align-items:center; gap:34px; flex-wrap:nowrap; padding-left:8px;">`;
+          inner += `<div style="flex:0 0 auto; font-size:15px; line-height:2.6;">`
+                + CERCLE_PARTS.map(p => `<div><strong>${p.letter}</strong> : <span style="color:#16A34A; font-weight:800;">${p.term}</span></div>`).join('')
+                + `</div>`;
+          inner += `<div style="flex:0 0 260px;">${cercleVocabSvg(null, { tags: true }, ex.geo).replace('class="cercle-svg"', 'style="width:260px;height:260px;display:block;"')}</div>`;
+          inner += `</div>`;
+        }
+        exDiv.innerHTML = inner;
+        cCor.appendChild(exDiv);
+        return;
+      }
+      // Cas spécial : vocabulaire → tableau(x) vertical(aux) rempli(s). Gère les groupes.
       if (ex.countTable) {
-        const items = ex.items || ex.solids;
-        const keys = ex.keys || COUNT_KEYS;
-        const colLabel = ex.colLabel || 'Solide';
-        const cell = 'border:1px solid #333; padding:4px; text-align:center;';
-        const cellL = 'border:1px solid #333; padding:4px; text-align:left;';
-        const ans = 'border:1px solid #333; padding:4px; text-align:center; font-weight:800; color:#16A34A;';
-        let html = `<div style="padding-left:16px;"><table style="border-collapse:collapse; width:100%; table-layout:fixed; font-size:13px;">`;
-        html += `<colgroup><col style="width:74px"><col>` + '<col>'.repeat(ex.attrs.length) + `</colgroup>`;
-        html += `<tr><th style="${cell}">${colLabel}</th><th style="${cell}">Nom</th>` + ex.attrs.map(a => `<th style="${cell}">${a}</th>`).join('') + `</tr>`;
-        items.forEach(s => {
-          html += `<tr><td style="${cell} height:52px;"><div style="width:50px; height:46px; margin:0 auto;">${s.svgAxes || s.svg}</div></td>`
-               + `<td style="${cellL}">${s.nom}</td>` + keys.map(k => `<td style="${ans}">${s[k]}</td>`).join('') + `</tr>`;
+        const groups = ex.groups || [{ label: ex.colLabel || 'Solide', items: ex.items || ex.solids, attrs: ex.attrs, keys: ex.keys }];
+        const fitSvg = svg => svg.replace(/style="[^"]*"/, 'style="display:block;width:100%;height:100%;"');
+        const cell = 'border:0.75px solid #6B7280; padding:4px; text-align:center;';
+        const cellL = 'border:0.75px solid #6B7280; padding:4px; text-align:left;';
+        const ans = 'border:0.75px solid #6B7280; padding:4px; text-align:center; font-weight:800; color:#16A34A;';
+        let html = `<div style="padding-left:16px;">`;
+        groups.forEach((g, gi) => {
+          const gAttrs = g.attrs || ex.attrs;
+          const gKeys = g.keys || ex.keys || COUNT_KEYS;
+          html += `<table style="border-collapse:collapse; width:100%; table-layout:fixed; font-size:13px;${gi ? ' margin-top:14px;' : ''}">`;
+          html += `<colgroup><col style="width:112px"><col>` + '<col>'.repeat(gAttrs.length) + `</colgroup>`;
+          html += `<tr><th style="${cell}">${g.label || ''}</th><th style="${cell}">Nom</th>` + gAttrs.map(a => `<th style="${cell}">${a}</th>`).join('') + `</tr>`;
+          g.items.forEach(s => {
+            html += `<tr><td style="${cell} height:52px;"><div style="width:50px; height:46px; margin:0 auto;">${fitSvg(s.svgAxes || s.svg)}</div></td>`
+                 + `<td style="${cellL}">${s.nom}</td>` + gKeys.map(k => `<td style="${ans}">${s[k]}</td>`).join('') + `</tr>`;
+          });
+          html += `</table>`;
         });
-        html += `</table></div>`;
+        html += `</div>`;
         inner += html;
         exDiv.innerHTML = inner;
         cCor.appendChild(exDiv);
@@ -17766,6 +18374,23 @@ async function downloadPdf() {
       // petit, entouré de vert (correct) ou rouge (incorrect) avec ✓ / ✗.
       if (ex.select) {
         inner += `<div style="padding-left: 16px;">`;
+        if (ex.rows) {
+          ex.rows.forEach(row => {
+            inner += `<div style="display:flex; align-items:center; gap:14px; margin-bottom:10px;">`;
+            inner += `<div style="flex:0 0 110px; font-weight:800; font-size:15px; color:#1F2937;">${row.label}</div>`;
+            inner += `<div style="display:flex; flex-wrap:wrap; gap:8px;">`;
+            row.options.forEach(o => {
+              const col = o.valid ? '#16A34A' : '#DC2626', mark = o.valid ? '✓' : '✗';
+              inner += `<div style="text-align:center; width:62px;"><div style="width:58px; height:58px; margin:0 auto; border:2px solid ${col}; border-radius:7px; box-sizing:border-box;">${o.svg}</div><div style="font-weight:800; color:${col}; font-size:14px; line-height:1.1;">${mark}</div></div>`;
+            });
+            inner += `</div></div>`;
+          });
+          inner += `</div>`;
+          exDiv.innerHTML = inner;
+          cCor.appendChild(exDiv);
+          return;
+        }
+        if (ex.leftLabel) inner += `<div style="font-weight:800; font-size:16px; color:#1F2937; margin-bottom:8px;">${ex.leftLabel}</div>`;
         inner += `<div style="display:flex; flex-wrap:wrap; gap:10px;">`;
         ex.options.forEach(o => {
           const col = o.valid ? '#16A34A' : '#DC2626';
@@ -18086,13 +18711,38 @@ async function downloadPdf() {
           document.body.appendChild(cN);
           return cN;
         };
-        const enonceContainers = exoChildren.map(child => {
+        // Disposition des planches : pour le vocab à 4 exercices, l'exercice 3
+        // (Compléter) est placé SOUS l'exercice 2 (Solides) sur la même page ;
+        // les exercices 1 et 4 gardent leur page. Sinon, 1 exercice par page.
+        const layout = (exercisesForPdf.length === 6) ? [[0], [1, 2], [3, [4, 5]]]
+                     : (exercisesForPdf.length === 5) ? [[0], [1, 2], [3], [4]]
+                     : (exercisesForPdf.length === 4) ? [[0], [1, 2], [3]]
+                     : exoChildren.map((_, i) => [i]);
+        // Une entrée = un index (empilé pleine largeur) ou un tableau (rangée côte à côte).
+        const buildContainers = (children, header) => layout.map(entries => {
           const wrapN = document.createElement('div');
-          wrapN.style.cssText = 'flex: 1; display: grid; grid-template-rows: 1fr; align-items: start; padding-top: 16px;';
-          wrapN.appendChild(child);
-          return mkContainer(headerExo, wrapN);
+          wrapN.style.cssText = 'flex: 1; padding-top: 16px;';
+          entries.forEach((entry, k) => {
+            if (Array.isArray(entry)) {
+              const row = document.createElement('div');
+              row.style.cssText = 'display: flex; gap: 22px; align-items: flex-start;' + (k > 0 ? ' margin-top: 24px;' : '');
+              entry.forEach(ci => {
+                const child = children[ci];
+                child.style.flex = '1 1 0';
+                child.style.minWidth = '0';
+                row.appendChild(child);
+              });
+              wrapN.appendChild(row);
+            } else {
+              const child = children[entry];
+              if (k > 0) child.style.marginTop = '24px';
+              wrapN.appendChild(child);
+            }
+          });
+          return mkContainer(header, wrapN);
         });
-        const corrContainers = corChildren.map(child => mkContainer(headerCor, child));
+        const enonceContainers = buildContainers(exoChildren, headerExo);
+        const corrContainers = buildContainers(corChildren, headerCor);
 
         for (let i = 0; i < enonceContainers.length; i++) await addContainerPages(enonceContainers[i], i === 0);
         const corrigeStartPageV = pdf.internal.getNumberOfPages() + 1;
