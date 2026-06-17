@@ -147,6 +147,11 @@
     gap: 8px;
     margin-top: 4px;
   }
+  .modal-checks { display: flex; flex-direction: column; gap: 10px; margin: 4px 0 18px; }
+  .pdf-check { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 15px; color: var(--text); cursor: pointer; padding: 9px 13px; border: 1.5px solid var(--border); border-radius: 10px; transition: border-color .12s, background .12s; }
+  .pdf-check:hover { border-color: var(--border2, #CBD5E1); }
+  .pdf-check input { width: 18px; height: 18px; cursor: pointer; accent-color: #2563EB; }
+  .modal-foot { display: flex; justify-content: flex-end; }
   .modal-domain-btn {
     display: flex;
     align-items: center;
@@ -2203,6 +2208,23 @@
   </div>
 </div>
 
+<div class="modal-overlay" id="prop-pdf-modal" style="display:none;" onclick="closePropPdfModal(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-head">
+      <h3>📄 PDF — Problèmes de proportionnalité</h3>
+      <button class="modal-close" onclick="closePropPdfModal()" title="Fermer">×</button>
+    </div>
+    <p class="modal-intro">Choisis les types de problèmes à inclure dans le PDF.</p>
+    <div class="modal-checks">
+      <label class="pdf-check"><input type="checkbox" id="prop-chk-1" value="1"> Proportionnalité</label>
+      <label class="pdf-check"><input type="checkbox" id="prop-chk-2" value="2"> Fractions</label>
+      <label class="pdf-check"><input type="checkbox" id="prop-chk-3" value="3"> Rabais</label>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-action btn-primary" onclick="confirmPropPdf()">📄 Générer le PDF</button>
+    </div>
+  </div>
+</div>
 
 <div class="layout" id="layout">
   <aside class="sidebar" id="sidebar"></aside>
@@ -2363,8 +2385,10 @@ const PROBLEME_PATRONS = [
     const prixLivre = rand(15, 35);
     const cahiers = rand(10, 25);
     const prixCahier = rand(3, 8);
-    const billet = choice([500, 1000]);
     const totalAchats = livres * prixLivre + cahiers * prixCahier;
+    // Billet choisi APRÈS le total pour garantir un rendu strictement positif
+    // (le total peut monter à ~900 CHF ; on n'utilise 500 que s'il reste de la marge).
+    const billet = totalAchats < 450 ? choice([500, 1000]) : 1000;
     const rendu = billet - totalAchats;
     const { prenom, genre } = pickPrenom();
     const fonction = genre === 'M' ? 'enseignant' : 'enseignante';
@@ -2399,10 +2423,130 @@ const PROBLEME_PATRONS = [
         answer: `Part par personne : ${partPayee}÷2 = ${prixParPersonne} CHF. Nombre de personnes : ${total}÷${prixParPersonne} = ${nbPersonnes} personnes.`
       };
     }
+  },
+  // Patron 5 : boulangerie (facile, 2 opérations : × puis −)
+  () => {
+    const four = rand(4, 9);
+    const parFournee = rand(18, 40);
+    const total = four * parFournee;
+    const vendus = rand(Math.round(total * 0.4), total - 12);
+    const reste = total - vendus;
+    return {
+      text: `Une boulangère prépare ${four} fournées de ${parFournee} croissants. Elle en vend ${vendus} dans la matinée. Combien de croissants lui reste-t-il ?`,
+      answer: `Croissants préparés : ${four}×${parFournee} = ${total}. Reste : ${total}−${vendus} = ${reste} croissants.`
+    };
+  },
+  // Patron 6 : salaire net (facile, 2 opérations : × puis −)
+  () => {
+    const { prenom, genre } = pickPrenom();
+    const pronom = genre === 'M' ? 'Il' : 'Elle';
+    const h = rand(20, 42);
+    const taux = choice([22, 24, 25, 26, 28, 30, 32, 35]);
+    const brut = h * taux;
+    const charges = choice([120, 150, 180, 200, 250]);
+    const net = brut - charges;
+    return {
+      text: `${prenom} travaille ${h} heures durant la semaine, payées ${taux} CHF de l'heure. On déduit ensuite ${charges} CHF de charges sociales. Quel est son salaire net ?`,
+      answer: `Salaire brut : ${h}×${taux} = ${brut} CHF. Salaire net : ${brut}−${charges} = ${net} CHF.`
+    };
+  },
+  // Patron 7 : recette d'un spectacle (moyen, 3 opérations : ×, × puis +)
+  () => {
+    const adultes = rand(25, 80);
+    const enfants = rand(15, 60);
+    const pa = choice([12, 14, 15, 16, 18, 20]);
+    const pe = choice([6, 7, 8, 9, 10]);
+    const ra = adultes * pa, re = enfants * pe;
+    const total = ra + re;
+    return {
+      text: `Pour un spectacle, on vend ${adultes} billets adultes à ${pa} CHF et ${enfants} billets enfants à ${pe} CHF. Quelle est la recette totale de la soirée ?`,
+      answer: `Adultes : ${adultes}×${pa} = ${ra} CHF. Enfants : ${enfants}×${pe} = ${re} CHF. Recette totale : ${ra}+${re} = ${total} CHF.`
+    };
+  },
+  // Patron 8 : épargne (moyen, 3 opérations : ×, + puis −)
+  () => {
+    const { prenom, genre } = pickPrenom();
+    const pronom = genre === 'M' ? 'Il' : 'Elle';
+    const mens = choice([40, 50, 60, 75, 80]);
+    const mois = rand(6, 12);
+    const cadeau = choice([50, 80, 100, 120]);
+    const epargne = mens * mois + cadeau;
+    // Achat strictement inférieur à l'épargne, avec une marge.
+    const candidats = [150, 180, 200, 250, 300, 350, 400].filter(v => v <= epargne - 30);
+    const achat = candidats.length ? choice(candidats) : Math.max(50, epargne - 50);
+    const reste = epargne - achat;
+    return {
+      text: `${prenom} économise ${mens} CHF par mois pendant ${mois} mois. ${pronom} reçoit aussi ${cadeau} CHF pour son anniversaire, puis achète un vélo à ${achat} CHF. Combien d'argent lui reste-t-il ?`,
+      answer: `Économies : ${mens}×${mois} = ${mens * mois} CHF. Avec le cadeau : ${mens * mois}+${cadeau} = ${epargne} CHF. Reste : ${epargne}−${achat} = ${reste} CHF.`
+    };
+  },
+  // Patron 9 : chalet partagé (difficile, division : ×, + puis ÷ — part entière garantie)
+  () => {
+    let r = null;
+    for (let t = 0; t < 40 && !r; t++) {
+      const n = rand(4, 8);
+      const nuits = rand(2, 4);
+      const prixNuit = choice([120, 140, 150, 160, 180, 200]);
+      const menage = choice([40, 50, 60, 80]);
+      const total = prixNuit * nuits + menage;
+      if (total % n !== 0) continue;          // part par personne entière
+      const perP = total / n;
+      if (perP < 45 || perP > 220) continue;
+      r = { n, nuits, prixNuit, menage, total, perP };
+    }
+    if (!r) { r = { n: 5, nuits: 2, prixNuit: 200, menage: 50, total: 450, perP: 90 }; }
+    const { n, nuits, prixNuit, menage, total, perP } = r;
+    return {
+      text: `Un groupe de ${n} amis loue un chalet à ${prixNuit} CHF la nuit pour ${nuits} nuits. Ils ajoutent ${menage} CHF de frais de ménage et partagent la dépense totale équitablement. Combien chaque personne doit-elle payer ?`,
+      answer: `Location : ${prixNuit}×${nuits} = ${prixNuit * nuits} CHF. Coût total : ${prixNuit * nuits}+${menage} = ${total} CHF. Par personne : ${total}÷${n} = ${perP} CHF.`
+    };
   }
 ];
 
+// Palier de difficulté de chaque patron (même ordre que PROBLEME_PATRONS) :
+// 1 = facile (2 opérations), 2 = moyen (3 opérations), 3 = difficile (4 op. / division).
+//          excursion verres enseign. restau. boulang. salaire spect. épargne chalet
+const PROBLEME_TIERS = [   3,      2,      2,      1,      1,      1,      2,      2,    3 ];
+
 function genProbleme() {
+  // UN exercice de 4 questions (a, b, c, d) empilées, tirées avec un équilibrage
+  // de difficulté : 1 facile, 2 moyens, 1 difficile — rangés du plus simple (a)
+  // au plus difficile (d).
+  const byTier = { 1: [], 2: [], 3: [] };
+  PROBLEME_PATRONS.forEach((_, i) => { (byTier[PROBLEME_TIERS[i] || 2] || byTier[2]).push(i); });
+  const pick = (arr, k) => {
+    const c = [...arr], out = [];
+    while (out.length < k && c.length) out.push(c.splice(Math.floor(Math.random() * c.length), 1)[0]);
+    return out;
+  };
+  let chosen = [...pick(byTier[1], 1), ...pick(byTier[2], 2), ...pick(byTier[3], 1)];
+  // Filet : si un palier manquait d'entrées, on complète avec d'autres patrons.
+  if (chosen.length < 4) {
+    const reste = PROBLEME_PATRONS.map((_, i) => i).filter(i => !chosen.includes(i));
+    chosen = chosen.concat(pick(reste, 4 - chosen.length));
+  }
+  // Garde-fou anti-trivialité : le résultat final ne doit pas figurer tel quel
+  // dans l'énoncé.
+  const isTrivial = (q) => {
+    const nums = [...String(q.answer).matchAll(/-?\d+(?:[.,]\d+)?/g)];
+    if (!nums.length) return false;
+    const ans = nums[nums.length - 1][0];
+    const esc = ans.replace('.', '[.,]');
+    return new RegExp('(?<![\\d.,])' + esc + '(?![\\d.,])').test(q.text);
+  };
+  const labels = ['a)', 'b)', 'c)', 'd)'];
+  const questions = chosen.slice(0, 4).map((idx, i) => {
+    let q, safety = 20;
+    do { q = PROBLEME_PATRONS[idx](); } while (isTrivial(q) && --safety > 0);
+    // `answer` = solution rédigée (validation : on en extrait le résultat final) ;
+    // `solutionDetail` affiche les étapes au corrigé.
+    return { label: labels[i], text: q.text, answer: q.answer, solutionDetail: q.answer };
+  });
+  return { multi: true, intro: "Résous chaque problème en montrant les étapes du calcul :", questions, stackedStatements: true };
+}
+
+// Renvoie UN seul problème (utilisé par le PDF « domaine » où la cellule est étroite).
+function genProblemeSingle() {
   return choice(PROBLEME_PATRONS)();
 }
 
@@ -5438,9 +5582,14 @@ function genProportionN2() {
 // Dispatcher N1 / N2
 function genPropConcret() {
   // 3 niveaux : 1 = proportionnalité, 2 = fractions, 3 = rabais.
-  if (state.niveau === 3) return genPropConcretRabais();
-  if (state.niveau === 2) return genPropConcretFractions();
-  return genPropConcretProp();
+  let ex;
+  if (state.niveau === 3) ex = genPropConcretRabais();
+  else if (state.niveau === 2) ex = genPropConcretFractions();
+  else ex = genPropConcretProp();
+  // Questions a, b, c, d les unes SOUS les autres (colonne unique) plutôt qu'en
+  // grille 2×2 (ab au-dessus de cd).
+  if (ex) ex.stackedStatements = true;
+  return ex;
 }
 
 // ====== NIVEAU 2 : Problèmes de fractions ======
@@ -5548,8 +5697,14 @@ function genPropConcretFractions() {
     const p = choice(paires);
     const [a, b] = p.f1, [c, d] = p.f2;
     const lcm = (b * d) / pgcd(b, d);
-    // M multiple de lcm pour tout tomber rond
-    const M = lcm * rand(5, 30);
+    // M multiple de lcm (pour tout tomber rond) MAIS pas un multiple de 50
+    // (on évite 50, 100, 150… où les fractions sont triviales).
+    let M, safety = 80;
+    do {
+      M = lcm * rand(6, 45);
+      safety--;
+    } while (safety > 0 && (M % 50 === 0 || M < 60 || M > 600));
+    if (M % 50 === 0 || M < 60 || M > 600) M = lcm * 7;   // filet sûr
     const dep1 = M * a / b;
     const dep2 = M * c / d;
     const reste = M - dep1 - dep2;
@@ -5626,12 +5781,164 @@ function genPropConcretFractions() {
     };
   }
 
+  // --- Type 6 : fraction d'une fraction → réponse = une fraction (composition) ---
+  function patFractionDeFraction() {
+    const ctx = choice([
+      { lieu: 'Dans un club', groupe: 'membres', sous: 'adultes', verbe: 'ont un abonnement annuel' },
+      { lieu: 'Dans une école', groupe: 'élèves', sous: 'demi-pensionnaires', verbe: 'mangent végétarien' },
+      { lieu: 'Dans un cinéma', groupe: 'spectateurs', sous: 'abonnés', verbe: 'viennent en train' }
+    ]);
+    let a, b, c, d, num, den, g, safety = 90;
+    do {
+      b = rand(2, 6); a = rand(1, b - 1);
+      d = rand(2, 6); c = rand(1, d - 1);
+      num = a * c; den = b * d; g = pgcd(num, den);
+      safety--;
+    } while (safety > 0 && ((a === 1 && c === 1) || (den / g) <= 2 || (a === c && b === d)));
+    const rn = num / g, rd = den / g;
+    return {
+      text: `${ctx.lieu}, ${a}/${b} des ${ctx.groupe} sont ${ctx.sous}. Parmi ces ${ctx.sous}, ${c}/${d} ${ctx.verbe}. Quelle fraction de l'ensemble des ${ctx.groupe} cela représente-t-il ?`,
+      answer: `${rn}/${rd}`,
+      solutionDetail: `${a}/${b} × ${c}/${d} = ${num}/${den} = ${rn}/${rd}.`
+    };
+  }
+
+  // --- Type 7 : deux prélèvements sur le TOUT → fraction restante ---
+  function patFractionRestante() {
+    const ctx = choice([
+      { obj: 'un pot de peinture', quoi: 'du pot', act: 'utilise', t1: 'le matin', t2: "l'après-midi" },
+      { obj: 'un sac de ciment', quoi: 'du sac', act: 'emploie', t1: 'le matin', t2: 'le soir' },
+      { obj: 'un bidon de sirop', quoi: 'du bidon', act: 'verse', t1: 'd\'abord', t2: 'ensuite' }
+    ]);
+    let a, b, c, d, lcm, sumN, restN, restD, g, safety = 140;
+    do {
+      b = rand(2, 6); a = rand(1, b - 1);
+      d = rand(2, 6); c = rand(1, d - 1);
+      lcm = b * d / pgcd(b, d);
+      sumN = a * (lcm / b) + c * (lcm / d);
+      restN = lcm - sumN; restD = lcm;
+      g = restN > 0 ? pgcd(restN, restD) : 1;
+      safety--;
+    } while (safety > 0 && (b === d || lcm <= Math.max(b, d) || restN <= 0 || (restD / g) <= 2));
+    return {
+      text: `Un peintre ${ctx.act} ${a}/${b} ${ctx.quoi} ${ctx.t1} et ${c}/${d} ${ctx.quoi} ${ctx.t2}. Quelle fraction ${ctx.quoi} reste-t-il ?`,
+      answer: `${restN / g}/${restD / g}`,
+      solutionDetail: `Utilisé : ${a}/${b} + ${c}/${d} = ${a * (lcm / b)}/${lcm} + ${c * (lcm / d)}/${lcm} = ${sumN}/${lcm}. Reste : ${lcm}/${lcm} − ${sumN}/${lcm} = ${restN}/${restD}${g > 1 ? ` = ${restN / g}/${restD / g}` : ''}.`
+    };
+  }
+
+  // --- Type 8 : diminution fractionnaire → retrouver la valeur de départ ---
+  function patDiminutionFraction() {
+    const ctx = choice([
+      { sujet: 'Le nombre de spectateurs', grp: 'spectateurs' },
+      { sujet: "Le nombre d'inscrits à un cours", grp: 'inscrits' },
+      { sujet: "Le nombre d'employés d'une entreprise", grp: 'employés' }
+    ]);
+    const verbe = choice(['diminué', 'baissé']);
+    let a, b, ar, br, rn, rd, w, V, depart, safety = 90;
+    do {
+      b = rand(3, 8); a = rand(1, b - 1);
+      const g = pgcd(a, b); ar = a / g; br = b / g;        // diminution réduite ar/br
+      let g2 = pgcd(br - ar, br); rn = (br - ar) / g2; rd = br / g2; // reste rn/rd
+      w = choice([10, 20, 30, 40, 50, 60, 80, 100]);
+      V = rn * w; depart = rd * w;
+      safety--;
+    } while (safety > 0 && (ar / br === 0.5 || depart > 2000 || V < 30));
+    return {
+      text: `${ctx.sujet} a ${verbe} de ${ar}/${br} ; il en reste ${V}. Combien y en avait-il au départ ?`,
+      answer: `${depart} ${ctx.grp}`,
+      solutionDetail: `Diminuer de ${ar}/${br}, c'est garder ${rn}/${rd} du total. ${V} ÷ ${rn}/${rd} = ${V} × ${rd}/${rn} = ${depart} ${ctx.grp}.`
+    };
+  }
+
+  // --- Type 9 : comparer deux fractions de deux touts DIFFÉRENTS ---
+  function patCompareFractions() {
+    const noms = choice([['Marie', 'Paul'], ['Léa', 'Tom'], ['Sara', 'Hugo'], ['Inès', 'Noah']]);
+    const o = choice([
+      { det: "d'un livre", unite: 'pages', verbe: 'a lu', part: 'lu' },
+      { det: "d'un trajet", unite: 'km', verbe: 'a parcouru', part: 'parcouru' },
+      { det: "d'un film", unite: 'minutes', verbe: 'a regardé', part: 'regardé' }
+    ]);
+    let ar1, br1, ar2, br2, t1, t2, v1, v2, safety = 200;
+    do {
+      let b1 = rand(2, 6), a1 = rand(1, b1 - 1); const g1 = pgcd(a1, b1); ar1 = a1 / g1; br1 = b1 / g1;
+      let b2 = rand(2, 6), a2 = rand(1, b2 - 1); const g2 = pgcd(a2, b2); ar2 = a2 / g2; br2 = b2 / g2;
+      t1 = br1 * choice([20, 30, 40, 50, 60, 80]);
+      t2 = br2 * choice([20, 30, 40, 50, 60, 80]);
+      v1 = ar1 * t1 / br1; v2 = ar2 * t2 / br2;
+      safety--;
+    } while (safety > 0 && (
+      ar1 / br1 === ar2 / br2 ||                                  // mêmes fractions (en valeur) → trivial
+      v1 === v2 || Math.abs(v1 - v2) < 0.12 * Math.max(v1, v2) || // écart trop faible
+      t1 === t2                                                   // mêmes totaux
+    ));
+    const [n1, n2] = noms;
+    const gagnant = v1 > v2 ? n1 : n2;
+    return {
+      text: `${n1} ${o.verbe} ${ar1}/${br1} ${o.det} de ${t1} ${o.unite} ; ${n2} ${o.verbe} ${ar2}/${br2} ${o.det} de ${t2} ${o.unite}. Qui a ${o.part} le plus de ${o.unite} ?`,
+      answer: `${gagnant}`,
+      solutionDetail: `${n1} : ${ar1}/${br1} × ${t1} = ${v1} ${o.unite}. ${n2} : ${ar2}/${br2} × ${t2} = ${v2} ${o.unite}. ${gagnant} a ${o.part} le plus.`
+    };
+  }
+
+  // --- Type 10 : débit / remplissage (fraction non unitaire) ---
+  function patRemplissage() {
+    const ctx = choice([
+      { sujet: 'Un robinet', verbe: 'remplit', inv: 'remplit-il', obj: "d'un réservoir", tout: 'le réservoir' },
+      { sujet: 'Une pompe', verbe: 'vide', inv: 'vide-t-elle', obj: "d'un bassin", tout: 'le bassin' },
+      { sujet: 'Une imprimante', verbe: 'imprime', inv: 'imprime-t-elle', obj: "d'un document", tout: 'le document' }
+    ]);
+    let ar, br, T, total, safety = 90;
+    do {
+      const b = rand(3, 8), a = rand(2, b - 1);
+      const g = pgcd(a, b); ar = a / g; br = b / g;
+      T = ar * choice([2, 3, 4, 5, 6, 8, 10]);    // minutes, ar | T
+      total = T / ar * br;
+      safety--;
+    } while (safety > 0 && (ar < 2 || ar / br === 0.5 || total > 180 || total === T));
+    return {
+      text: `${ctx.sujet} ${ctx.verbe} les ${ar}/${br} ${ctx.obj} en ${T} minutes. En combien de temps ${ctx.inv} ${ctx.tout} en entier ?`,
+      answer: `${total} minutes`,
+      solutionDetail: `${ar}/${br} en ${T} min → 1/${br} en ${T} ÷ ${ar} = ${T / ar} min → le tout : ${T / ar} × ${br} = ${total} min.`
+    };
+  }
+
+  // --- Type 11 : complément exprimé en dénombrement ---
+  function patComplementFraction() {
+    const ctx = choice([
+      { prep: 'Dans', lieu: 'une classe', total: 'élèves', pred: 'sont des filles', q: 'Combien y a-t-il de garçons ?', autre: 'garçons' },
+      { prep: 'Dans', lieu: 'un parking', total: 'voitures', pred: 'sont électriques', q: 'Combien ne sont pas électriques ?', autre: 'voitures' },
+      { prep: 'Dans', lieu: 'un panier', total: 'fruits', pred: 'sont des pommes', q: "Combien y a-t-il d'autres fruits ?", autre: 'autres fruits' },
+      { prep: 'Sur', lieu: 'une étagère', total: 'livres', pred: 'sont des romans', q: 'Combien ne sont pas des romans ?', autre: 'livres' },
+      { prep: 'Dans', lieu: 'un refuge', total: 'animaux', pred: 'sont des chats', q: "Combien y a-t-il d'autres animaux ?", autre: 'autres animaux' }
+    ]);
+    let ar, br, N, part, autre, safety = 80;
+    do {
+      const b = rand(3, 8), a = rand(1, b - 1);
+      const g = pgcd(a, b); ar = a / g; br = b / g;
+      N = br * choice([3, 4, 5, 6, 7, 8]);          // divisible par br
+      part = ar * N / br; autre = N - part;
+      safety--;
+    } while (safety > 0 && (ar / br === 0.5 || N < 14 || N > 56));
+    return {
+      text: `${ctx.prep} ${ctx.lieu} de ${N} ${ctx.total}, ${ar}/${br} ${ctx.pred}. ${ctx.q}`,
+      answer: `${autre} ${ctx.autre}`,
+      solutionDetail: `Part comptée : ${ar}/${br} × ${N} = ${part}. Réponse : ${N} − ${part} = ${autre} (soit ${br - ar}/${br} × ${N}).`
+    };
+  }
+
   const patrons = [
-    patFractionTout,        // index 0
-    patFractionsSuccessives, // index 1
-    patFractionsReste,       // index 2
-    patPartageFraction,      // index 3
-    patFractionNombre        // index 4
+    patFractionTout,         // 0
+    patFractionsSuccessives, // 1
+    patFractionsReste,       // 2
+    patPartageFraction,      // 3
+    patFractionNombre,       // 4
+    patFractionDeFraction,   // 5
+    patFractionRestante,     // 6
+    patDiminutionFraction,   // 7
+    patCompareFractions,     // 8
+    patRemplissage,          // 9
+    patComplementFraction    // 10
   ];
   // patFractionTout (0) et patFractionNombre (4) sont très similaires
   // (fraction × tout = valeur → trouver le tout). On n'en garde qu'UN par
@@ -5759,20 +6066,24 @@ function genPropConcretProp() {
     };
   }
 
-  // --- Patron 2 : Prix au kilo ---
+  // --- Patron 2 : Prix au kilo (masses qui ne divisent pas 1000 « rond ») ---
   function patPrixKilo() {
     const aliments = ['viande', 'poisson', 'fromage', 'café', 'jambon'];
     const aliment = choice(aliments);
-    // Prix au kilo entre 10 et 50 CHF (en centimes pour calculs exacts)
-    const prixKgCent = choice([1200, 1500, 1800, 2200, 2500, 2800, 3200, 3500, 4000, 4500]);
-    // Masses en grammes : multiples de 100 g, entre 200 g et 800 g
-    const masseG = choice([200, 300, 400, 500, 600, 700, 800]);
-    const prixCent = prixKgCent * masseG / 1000;
+    const prixKgList = [12, 14, 15, 16, 18, 20, 24, 25, 28, 30, 32, 35, 40, 45]; // CHF/kg ronds
+    // Masses dont 1000/masse n'est PAS entier → pas de ×2/×5/×10 trivial.
+    const masseList = [300, 350, 400, 450, 600, 700, 750, 800];
+    let prixKg, masseG, prixCent, safety = 80;
+    do {
+      prixKg = choice(prixKgList);
+      masseG = choice(masseList);
+      prixCent = prixKg * masseG / 10; // centimes (toujours entier, multiple de 5 ici)
+      safety--;
+    } while (safety > 0 && (!Number.isInteger(prixCent) || prixCent % 5 !== 0));
     const prix = fmt(prixCent / 100);
-    const prixKg = fmt(prixKgCent / 100);
     return {
       text: `À l'épicerie, on a payé ${prix} CHF pour ${masseG} g de ${aliment}. Quel est le prix au kilo ?`,
-      answer: `Pour 1 kg = 1000 g, prix : (${prix} ÷ ${masseG}) × 1000 = ${prixKg} CHF/kg.`
+      answer: `Prix au kilo : (${prix} ÷ ${masseG}) × 1000 = ${prixKg} CHF/kg.`
     };
   }
 
@@ -5814,33 +6125,153 @@ function genPropConcretProp() {
   }
 
   // --- Patron 4 : Cadence de travail ---
+  // La référence porte sur 2 ou 3 heures (et non 1 h) : l'élève doit d'abord
+  // déduire la cadence horaire, puis calculer le temps. Échelle non entière.
   function patCadence() {
     const metiers = [
-      { metier: 'carreleur', verbe: 'pose', unite: 'm² de carreaux', tache: 'recouvrir un sol' },
-      { metier: 'peintre', verbe: 'peint', unite: 'm² de mur', tache: 'peindre une pièce' },
-      { metier: 'jardinier', verbe: 'tond', unite: 'm² de pelouse', tache: 'tondre un jardin' }
+      { metier: 'carreleur', verbe: 'pose', unite: 'm² de carreaux', tache: 'recouvrir un sol', cadences: [4, 5, 6] },
+      { metier: 'peintre',   verbe: 'peint', unite: 'm² de mur',     tache: 'peindre une pièce', cadences: [8, 10, 12, 15] },
+      { metier: 'jardinier', verbe: 'tond', unite: 'm² de pelouse',  tache: 'tondre un jardin', cadences: [150, 200, 250, 300] }
     ];
     const m = choice(metiers);
-    // Cadence : valeur avec 1 décimale max, et surface multiple de la cadence
-    const cadenceX10 = choice([25, 30, 35, 40, 50]); // m²/h × 10 (= 2,5 / 3 / 3,5 / 4 / 5)
-    const heures = choice([6, 8, 10, 12]); // pour que la surface tombe ronde
-    const surface = cadenceX10 * heures / 10;
-    const cadence = fmt(cadenceX10 / 10);
+    const cadence = choice(m.cadences);       // m²/h réalistes pour ce métier
+    const refH = choice([2, 3]);              // référence sur 2 ou 3 heures
+    const refSurface = cadence * refH;
+    let targetH, safety = 40;
+    do {
+      targetH = choice([2, 3, 4, 5, 6, 7]);
+      safety--;
+    } while (safety > 0 && (targetH === refH || targetH % refH === 0)); // échelle non entière
+    const surface = cadence * targetH;
     return {
-      text: `En une heure de travail, un ${m.metier} ${m.verbe} en moyenne ${cadence} ${m.unite}. Combien de temps lui faudra-t-il pour ${m.tache} de ${surface} ${m.unite} ?`,
-      answer: `Temps nécessaire : ${surface} ÷ ${cadence} = ${heures} h.`
+      text: `En ${refH} heures de travail, un ${m.metier} ${m.verbe} ${refSurface} ${m.unite}. Combien de temps lui faudra-t-il pour ${m.tache} de ${surface} ${m.unite} ?`,
+      answer: `Cadence : ${refSurface} ÷ ${refH} = ${cadence} m²/h. Temps : ${surface} ÷ ${cadence} = ${targetH} h.`
     };
   }
 
-  // Tirer dans l'ordre un patron de chaque type (les 4 modèles distincts)
-  const patrons = [patRecette, patPrixKilo, patPartage, patCadence];
-  // Mélanger l'ordre des patrons pour varier
-  for (let i = patrons.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [patrons[i], patrons[j]] = [patrons[j], patrons[i]];
+  // --- Patron 5 : Taux de change (CHF <-> EUR), sens alterné ---
+  // On donne une PAIRE de référence (et non le taux) → l'élève doit d'abord
+  // déduire le taux, puis l'appliquer. Échelle non entière (×1,5 / ×2,5 / ×3,5).
+  function patChange() {
+    const r = choice([1.05, 1.10, 1.20, 1.25, 0.95, 0.90, 0.80]);
+    const refChf = 40 * choice([1, 2, 3]);     // 40, 80 ou 120 CHF
+    const scale = choice([1.5, 2.5, 3.5]);
+    const qChf = refChf * scale;               // multiple de 20
+    const refEur = Math.round(refChf * r);     // entier (CHF multiple de 20)
+    const qEur = Math.round(qChf * r);
+    if (Math.random() < 0.5) {
+      return {
+        text: `Au bureau de change, ${refChf} CHF valent ${refEur} EUR. Combien d'euros obtient-on pour ${qChf} CHF ?`,
+        answer: `${qChf} ÷ ${refChf} × ${refEur} = ${qEur} EUR.`
+      };
+    }
+    return {
+      text: `Au bureau de change, ${refChf} CHF valent ${refEur} EUR. Combien de francs faut-il pour obtenir ${qEur} EUR ?`,
+      answer: `${qEur} ÷ ${refEur} × ${refChf} = ${qChf} CHF.`
+    };
   }
-  const questions = patrons.map((fn, i) => {
-    const q = fn();
+
+  // --- Patron 6 : Salaire horaire, sens alterné ---
+  function patSalaire() {
+    const rate = choice([18, 21, 24, 25, 28, 30, 35]); // CHF/h
+    let refH, qH, safety = 40;
+    do {
+      refH = choice([4, 5, 6, 8]);
+      qH = choice([10, 12, 15, 18, 20, 27, 30, 36]);
+      safety--;
+    } while (safety > 0 && (qH % refH === 0)); // échelle non entière -> oblige à passer par le taux
+    const refPay = rate * refH;
+    const qPay = rate * qH;
+    if (Math.random() < 0.5) {
+      return {
+        text: `Un employé gagne ${refPay} CHF pour ${refH} heures de travail. Combien gagnera-t-il pour ${qH} heures ?`,
+        answer: `Salaire horaire : ${refPay} ÷ ${refH} = ${rate} CHF/h. ${qH} × ${rate} = ${qPay} CHF.`
+      };
+    }
+    return {
+      text: `Un employé gagne ${refPay} CHF pour ${refH} heures de travail. Combien d'heures doit-il travailler pour gagner ${qPay} CHF ?`,
+      answer: `Salaire horaire : ${refPay} ÷ ${refH} = ${rate} CHF/h. ${qPay} ÷ ${rate} = ${qH} heures.`
+    };
+  }
+
+  // --- Patron 7 : Dosage / mélange (concentré <-> eau), sens alterné ---
+  // Rapports NON triviaux (2:5, 3:5, 4:5, 3:4) et échelle non entière entre la
+  // référence et la question → vraie règle de trois (résultats entiers).
+  function patDosage() {
+    const mix = [
+      { prod: 'sirop',           art: 'du ',   conc: 'concentré' },
+      { prod: 'jus de fruit',    art: 'du ',   conc: 'concentré' },
+      { prod: 'nettoyant',       art: 'du ',   conc: 'produit'   },
+      { prod: 'engrais liquide', art: "de l'", conc: 'produit'   }
+    ];
+    const m = choice(mix);
+    const rt = choice([{ c: 2, e: 5 }, { c: 3, e: 5 }, { c: 4, e: 5 }, { c: 3, e: 4 }]);
+    const fRef = choice([2, 3]);
+    const refConc = rt.c * fRef, refEau = rt.e * fRef;
+    // facteur question : échelle NON entière par rapport à la référence
+    const fQ = choice(fRef === 2 ? [3, 5, 7] : [2, 4, 5, 7]);
+    const qConc = rt.c * fQ, qEau = rt.e * fQ;
+    if (Math.random() < 0.5) {
+      return {
+        text: `Pour préparer ${m.art}${m.prod}, on mélange ${refConc} dL de ${m.conc} pour ${refEau} L d'eau. Combien de dL de ${m.conc} faut-il pour ${qEau} L d'eau ?`,
+        answer: `${qEau} ÷ ${refEau} × ${refConc} = ${qConc} dL de ${m.conc}.`
+      };
+    }
+    return {
+      text: `Pour préparer ${m.art}${m.prod}, on mélange ${refConc} dL de ${m.conc} pour ${refEau} L d'eau. Quelle quantité d'eau faut-il pour ${qConc} dL de ${m.conc} ?`,
+      answer: `${qConc} ÷ ${refConc} × ${refEau} = ${qEau} L d'eau.`
+    };
+  }
+
+  // --- Patron 8 : Peinture / surface couverte, sens alterné ---
+  function patPeinture() {
+    // Rapport litres:m² non réduit, rendement NON entier (6,5 / 7,5 / 8,5 / 9,5 m²/L)
+    // et échelle non entière entre référence et question -> vraie règle de trois.
+    const b = choice([13, 15, 17, 19]);   // m² pour 2 litres -> rendement = b/2 (décimal)
+    const fRef = choice([2, 3]);
+    const refL = 2 * fRef, refS = b * fRef;
+    const fQ = choice(fRef === 2 ? [3, 5, 7] : [2, 4, 5, 7]);
+    const qL = 2 * fQ, qS = b * fQ;
+    if (Math.random() < 0.5) {
+      return {
+        text: `Avec ${refL} litres de peinture, on couvre ${refS} m². Quelle surface peut-on couvrir avec ${qL} litres ?`,
+        answer: `${qL} ÷ ${refL} × ${refS} = ${qS} m².`
+      };
+    }
+    return {
+      text: `Avec ${refL} litres de peinture, on couvre ${refS} m². Combien de litres faut-il pour couvrir ${qS} m² ?`,
+      answer: `${qS} ÷ ${refS} × ${refL} = ${qL} litres.`
+    };
+  }
+
+  // --- Patron 9 : Consommation de carburant (distance <-> litres), sens alterné ---
+  function patCarburant() {
+    const rate = choice([12, 14, 15, 16, 18, 20]); // km/L
+    const refL = choice([30, 40, 45, 50]);
+    const refKm = refL * rate;
+    const k = choice([5, 8, 10, 12, 15, 20]);
+    const qL = k, qKm = k * rate;
+    if (Math.random() < 0.5) {
+      return {
+        text: `Avec ${refL} litres d'essence, une voiture parcourt ${refKm} km. Quelle distance parcourt-elle avec ${qL} litres ?`,
+        answer: `Consommation : ${refKm} ÷ ${refL} = ${rate} km/L. ${qL} × ${rate} = ${qKm} km.`
+      };
+    }
+    return {
+      text: `Avec ${refL} litres d'essence, une voiture parcourt ${refKm} km. Combien de litres faut-il pour parcourir ${qKm} km ?`,
+      answer: `Consommation : ${refKm} ÷ ${refL} = ${rate} km/L. ${qKm} ÷ ${rate} = ${qL} litres.`
+    };
+  }
+
+  // 9 modèles ; on tire 4 questions distinctes (a-d).
+  const patrons = [patRecette, patPrixKilo, patPartage, patCadence, patChange, patSalaire, patDosage, patPeinture, patCarburant];
+  const indices = [];
+  while (indices.length < 4) {
+    const r = Math.floor(Math.random() * patrons.length);
+    if (!indices.includes(r)) indices.push(r);
+  }
+  const questions = indices.map((idx, i) => {
+    const q = patrons[idx]();
     return {
       label: labels[i],
       text: q.text,
@@ -5952,6 +6383,106 @@ const PROP_CONCRET_PATRONS = [
         text: `${prenom} a profité des soldes pour acheter une chemise. Elle l'a payée 90 francs grâce à une réduction de 10%. Quel était le prix affiché avant la réduction ?`,
         answer: `90 CHF représente 90 % du prix affiché. Prix affiché : 90 ÷ 90 × 100 = 100 CHF.`
       };
+    },
+
+    // Patron E : connaît prixDepart et pct → trouve le MONTANT du rabais (en CHF).
+    () => {
+      for (let tries = 0; tries < 50; tries++) {
+        const pct = choice(PROP_CONCRET_PCTS);
+        const obj = choice(OBJETS_PROP);
+        const tirage = tirePrixDepartEtPaye(obj.min, obj.max, pct);
+        if (!tirage) continue;
+        const rabais = tirage.prixDepart - tirage.paye;
+        const { prenom } = pickPrenom();
+        return {
+          text: `${prenom} voit ${obj.nom} au prix de ${fmtCHF(tirage.prixDepart)} francs. Le magasin accorde une réduction de ${pct}%. Calcule le montant de la réduction, en francs.`,
+          answer: `Réduction : ${fmtCHF(tirage.prixDepart)} × ${pct} ÷ 100 = ${fmtCHF(rabais)} CHF.`
+        };
+      }
+      const { prenom } = pickPrenom();
+      return { text: `${prenom} voit un vélo au prix de 480 francs. Le magasin accorde une réduction de 25%. Calcule le montant de la réduction, en francs.`, answer: `Réduction : 480 × 25 ÷ 100 = 120 CHF.` };
+    },
+
+    // Patron F : connaît prixDepart et le rabais en CHF → trouve la réduction en %.
+    () => {
+      for (let tries = 0; tries < 50; tries++) {
+        const pct = choice(PROP_CONCRET_PCTS);
+        const obj = choice(OBJETS_PROP);
+        const tirage = tirePrixDepartEtPaye(obj.min, obj.max, pct);
+        if (!tirage) continue;
+        const rabais = tirage.prixDepart - tirage.paye;
+        const { prenom } = pickPrenom();
+        const Obj = obj.nom.charAt(0).toUpperCase() + obj.nom.slice(1);
+        return {
+          text: `${Obj} coûtait ${fmtCHF(tirage.prixDepart)} francs. À la caisse, ${prenom} bénéficie d'un rabais de ${fmtCHF(rabais)} francs. Calcule la réduction en %.`,
+          answer: `Réduction en % : (${fmtCHF(rabais)} ÷ ${fmtCHF(tirage.prixDepart)}) × 100 = ${pct} %.`
+        };
+      }
+      return { text: `Un manteau coûtait 240 francs. À la caisse, Tom bénéficie d'un rabais de 36 francs. Calcule la réduction en %.`, answer: `Réduction en % : (36 ÷ 240) × 100 = 15 %.` };
+    },
+
+    // Patron G : double remise (deux pourcentages enchaînés) → trouve le prix final.
+    () => {
+      for (let tries = 0; tries < 80; tries++) {
+        const p1 = choice(PROP_CONCRET_PCTS);
+        const obj = choice(OBJETS_PROP);
+        const t1 = tirePrixDepartEtPaye(obj.min, obj.max, p1);
+        if (!t1) continue;
+        const v1 = t1.paye; // prix après la 1re remise (demi-CHF)
+        const p2 = choice([5, 10, 15, 20]);   // 2e remise plus réaliste (≤ 20 %)
+        const v2demis = (v1 * 2 * (100 - p2)) / 100;
+        if (!Number.isInteger(v2demis)) continue;
+        const v2 = v2demis / 2;
+        const Obj = obj.nom.charAt(0).toUpperCase() + obj.nom.slice(1);
+        return {
+          text: `${Obj} coûte ${fmtCHF(t1.prixDepart)} francs. Le magasin applique d'abord une réduction de ${p1}%, puis ${p2}% supplémentaires à la caisse. Calcule le prix final payé.`,
+          answer: `Après la 1re réduction : ${fmtCHF(t1.prixDepart)} × (100 − ${p1}) ÷ 100 = ${fmtCHF(v1)} CHF. Après la 2e réduction : ${fmtCHF(v1)} × (100 − ${p2}) ÷ 100 = ${fmtCHF(v2)} CHF.`
+        };
+      }
+      return { text: `Une veste coûte 200 francs. Le magasin applique d'abord une réduction de 20%, puis 10% supplémentaires à la caisse. Calcule le prix final payé.`, answer: `Après la 1re réduction : 200 × (100 − 20) ÷ 100 = 160 CHF. Après la 2e réduction : 160 × (100 − 10) ÷ 100 = 144 CHF.` };
+    },
+
+    // Patron H : connaît le rabais en CHF et le pct → trouve le prix initial.
+    () => {
+      for (let tries = 0; tries < 50; tries++) {
+        const pct = choice(PROP_CONCRET_PCTS);
+        const obj = choice(OBJETS_PROP);
+        const tirage = tirePrixDepartEtPaye(obj.min, obj.max, pct);
+        if (!tirage) continue;
+        const rabais = tirage.prixDepart - tirage.paye;
+        const { prenom } = pickPrenom();
+        return {
+          text: `Pendant les soldes, ${prenom} économise ${fmtCHF(rabais)} francs sur ${obj.nom} grâce à une réduction de ${pct}%. Calcule le prix initial.`,
+          answer: `${fmtCHF(rabais)} CHF correspond à ${pct} % du prix initial. Prix initial : ${fmtCHF(rabais)} ÷ ${pct} × 100 = ${fmtCHF(tirage.prixDepart)} CHF.`
+        };
+      }
+      const { prenom } = pickPrenom();
+      return { text: `Pendant les soldes, ${prenom} économise 45 francs sur une paire de chaussures grâce à une réduction de 30%. Calcule le prix initial.`, answer: `45 CHF correspond à 30 % du prix initial. Prix initial : 45 ÷ 30 × 100 = 150 CHF.` };
+    },
+
+    // Patron I : comparer deux offres (−pct% vs −montant CHF) → la plus avantageuse.
+    () => {
+      for (let tries = 0; tries < 60; tries++) {
+        const pct = choice(PROP_CONCRET_PCTS);
+        const obj = choice(OBJETS_PROP);
+        const tirage = tirePrixDepartEtPaye(obj.min, obj.max, pct);
+        if (!tirage) continue;
+        const rabaisA = tirage.prixDepart - tirage.paye;
+        const ecart = choice([10, 15, 20, 25, 30, 40]);
+        let rabaisB = Math.round((Math.random() < 0.5 ? rabaisA + ecart : rabaisA - ecart));
+        if (rabaisB <= 0 || rabaisB === rabaisA) continue;
+        const { prenom, genre } = pickPrenom();
+        const faitIl = genre === 'M' ? 'il' : 'elle';
+        const Obj = obj.nom.charAt(0).toUpperCase() + obj.nom.slice(1);
+        const concl = rabaisA > rabaisB
+          ? `${fmtCHF(rabaisA)} CHF > ${rabaisB} CHF : le magasin A est plus avantageux.`
+          : `${rabaisB} CHF > ${fmtCHF(rabaisA)} CHF : le magasin B est plus avantageux.`;
+        return {
+          text: `${Obj} coûte ${fmtCHF(tirage.prixDepart)} francs. Le magasin A propose une réduction de ${pct}%, le magasin B une réduction de ${rabaisB} francs. Dans quel magasin ${prenom} fait-${faitIl} la meilleure affaire ?`,
+          answer: `Magasin A : ${fmtCHF(tirage.prixDepart)} × ${pct} ÷ 100 = ${fmtCHF(rabaisA)} CHF de réduction. Magasin B : ${rabaisB} CHF. ${concl}`
+        };
+      }
+      return { text: `Une trottinette coûte 360 francs. Le magasin A propose une réduction de 25%, le magasin B une réduction de 80 francs. Dans quel magasin Inès fait-elle la meilleure affaire ?`, answer: `Magasin A : 360 × 25 ÷ 100 = 90 CHF de réduction. Magasin B : 80 CHF. 90 CHF > 80 CHF : le magasin A est plus avantageux.` };
     }
 ];
 
@@ -9244,8 +9775,13 @@ function genUnitesVolume() {
 // capacité). Chaque question porte une `intermediateStep` qui exprime la
 // valeur source en passant par le pont dm³ = l (étape pédagogique du modèle
 // Biceps, affichée dans les solutions à l'écran et dans le corrigé PDF).
-function genUnitesVolCap() {
+function genUnitesVolCap(localOpts) {
   const isCube = (u) => u.name.includes('³');
+  // Unités du « pont » rang 12 à NE PAS utiliser en départ/cible.
+  // Défaut (onglet Vol-Cap) : exclure dm³ → on garde UNE des deux (le litre),
+  // puisque 1 dm³ = 1 l rend inutile d'avoir les deux.
+  // Mélange : passer { excludeNames: ['dm³', 'l'] } → ni litre ni dm³.
+  const excl = new Set((localOpts && localOpts.excludeNames) || ['dm³']);
   const ex = genUnitesTransformGrille([
     // Hauts : volumes purs (pas de capacité équivalente courante)
     { name: 'km³',  rank: 0  },
@@ -9271,8 +9807,10 @@ function genUnitesVolCap() {
   ], 10, {
     valueOnly: true,
     valueOnlyCount: 10,
-    // Cross-système uniquement : une unité cube et une capacité (peu importe l'ordre).
+    // Cross-système uniquement (une unité cube + une capacité, peu importe
+    // l'ordre) ET on retire du départ/cible les unités-pont demandées (cf. excl).
     pairFilter: (uSrc, uTgt) => isCube(uSrc) !== isCube(uTgt)
+      && !excl.has(uSrc.name) && !excl.has(uTgt.name)
   });
 
   // Rappel encadré sous l'intro (style modèle Biceps).
@@ -9451,19 +9989,23 @@ function genUnitesMelange() {
   // 3) Une 2e question Temps (autre que h/min/sec, pour la variété)
   pickUntilNew(genUnitesTempsTransformer, q => !isTempsHMS(q), 'temps');
 
-  // 4) Une question Vol-Cap
-  pickUntilNew(genUnitesVolCap, null, 'vol-cap');
+  // 4) Une question Vol-Cap — SANS litre ni dm³ en départ/cible (Mélange).
+  pickUntilNew(() => genUnitesVolCap({ excludeNames: ['dm³', 'l'] }), null, 'vol-cap');
 
   // 5) Compléter jusqu'à 10 questions avec les types restants. Pas de
   //    nouvelle tonne (pour respecter "1 conversion avec t"), pas de
   //    nouvelle vol-cap, pas de quintal, et pas plus de Temps (déjà 2).
+  // Dans le Mélange, les conversions Volume/Capacité n'utilisent NI litre NI dm³
+  // en départ/cible (le pont dm³ = l est réservé à l'onglet Vol-Cap).
+  const genCapaciteSansL = () => genUnitesTransformGrille(['kl', 'hl', 'dal', 'dl', 'cl', 'ml']);
+  const genVolumeSansDm3 = () => genUnitesTransformGrille(['km³', 'hm³', 'dam³', 'm³', 'cm³', 'mm³'], 1000);
   const sourcesRestantes = [
     { key: 'longueur', gen: genUnitesLongueur, filter: null },
-    { key: 'capacite', gen: genUnitesCapacite, filter: null },
+    { key: 'capacite', gen: genCapaciteSansL, filter: null },
     // Masse : exclure tonne (déjà 1) ET quintal (peu connu)
     { key: 'masse',    gen: genUnitesMasse, filter: q => !hasTonne(q) && !hasQuintal(q) },
     { key: 'aire',     gen: genUnitesAire, filter: null },
-    { key: 'volume',   gen: genUnitesVolume, filter: null }
+    { key: 'volume',   gen: genVolumeSansDm3, filter: null }
   ];
   let safety = 120;
   while (picked.length < 10 && safety-- > 0) {
@@ -11957,7 +12499,7 @@ function cercleGeo(rotDeg, mirror) {
   const mid = (a, b) => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
   const A = P(0), Bd = P(75), Cd = P(255), cc = 150, half = 50, P1 = P(cc + half), P2 = P(cc - half), N = P(cc);
   const M = mid(P1, P2);
-  const baseAnchor = { centre: [114, 86], rayon: [150, 86], diametre: [99, 44], corde: [72, 92], arc: [11, 128], fleche: [56, 151] };
+  const baseAnchor = { centre: [114, 86], rayon: [150, 86], diametre: [99, 44], corde: [58, 103], arc: [11, 128], fleche: [48, 145] };
   const anchor = {};
   for (const k in baseAnchor) anchor[k] = T(baseAnchor[k]);
   const lerp = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
@@ -12468,7 +13010,7 @@ const DOMAINS = [
     icon: "<span class=\"chip-ops\"><span>+</span><span>−</span><span>×</span><span>:</span></span>",
     color: "c1",
     subdomains: [
-      { id: 'probleme',   title: "Résoudre un problème « concret » avec 4 opérations", gen: genProbleme, patrons: () => PROBLEME_PATRONS },
+      { id: 'probleme',   title: "Résoudre un problème « concret » avec 4 opérations", gen: genProbleme, patrons: () => [genProbleme] },
       { id: 'decimaux',   title: "Calculer avec des décimaux (4 opérations)",          gen: genDecimal, hasNiveau2: true, patrons: () => [genDecimal, genDecimal] },
       { id: 'relatifs',   title: "Calculer avec des relatifs (4 opérations)",          gen: genRelatif, hasNiveau2: true, patrons: () => [genRelatif, genRelatif] },
       { id: 'rationnels', title: "Calculer avec des rationnels (4 opérations)",        gen: genRationnel, hasNiveau2: true, patrons: () => [genRationnel, genRationnel] },
@@ -12869,7 +13411,7 @@ function renderMain() {
         <div class="content-header-actions">${niveauToggle}${variantSelect}
           ${(found.sub.id === 'vocab' && state.niveau === 1) ? '' : `<button class="btn-action" id="btn-new" onclick="regenerateExercises()">🔄 Nouveaux exercices</button>`}
           <button class="btn-action" id="btn-solutions" onclick="toggleSolutions()">${solLabel}</button>
-          <button class="btn-action btn-primary" id="btn-pdf" onclick="downloadPdf()">📄 PDF</button>
+          <button class="btn-action btn-primary" id="btn-pdf" onclick="onPdfButtonClick()">📄 PDF</button>
         </div>
       </div>
       <h2>${found.sub.title}</h2>
@@ -13103,14 +13645,23 @@ function extractFinalResult(answerText) {
   // On parse pour avoir un texte brut propre
   const tmp = document.createElement('div');
   tmp.innerHTML = String(answerText);
-  const txt = tmp.textContent;
-  // Cherche "<nombre> <unité optionnelle>" à la fin (ignorer ponctuation finale)
-  // Unités acceptées : CHF, %, francs, personnes
-  const m = txt.match(/(-?\d+(?:[.,]\d+)?)\s*(CHF|%|francs?|personnes?)?\s*[.!?]?\s*$/i);
+  const txt = tmp.textContent.trim();
+  // Réponse-fraction "a/b" -> afficher la fraction réduite (et NON le dernier nombre)
+  const fracM = txt.match(/^\s*(-?\d+)\s*\/\s*(\d+)\b/);
+  if (fracM) {
+    const [rn, rd] = reduce(parseInt(fracM[1], 10), parseInt(fracM[2], 10));
+    return rd === 1 ? `${rn}` : `${rn}/${rd}`;
+  }
+  // Réponse sans aucun nombre (ex. un prénom) -> telle quelle
+  if (!/\d/.test(txt)) return txt;
+  // Sinon : DERNIER nombre du texte + éventuelle unité qui le suit (jusqu'à la
+  // fin, ponctuation finale retirée). Gère les unités non listées (croissants,
+  // verres, m², spectateurs…) tout en évitant de remonter avant un "=".
+  const m = txt.match(/(-?\d+(?:[.,]\d+)?)([^\d=]*)$/);
   if (!m) return txt; // fallback : afficher tel quel
-  const nombre = m[1];
-  const unite = m[2] ? ' ' + m[2] : '';
-  return nombre + unite;
+  let unite = (m[2] || '').replace(/[.!?]+\s*$/, '').trim();
+  if (unite.split(/\s+/).filter(Boolean).length > 2) unite = ''; // unité trop longue → on ignore
+  return m[1] + (unite ? ' ' + unite : '');
 }
 
 // Rend le panneau des solutions (corrigé) sous les exercices
@@ -13212,7 +13763,6 @@ function renderWelcome() {
         <rect x="120" y="70" width="10" height="10" fill="none" stroke="#1F2937" stroke-width="1"/>
         <text x="80" y="95" font-size="11" text-anchor="middle" fill="#1F2937">6 cm</text>
         <text x="140" y="55" font-size="11" fill="#1F2937">8 cm</text>
-        <text x="70" y="44" font-size="11" fill="#DC2626">? cm</text>
       </svg>`,
     'instruments': () => `
       <div class="home-card-intro">Mesure la longueur du segment au mm :</div>
@@ -13278,13 +13828,6 @@ function renderWelcome() {
         <path d="M 140 30 L 160 50 L 200 50" fill="none" stroke="#1F2937" stroke-width="1.2"/>
         <path d="M 160 50 L 160 75" fill="none" stroke="#1F2937" stroke-width="1.2"/>
         <text x="115" y="55" font-size="14" fill="#1F2937">→</text>
-      </svg>`,
-    'symetries': () => `
-      <div class="home-card-intro">Trace le symétrique par rapport à l'axe :</div>
-      <svg viewBox="0 0 200 90" style="width:75%;max-width:180px;height:auto;display:block;margin:4px auto;">
-        <line x1="100" y1="5" x2="100" y2="85" stroke="#DC2626" stroke-width="1" stroke-dasharray="3,3"/>
-        <path d="M 30 70 L 70 70 L 50 30 Z" fill="#DBEAFE" stroke="#1F2937" stroke-width="1.4"/>
-        <path d="M 130 70 L 170 70 L 150 30 Z" fill="none" stroke="#9CA3AF" stroke-width="1" stroke-dasharray="2,3"/>
       </svg>`,
     'vocab': () => `
       <div class="home-card-intro">Dénombre faces, sommets et arêtes :</div>
@@ -13355,6 +13898,9 @@ function renderWelcome() {
   }
   const tryCard = (item) => {
     const { domain, sub } = item;
+    // L'aperçu « symetries » (trace le symétrique) ne correspond pas à l'intitulé
+    // du sous-domaine : on ne propose pas cette carte sur l'accueil.
+    if (sub.id === 'symetries') return false;
     let preview = null;
     // 1) Si on a un aperçu statique défini, on l'utilise.
     if (typeof STATIC_PREVIEWS[sub.id] === 'function') {
@@ -15599,9 +16145,24 @@ function getAcceptableAnswers(answerHtml, isLongTextAnswer) {
   if (isLongTextAnswer) {
     const tmp = document.createElement('div');
     tmp.innerHTML = raw;
-    const txt = tmp.textContent;
+    const txt = tmp.textContent.trim();
+    // Réponse = fraction "a/b" (modèles fractions) -> garder la fraction réduite
+    const fracM = txt.match(/^\s*(-?\d+)\s*\/\s*(\d+)\b/);
+    if (fracM) {
+      const n = parseInt(fracM[1], 10), d = parseInt(fracM[2], 10);
+      const [rn, rd] = reduce(n, d);
+      acceptable.add(`${rn}/${rd}`);
+      if (rn !== n || rd !== d) acceptable.add(`${n}/${d}`);
+      if (rd === 1) acceptable.add(`${rn}`);
+      else if ((rn * 10) % rd === 0) acceptable.add(normalizeUserInput((rn / rd).toString()));
+      return [...acceptable];
+    }
     const matches = [...txt.matchAll(/-?\d+(?:[.,]\d+)?/g)];
-    if (matches.length === 0) return [];
+    if (matches.length === 0) {
+      // Réponse sans nombre (ex. un prénom) -> accepter le texte tel quel
+      acceptable.add(normalizeUserInput(txt));
+      return [...acceptable];
+    }
     const lastNum = matches[matches.length - 1][0];
     acceptable.add(normalizeUserInput(lastNum));
     return [...acceptable];
@@ -16477,6 +17038,34 @@ function closeDomainPdfModal(ev) {
   document.getElementById('domain-pdf-modal').style.display = 'none';
 }
 
+// --- PDF du sous-domaine « prop-concret » : sélection des types de problèmes ---
+// Au clic sur « 📄 PDF », si on est sur ce sous-domaine, on ouvre une fenêtre
+// avec le type courant pré-coché et la possibilité d'en ajouter d'autres.
+function onPdfButtonClick() {
+  const found = state.activeSubId ? findSubdomain(state.activeSubId) : null;
+  if (found && found.sub && found.sub.id === 'prop-concret') openPropPdfModal();
+  else downloadPdf();
+}
+
+function openPropPdfModal() {
+  const cur = (typeof state !== 'undefined') ? state.niveau : 1;
+  [1, 2, 3].forEach(n => { const chk = document.getElementById('prop-chk-' + n); if (chk) chk.checked = (cur === n); });
+  if (![1, 2, 3].includes(cur)) { const c = document.getElementById('prop-chk-1'); if (c) c.checked = true; }
+  document.getElementById('prop-pdf-modal').style.display = 'flex';
+}
+
+function closePropPdfModal(ev) {
+  if (ev && ev.currentTarget !== ev.target) return;
+  document.getElementById('prop-pdf-modal').style.display = 'none';
+}
+
+function confirmPropPdf() {
+  const niveaux = [1, 2, 3].filter(n => { const c = document.getElementById('prop-chk-' + n); return c && c.checked; });
+  if (niveaux.length === 0) { alert('Sélectionne au moins un type de problème.'); return; }
+  closePropPdfModal();
+  downloadPdf({ propNiveaux: niveaux });
+}
+
 function setModalNiveau(n) {
   modalNiveau = n;
   document.getElementById('modal-n1').classList.toggle('active', n === 1);
@@ -16809,6 +17398,13 @@ async function downloadDomainPdf(domainNum) {
           if (sub.id === 'traduire'
               && Array.isArray(ex.questions) && ex.questions.length > 6) {
             ex.questions = ex.questions.slice(0, 6);
+          }
+          // probleme : 1 seul problème dans la cellule étroite du PDF domaine
+          // (à l'écran et au PDF sous-domaine, l'exercice a ses 4 questions a–d).
+          if (sub.id === 'probleme'
+              && Array.isArray(ex.questions) && ex.questions.length > 1) {
+            ex.questions = ex.questions.slice(0, 1);
+            ex.questions[0].label = '';
           }
           items.push({ sub, ex, niveau });
         }
@@ -17663,7 +18259,8 @@ async function downloadDomainPdf(domainNum) {
 }
 
 
-async function downloadPdf() {
+async function downloadPdf(opts) {
+  opts = opts || {};
   if (!state.activeSubId || state.exercises.length === 0) {
     alert("Sélectionne d'abord un sous-domaine.");
     return;
@@ -17769,11 +18366,12 @@ async function downloadPdf() {
         state.niveau = savedNiveau;
       }
     } else if (found.sub.id === 'prop-concret' && typeof found.sub.gen === 'function') {
-      // Cas spécial : 3 niveaux (proportionnalité, fractions, rabais), tous
-      // avec énoncés empilés (l'un sous l'autre) comme dans le PDF du domaine.
+      // Niveaux sélectionnés via la fenêtre (sinon, les 3 par défaut) :
+      // proportionnalité (1), fractions (2), rabais (3). Énoncés empilés.
+      const niveaux = (Array.isArray(opts.propNiveaux) && opts.propNiveaux.length) ? opts.propNiveaux : [1, 2, 3];
       const savedNiveau = state.niveau;
       try {
-        exercisesForPdf = [1, 2, 3].map(niv => {
+        exercisesForPdf = niveaux.map(niv => {
           state.niveau = niv;
           const e = found.sub.gen();
           if (e) e.stackedStatements = true;
@@ -17798,8 +18396,8 @@ async function downloadPdf() {
       }
     } else {
       exercisesForPdf = state.exercises.slice();
-      // perim-aire : énoncés empilés (problèmes à rédiger) dans le PDF.
-      if (found.sub.id === 'perim-aire') {
+      // perim-aire / probleme : énoncés empilés (problèmes à rédiger) dans le PDF.
+      if (found.sub.id === 'perim-aire' || found.sub.id === 'probleme') {
         exercisesForPdf.forEach(ex => { if (ex) ex.stackedStatements = true; });
       }
       // Cas spécial : si l'exercice est un tableau "unites" (transformation
@@ -17811,7 +18409,7 @@ async function downloadPdf() {
         && (ex0.unitesTemps || ex0.unitesTransform)
         && !ex0.pdfDouble;
       // perim-aire, pb-equation et pythagore : un seul exercice dans le PDF (pas de doublement).
-      const isSingleExoSub = found.sub.id === 'perim-aire' || found.sub.id === 'pb-equation' || found.sub.id === 'pythagore' || found.sub.id === 'prop-figures' || found.sub.id === 'developpements' || found.sub.id === 'vocab' || found.sub.id === 'symetries';
+      const isSingleExoSub = found.sub.id === 'perim-aire' || found.sub.id === 'pb-equation' || found.sub.id === 'pythagore' || found.sub.id === 'prop-figures' || found.sub.id === 'developpements' || found.sub.id === 'vocab' || found.sub.id === 'symetries' || found.sub.id === 'probleme';
       if (exercisesForPdf.length === 1 && !isFullPageExo && !isSingleExoSub && typeof found.sub.gen === 'function') {
         // Si le sous-domaine propose plusieurs variantes (developper), on
         // utilise la fonction de la variante actuellement choisie pour que
