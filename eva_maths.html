@@ -3,7 +3,7 @@
 ═══════════════════════════════════════════════════════════════════════════════
 NOTE POUR CLAUDE – REPRISE DU PROJET DANS UNE NOUVELLE CONVERSATION
 ═══════════════════════════════════════════════════════════════════════════════
-Projet : « Générateur EVA Maths » – application mono-fichier HTML (~21 000 lignes)
+Projet : « Générateur EVA Maths » – application mono-fichier HTML (~27 500 lignes)
 générant des exercices de mathématiques pour adultes (programme PAI, Suisse).
 Product owner : Aurelio (Onex/Genève). Répondre en FRANÇAIS.
 
@@ -37,7 +37,8 @@ Product owner : Aurelio (Onex/Genève). Répondre en FRANÇAIS.
 - Navigation : pushHistoryState / applyHistoryState + popstate.
 - Deux générateurs de PDF, INDÉPENDANTS :
     downloadPdf(opts)        → PDF d'un sous-domaine
-    downloadDomainPdf(num)   → PDF d'un domaine (1 exercice par sous-domaine)
+    downloadDomainPdf(num, compo?) → PDF d'un domaine (1 exercice par
+                             sous-domaine), ou d'une composition imposée.
 
 ───────────────────────────────────────────────────────────────────────────────
 3. MOTEUR PDF – CE QU'IL FAUT SAVOIR AVANT DE TOUCHER À UNE MISE EN PAGE
@@ -75,7 +76,8 @@ Product owner : Aurelio (Onex/Genève). Répondre en FRANÇAIS.
     · recadrerFiguresHaut(root) – rogne le blanc en haut des viewBox SVG via
       getBBox (les bases composées ont une viewBox de hauteur fixe peu remplie).
       Appelé après renderMain et avant la rastérisation des deux PDF.
-    · applyEspacePdfLayout / espaceCorrigeInner / replaceAngHatsForPdf (domaine 5).
+    · applyEspacePdfLayout / espaceCorrigeInner / replaceAngHatsForPdf (domaine 5)
+      + appliquerMiseEnPageMatching / corrigeMatchingInner (v396).
     · mentionSansCalc(num) – « (sans calculatrice) », domaine 1 uniquement.
     · libelleUnite(v) – élision correcte (« unités d'aire »).
 
@@ -104,9 +106,15 @@ PDF de domaine :
   racines 48, hierarchie 120, défaut 22.
   Domaine 1 : padBottom 88px pour relatifs/rationnels/hierarchie ; sauts de page
   avant idx 5 (racines → page 3) et idx 7 (droite → page 4).
-  Domaine 4 : ex 1 padding 109px, ex 3 134px + paginate-items (pas de saut forcé,
-  sinon l'ex 4 ne tient plus dessous), ex 4 figureLibelleAGauche sans no-slice,
-  ex 5 rowGap 30px + saut de page, ex 6 sous l'ex 5, ex 7 seul en dernière page.
+  Domaine 4 (v402 : 7 exercices, un exercice « Problèmes » de périmètres-aires
+  inséré en 2e position) : les réglages ne se repèrent PLUS par l'index mais par
+  SOUS-DOMAINE + NIVEAU — insérer un exercice décalait sinon tout d'un cran.
+  perim-aire N2 padding 109px + paginate-items ; perim-aire N3 padding 119px +
+  paginate-items, sans saut forcé (il suit l'ex 1) ; volumes N2 134px +
+  paginate-items (pas de saut forcé, sinon l'exercice suivant ne tient plus
+  dessous) ; volumes N1 figureLibelleAGauche sans no-slice ; unités rowGap 30px
+  + saut de page ; pythagore tableau juste dessous ; pythagore « Problèmes »
+  seul en dernière page.
   Domaine 5 : composition FIXE (vocab Compléter trio pavé/cube + prisme + pyramide,
   vocab Cercle, vocab figures→nom, prop-figures « ? = », arc-secteur,
   développements, repérage, symétries 5 questions ; pages 1-3 / 4-5 / 6+).
@@ -127,6 +135,18 @@ PDF de domaine :
   modèle « (99,9 + 100,1) × c » : correct = 200 × c, calculé et non figé.
 - prop-concret niveau 3 (« % - rabais ») : 5 questions a)–e) (4 rabais + 1 perte
   cuisine).
+- perim-aire niveau 3 « Problèmes » (v401, genPerimAireN3) : 13 modèles issus
+  des énoncés papier d'Aurelio, 5 questions par série, une famille de figure au
+  plus par série et 2 énoncés illustrés au maximum. Quatre modèles portent une
+  figure (cadre carré sans cote, figure en L, trapèze rectangle, rectangle moins
+  trapèze) : ils réutilisent le couple `figureLeft` / `figureSvg` des problèmes
+  de Pythagore (énoncé + champ en haut, illustration dessous). Le trapèze prend
+  ses valeurs dans un triplet pythagoricien pour que le côté oblique tombe
+  juste ; son échelle est ADAPTATIVE (une échelle fixe faisait sortir les
+  grandes bases du viewBox). Réponses en m, m², cm, cm² et CHF — toutes
+  reconnues par extractMetricUnit, donc la règle du demi-point d'UNITE_EXIGEE
+  s'y applique. Pas de `layoutFigure` : le PDF le traite comme le niveau 2
+  (champs retirés, l'élève rédige dans le blanc).
 - unites : modale de sélection (openUnitesPdfModal / UNITES_KEYS, dont
   « Mélange d'unités ») → opts.unitesVariants. 1 unité → 2 exercices (sauf
   variante pleine page) ; 2+ → 1 par unité, badge par exercice (ex._uniteVariant).
@@ -196,14 +216,16 @@ PDF de domaine :
   dans le HTML doit y être ajouté.
 - Une seule astuce de saisie par test, posée sous le bandeau ; celles des
   exercices sont retirées à l'affichage.
-- TEMPORAIRE : bouton ⚡ Remplir (remplirTestAuto + _autoActions) qui remplit le
-  test pour un score de 70 à 80 % – il corrige en silence, ajuste, puis efface
-  ses marques. Bloc signalé « À RETIRER » dans le code.
+- Bouton ⚡ Remplir (remplirTestAuto + _autoActions) : EN VEILLE depuis v379,
+  voir §8.5.
 
 ───────────────────────────────────────────────────────────────────────────────
 6. UI
 ───────────────────────────────────────────────────────────────────────────────
-- Topbar : « Test EVA - Mathématiques » + nom du domaine (18px/800/majuscules),
+- Topbar : trois boutons à droite, dans l'ordre PDF · Test · enseignant·e
+  (icône PDF en PNG base64, icône Test en SVG fournie par Aurelio et recadrée,
+  clé SVG pour l'espace enseignant).
+  « Test EVA - Mathématiques » + nom du domaine (18px/800/majuscules),
   suivi le cas échéant de « (sans calculatrice) » (span .topbar-domain-note, qui
   neutralise les majuscules). Titre du sous-domaine dans la ligne des boutons.
 - Boutons icône seule (.btn-action.btn-icon, carrés 36×36, padding 0 – le
@@ -227,307 +249,295 @@ PDF de domaine :
   ligne approximatifs. Réversible, ~30 min. Ne pas lancer sans l'accord d'Aurelio.
 
 ───────────────────────────────────────────────────────────────────────────────
-8. DERNIER ÉTAT (fin août 2026)
+8. ÉTAT DU PROJET AU 19 AOÛT 2026 (v397)
 ───────────────────────────────────────────────────────────────────────────────
-Deux chantiers menés à terme : d'abord les mises en page PDF (espacements,
-découpages multi-pages, modale des unités, suppression du sélecteur de niveau,
-recadrage des figures), puis le MODE ÉVALUATION décrit au §5 bis.
+Cette section a été remise au propre à la fin de la session du 19.08 : elle
+décrit l'ÉTAT, non l'historique. Les numéros de version ne sont cités que
+lorsqu'ils aident à retrouver un choix dans le fichier.
 
-Page d'accueil : 6 vignettes, mémorisées (mêmes vignettes au retour) ; le clic
-démarre EXACTEMENT l'exercice montré quand l'aperçu vient du générateur, sinon
-il ouvre au moins le bon niveau (HOME_STATIC_TARGET).
+8.1 CHANTIERS TERMINÉS
+─────────────────────
+a) Mises en page PDF (§3 et §4) : espacements, découpages multi-pages, modale
+   des unités, suppression du sélecteur de niveau, recadrage des figures.
 
-Corrections de fond apportées à la correction des réponses, valables partout :
-  · unités – reconnaissance de toutes celles de l'application, abrégées comme
-    en toutes lettres ; une unité INCOHÉRENTE est refusée (km ≠ litre) ;
-  · sommes algébriques comparées terme à terme (l'ordre des monômes est libre,
-    « 16ca » = « 16ac », coefficient 1 implicite) ;
-  · exposants tapés à plat (« 9x2 − 54x + 81 ») acceptés, y compris avec
-    espaces – la tolérance s'applique mot à mot ;
-  · zéros superflus tolérés dans les exercices à trous (« 00 » = « 0 ») ;
-  · CHF partout (frs / francs / fr restent acceptés à la saisie) ;
-  · degré : « 60 », « 60° », « 60º » (ordinal, voisin sur clavier Mac) et
-    « 60o » acceptés indifféremment.
+b) Accueil : 6 vignettes mémorisées ; le clic démarre EXACTEMENT l'exercice
+   montré quand l'aperçu vient du générateur, sinon il ouvre au moins le bon
+   niveau (HOME_STATIC_TARGET).
 
-Typographie : plus AUCUN tiret cadratin (—) dans les textes affichés, remplacé
-par le demi-cadratin (–). Les trois occurrences restantes sont les classes
-[−–—] qui unifient les signes moins à la saisie : ne pas y toucher.
+c) Correction des réponses (valable partout) :
+   · unités reconnues abrégées comme en toutes lettres ; une unité INCOHÉRENTE
+     est refusée (km ≠ litre) ;
+   · sommes algébriques comparées terme à terme (« 16ca » = « 16ac ») ;
+   · exposants tapés à plat (« 9x2 − 54x + 81 ») acceptés, espaces compris ;
+   · zéros superflus tolérés dans les exercices à trous ;
+   · CHF partout (frs / francs / fr acceptés à la saisie) ;
+   · degré : « 60 », « 60° », « 60º », « 60o » ;
+   · ÉQUATIONS — `equationsEquivalentes` réduit les deux membres à a·x + b = 0
+     et compare a et b. Toute réécriture passe (« x + x + 2x + 2x = 78 » pour
+     « 2(x + 2x) = 78 »), mais pas une équation MISE À L'ÉCHELLE (« 3x = 39 »)
+     ni la forme résolue (« x = 13 »). Branchée sur eq+val et multi-named ;
+   · puissances 10⁻ⁿ : fraction ET décimale acceptées (`q.acceptAlt`) ; le
+     corrigé de l'export donne les deux écritures (`q.attenduExport`).
 
-Relecture des énoncés (demandée par Aurelio, même exigence partout) : pas de
-situation invraisemblable ni de calcul trivial. Exemples traités — une mère a
-au moins 18 ans de plus que l'aîné (10 pour un oncle) ; le pied d'une échelle
-est toujours plus court que la hauteur atteinte ; chaque contenant a son métier
-(peintre / pot, maçon / sac de ciment) ; « des crêpes » et non « un crêpes » ;
-comparaison de fractions ni trop simple (pas de moitié) ni trop tranchée (écart
-plafonné à 60 %) ; pas de triangle 60-60-60 là où un autre modèle traite déjà
-l'équilatéral ; la question « Qui a lu le plus ? » se répond par un CHOIX de
-prénoms, pour ne pas perdre un point sur une faute de frappe.
+d) MODE ÉVALUATION (§5 bis) — composition, barème, validation, verrouillage,
+   score, export PDF. Points acquis en plus de §5 bis :
+   · TEST RACCOURCI « tous domaines » : `COMPO_TEST_GLOBAL` dit, pour chaque
+     sous-domaine, ce qu'il advient de chacune de ses occurrences ('*' entier,
+     null écarté, liste de libellés, nombre négatif = N dernières questions,
+     ou FONCTION quand le choix dépend du tirage — « un prisme et une figure
+     composée », « un arc et un secteur »). `reduireCompositionGlobale` est
+     appliquée dès que TOUS les domaines et sous-domaines sont cochés
+     (`state.test.raccourci`) : il n'y a plus de réglage à cocher.
+     Résultat : 32 exercices composés, dont 1 de construction écarté à l'écran
+     → 31 au test, ~100 points. Écartés : proportion, verif-eq, le premier des
+     deux exercices de Pythagore, vocab « Cercle », et le nouvel exercice
+     « Problèmes » de périmètres-aires ('perim-aire': ['*', null]).
+   · la fenêtre d'évaluation s'ouvre sur une CASE « Tout sélectionner »
+     (`eval-chk-tout`) qui suit l'état de la sélection (cochée / à demi / vide).
+   · test à plusieurs domaines : séparation discrète entre domaines (filet +
+     nom en petites capitales), portée de la calculatrice annoncée par BLOC de
+     domaines consécutifs de même statut (`notesCalculatrice` : « sans
+     calculatrice – exercices 1 à 9 », puis « calculatrice autorisée –
+     exercices 10 à 31 ») ; astuce des exposants posée devant le PREMIER
+     exercice d'algèbre ; titre « Test – 5 domaines » au-delà d'un domaine.
+   · export : en-tête titre à gauche, date puis DURÉE à droite (chronomètre de
+     demarrerEvaluation à la première validation, sans secondes) ;
+     RÉCAPITULATIF en tête, un tableau à 2 colonnes par domaine, les exercices
+     d'un même sous-domaine cumulés sur une ligne ; pagination — le
+     récapitulatif tient la page 1 à lui seul, une séparation de domaine ne
+     reste jamais seule en pied de page (`placer(canvas, {sauterAvant,
+     solidaireSuivant})`, tous les blocs photographiés AVANT d'être paginés).
 
-TEST RACCOURCI « tous domaines » (v362) : `COMPO_TEST_GLOBAL` dit, pour chaque
-sous-domaine, ce qu'il advient de chacune de ses occurrences ('*' entier, null
-écarté, liste de libellés, ou nombre négatif = N dernières questions).
-`reduireCompositionGlobale` est appliquée par demarrerEvaluation dès que TOUS
-les domaines et sous-domaines sont cochés (`state.test.raccourci`) : c'est LA
-version du test « tous domaines », il n'y a plus de réglage à cocher. La case
-« Version raccourcie » du pied de fenêtre a été retirée en v376 ; pour revoir la
-composition intégrale avec les cases 🧩, décocher un sous-domaine suffit à
-sortir du raccourci — ou commenter l'appel à reduireCompositionGlobale.
-La fenêtre d'évaluation s'ouvre sur une CASE « Tout sélectionner »
-(`eval-chk-tout`) au lieu d'un bouton : elle suit l'état de la sélection
-(cochée / indéterminée / vide) comme les cases de domaine.
-Résultat : 31 exercices, ~100 points (contre 35 et ~172). Écartés : proportion,
-verif-eq, le premier des deux exercices de Pythagore, vocab « Cercle ».
-Revue du 18.08 avec Aurelio, appliquée dans COMPO_TEST_GLOBAL :
-  · volumes N1 : un prisme + une figure à base composée, choisis d'après le
-    `kind` et `_nbSolidesSimples` (leur ordre est tiré au sort) ;
-  · unités : 6 questions (a, c, e, g, i, j) ;
-  · vocab « Droites du triangle » : 2 figures seulement, les 4 noms restent
-    proposés – deux servent de leurres (`cfg.cells` et `parts` réduits,
-    `labels` intact) ;
-  · prop-figures « Arc - secteur » : un arc et un secteur, l'un donnant le
-    rayon et l'autre le diamètre (repéré au « ÷ 2 » du corrigé) ;
-  · symétries : 3 figures au lieu de 5.
-Revue du 19.08 :
-  · BUG CORRIGÉ (unités, mélange) : `genCapaciteSansL` / `genVolumeSansDm3`
-    retiraient le litre et le dm³ de la LISTE, ce qui rapprochait leurs voisins
-    d'un rang – 65 dal donnait 650 dl au lieu de 6'500, 225 m³ donnait 225'000
-    cm³ au lieu de 225'000'000. Les deux unités restent dans l'échelle avec
-    leur rang ; un `pairFilter` les écarte du départ et de la cible. Contrôle
-    numérique de toutes les variantes : /tmp/check_unites.js ;
-  · ÉQUATIONS : `equationsEquivalentes` réduit les deux membres à a·x + b = 0
-    et compare a et b. Toute réécriture est donc acceptée (« x + x + 2x + 2x =
-    78 » pour « 2(x + 2x) = 78 »), mais pas une équation MISE À L'ÉCHELLE
-    (« 3x = 39 ») ni la forme résolue (« x = 13 »). Branchée sur les deux
-    validations, eq+val et multi-named ; le corrigé suit les classes du DOM ;
-  · vocabulaire : la pyramide à base pentagonale quitte SOLIDES_NB (base et
-    test) – seules les bases carrée et triangulaire restent ;
-  · corrigé « Droites du triangle » : seuls les noms qui ont une figure sont
-    corrigés (les autres sont des leurres) – filtré sur `ex.parts` dans
-    espaceCorrigeInner ET enrichirCorrige ;
-  · unité à DROITE du champ : ajoutée aux problèmes du domaine 1
-    (`uniteDeLaReponse`), et le bloc `.prop-fig-answer` empêche l'unité de
-    passer sous le champ dans les exercices à figure (arc-secteur) ;
-  · remplissage automatique : fractions écrites avec « / » (fractions empilées
-    ET TeX \dfrac lus correctement — c'est ce dernier cas qui laissait les
-    racines de fraction vides, √(64/49) attendant « 8/7 ») ;
-  · remplissage automatique, droite graduée : le type `place` sert AUSSI bien
-    au repère orthonormé (2 coordonnées, svg[data-step], `_repUpdatePoint`)
-    qu'à la droite (1 valeur, `q.svgId`, `_droiteUpdatePoint`). Seul le
-    premier était traité ; l'aiguillage se fait sur `q.oneD` ;
-  · BADGES INSTABLES (défaut §8) RÉSOLU : `releverSaisiesTest` ne relevait que
-    les <input>. Une question à choix range sa réponse dans l'attribut
-    `data-selected` du groupe de boutons : afficher les solutions la perdait,
-    et l'exercice retombait à zéro sans jamais remonter (« estimer », et par
-    ricochet les exercices à boutons). Le relevé rend désormais
-    { vals, choix } et `restituerSaisiesTest` repose les choix via
-    selectChoice. Vérifié sur 45 tirages du test complet et sur des bascules
-    répétées en nombre impair ;
-  · MÊME DÉFAUT, deuxième famille (v366) : `releverPointsPlaces` ne cherchait
-    que `.rep-user-point-circle`, classe du repère. Les points d'une droite
-    graduée portent `circle.droite-user-point` : ils disparaissaient au
-    re-render. Le relevé porte maintenant { oneD, svgId } et la restitution
-    aiguille vers `_droiteUpdatePoint`. Ce défaut était masqué tant que le
-    bouton Remplir ne posait pas ces points — leçon : une fonctionnalité de
-    test qui ne couvre pas un cas cache aussi les bugs de ce cas.
+e) ESPACE ENSEIGNANT — bouton clé de la barre de titre, accueil à trois entrées
+   (`state.enseignantVue` aiguille renderEspaceEnseignant ; chaque page a un
+   retour vers l'accueil et un Quitter) :
+   · « Créer une série d'exercices à la carte » → ATELIER, voir 8.2 ;
+   · « Créer un test sur mesure » → À VENIR, voir 8.4 ;
+   · « Modifier les prénoms dans les problèmes » → en place.
+   Mot de passe (MDP_ENSEIGNANT = 'ClaudIA*') SUSPENDU par
+   `MDP_ENSEIGNANT_ACTIF = false` le temps de la mise au point. Il est EN CLAIR
+   dans le fichier : il écarte un élève curieux, pas quelqu'un qui ouvre le code
+   source ; ne rien y mettre de sensible.
+   Le menu de gauche reste ACTIF : cliquer un sous-domaine sort de l'espace et
+   l'ouvre (`selectSubdomain` remet `state.espaceEnseignant` à false). La
+   composition en cours survit à l'aller-retour, elle vit dans `state.atelier`.
 
-RÉGRESSION CORRIGÉE (v368), antérieure à v355 : le corrigé du PDF « instruments
-de géométrie » avait perdu sa planche calquée sur l'énoncé. Cause : la branche
-générique « figure + réponse en vert » d'espaceCorrigeInner, ajoutée pour
-prop-figures, capte tout exercice `multi` dont une question porte `figureSvg` –
-ce qui est le cas des planches d'instruments. Elle rendait une grille de
-vignettes à 4 colonnes, et le bloc dédié (hauteurs au pixel près, tracé vert,
-superposable à l'énoncé) placé PLUS BAS dans downloadPdf n'était jamais atteint.
-espaceCorrigeInner rend maintenant `null` d'emblée pour `ex._instrKind`.
-LEÇON : dans downloadPdf, l'appel à espaceCorrigeInner court-circuite tous les
-cas particuliers qui le suivent. Toute nouvelle branche générique doit donc être
-vérifiée contre les familles traitées plus bas — la même mécanique guette
-`proportion`, `developpements` et le repérage.
+f) PRÉNOMS — PRENOMS_M (6) / PRENOMS_F (8), liste de la classe d'Aurelio, ne
+   figurent NULLE PART ailleurs ; les 20 générateurs qui nomment quelqu'un
+   passent par pickPrenom / `pickPrenomsDistincts(n, genre)`.
+   `appliquerPrenoms` remplace EN PLACE (const, mais le contenu est relu à
+   chaque tirage) ; PRENOMS_*_ORIGINE garde la liste de départ.
+   `unifierPrenoms(ex)` garantit qu'un prénom ne revient pas d'une question à
+   l'autre d'un même exercice (bornes accentuées : \b ne borne pas « Leïla »).
+   Appelée aux QUATRE points de sortie : generateExercisesForActive,
+   composerItemsDomaine, exercisesForPdf (downloadPdf), atelierRemplacerQuestion.
+   Les générateurs eux-mêmes n'ont pas été touchés — appelés directement, ils
+   produisent encore ~10 % d'exercices à prénom répété. C'est voulu : le
+   correctif est au point de sortie, pas dans vingt générateurs.
+   Le partage du paddle tire ses trois prénoms dans UN SEUL genre quand la liste
+   le permet, et accorde l'énoncé (« Trois amies … Elles décident … chacune »).
+   Éditeur : deux zones de texte, un prénom par ligne, mais espaces, virgules,
+   points-virgules et tabulations valent séparateur — une liste de classe se
+   colle d'un coup. CONSÉQUENCE : « Anne Sophie » est coupé en deux, il faut
+   « Anne-Sophie ». Doublons et lignes vides écartés ; une liste vide est
+   REFUSÉE (choice() sur un tableau vide rendrait des énoncés sans personne).
+   L'enregistrement vide `state.exercisesCache`.
 
-BARRE DE TITRE (v371) : trois boutons, dans l'ordre PDF · évaluation ·
-enseignant·e. L'évaluation garde son emoji 📝 d'origine (essais successifs :
-huit pictogrammes, six écritures du mot « TEST » dans l'icône, un bloc-notes
-redessiné au trait — aucun n'a convaincu, on en est revenu à l'emoji).
-L'espace enseignant prend une clé (ICONE_ENSEIGNANT), SVG au trait cohérent
-avec l'icône « recharger ». Le bouton enseignant demande
-un mot de passe (MDP_ENSEIGNANT) une fois par session, puis ouvre
-`renderEspaceEnseignant` — page volontairement vide, son contenu reste à définir
-avec Aurelio. Le mot de passe est EN CLAIR dans le fichier : il écarte un élève
-curieux, pas quelqu'un qui ouvre le code source ; ne rien y mettre de sensible.
-L'espace se ferme par goHome et par la flèche « reculer » du navigateur, et
-refuse de s'ouvrir pendant un test.
+g) Relecture des énoncés (même exigence partout) : pas de situation
+   invraisemblable ni de calcul trivial. Une mère a au moins 18 ans de plus que
+   l'aîné (10 pour un oncle) ; le pied d'une échelle est plus court que la
+   hauteur atteinte ; chaque contenant a son métier ; comparaison de fractions
+   ni trop simple ni trop tranchée (écart plafonné à 60 %) ; « Qui a lu le
+   plus ? » se répond par un CHOIX de prénoms, pour ne pas perdre un point sur
+   une faute de frappe.
+   Typographie : plus AUCUN tiret cadratin (—) dans les textes affichés. Les
+   trois occurrences restantes sont les classes [−–—] qui unifient les signes
+   moins à la saisie : NE PAS Y TOUCHER.
 
-ATELIER ENSEIGNANT (v377) — composer un PDF en renouvelant les questions.
-Choix d'un domaine, ou d'un seul de ses sous-domaines, puis « Composer » : la
-composition s'affiche telle qu'elle partira au PDF (renderExercise, mêmes
-figures et mêmes tableaux). Chaque question porte un bouton ↻ qui la remplace à
-sa place ; l'en-tête de l'exercice en a un pour toutes.
-Principe du renouvellement : on ne rappelle PAS le générateur d'une question, on
-refait une composition ENTIÈRE et l'on n'en retient que la case voulue. Seul
-moyen fiable, la place d'une question dépendant souvent du reste (niveaux
-fusionnés, structures fixes des domaines 4 et 5, contraintes entre sœurs).
-L'ordre de composition étant stable, items[i].questions[j] désigne toujours la
-même case. Jusqu'à 20 essais pour obtenir un tirage différent.
-Deux accroches ont été posées pour éviter de dupliquer la vingtaine de cas
-particuliers de la composition :
-  · `downloadPdf({ composerSeulement: true })` rend la composition sans
-    produire le document (elle est asynchrone : les boutons de l'atelier
-    l'attendent) ;
-  · `downloadPdf({ exercicesImposes })` et `downloadDomainPdf(n, compo)`
-    reprennent la composition retouchée.
-PIÈGE : en mode sous-domaine, il faut vider TOUTES les entrées de
-`state.exercisesCache` du sous-domaine avant de recomposer — prop-concret relit
-le cache d'un autre niveau que celui affiché, et ne changeait jamais.
-ATELIER, deuxième passe (v378) :
-  · BUG CSS CORRIGÉ : la variable `--primary` n'existe pas (:root ne définit
-    que `--accent`). Ses 8 usages tombaient silencieusement en retrait — d'où
-    le bouton ↻ qui disparaissait au survol (texte blanc, fond inchangé). Tous
-    remplacés par `--accent` ;
-  · sélection MULTIPLE de sous-domaines (cases, plus un menu déroulant) : rien
-    de coché = domaine entier avec sa structure fixe, sinon les sous-domaines
-    cochés se suivent. Un PDF mélangeant plusieurs sous-domaines passe par
-    downloadDomainPdf, seul capable d'enchaîner des origines différentes ;
-  · ajout / suppression d'exercice : ＋ dans l'en-tête (un autre du même
-    sous-domaine, inséré juste après) ou menu du bas (n'importe lequel), ✕ pour
-    retirer. `atelierSyncCompo` tient `compo.items` aligné sur `items` ;
-  · cases à cocher par question, comme la composition du test : une question
-    décochée s'estompe et quitte le PDF (`_exclue`). Le filtrage se fait sur une
-    COPIE au moment de générer (`atelierItemsPourPdf`), avec renumérotation ;
-    l'atelier garde tout, on peut donc revenir en arrière ;
-  · compositions ENREGISTRÉES sous un nom (localStorage). Safari refuse le
-    stockage local sur un fichier ouvert depuis le disque : dans ce cas on le
-    DIT et on renvoie vers Exporter/Importer (.json), qui marche partout et
-    survit à un changement de machine. La forme enregistrée est
-    { subId, niveau, ex } par exercice, reconstruite par findSubdomain.
+8.2 ATELIER ENSEIGNANT — composer un PDF à la carte
+──────────────────────────────────────────────────
+Un MENU DÉROULANT À DEUX NIVEAUX (domaines, et sous le pli de chacun ses
+sous-domaines ; `atelierSelection`, cases pleines / à demi, même mécanique que
+la fenêtre d'évaluation). On peut piocher dans PLUSIEURS domaines.
+Cocher un domaine ENTIER n'équivaut pas à cocher tous ses sous-domaines : on
+prend alors sa composition structurée (ordre fixe des domaines 4 et 5,
+`idxConstruction`).
+Le bouton principal COMPOSE au premier jet puis AJOUTE : les exercices cochés
+s'insèrent à leur place dans l'ordre du menu (`atelierRang` /
+`atelierInsererDansOrdre`) sans rien défaire de ce qui a été trié, renouvelé ou
+écarté. D'où le bouton « Vider » pour repartir de zéro explicitement. La
+sélection se vide après chaque composition ou ajout.
+Barre : menu · Composer/Ajouter · Vider · PDF (icône habituelle) | compositions
+enregistrées · Enregistrer · ✕ · Exporter · Importer.
+« Enregistrer » (localStorage) ne choisit AUCUN lieu : le libellé « Enregistrer
+sous… » a été retiré en v398, il laissait croire à un dossier. C'est « Exporter »
+qui écrit un vrai fichier.
 
-Non couvert pour l'instant : les familles interactives (vocabulaire,
-développements, symétries) n'ont pas de questions repérables, seul le bouton
-d'exercice les concerne ; « instruments » n'apparaît pas (gen: null) ; les
-options des fenêtres PDF (rubriques du vocabulaire, niveaux de factorisation,
-unités…) prennent leurs valeurs par défaut. RESTE À FAIRE : le même atelier pour
-un TEST, demandé par Aurelio dans la foulée.
-Le bouton PDF du sous-domaine « instruments » est repassé en icône seule, comme
-partout ailleurs (il était resté en « 📄 PDF » textuel).
+Sur chaque exercice : ↻ toutes les questions · ＋ (un autre du même
+sous-domaine, inséré juste après) · ✕ · ▲▼ et une poignée à glisser (l'ordre est
+celui du PDF). Sur chaque question ou énoncé : une CASE (la garder au PDF), un
+↻ (en tirer un autre à la même place) et depuis la v399 des ▲▼ EMPILÉS
+(atelierDeplacerQuestion / atelierDeplacerEnonce) pour intervertir deux
+questions. L'étiquette est POSITIONNELLE : elle reste à sa place, seule la
+question bouge — vérifié sur tous les générateurs (« a) » partout, « 1. » pour
+les unités : aucun libellé ne porte de contenu). Deux garde-fous :
+`atelierBornesSousGroupe` confine le déplacement à son sous-bloc (developper,
+dont les libellés repartent à a) dans chacun) ; et si l'ordre des barres
+d'outils À L'ÉCRAN ne suit pas l'ordre de `ex.questions`, les flèches sont
+retirées de cet exercice (cas des tableaux de proportionnalité, dont les
+questions sont disposées dans un ordre variable) — la case et le ↻ restent.
 
-Revue du 19.08 (suite) :
-  · export, PAGINATION : `placer(canvas, opts)` accepte `sauterAvant` et
-    `solidaireSuivant`. Tous les blocs sont photographiés AVANT d'être paginés,
-    pour connaître la hauteur du suivant. Deux règles : le récapitulatif tient
-    la page 1 à lui seul dès qu'il couvre plusieurs domaines
-    (`dataset.sautApres`), et une séparation de domaine ne reste jamais seule
-    en pied de page (`dataset.solidaire`, elle descend avec son premier
-    exercice) ;
-  · factoriser : champs de 270 px (`ex.champsLarges` → `.multi-grid-larges`),
-    « −3b²x³(7bx + 5 + 2x) » débordait des 140 px standard. ATTENTION : la
-    fusion N1+N2 crée un objet neuf – les réglages d'affichage portés par
-    l'exercice (champsLarges, stackedStatements) doivent y être recopiés
-    explicitement, sinon ils ne valent que hors test ;
-  · prisme à base losange : les étiquettes d₁ / d₂ tombaient sur la diagonale
-    verticale. Elles sont décalées à droite et posées sur un rectangle blanc
-    (`etiquetteSurFond`) qui masque le pointillé — le seul moyen fiable, car
-    `paint-order` n'est pas garanti par html2canvas.
+FUSION DE DEUX EXERCICES VOISINS (v400) : ⊕ dans l'en-tête, ⊖ pour revenir en
+arrière (atelierFusionner / atelierDefusionner). MÊME SOUS-DOMAINE uniquement —
+toute la mise en page PDF s'aiguille sur `sub.id`. La fusion crée un objet NEUF,
+d'où la recopie explicite de CLES_AFFICHAGE_EXERCICE (même piège que la fusion
+N1+N2). Refusée quand un exercice porte une clé de CONTENU
+(CLES_CONTENU_EXERCICE : svg, groups, solids, subgroups…) et pour
+FUSION_INTERDITE = proportion + pythagore, dont le gabarit de tableau est bâti
+pour un nombre de questions FIXE : mesuré au banc d'essai, la fusion y perdait
+la moitié des champs (5/10 et 8/16) SANS erreur. Marche pour 41 combinaisons
+sous-domaine/niveau, dont deux familles à énoncés (symétries, vocab N3).
+Niveaux différents → niveau 'mixed' (la rubrique disparaît, comme pour N1+N2).
+Les deux exercices d'origine sont gardés dans `it._avantFusion`, champ d'ITEM :
+compositionSerialiser ne garde que { subId, niveau, ex }, une fusion relue
+depuis un fichier ne se défusionne donc plus.
+Les commandes atteignent toutes les familles : `.multi-item`, énoncés d'une
+`.fill-list` (`ex.statements` — symétries, vocabulaire à compléter), champs d'un
+tableau (posées contre le CHAMP, un tableau de proportionnalité portant jusqu'à
+trois questions par ligne), `.transform-row`, et tout champ isolé.
 
-Affichage d'un test à plusieurs domaines :
-  · séparation discrète entre domaines (filet + nom en petites capitales), à
-    l'écran comme dans l'export ; un test d'un seul domaine n'en reçoit pas ;
-  · la portée de la calculatrice est annoncée par BLOC de domaines consécutifs
-    de même statut (`notesCalculatrice`) : « sans calculatrice – exercices 1 à
-    9 », puis « calculatrice autorisée – exercices 10 à 31 ». Pour un test d'un
-    seul domaine, la mention s'affiche seule ;
-  · l'astuce des exposants est posée devant le PREMIER exercice d'algèbre et
-    non plus sous le bandeau (l'exercice fusionné « developper » n'ayant pas
-    d'intro à lui, un repli cherche la première intro portant `exo-tip`) ;
-  · titre de l'export et nom du fichier : « Test – 5 domaines » au-delà d'un
-    domaine (la liste complète débordait de la ligne).
-Deux points appuyés sur des constats, à revoir avec Aurelio :
-  · volumes N2 donne 3 ou 4 énoncés selon le tirage (65 % / 35 % : la boucle de
-    `collected` renonce avant d'en réunir 4) – d'où le spec « -2 » ;
-  · developper fusionne 3 sous-blocs dont les libellés repartent tous de a) :
-    la sélection « a), b), c), d) » d'Aurelio y était donc ambiguë, elle a été
-    interprétée comme le PREMIER sous-bloc. Les cases portent désormais « 1a »,
-    « 2a »… pour lever l'ambiguïté au prochain passage.
+Renouvellement : on ne rappelle PAS le générateur d'une question, on refait une
+composition ENTIÈRE et l'on n'en retient que la case voulue. Seul moyen fiable,
+la place d'une question dépendant du reste (niveaux fusionnés, structures fixes
+des domaines 4 et 5, contraintes entre sœurs). L'ordre de composition étant
+stable, items[i].questions[j] désigne toujours la même case.
+UNICITÉ : `atelierSignature(q)` résume une question (le libellé est ignoré),
+`atelierSignaturesAilleurs(i, j)` donne celles du reste de la série,
+`atelierRemplacerQuestion` retire tant que le tirage retombe sur une question
+déjà là (25 essais). `atelierDedoublonner(i)` est appelée après un
+renouvellement d'exercice, un ＋ et chaque ajout par le menu.
 
-MIS EN VEILLE en v379 (livraison intermédiaire, sans espace enseignant) : les
-boutons ⚡ Remplir, Solutions et 🧩 Composition ont quitté le bandeau du test, et
-`poserCasesComposition` n'est plus appelée en fin de renderTest. TOUT LE CODE
-RESTE EN PLACE et fonctionnel — remplirTestAuto, basculerSolutionsTest,
-ouvrirComposition, les cases et leur CSS : il servira dans la partie
-enseignant. Pour les remettre, rétablir les trois boutons dans le bandeau de
-renderTest et l'appel `poserCasesComposition(main)` à la fin.
-De même, le bouton de la barre de titre qui ouvrait l'espace enseignant est
-retiré ; `ouvrirEspaceEnseignant`, l'atelier et ICONE_ENSEIGNANT restent dans le
-fichier, accessibles depuis la console.
+Deux accroches évitent de dupliquer la vingtaine de cas particuliers de la
+composition : `downloadPdf({ composerSeulement: true })` rend la composition
+sans produire le document (asynchrone), et `downloadPdf({ exercicesImposes })` /
+`downloadDomainPdf(n, compo)` reprennent la composition retouchée.
+Questions décochées : le filtrage se fait sur une COPIE au moment de générer
+(`atelierItemsPourPdf`), avec renumérotation — l'atelier garde tout.
+Un VOILE D'ATTENTE couvre la génération (`ouvrirVoilePdf` / `fermerVoilePdf`),
+posé avant le premier await et attendu sur deux images (double
+requestAnimationFrame), fermé dans un `finally`.
 
-TEMPORAIRE (v361) – composition du test « tous domaines » : quand TOUS les
-domaines sont cochés (`state.test.complet`), chaque question reçoit une case à
-cocher et chaque exercice une case « tout l'exercice » (poserCasesComposition,
-appelée en fin de renderTest). Le bouton 🧩 Composition du bandeau restitue la
-sélection en texte, groupée par domaine, une ligne par exercice. La sélection
-est clée par INDEX d'exercice (`ex12`) : Pythagore fournit deux exercices de
-même sous-domaine et même niveau. Les exercices en lignes (unités, Pythagore en
-tableau) reçoivent leurs cases via un repli sur `tr` / `.transform-row` ; les
-familles interactives (vocab, développements, symétries) n'ont que la case
-d'exercice. Bloc et CSS signalés « À RETIRER », comme le bouton ⚡ Remplir.
+Compositions ENREGISTRÉES sous un nom (localStorage), forme { subId, niveau, ex }
+par exercice, reconstruite par findSubdomain. Safari refuse le stockage local
+sur un fichier ouvert depuis le disque : dans ce cas on le DIT et on renvoie
+vers Exporter / Importer (.json), qui marche partout.
 
-Points laissés ouverts, à proposer si l'occasion se présente :
-  · corrigé du PDF de domaine 4 : Aurelio a demandé de REVENIR à sa forme
-    d'origine (listes de réponses pour les ex. 1 à 3, liste de conversions
-    complètes pour l'ex. 4, tableau rempli pour l'ex. 5). Il n'y a donc rien
-    à faire, sauf s'il demande un jour les figures des solides, déjà écrites
-    pour l'export du test (espaceCorrigeInner reconnaît les deux formes) ;
-  · test « tous domaines » : il compose actuellement les 36 exercices, la
-    version raccourcie reste à définir avec Aurelio ;
-  · conservation des résultats sous un pseudo (choisi ou attribué) : conçue
-    mais NON réalisée – attention, localStorage est refusé par Safari sur un
-    fichier local, prévoir l'export en complément ;
-  · l'anti-orphelin n'existe que pour prop-concret (PDF sous-domaine) ;
-  · l'index des sections (§7) reste à faire le jour venu ;
-  · (RÉSOLU en v365 : le score d'un exercice chutait après un aller-retour sur
-    les solutions. Cause : `releverSaisiesTest` ne relevait que les <input>, et
-    une question à CHOIX range sa réponse dans `data-selected` sur le groupe de
-    boutons. Le relevé rend maintenant { vals, choix }.)
+8.3 PIÈGES APPRIS — à relire avant toute modification
+────────────────────────────────────────────────────
+1. DEUX CHAÎNES DE MISE EN PAGE PDF. downloadPdf (sous-domaine) et
+   downloadDomainPdf (domaine, donc aussi l'atelier dès que la composition mêle
+   plusieurs sous-domaines) sont indépendants. Tout traitement écrit pour l'un
+   doit être EXTRAIT et appelé par l'autre. Trois écarts silencieux déjà
+   trouvés ainsi ; les helpers partagés sont listés au §3.
+2. espaceCorrigeInner COURT-CIRCUITE tous les cas particuliers écrits sous son
+   appel dans downloadPdf. Une branche générique ajoutée là peut faire
+   disparaître un corrigé entier sans erreur (arrivé aux « instruments » : elle
+   captait tout exercice `multi` portant `figureSvg`). Elle rend `null` d'emblée
+   pour `ex._instrKind`. La même mécanique guette `proportion`,
+   `developpements` et le repérage.
+3. LE RE-RENDER PERD TOUT CE QUI NE VIT QUE DANS LE HTML. La bascule Solutions
+   reconstruit la page : releverSaisiesTest / restituerSaisiesTest (champs ET
+   `data-selected` des questions à choix), releverPointsPlaces /
+   restituerPointsPlaces (repère ET droite graduée, classes DIFFÉRENTES), puis
+   reappliquerCorrection. Deux bugs de score sont venus de là.
+4. LA FUSION N1+N2 CRÉE UN OBJET NEUF : les réglages portés par l'exercice
+   (champsLarges, stackedStatements…) doivent y être recopiés explicitement,
+   sinon ils ne valent que hors test.
+5. LE CACHE. Avant de recomposer un sous-domaine, vider TOUTES les entrées de
+   `state.exercisesCache` qui le concernent — prop-concret relit le cache d'un
+   autre niveau que celui affiché.
+6. SÉRIALISATION. Un seul exercice contient une fonction : le vocabulaire
+   « Cercle » (`geo.f`). Elle ne survit pas au JSON et faisait échouer le rendu
+   de TOUTE la page à la relecture. Corrigé par `_geoParams: { rot, mirror }`,
+   une reconstruction pour les fichiers antérieurs (`reconstruireEx`) et
+   `rendreExerciceAtelier` qui isole chaque exercice. Si un générateur ajoute
+   une fonction dans un exercice, le même problème reviendra : un petit script
+   jsdom qui parcourt les exercices à la recherche de `typeof v === 'function'`
+   le détecte en une minute.
+7. VARIABLES CSS. `:root` ne définit PAS `--primary` (seulement `--accent`) :
+   une règle qui l'utilise tombe silencieusement en retrait.
+8. html2canvas : `paint-order` n'est pas garanti — pour poser un texte sur un
+   trait, dessiner un rectangle blanc derrière (`etiquetteSurFond`).
+9. UN OUTIL DE TEST QUI NE COUVRE PAS UN CAS CACHE AUSSI LES BUGS DE CE CAS.
+   Le défaut des points de la droite graduée est resté invisible tant que le
+   bouton Remplir ne les posait pas.
+10. insertBefore DANS UNE CELLULE : le champ n'est pas toujours un enfant
+   DIRECT du <td> (colonne sexagésimale des unités : trois mini-champs dans un
+   conteneur). L'exception interrompait poserBoutonsQuestion en silence et
+   privait de commandes tout le reste de l'exercice — 15 barres d'outils posées
+   sur 160 attendues. Corrigé en v399 en remontant jusqu'à l'enfant direct.
 
-Méthode de travail éprouvée sur cette session, à reconduire : après chaque
-correction, écrire un petit harnais jsdom qui REJOUE le scénario décrit par
-Aurelio (remplir, valider, exporter, mesurer) plutôt que de se fier au code lu.
-La moitié des défauts trouvés — scores faux sur les champs nommés, réponses
-collées, tolérance des exposants — ne se voyaient pas autrement.
+8.4 CE QUI RESTE OUVERT
+───────────────────────
+· ATELIER POUR UN TEST : demandé par Aurelio, non commencé. La mécanique de
+  l'atelier (8.2) est à reprendre telle quelle ; c'est la prochaine étape.
+· Atelier, non couvert : les familles interactives sans questions ni énoncés
+  (appariements, sélections, clics sur figure) n'ont que le bouton d'exercice ;
+  « instruments » n'apparaît pas dans le menu (gen: null) ; les options des
+  fenêtres PDF (rubriques du vocabulaire, niveaux de factorisation, unités…)
+  prennent leurs valeurs par défaut.
+· Conservation des résultats sous un pseudo (choisi ou attribué) : conçue, non
+  réalisée. Prévoir l'export en complément, localStorage étant refusé par
+  Safari sur un fichier local.
+· L'anti-orphelin n'existe que pour prop-concret (PDF sous-domaine) ; il n'a pas
+  été porté au PDF de domaine.
+· Index des sections en tête de fichier (§7) : proposé, non réalisé, ne pas
+  lancer sans l'accord d'Aurelio.
+· Corrigé du PDF de domaine 4 : Aurelio a demandé sa forme d'origine (listes de
+  réponses ex. 1–3, conversions complètes ex. 4, tableau rempli ex. 5). Rien à
+  faire, sauf s'il demande un jour les figures des solides, déjà écrites pour
+  l'export du test (espaceCorrigeInner reconnaît les deux formes).
+· Deux constats à revoir avec lui :
+  – volumes N2 donne 3 ou 4 énoncés selon le tirage (65 % / 35 % : la boucle de
+    `collected` renonce avant d'en réunir 4) — d'où le spec « -2 » ;
+  – developper fusionne 3 sous-blocs dont les libellés repartent tous de a) : sa
+    sélection « a), b), c), d) » était ambiguë, elle a été interprétée comme le
+    PREMIER sous-bloc. Les cases portent désormais « 1a », « 2a »… pour lever
+    l'ambiguïté au prochain passage.
+· Seul le domaine 1 a été passé en revue avec Aurelio (test et export). Les
+  quatre autres ne l'ont pas été.
 
-Revue du test « Nombres & opérations » (v356), premier domaine passé en revue :
-  · puissances 10⁻ⁿ : la FRACTION est acceptée autant que la décimale
-    (`q.acceptAlt`) ; quand la réponse est fausse, le corrigé de l'export donne
-    les deux écritures (`q.attenduExport`, champ lu par exporterTest) ;
-  · « Estimer » : une seule question. Le trim a quitté downloadDomainPdf pour
-    composerItemsDomaine – test et PDF de domaine le partagent. L'exercice vaut
-    donc 1 point (total du domaine 1 : 41) ; le sous-domaine en garde deux à
-    l'écran et dans sa propre feuille ;
-  · export – rationnels : `plat(html, garderFractions)` laisse les fractions
-    EMPILÉES pour ce sous-domaine (interligne de grille porté à 10 px). Les
-    divisions de fractions (grandeFrac) étaient illisibles une fois à plat ;
-  · export – racines : `renderKatex()` est appelé avant la rastérisation, sans
-    quoi les <span data-tex> restaient vides (« a) = 15 ») ;
-  · export – droite graduée : SVG cloné sans width/height, style width:100 %,
-    conteneur pleine largeur (les autres figures gardent leurs 340 px) ;
-  · export – en-tête : titre à gauche, date puis DURÉE du test à droite sur la
-    même ligne (« 18.08.2026 · ⏱ 25 min »). Le chronomètre part de
-    demarrerEvaluation (`state.test.debut`) et se fige à la première
-    validation (`state.test.duree`) ; un export lancé avant validation compte
-    jusqu'à l'export. Sans secondes : « moins d'une minute », « 25 min »,
-    « 1 h 15 min ». Le score n'y figure plus, le récapitulatif le donne ;
-  · export – RÉCAPITULATIF en tête du document : un tableau à 2 colonnes par
-    domaine (ligne de titre = domaine, lignes suivantes = sous-domaines,
-    points/total – %). Les exercices d'un MÊME sous-domaine sont cumulés sur
-    une seule ligne (prop-concret, vocab, niveaux fusionnés) ; les exercices
-    hors barème n'ouvrent pas de ligne. Chaque item du test porte pour cela
-    `domainNum` / `domainTitle`, posés par demarrerEvaluation ;
-  · export – racines simplifiées (`sqrt-prefix`) : les deux champs sont
-    réécrits en un seul radical (√175 = 5√7) via un span data-tex, chaque
-    nombre coloré par \textcolor selon sa propre correction ; « 5 ; 7 »
-    n'avait de sens que devant les cases de l'écran ;
-  · export – questions à choix : les 4 propositions sont affichées, la bonne en
-    vert, celle cochée soulignée (rouge si fausse), mention « (sans réponse) »
-    si rien n'est coché. La grille passe à 1 colonne dès qu'une question à
-    choix est présente.
-Les autres domaines n'ont pas encore été passés en revue avec Aurelio.
+8.5 À RETIRER AVANT UNE LIVRAISON DESTINÉE AUX ÉLÈVES
+────────────────────────────────────────────────────
+Tout ce qui suit est EN PLACE et fonctionnel ; il s'agit d'outils de mise au
+point, pas de code mort.
+· Bouton de la barre de titre qui ouvre l'espace enseignant : une ligne dans la
+  topbar, une dans le bloc d'initialisation. (Retiré en v379, RÉTABLI en v384 à
+  la demande d'Aurelio, l'atelier étant en chantier.)
+· `MDP_ENSEIGNANT_ACTIF` à repasser à true si le mot de passe doit revenir.
+· MIS EN VEILLE depuis v379, à ne PAS supprimer — servira dans la partie
+  enseignant : les boutons ⚡ Remplir, Solutions et 🧩 Composition ont quitté le
+  bandeau du test, et `poserCasesComposition` n'est plus appelée en fin de
+  renderTest. Pour les remettre : rétablir les trois boutons dans le bandeau de
+  renderTest et l'appel `poserCasesComposition(main)` à la fin.
+  remplirTestAuto remplit un test pour un score de 70 à 80 % ; il corrige en
+  silence, ajuste, puis efface ses marques.
+  Les cases de composition sont clées par INDEX d'exercice (`ex12`) : Pythagore
+  fournit deux exercices de même sous-domaine et même niveau.
+
+8.6 MÉTHODE DE TRAVAIL ÉPROUVÉE — à reconduire
+─────────────────────────────────────────────
+Après chaque correction, écrire un petit harnais jsdom qui REJOUE le scénario
+décrit par Aurelio (composer, remplir, valider, exporter, MESURER) plutôt que de
+se fier au code lu. La moitié des défauts trouvés ne se voyaient pas autrement :
+scores faux sur les champs nommés, réponses collées, tolérance des exposants,
+conversions d'unités fausses (407 sur 3 200 avant correction), badges instables,
+prénoms répétés (38 exercices sur 3 760).
+Chiffrer le défaut AVANT de corriger, puis remesurer après : c'est ce qui permet
+de dire à Aurelio ce qui a changé, et de repérer qu'un correctif n'a rien changé.
+Quand un doute subsiste sur ce qu'il demande, le dire et proposer, plutôt que
+d'implanter une interprétation en silence — deux allers-retours ont été perdus
+ainsi (une remarque prise pour une consigne, une sélection ambiguë).
 ═══════════════════════════════════════════════════════════════════════════════
 -->
 <html lang="fr">
@@ -673,6 +683,22 @@ Les autres domaines n'ont pas encore été passés en revue avec Aurelio.
     vertical-align: middle; padding: 0; flex: 0 0 auto;
   }
   .atelier-refaire:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+  /* Déplacer une question dans son exercice : ▲▼ EMPILÉS, pour ne pas élargir
+     la barre d'outils dans les cellules de tableau, qui portent jusqu'à trois
+     questions sur une même ligne. */
+  .atelier-bouger { display: inline-flex; flex-direction: column; flex: 0 0 auto; }
+  .atelier-bouger button {
+    appearance: none; border: 1px solid var(--border2); background: var(--surface);
+    color: var(--accent); width: 16px; height: 11px; padding: 0;
+    font-size: 8px; line-height: 1; cursor: pointer; flex: 0 0 auto;
+    font-family: inherit;
+  }
+  .atelier-bouger button:first-child { border-radius: 5px 5px 0 0; }
+  .atelier-bouger button:last-child { border-radius: 0 0 5px 5px; margin-top: -1px; }
+  .atelier-bouger button:hover:not(:disabled) {
+    background: var(--accent); color: #fff; border-color: var(--accent);
+  }
+  .atelier-bouger button:disabled { opacity: 0.3; cursor: default; }
   .atelier-outils { display: inline-flex; align-items: center; gap: 5px; margin-right: 7px;
     vertical-align: middle; }
   .atelier-garder { width: 15px; height: 15px; cursor: pointer; margin: 0; accent-color: var(--accent); }
@@ -680,11 +706,91 @@ Les autres domaines n'ont pas encore été passés en revue avec Aurelio.
      d'œil ce qui partira au PDF. */
   .atelier-q-exclue { opacity: 0.4; }
   .atelier-outils.atelier-q-exclue { opacity: 1; }
-  .atelier-subs {
-    display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-    gap: 0 18px; margin: 0 0 10px; padding: 10px 14px;
-    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+  /* Menu déroulant à deux niveaux (domaines › sous-domaines). */
+  .atelier-menu { position: relative; }
+  .atelier-menu-btn {
+    display: inline-flex; align-items: center; gap: 10px; min-width: 300px;
+    height: 36px; padding: 0 12px; box-sizing: border-box;
+    background: var(--surface); border: 1px solid var(--border2);
+    border-radius: var(--radius-sm); font-family: inherit; font-size: 13px;
+    font-weight: 700; color: var(--text); cursor: pointer; text-align: left;
   }
+  .atelier-menu-btn > span:first-child { flex: 1; }
+  .atelier-menu-fleche { color: var(--muted); font-size: 11px; }
+  .atelier-menu.ouvert .atelier-menu-fleche { transform: rotate(180deg); }
+  .atelier-menu-panneau {
+    display: none; position: absolute; z-index: 60; top: 40px; left: 0;
+    width: 380px; max-height: 60vh; overflow: auto; padding: 8px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); box-shadow: var(--shadow-md);
+  }
+  .atelier-menu.ouvert .atelier-menu-panneau { display: block; }
+  /* Accueil de l'espace enseignant : une carte par chantier. */
+  .ens-cartes {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px; margin-top: 6px;
+  }
+  .ens-carte {
+    display: flex; flex-direction: column; gap: 8px; text-align: left;
+    padding: 20px; background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); box-shadow: var(--shadow-sm);
+    font-family: inherit; cursor: pointer; position: relative;
+    transition: all 0.15s;
+  }
+  .ens-carte:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .ens-carte-titre { font-size: 16px; font-weight: 800; color: var(--text); }
+  .ens-carte-texte { font-size: 13.5px; line-height: 1.45; color: var(--muted); }
+  .ens-carte-etat {
+    align-self: flex-start; margin-top: 4px; padding: 2px 9px;
+    background: var(--warning-soft); color: var(--warning);
+    border-radius: 999px; font-size: 11px; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.04em;
+  }
+  .ens-carte-avenir { opacity: 0.75; }
+  .voile-pdf {
+    position: fixed; inset: 0; z-index: 950;
+    background: rgba(30, 29, 26, 0.45);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .voile-pdf-boite {
+    background: var(--surface); border-radius: var(--radius);
+    padding: 28px 36px; text-align: center; min-width: 260px;
+    box-shadow: var(--shadow-md);
+  }
+  .voile-pdf-rond {
+    width: 34px; height: 34px; margin: 0 auto 14px;
+    border: 3px solid var(--border); border-top-color: var(--accent);
+    border-radius: 50%; animation: voile-tourne 0.8s linear infinite;
+  }
+  @keyframes voile-tourne { to { transform: rotate(360deg); } }
+  .voile-pdf-titre { font-size: 15px; font-weight: 800; color: var(--text); }
+  .voile-pdf-texte { margin-top: 6px; font-size: 13px; color: var(--muted); }
+  .prenoms-cols {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px; margin-bottom: 14px;
+  }
+  .prenoms-col { display: flex; flex-direction: column; gap: 6px; }
+  .prenoms-titre { font-size: 12px; font-weight: 800; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 0.05em; }
+  .prenoms-col textarea {
+    height: 240px; padding: 10px 12px; font-family: inherit; font-size: 14.5px;
+    line-height: 1.7; border: 1px solid var(--border2); border-radius: var(--radius-sm);
+    background: var(--surface); color: var(--text); resize: vertical;
+  }
+  .prenoms-ok { color: var(--success); font-weight: 700; }
+  .prenoms-attention { color: var(--warning); font-weight: 700; }
+  .atelier-poignee {
+    cursor: grab; color: var(--border2); font-size: 15px; line-height: 1;
+    padding: 0 2px; user-select: none;
+  }
+  .atelier-poignee:active { cursor: grabbing; }
+  .atelier-entete .btn-icon-mini {
+    width: 28px; height: 28px; padding: 0; font-size: 11px; line-height: 1;
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+  .atelier-item.atelier-en-vol { opacity: 0.45; }
+  .atelier-item.atelier-cible-haut { box-shadow: 0 -3px 0 0 var(--accent); }
+  .atelier-item.atelier-cible-bas { box-shadow: 0 3px 0 0 var(--accent); }
   .atelier-sep { flex: 1; }
   .atelier-nom { font-size: 13px; font-weight: 700; color: var(--muted); }
   .atelier-barre label.btn-action { display: inline-flex; align-items: center; cursor: pointer; }
@@ -3024,6 +3130,7 @@ Les autres domaines n'ont pas encore été passés en revue avec Aurelio.
   <div class="topbar-actions">
     <button class="btn-action btn-icon" id="btn-domain-pdf" onclick="openDomainPdfModal()" title="PDF d'un domaine"><img class="btn-icon-img" alt="PDF" src=""></button>
     <button class="btn-action btn-icon" id="btn-eval" onclick="openEvalModal()" title="Évaluation"><img class="btn-icon-img" src="" alt="Test"></button>
+    <button class="btn-action btn-icon" id="btn-enseignant" onclick="ouvrirEspaceEnseignant()" title="Espace enseignant·e"></button>
   </div>
 </div>
 
@@ -3219,8 +3326,89 @@ const choice = (arr) => arr[Math.floor(Math.random() * arr.length)];
 const sign = () => choice([-1, 1]);
 const fmtSigned = (n) => n >= 0 ? `(+${n})` : `(${n})`;
 
-const PRENOMS_M = ['Amir', 'Yusuf', 'Samir', 'Omar', 'Mehdi'];
-const PRENOMS_F = ['Laetitia', 'Fatima', 'Leïla', 'Aïcha', 'Nadia', 'Sofia'];
+// Les vingt générateurs qui nomment quelqu'un passent tous par pickPrenom :
+// modifier ces deux tableaux suffit à changer les prénoms de TOUS les énoncés.
+// Ils sont modifiables depuis l'espace enseignant ; on garde donc une copie de
+// la liste d'origine pour pouvoir y revenir.
+// Liste de la classe d'Aurelio, devenue la liste D'ORIGINE (v393) : le bouton
+// « Rétablir » y revient. Les prénoms précédents (Amir, Yusuf, Samir, Omar,
+// Mehdi / Laetitia, Fatima, Leïla, Aïcha, Nadia, Sofia) ne servent plus.
+const PRENOMS_M = ['Ayman', 'Ismael', 'Kefayat', 'Mouhamed', 'Mustafa', 'Qadir'];
+const PRENOMS_F = ['Sherin', 'Natalia', 'Esther', 'Jennedly', 'Luwam', 'Mariama', 'Rosalia', 'Nelly'];
+const PRENOMS_M_ORIGINE = PRENOMS_M.slice();
+const PRENOMS_F_ORIGINE = PRENOMS_F.slice();
+const CLE_PRENOMS = 'eva-maths-prenoms';
+
+// Remplacement EN PLACE : les tableaux sont des `const` et sont lus à chaque
+// tirage, donc le changement vaut immédiatement pour tout ce qui sera généré.
+function appliquerPrenoms(m, f) {
+  if (Array.isArray(m) && m.length) PRENOMS_M.splice(0, PRENOMS_M.length, ...m);
+  if (Array.isArray(f) && f.length) PRENOMS_F.splice(0, PRENOMS_F.length, ...f);
+}
+
+// n prénoms tous différents. Si les listes n'en offrent pas assez (l'enseignant
+// peut n'en laisser qu'un), on complète en autorisant les répétitions plutôt
+// que de rendre une liste trop courte.
+function pickPrenomsDistincts(n, genre) {
+  const source = genre === 'M' ? PRENOMS_M : genre === 'F' ? PRENOMS_F
+    : PRENOMS_M.concat(PRENOMS_F);
+  const restants = source.slice();
+  const out = [];
+  while (out.length < n) {
+    if (!restants.length) { out.push(choice(source)); continue; }
+    const k = Math.floor(Math.random() * restants.length);
+    out.push(restants.splice(k, 1)[0]);
+  }
+  return out;
+}
+
+// Prénoms repérés dans un texte, en tenant compte des accents : \b ne borne pas
+// correctement « Leïla » ou « Noé ».
+const _PRENOM_BORNE = "[A-Za-zÀ-ÖØ-öø-ÿ]";
+function _prenomsPresents(txt) {
+  const s = String(txt || '');
+  return PRENOMS_M.concat(PRENOMS_F).filter(p =>
+    new RegExp(`(^|[^${_PRENOM_BORNE.slice(1, -1)}])${p}(?![${_PRENOM_BORNE.slice(1, -1)}])`).test(s));
+}
+function _remplacerPrenom(txt, ancien, neuf) {
+  const cl = _PRENOM_BORNE.slice(1, -1);
+  return String(txt).replace(
+    new RegExp(`(^|[^${cl}])${ancien}(?![${cl}])`, 'g'), `$1${neuf}`);
+}
+
+// Un même prénom ne doit pas revenir d'une question à l'autre d'un exercice :
+// deux énoncés voisins parlant tous deux d'Amir donnent l'impression d'une
+// suite, alors qu'ils sont indépendants. Appelée après chaque génération.
+const CHAMPS_PRENOM = ['text', 'answer', 'solutionDetail', 'equation'];
+function unifierPrenoms(ex) {
+  if (!ex || !Array.isArray(ex.questions)) return ex;
+  const vus = new Set();
+  ex.questions.forEach(q => {
+    if (!q) return;
+    const presents = _prenomsPresents(CHAMPS_PRENOM.map(c => q[c]).join(' '));
+    presents.forEach(p => {
+      if (!vus.has(p)) { vus.add(p); return; }
+      const source = PRENOMS_M.includes(p) ? PRENOMS_M : PRENOMS_F;
+      const libres = source.filter(x => !vus.has(x) && !presents.includes(x));
+      if (!libres.length) return;            // réservoir épuisé : on laisse
+      const neuf = choice(libres);
+      CHAMPS_PRENOM.forEach(c => {
+        if (typeof q[c] === 'string') q[c] = _remplacerPrenom(q[c], p, neuf);
+      });
+      vus.add(neuf);
+    });
+  });
+  return ex;
+}
+
+function chargerPrenomsEnregistres() {
+  try {
+    const brut = window.localStorage.getItem(CLE_PRENOMS);
+    if (!brut) return;
+    const o = JSON.parse(brut);
+    appliquerPrenoms(o && o.m, o && o.f);
+  } catch (e) { /* stockage indisponible : liste d'origine */ }
+}
 function pickPrenom(genre) {
   if (genre === 'M') return choice(PRENOMS_M);
   if (genre === 'F') return choice(PRENOMS_F);
@@ -7018,7 +7206,9 @@ function genPropConcretFractions() {
 
   // --- Type 9 : comparer deux fractions de deux touts DIFFÉRENTS ---
   function patCompareFractions() {
-    const noms = choice([['Marie', 'Paul'], ['Léa', 'Tom'], ['Sara', 'Hugo'], ['Inès', 'Noah']]);
+    // Une fille et un garçon, tirés dans les listes réglables (elles étaient
+    // écrites en dur : ces énoncés échappaient au réglage des prénoms).
+    const noms = [pickPrenom('F'), pickPrenom('M')];
     const o = choice([
       { det: "d'un livre", unite: 'pages', verbe: 'a lu', part: 'lu' },
       { det: "d'un trajet", unite: 'km', verbe: 'a parcouru', part: 'parcouru' },
@@ -7296,7 +7486,15 @@ function genPropConcretProp() {
     const somme = parts.reduce((a, b) => a + b, 0);
     const unite = total / somme; // CHF par heure (entier ou décimal)
     // Choisir une personne et son nombre de parts
-    const prenoms = ['Jacques', 'Sébastien', 'Henri'];
+    // Trois prénoms du MÊME genre quand la liste le permet : l'énoncé accorde
+    // « amis / amies » et « Ils / Elles ». À défaut (liste trop courte), on
+    // mélange et l'on garde le masculin, qui vaut pour un groupe mixte.
+    const genreGroupe = choice(['M', 'F']);
+    const assez = (genreGroupe === 'M' ? PRENOMS_M : PRENOMS_F).length >= 3;
+    const prenoms = pickPrenomsDistincts(3, assez ? genreGroupe : null);
+    const feminin = assez && genreGroupe === 'F';
+    const motAmis = feminin ? 'amies' : 'amis';
+    const motIls = feminin ? 'Elles' : 'Ils';
     const idx = Math.floor(Math.random() * 3);
     const prenom = prenoms[idx];
     const partCible = parts[idx];
@@ -7306,7 +7504,7 @@ function genPropConcretProp() {
     // chacun – une situation de partage proportionnel naturelle.
     const heuresList = parts.map((p, i) => `${prenoms[i]} ${p} heures`).join(', ');
     return {
-      text: `Trois amis ont loué ensemble un paddle pour la journée. La location revient à ${total} CHF. Ils décident de payer chacun proportionnellement au temps d'utilisation : ${heuresList}. Quelle est la part à payer pour ${prenom} ?`,
+      text: `Trois ${motAmis} ont loué ensemble un paddle pour la journée. La location revient à ${total} CHF. ${motIls} décident de payer chacun${feminin ? 'e' : ''} proportionnellement au temps d'utilisation : ${heuresList}. Quelle est la part à payer pour ${prenom} ?`,
       answer: `Total des heures : ${parts.join(' + ')} = ${somme} h. Prix par heure : ${total} ÷ ${somme} = ${fmt(unite)} CHF/h. Part de ${prenom} : ${fmt(unite)} × ${partCible} = ${fmt(sa_part)} CHF.`
     };
   }
@@ -12130,6 +12328,7 @@ function genVolumesN3() {
 
 function genPerimAire() {
   if (state.niveau === 1) return genPerimAireN1();
+  if (state.niveau === 3) return genPerimAireN3();
   return genPerimAireN2();
 }
 
@@ -12741,6 +12940,357 @@ function genPerimAireN2() {
     intro: "",
     questions,
     singleColumn: true   // affichage écran : 1 colonne compacte (pas de 2 colonnes)
+  };
+}
+
+// --- Niveau 3 : problèmes rédigés ---
+// Les 13 modèles reprennent les énoncés fournis par Aurelio ; seules les
+// valeurs changent d'un tirage à l'autre. Quatre d'entre eux portent une
+// figure (cadre carré, figure en L, trapèze, rectangle moins trapèze) : ils
+// utilisent le couple `figureLeft` / `figureSvg` déjà en place pour les
+// problèmes de Pythagore — énoncé et champ en haut, illustration en dessous.
+function genPerimAireN3() {
+  // Format suisse : virgule décimale, apostrophe des milliers, zéros de queue
+  // retirés. Les prix atteignent facilement cinq chiffres, d'où l'apostrophe.
+  const fmt = (n) => {
+    if (!Number.isFinite(n)) return String(n);
+    const r = Math.round(n * 100) / 100;
+    const signe = r < 0 ? '-' : '';
+    let s = Math.abs(r).toString();
+    if (s.indexOf('.') !== -1) s = s.replace(/0+$/, '').replace(/\.$/, '');
+    const parts = s.split('.');
+    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, "'");
+    return signe + parts.join(',');
+  };
+  const svgWrap = (svg) => `<div class="perim-figure">${svg}</div>`;
+  const TRAIT = '#1F2937', GRIS = '#D1D5DB';
+  // Flèche de cote : un trait avec deux têtes, comme sur les figures d'Aurelio.
+  const defsFleche = `<defs>
+      <marker id="pa3-fl" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M 0 0 L 10 5 L 0 10 z" fill="${TRAIT}"/>
+      </marker>
+    </defs>`;
+  const cote = (x1, y1, x2, y2) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"
+      stroke="${TRAIT}" stroke-width="1.2" marker-start="url(#pa3-fl)" marker-end="url(#pa3-fl)"/>`;
+  const txt = (x, y, t, anc = 'middle') =>
+    `<text x="${x}" y="${y}" font-size="11" text-anchor="${anc}" fill="${TRAIT}">${t}</text>`;
+
+  // ---- 1) Terrain triangulaire, base = double de la hauteur ----
+  function patTerrainTriangle() {
+    const h = rand(28, 80) / 2;                    // 14 à 40 m, au demi-mètre
+    const prix = choice([80, 90, 100, 110, 125, 150, 180, 200]);
+    const aire = h * h;                            // (2h × h) ÷ 2 = h²
+    return {
+      famille: 'triangle',
+      text: `Un terrain triangulaire de ${fmt(h)} m de hauteur et dont la base est le double de la hauteur est vendu ${fmt(prix)} CHF le mètre carré. Quel est le prix du terrain ?`,
+      answer: `${fmt(aire * prix)} CHF`,
+      solutionDetail: `base = 2 × ${fmt(h)} = ${fmt(2 * h)} m. A = (${fmt(2 * h)} × ${fmt(h)}) ÷ 2 = ${fmt(aire)} m². Prix = ${fmt(aire)} × ${fmt(prix)} = ${fmt(aire * prix)} CHF.`
+    };
+  }
+
+  // ---- 2) Aire grisée entre deux carrés (cadre) ----
+  function patCadreCarres() {
+    const C = rand(7, 14);                         // côté du grand carré, cm
+    const c = rand(3, C - 2);                      // côté du petit carré, cm
+    const P = 4 * C;
+    const aire = C * C - c * c;
+    // Figure : deux carrés emboîtés, l'anneau grisé, le centre blanc.
+    const T = 96, e = Math.max(8, Math.round(T * (C - c) / (2 * C)));
+    const svg = `<svg viewBox="0 0 ${T + 10} ${T + 10}" style="width:100%;max-width:130px;height:auto;display:block;">
+      <rect x="5" y="5" width="${T}" height="${T}" fill="${GRIS}" stroke="${TRAIT}" stroke-width="1.3"/>
+      <rect x="${5 + e}" y="${5 + e}" width="${T - 2 * e}" height="${T - 2 * e}" fill="#FFFFFF" stroke="${TRAIT}" stroke-width="1.3"/>
+    </svg>`;
+    return {
+      famille: 'carre',
+      figure: true,
+      text: `Que vaut l'aire grisée si le périmètre du grand carré mesure ${fmt(P)} cm et que le côté du petit carré mesure ${fmt(c * 10)} mm ?`,
+      figureSvg: svgWrap(svg),
+      answer: `${fmt(aire)} cm²`,
+      solutionDetail: `grand carré : côté = ${fmt(P)} ÷ 4 = ${fmt(C)} cm, A = ${fmt(C * C)} cm². Petit carré : ${fmt(c * 10)} mm = ${fmt(c)} cm, A = ${fmt(c * c)} cm². Aire grisée = ${fmt(C * C)} − ${fmt(c * c)} = ${fmt(aire)} cm².`
+    };
+  }
+
+  // ---- 3) Fil de fer autour d'un pré carré ----
+  function patPreCarre() {
+    const cote4 = rand(20, 90);                    // côté en m
+    const P = 4 * cote4;
+    return {
+      famille: 'carre',
+      text: `On a utilisé ${fmt(P)} m de fil de fer pour entourer un pré carré. Quelle est l'aire de ce pré ?`,
+      answer: `${fmt(cote4 * cote4)} m²`,
+      solutionDetail: `côté = ${fmt(P)} ÷ 4 = ${fmt(cote4)} m. A = ${fmt(cote4)}² = ${fmt(cote4 * cote4)} m².`
+    };
+  }
+
+  // ---- 4) Terrain carré : aire donnée, prix de la barrière ----
+  function patCarreBarriere() {
+    const c = choice([30, 40, 45, 50, 60, 70, 80, 90, 100, 120]);
+    const prix = choice([60, 70, 75, 80, 90, 100, 110, 120]);
+    const P = 4 * c;
+    return {
+      famille: 'carre',
+      text: `Un terrain carré a une aire de ${fmt(c * c)} m². On désire entourer ce terrain d'une barrière qui revient à ${fmt(prix)} CHF le mètre. Calcule le prix de cette barrière.`,
+      answer: `${fmt(P * prix)} CHF`,
+      solutionDetail: `côté = √${fmt(c * c)} = ${fmt(c)} m. P = 4 × ${fmt(c)} = ${fmt(P)} m. Prix = ${fmt(P)} × ${fmt(prix)} = ${fmt(P * prix)} CHF.`
+    };
+  }
+
+  // ---- 5) Terrain rectangulaire : largeur et aire données, prix de la clôture ----
+  function patRectBarriere() {
+    const l = rand(20, 40);
+    const L = l + rand(10, 40);
+    const prix = choice([100, 110, 120, 140, 150, 160, 180, 200]);
+    const P = 2 * (L + l);
+    return {
+      famille: 'rectangle',
+      text: `Un terrain rectangulaire de ${fmt(l)} m de largeur a une aire de ${fmt(L * l)} m². On désire clôturer ce terrain par une barrière qui revient à ${fmt(prix)} CHF le mètre. Calcule le prix de cette barrière.`,
+      answer: `${fmt(P * prix)} CHF`,
+      solutionDetail: `longueur = ${fmt(L * l)} ÷ ${fmt(l)} = ${fmt(L)} m. P = 2 × (${fmt(L)} + ${fmt(l)}) = ${fmt(P)} m. Prix = ${fmt(P)} × ${fmt(prix)} = ${fmt(P * prix)} CHF.`
+    };
+  }
+
+  // ---- 6) Aire d'une figure en L ----
+  function patFigureL() {
+    const H = rand(50, 80);                        // hauteur totale
+    const hBras = rand(25, H - 22);                // hauteur du bras droit
+    const bBras = rand(60, 100);                   // longueur du bras droit
+    const W = bBras + rand(40, 70);                // largeur totale
+    const gauche = W - bBras;
+    const aire = gauche * H + bBras * hBras;
+    // Figure : colonne à gauche (pleine hauteur) + bras à droite (bas).
+    // Marges calculées pour que les quatre cotes et leurs étiquettes tiennent
+    // dans le viewBox : à gauche la hauteur totale, à droite la hauteur du
+    // bras, en dessous la largeur totale.
+    const X0 = 52, Y0 = 16, LARG = 180, HAUT = 118;
+    const px = (v) => X0 + LARG * v / W;
+    const py = (v) => Y0 + HAUT * (1 - v / H);     // v mesuré depuis le bas
+    const poly = [
+      [px(0), py(H)], [px(gauche), py(H)], [px(gauche), py(hBras)],
+      [px(W), py(hBras)], [px(W), py(0)], [px(0), py(0)]
+    ].map(p => `${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' ');
+    const svg = `<svg viewBox="0 0 292 172" style="width:100%;max-width:270px;height:auto;display:block;">
+      ${defsFleche}
+      <polygon points="${poly}" fill="${GRIS}" stroke="${TRAIT}" stroke-width="1.3"/>
+      ${cote(X0 - 14, py(H), X0 - 14, py(0))}${txt(X0 - 18, (py(H) + py(0)) / 2 + 4, `${fmt(H)} m`, 'end')}
+      ${cote(px(gauche), py(hBras) - 9, px(W), py(hBras) - 9)}${txt((px(gauche) + px(W)) / 2, py(hBras) - 13, `${fmt(bBras)} m`)}
+      ${cote(px(W) + 13, py(hBras), px(W) + 13, py(0))}${txt(px(W) + 17, (py(hBras) + py(0)) / 2 + 4, `${fmt(hBras)} m`, 'start')}
+      ${cote(px(0), py(0) + 13, px(W), py(0) + 13)}${txt((px(0) + px(W)) / 2, py(0) + 27, `${fmt(W)} m`)}
+    </svg>`;
+    return {
+      famille: 'composee',
+      figure: true,
+      text: `Quelle est l'aire de la partie grisée ?`,
+      figureSvg: svgWrap(svg),
+      answer: `${fmt(aire)} m²`,
+      solutionDetail: `colonne de gauche : (${fmt(W)} − ${fmt(bBras)}) × ${fmt(H)} = ${fmt(gauche)} × ${fmt(H)} = ${fmt(gauche * H)} m². Bras de droite : ${fmt(bBras)} × ${fmt(hBras)} = ${fmt(bBras * hBras)} m². Total = ${fmt(aire)} m².`
+    };
+  }
+
+  // ---- 7) Tours de terrain de football ----
+  function patTourTerrain() {
+    const n = rand(5, 10);
+    const L = rand(90, 130);
+    const l = rand(45, Math.min(80, L - 20));
+    const P = 2 * (L + l);
+    return {
+      famille: 'rectangle',
+      text: `Les joueurs d'une équipe de football font ${fmt(n)} fois le tour d'un terrain comme échauffement, parcourant ainsi ${fmt(n * P)} m. La longueur du terrain est de ${fmt(L)} m. Quelle est sa largeur ?`,
+      answer: `${fmt(l)} m`,
+      solutionDetail: `P = ${fmt(n * P)} ÷ ${fmt(n)} = ${fmt(P)} m. Demi-périmètre = ${fmt(P / 2)} m. Largeur = ${fmt(P / 2)} − ${fmt(L)} = ${fmt(l)} m.`
+    };
+  }
+
+  // ---- 8) Clôture d'un jardin : prix total connu, largeur cherchée ----
+  function patClotureJardin() {
+    const L = rand(20, 45);
+    const l = rand(8, L - 5);
+    const prix = choice([12, 15, 18, 20, 25, 30]);
+    const P = 2 * (L + l);
+    return {
+      famille: 'rectangle',
+      text: `Une clôture a été installée autour d'un jardin rectangulaire de ${fmt(L)} m de longueur. Sachant qu'un mètre de clôture revient à ${fmt(prix)} CHF et que l'on a payé au total ${fmt(P * prix)} CHF, calcule la largeur de ce jardin.`,
+      answer: `${fmt(l)} m`,
+      solutionDetail: `P = ${fmt(P * prix)} ÷ ${fmt(prix)} = ${fmt(P)} m. Demi-périmètre = ${fmt(P / 2)} m. Largeur = ${fmt(P / 2)} − ${fmt(L)} = ${fmt(l)} m.`
+    };
+  }
+
+  // ---- 9) Terrain en parallélogramme : base cherchée ----
+  function patParallelogrammeTerrain() {
+    const prix = choice([100, 110, 125, 150, 180, 200]);
+    const h = choice([20, 25, 30, 35, 40, 45, 50]);
+    const base = rand(25, 90);
+    const aire = base * h;
+    return {
+      famille: 'parallelogramme',
+      text: `Un terrain en forme de parallélogramme a été vendu à ${fmt(prix)} CHF le m². Le prix de vente est de ${fmt(aire * prix)} CHF. Sachant que la hauteur du parallélogramme mesure ${fmt(h)} m, calcule sa base.`,
+      answer: `${fmt(base)} m`,
+      solutionDetail: `A = ${fmt(aire * prix)} ÷ ${fmt(prix)} = ${fmt(aire)} m². Base = ${fmt(aire)} ÷ ${fmt(h)} = ${fmt(base)} m.`
+    };
+  }
+
+  // ---- 10) Losange de même périmètre qu'un triangle équilatéral ----
+  function patLosangePerimetre() {
+    const c = 2 * rand(5, 14);                     // côté du triangle, pair
+    const cote = 3 * c / 4;
+    return {
+      famille: 'losange',
+      text: `Un losange a le même périmètre qu'un triangle équilatéral de ${fmt(c)} cm de côté. Combien mesure le côté du losange ?`,
+      answer: `${fmt(cote)} cm`,
+      solutionDetail: `P du triangle = 3 × ${fmt(c)} = ${fmt(3 * c)} cm. Côté du losange = ${fmt(3 * c)} ÷ 4 = ${fmt(cote)} cm.`
+    };
+  }
+
+  // ---- 11) Losange de même aire qu'un rectangle : 2e diagonale ----
+  function patLosangeAire() {
+    // On part des diagonales pour que la seconde tombe juste, puis on
+    // construit un rectangle de même aire.
+    let d1, d2, L, l, aire, essai = 60;
+    do {
+      d1 = 2 * rand(6, 25);                        // pair
+      d2 = 2 * rand(6, 25);
+      aire = d1 * d2 / 2;
+      L = choice([20, 25, 28, 30, 35, 40, 50]);
+      l = aire / L;
+      essai--;
+    } while (essai > 0 && (d1 === d2 || l < 5 || l > 60 || Math.round(l * 2) !== l * 2));
+    return {
+      famille: 'losange',
+      text: `Un losange a la même aire qu'un rectangle de ${fmt(L)} m de long et ${fmt(l)} m de large. Sachant que la 1<sup>re</sup> diagonale du losange mesure ${fmt(d1)} m, quelle est la mesure de sa 2<sup>e</sup> diagonale ?`,
+      answer: `${fmt(d2)} m`,
+      solutionDetail: `A = ${fmt(L)} × ${fmt(l)} = ${fmt(aire)} m². 2<sup>e</sup> diagonale = (2 × ${fmt(aire)}) ÷ ${fmt(d1)} = ${fmt(d2)} m.`
+    };
+  }
+
+  // ---- 12) Trapèze rectangle : aire donnée, périmètre cherché ----
+  function patTrapezePerimetre() {
+    // Le côté oblique doit tomber juste : le décalage horizontal et la hauteur
+    // forment un triplet pythagoricien.
+    const [dx, hh, obl] = choice([[3, 4, 5], [6, 8, 10], [4, 3, 5], [8, 6, 10], [5, 12, 13], [12, 5, 13]]);
+    const a = rand(6, 15);                         // petite base (en haut)
+    const b = a + dx;                              // grande base (en bas)
+    const aire = (a + b) * hh / 2;
+    const P = a + b + obl + hh;
+    // Figure : trapèze rectangle, angle droit en bas à droite. L'échelle
+    // s'adapte à la base et à la hauteur, qui varient d'un tirage à l'autre :
+    // une échelle fixe faisait sortir les grands trapèzes du cadre.
+    const ech = Math.min(160 / b, 96 / hh, 12);
+    const X0 = 46, yH = 34, YB = yH + hh * ech;
+    const xA = X0 + dx * ech, xB = X0 + b * ech;
+    // Cote du côté oblique : elle doit être PARALLÈLE au côté. On décale donc
+    // ses deux extrémités du même vecteur, PERPENDICULAIRE au côté (décaler en
+    // x seul, ou décaler les extrémités différemment, la fait pencher).
+    const vx = xA - X0, vy = yH - YB, vL = Math.hypot(vx, vy) || 1;
+    const nx = vy / vL, ny = -vx / vL;             // normale tournée vers l'extérieur
+    const DEC = 13, DEC_TXT = DEC + 11;
+    const oX1 = X0 + nx * DEC, oY1 = YB + ny * DEC;
+    const oX2 = xA + nx * DEC, oY2 = yH + ny * DEC;
+    const tX = (X0 + xA) / 2 + nx * DEC_TXT, tY = (YB + yH) / 2 + ny * DEC_TXT + 4;
+    const VW = Math.round(xB + 16), VH = Math.round(YB + 34);
+    const svg = `<svg viewBox="0 0 ${VW} ${VH}" style="width:100%;max-width:${Math.min(250, VW)}px;height:auto;display:block;">
+      ${defsFleche}
+      <polygon points="${xA.toFixed(1)},${yH} ${xB.toFixed(1)},${yH} ${xB.toFixed(1)},${YB.toFixed(1)} ${X0},${YB.toFixed(1)}" fill="${GRIS}" stroke="${TRAIT}" stroke-width="1.3"/>
+      <path d="M ${(xB - 9).toFixed(1)} ${YB.toFixed(1)} L ${(xB - 9).toFixed(1)} ${(YB - 9).toFixed(1)} L ${xB.toFixed(1)} ${(YB - 9).toFixed(1)}" fill="none" stroke="${TRAIT}" stroke-width="1.1"/>
+      ${cote(xA, yH - 11, xB, yH - 11)}${txt((xA + xB) / 2, yH - 15, 'a')}
+      ${cote(X0, YB + 13, xB, YB + 13)}${txt((X0 + xB) / 2, YB + 27, 'b')}
+      ${cote(oX1, oY1, oX2, oY2)}${txt(tX, tY, 'c', 'end')}
+      ${txt((X0 + xB) / 2 + 6, (yH + YB) / 2 + 4, `${fmt(aire)} cm²`)}
+    </svg>`;
+    return {
+      famille: 'trapeze',
+      figure: true,
+      text: `L'aire du trapèze est de ${fmt(aire)} cm². Calcule son périmètre.<br>a = ${fmt(a)} cm&nbsp;&nbsp; b = ${fmt(b)} cm&nbsp;&nbsp; c = ${fmt(obl)} cm`,
+      figureSvg: svgWrap(svg),
+      answer: `${fmt(P)} cm`,
+      solutionDetail: `hauteur = (2 × ${fmt(aire)}) ÷ (${fmt(a)} + ${fmt(b)}) = ${fmt(hh)} cm. P = ${fmt(a)} + ${fmt(b)} + ${fmt(obl)} + ${fmt(hh)} = ${fmt(P)} cm.`
+    };
+  }
+
+  // ---- 13) Rectangle moins trapèze : les deux coins grisés ----
+  function patRectangleMoinsTrapeze() {
+    const b = rand(12, 20);                        // largeur du rectangle
+    const h = choice([4, 4.5, 5, 6, 7.5]);         // hauteur du rectangle
+    const a = (rand(2, (b - 5) * 2) / 2) + 1;      // petite base du trapèze
+    const aireRect = b * h;
+    const grisee = h * (b - a) / 2;
+    const ech = 190 / b, X0 = 22, YH = 26;
+    const HT = h * (ech * 0.9);
+    const xA = X0 + (b - a) / 2 * ech, xB = xA + a * ech;
+    const svg = `<svg viewBox="0 0 236 ${Math.round(YH + HT) + 34}" style="width:100%;max-width:236px;height:auto;display:block;">
+      ${defsFleche}
+      <rect x="${X0}" y="${YH}" width="${(b * ech).toFixed(1)}" height="${HT.toFixed(1)}" fill="${GRIS}" stroke="${TRAIT}" stroke-width="1.3"/>
+      <polygon points="${xA.toFixed(1)},${YH} ${xB.toFixed(1)},${YH} ${(X0 + b * ech).toFixed(1)},${(YH + HT).toFixed(1)} ${X0},${(YH + HT).toFixed(1)}" fill="#FFFFFF" stroke="${TRAIT}" stroke-width="1.3"/>
+      ${cote(xA, YH - 9, xB, YH - 9)}${txt((xA + xB) / 2, YH - 13, `${fmt(a)} m`)}
+      ${cote(X0, YH + HT + 13, X0 + b * ech, YH + HT + 13)}${txt(X0 + b * ech / 2, YH + HT + 27, `${fmt(b)} m`)}
+    </svg>`;
+    return {
+      famille: 'composee',
+      figure: true,
+      text: `Quelle est l'aire de la partie grisée ? L'aire du rectangle mesure ${fmt(aireRect)} m².`,
+      figureSvg: svgWrap(svg),
+      answer: `${fmt(grisee)} m²`,
+      solutionDetail: `hauteur du rectangle = ${fmt(aireRect)} ÷ ${fmt(b)} = ${fmt(h)} m. Aire du trapèze blanc = ((${fmt(a)} + ${fmt(b)}) ÷ 2) × ${fmt(h)} = ${fmt(aireRect - grisee)} m². Aire grisée = ${fmt(aireRect)} − ${fmt(aireRect - grisee)} = ${fmt(grisee)} m².`
+    };
+  }
+
+  const patrons = [
+    patTerrainTriangle, patCadreCarres, patPreCarre, patCarreBarriere,
+    patRectBarriere, patFigureL, patTourTerrain, patClotureJardin,
+    patParallelogrammeTerrain, patLosangePerimetre, patLosangeAire,
+    patTrapezePerimetre, patRectangleMoinsTrapeze
+  ];
+
+  const NB = 5;
+  const MAX_FIGURES = 2;          // au-delà, la page n'a plus de place pour rédiger
+  const labels = ['a)', 'b)', 'c)', 'd)', 'e)', 'f)'];
+  // Ordre des modèles mélangé (Fisher-Yates), puis on prend les premiers qui
+  // passent les contraintes : pas deux fois la même famille de figure, et pas
+  // plus de MAX_FIGURES énoncés illustrés.
+  const ordre = patrons.map((_, i) => i);
+  for (let i = ordre.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [ordre[i], ordre[j]] = [ordre[j], ordre[i]];
+  }
+  const questions = [];
+  const familles = new Set();
+  let nbFigures = 0;
+  const pousser = (q) => {
+    questions.push({
+      label: labels[questions.length],
+      text: q.text,
+      answer: q.answer,
+      acceptAlt: q.acceptAlt || [],
+      figureLeft: !!q.figure,
+      figureSvg: q.figureSvg || '',
+      solutionDetail: q.solutionDetail
+    });
+  };
+  for (const idx of ordre) {
+    if (questions.length >= NB) break;
+    const q = patrons[idx]();
+    if (familles.has(q.famille)) continue;
+    if (q.figure && nbFigures >= MAX_FIGURES) continue;
+    familles.add(q.famille);
+    if (q.figure) nbFigures++;
+    pousser(q);
+  }
+  // Filet : si les contraintes ont trop mordu, on complète en autorisant la
+  // répétition d'une famille (mais jamais deux fois le même énoncé).
+  let garde = 60;
+  const vus = new Set(questions.map(q => q.text));
+  while (questions.length < NB && garde-- > 0) {
+    const q = patrons[choice(ordre)]();
+    if (vus.has(q.text)) continue;
+    if (q.figure && nbFigures >= MAX_FIGURES) continue;
+    if (q.figure) nbFigures++;
+    vus.add(q.text);
+    pousser(q);
+  }
+
+  return {
+    multi: true,
+    intro: '',
+    questions,
+    singleColumn: true
   };
 }
 
@@ -14118,6 +14668,10 @@ function genCercleVocab() {
     intro: 'Clique sur une étiquette et sur l’élément correspondant.',
     introPdf: names.join(' &nbsp;·&nbsp; '),
     geo: cercleGeo(rot, mirror),
+    // `geo` contient une fonction de formatage : elle ne survit pas au passage
+    // en JSON (compositions enregistrées ou exportées). On garde donc de quoi
+    // la reconstruire à l'identique — cercleGeo est déterministe.
+    _geoParams: { rot, mirror },
     parts: CERCLE_PARTS.map(p => ({ key: p.key, correct: p.key })),
     labels: CERCLE_PARTS.map(p => ({ key: p.key, term: p.term, n: p.n, color: p.color }))
   };
@@ -14564,7 +15118,7 @@ const ICONE_ENSEIGNANT = '<svg viewBox="0 0 24 24" width="21" height="21" fill="
 const ICONE_PDF = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJkAAACUCAMAAAC3HHtWAAAAk1BMVEXi5ef////xVkKwt73K0dji6OrxW0jyUDnG2eHlzczmgnrV2t/x8/T19vbxUTzwTDX4u7Xnvr28wsf+8/L84N3yYlD1jID1hXf1kYb4q6L4t7D96ujwQib1mY7++Pf70c3zcWHxSC/zeGn3pJv6ysX72dXy2Nbj1dXtgnfyaFf3sKj6w73UubvV4ebco6HkioPitLFLhhsqAAAElUlEQVR4nO3ca5eaOhQG4ICOtHUa7AAqIgiIbdVezv//dUcS7tlAXIYkq4v308xCzeNOCAEVZAzmKxKWj8Xi4324tVbQyGahsqdow7J3wbLFgp82LHsTLuOv2rBMIKyQ8dMGZQLHfyXjpsmX8dIUyDhpKmR8NCUyLpoa2eLjq64yjqqpko1XTZlstGrqZGM0hbIRmkrZME2pbJCmVjZEUywboKmW9dOUy3qnXPWyvqppIOupmg4yuGpayMCq6SGDqiZPthySAVWTJ1sPytiqyZMNdydbNYmykaJ1aRJlY0Xr0GTKnqNJlY3sn22aXBlaL4fr1qBJlpEsB/KmVDZEUywboKmW9dOUy3pp6mV9NA1kPTQdZDBNCxlI00MG0TSRATRdZCxNGxlD00fWpWkkQ/rKkL4ypK8M6StD+sqQvjKkrwzpK0P6ypC+MqSvDOkrQ/rKkL6ytbYyVF+tnWWiZW8T5jlZ4Lby/fN0+YFAGyxzw9hbyUoc/oBooOxi2tiUFmybEA2SRaklz5XH/slZs5PEgtGsPrNFg2R3W7YMf+OTbWbZLJtls2yWzbJWrORYJklaaxFs2WUsiznm1htpoIPySzK8PQVl3Oyc1gQrDX3/nMc/h/t0lbTb3vqthDGwkHlFhneO0YyTXYtHWdvWFsc9xA3b6m504nhs1V6R2QemhT192OrS3WJs4rLx7hvKcz8KlVkbpoWI9ovnMlsMN4ULSnJIJpA5gUNStL+qZRFN+RLBDvfJgpXY3qSy2zXOs/MpIbRLWeT/3OYJb0UFL7R9KnMOdXzRewCV+TYmsa8BKdqxku3oFsvGu4C+SFLL3MakwU4rgmTlv/u8ak5emEJWVcKOadmuuJYBmKlkmHpiQGZaMenrg61EZppknso9jMw8khnG9fSTWWletCjF9TizHnmMwsdInFqG6S4A9mY5keR7LpUFYRX4JFugLPHzf6OK0ZatTuWDmfnM2UO012XnI931zTMZ5KfGrNFsEGdkF0igmdaJgQ59XZaFZE1xO9GZlrx/QGYS2Q2UGdtJZO3c6+NmZ5yRg/wZ6k3j4rEvLlrm0h2NlRW7R17R4uh0qnIA1kCCZVF2pW2wMjvMH+BcG7MGmTbywBfmBMqcU2gWbQDzGSnZhfwpa6Y9nWn2qVm9d0ZGZxQyzOTJzkfaJc0+6cjwMSQ7bmRLrZkPbClkCSZoHG+iumQayIzs9lgV3g73YqYzsuJp6mWdXK7N1baMccYpy7xi2EmQ2ed8C3Q4Zs/qorA6CcFpLhu9WP7a1YNNFB3AdULqRjXKcU/bY+P5OHQiN51UhnG6gz/AsLxdndSz2s+249119IOPF68F9axHyZY6TzxNmGzCzLJZNstm2TSyTPpnwh7nZ8KBbBiOGVfPdw9u7DXeSWHHX785ZVGYJNV52ORJ8J/lmlP2WOv54b6VL5Pl73/LT0/Iunn/NF3yLzXyjjNAxvzkQWy0lQEwPWTAKOOXrScM5PoXvrM3y2bZLJtls+zfk3He90Do3TnFykTe0ZQr9Q8XRmTSi9a4zcyITOQNap+Djckk92fzbin/A8PQxx30Ei25AAAAAElFTkSuQmCC';
 
 // Numéro de version, affiché en pied de menu.
-const APP_VERSION = '382';
+const APP_VERSION = '397';
 
 const DOMAINS = [
   {
@@ -14622,7 +15176,7 @@ const DOMAINS = [
     icon: "📏",
     color: "c4",
     subdomains: [
-      { id: 'perim-aire',       title: "Utiliser les formules de calcul de périmètres et d'aires", gen: genPerimAire, hasNiveau2: true, niveauLabels: ['Figures', 'Énoncés'], patrons: () => [genPerimAire] },
+      { id: 'perim-aire',       title: "Utiliser les formules de calcul de périmètres et d'aires", gen: genPerimAire, hasNiveau2: true, niveauLabels: ['Figures', 'Énoncés', 'Problèmes'], patrons: () => [genPerimAire] },
       { id: 'volumes',          title: "Utiliser les formules de calcul de volumes",        gen: genVolumes, hasNiveau2: true, niveauLabels: ['Solides', 'Énoncés', 'Bases composées'], patrons: () => [genVolumes] },
       { id: 'unites',           title: "Transformer les unités (longueur, aire, volume, capacité, temps)", gen: genUnites, patrons: () => [genUnites],
         variants: [
@@ -14952,6 +15506,11 @@ function selectSubdomain(id) {
   if (state.test) return;
   const found = findSubdomain(id);
   if (!found || !(found.sub.gen || found.sub.embed)) return;
+  // Depuis l'espace enseignant, choisir un sous-domaine en sort : sans cela le
+  // menu se déployait, se laissait cliquer, et rien ne se passait — renderMain
+  // rendait toujours l'espace enseignant. La composition en cours est gardée
+  // dans `state.atelier` : on la retrouve en revenant.
+  state.espaceEnseignant = false;
   // Annuler tout compte à rebours d'auto-fermeture en cours (l'utilisateur
   // est passé à un exercice : le menu peut rester dans son état actuel).
   if (typeof cancelSidebarAutoClose === 'function') cancelSidebarAutoClose();
@@ -15094,6 +15653,8 @@ function generateExercisesForActive() {
       state.exercises.push(genFn());
     }
   }
+  // Un prénom ne revient pas d'une question à l'autre d'un même exercice.
+  state.exercises.forEach(ex => unifierPrenoms(ex));
   // Stocke les exercices dans le cache pour pouvoir les retrouver plus tard.
   if (cacheKey) state.exercisesCache[cacheKey] = state.exercises.slice();
 }
@@ -15693,7 +16254,10 @@ const COMPO_TEST_GLOBAL = {
   'resoudre-eq':   [['a', 'b', 'd']],
   'pb-equation':   [['c', 'd', 'e']],
   // --- Grandeurs et mesures · Pythagore
-  'perim-aire':    [['a', 'c', 'd']],
+  // Ex 1 (énoncés) tient désormais en 3 questions : on le garde entier.
+  // Ex 2 (problèmes, ajouté au PDF de domaine) est écarté du test raccourci,
+  // qui reste à 31 exercices et ~100 points.
+  'perim-aire':    ['*', null],
   volumes: [
     // N1 : un prisme et une figure à base composée. Les solides simples sont
     // en tête (`_nbSolidesSimples`) et leur ordre est tiré au sort : on les
@@ -16009,13 +16573,16 @@ function separateurDomaine(it, premier, plusieurs, mention) {
 // à chaque aller-retour.
 // ============================================================================
 const MDP_ENSEIGNANT = 'ClaudIA*';
+const MDP_ENSEIGNANT_ACTIF = false;   // ← true pour redemander le mot de passe
 
 function ouvrirEspaceEnseignant() {
   if (state.test) {
     alert("Termine ou quitte le test en cours avant d'ouvrir l'espace enseignant·e.");
     return;
   }
-  if (!state.enseignantDeverrouille) {
+  // Mot de passe SUSPENDU pendant la mise au point de l'espace enseignant
+  // (v393). Pour le remettre : passer MDP_ENSEIGNANT_ACTIF à true.
+  if (MDP_ENSEIGNANT_ACTIF && !state.enseignantDeverrouille) {
     const saisi = prompt("Espace enseignant·e — mot de passe :");
     if (saisi === null) return;                       // annulé
     if (saisi !== MDP_ENSEIGNANT) {
@@ -16026,6 +16593,7 @@ function ouvrirEspaceEnseignant() {
   }
   snapshotCurrentInputs();
   state.espaceEnseignant = true;
+  state.enseignantVue = 'accueil';
   state.activeSubId = null;
   state.exercises = [];
   renderSidebar();
@@ -16089,35 +16657,119 @@ async function atelierComposerSousDomaine(subId) {
 // Compose la liste de départ. Sans sous-domaine coché, on prend le domaine
 // entier (structures fixes des domaines 4 et 5) ; sinon on met bout à bout les
 // compositions des sous-domaines cochés, dans l'ordre du menu.
-async function atelierComposer() {
-  const selDom = document.getElementById('atelier-domaine');
-  if (!selDom) return;
-  const domainNum = parseInt(selDom.value, 10);
-  const coches = atelierSousDomainesCoches();
-  const zone = document.getElementById('atelier-zone');
-  if (zone) zone.innerHTML = '<div class="placeholder">Composition en cours…</div>';
-
-  if (!coches.length) {
-    const compo = composerItemsDomaine(domainNum);
-    if (!compo || !compo.items.length) {
-      if (zone) zone.innerHTML = '<div class="placeholder"><strong>Rien à composer</strong>Ce domaine n\'a produit aucun exercice.</div>';
-      return;
-    }
-    state.atelier = { mode: 'domaine', domainNum, compo, items: compo.items, nom: '' };
-  } else {
-    const items = [];
-    for (const id of coches) items.push(...(await atelierComposerSousDomaine(id)));
-    if (!items.length) {
-      if (zone) zone.innerHTML = '<div class="placeholder"><strong>Rien à composer</strong>Aucun exercice n\'a été produit.</div>';
-      return;
-    }
-    state.atelier = { mode: 'sousdomaine', domainNum, items, nom: '' };
+// Rang d'un sous-domaine dans le menu : domaine, puis position dans le domaine.
+// Il sert à replacer un exercice ajouté « à sa place » plutôt qu'à la fin.
+function atelierRang(subId) {
+  for (let d = 0; d < DOMAINS.length; d++) {
+    const subs = atelierSousDomaines(DOMAINS[d].num);
+    const k = subs.findIndex(sub => sub.id === subId);
+    if (k >= 0) return d * 1000 + k;
   }
+  return 999999;
+}
+
+// Insère chaque exercice après le dernier de rang inférieur ou égal : l'ordre
+// du menu est respecté sans défaire un tri fait à la main.
+function atelierInsererDansOrdre(items, neufs) {
+  neufs.forEach(neuf => {
+    const rang = atelierRang(neuf.sub.id);
+    let pos = 0;
+    for (let k = 0; k < items.length; k++) {
+      if (atelierRang(items[k].sub.id) <= rang) pos = k + 1;
+    }
+    items.splice(pos, 0, neuf);
+  });
+  return items;
+}
+
+// Exercices correspondant à la sélection du menu, dans l'ordre du menu.
+async function atelierExercicesSelectionnes() {
+  const retenus = DOMAINS
+    .map(d => ({ d, subs: atelierSousDomaines(d.num), sel: atelierSelection[d.num] || new Set() }))
+    .filter(o => o.subs.length && o.sel.size);
+  const items = [];
+  for (const { d, subs, sel } of retenus) {
+    if (sel.size === subs.length) {
+      // Domaine entier : sa composition structurée, telle quelle.
+      const compo = composerItemsDomaine(d.num);
+      if (compo) items.push(...compo.items);
+      continue;
+    }
+    for (const sub of subs) {
+      if (sel.has(sub.id)) items.push(...(await atelierComposerSousDomaine(sub.id)));
+    }
+  }
+  return { retenus, items };
+}
+
+function atelierViderSelection() {
+  DOMAINS.forEach(d => {
+    atelierSelection[d.num] = new Set();
+    const chk = document.getElementById(`atelier-chk-${d.num}`);
+    if (chk) { chk.checked = false; chk.indeterminate = false; }
+    atelierSousDomaines(d.num).forEach(sub => {
+      const c = document.getElementById(`atelier-chk-${d.num}-${sub.id}`);
+      if (c) c.checked = false;
+    });
+  });
+  atelierRafraichirMenu();
+}
+
+// Le bouton compose au premier jet, puis AJOUTE : une fois qu'on a trié,
+// renouvelé et écarté des questions, tout refaire serait une perte sèche.
+async function atelierComposerOuAjouter() {
+  const at = state.atelier;
+  if (at && at.items && at.items.length) return atelierAjouterSelection();
+  return atelierComposer();
+}
+
+async function atelierAjouterSelection() {
+  const at = state.atelier;
+  if (!at) return;
+  atelierBasculerMenu(false);
+  const { items: neufs } = await atelierExercicesSelectionnes();
+  if (!neufs.length) { alert("Coche d'abord ce que tu veux ajouter dans le menu."); return; }
+  atelierInsererDansOrdre(at.items, neufs);
+  atelierSyncCompo();
+  for (const neuf of neufs) {
+    const k = at.items.indexOf(neuf);
+    if (k >= 0) await atelierDedoublonner(k);
+  }
+  atelierViderSelection();
   renderAtelier();
 }
 
-function atelierSousDomainesCoches() {
-  return [...document.querySelectorAll('#atelier-subs input:checked')].map(c => c.value);
+function atelierVider() {
+  if (!state.atelier || !state.atelier.items.length) return;
+  if (!confirm("Vider la composition et repartir de zéro ?")) return;
+  state.atelier = null;
+  atelierViderSelection();
+  renderAtelier();
+}
+
+async function atelierComposer() {
+  const zone = document.getElementById('atelier-zone');
+  if (zone) zone.innerHTML = '<div class="placeholder">Composition en cours…</div>';
+  atelierBasculerMenu(false);
+
+  const { retenus, items } = await atelierExercicesSelectionnes();
+  if (!retenus.length) {
+    if (zone) zone.innerHTML = '<div class="placeholder"><strong>Rien à composer</strong>Coche un domaine ou quelques sous-domaines dans le menu.</div>';
+    return;
+  }
+  if (!items.length) {
+    if (zone) zone.innerHTML = '<div class="placeholder"><strong>Rien à composer</strong>Aucun exercice n\'a été produit.</div>';
+    return;
+  }
+  // Un domaine entier, et lui seul : on garde sa composition structurée, avec
+  // son `idxConstruction` – c'est elle que le PDF de domaine attend.
+  const seulEtComplet = (retenus.length === 1 && retenus[0].sel.size === retenus[0].subs.length);
+  state.atelier = seulEtComplet
+    ? { mode: 'domaine', domainNum: retenus[0].d.num, items, nom: '',
+        compo: { domain: retenus[0].d, items, idxConstruction: items.findIndex(it => it.ex && it.ex._construction) } }
+    : { mode: 'sousdomaine', domainNum: retenus[0].d.num, items, nom: '' };
+  atelierViderSelection();
+  renderAtelier();
 }
 
 // Ajoute un exercice : soit du même sous-domaine qu'un exercice existant
@@ -16130,12 +16782,76 @@ async function atelierAjouterExercice(subId, apres) {
   const pos = (typeof apres === 'number') ? apres + 1 : at.items.length;
   at.items.splice(pos, 0, neufs[0]);
   atelierSyncCompo();
+  // Doubler un exercice ne doit pas doubler ses questions.
+  const remplacees = await atelierDedoublonner(pos);
+  renderAtelier();
+  if (remplacees) {
+    const bloc = document.querySelector(`[data-atelier-ex="${pos}"]`);
+    if (bloc && bloc.scrollIntoView) bloc.scrollIntoView({ block: 'center' });
+  }
+}
+
+// Déplacement d'un exercice dans la liste : par les flèches ▲▼ (précis) ou en
+// glissant sa poignée. L'ordre compte — c'est celui du PDF.
+function atelierDeplacerExercice(i, delta) {
+  const at = state.atelier;
+  if (!at) return;
+  const j = i + delta;
+  if (j < 0 || j >= at.items.length) return;
+  const [item] = at.items.splice(i, 1);
+  at.items.splice(j, 0, item);
+  atelierSyncCompo();
   renderAtelier();
 }
 
-function atelierAjouterDepuisMenu() {
-  const sel = document.getElementById('atelier-ajout');
-  if (sel && sel.value) atelierAjouterExercice(sel.value);
+// Glisser-déposer : l'index de départ est mémorisé ici plutôt que dans le
+// dataTransfer, que Safari ne rend pas lisible pendant le survol — or c'est
+// pendant le survol qu'il faut savoir où l'on va poser.
+let atelierGlisse = null;
+
+function atelierGlisserDebut(ev, i) {
+  atelierGlisse = i;
+  if (ev.dataTransfer) {
+    ev.dataTransfer.effectAllowed = 'move';
+    ev.dataTransfer.setData('text/plain', String(i));
+  }
+  const bloc = document.querySelector(`[data-atelier-ex="${i}"]`);
+  if (bloc) bloc.classList.add('atelier-en-vol');
+}
+
+function atelierGlisserSurvol(ev, i) {
+  if (atelierGlisse === null || atelierGlisse === i) return;
+  ev.preventDefault();
+  if (ev.dataTransfer) ev.dataTransfer.dropEffect = 'move';
+  const bloc = document.querySelector(`[data-atelier-ex="${i}"]`);
+  if (!bloc) return;
+  // Le trait se pose au-dessus ou en dessous selon le sens du déplacement.
+  bloc.classList.toggle('atelier-cible-haut', atelierGlisse > i);
+  bloc.classList.toggle('atelier-cible-bas', atelierGlisse < i);
+}
+
+function atelierGlisserQuitte(i) {
+  const bloc = document.querySelector(`[data-atelier-ex="${i}"]`);
+  if (bloc) bloc.classList.remove('atelier-cible-haut', 'atelier-cible-bas');
+}
+
+function atelierDeposer(ev, i) {
+  if (ev) ev.preventDefault();
+  const depart = atelierGlisse;
+  atelierGlisserFin();
+  if (depart === null || depart === i) return;
+  const at = state.atelier;
+  if (!at) return;
+  const [item] = at.items.splice(depart, 1);
+  at.items.splice(i, 0, item);
+  atelierSyncCompo();
+  renderAtelier();
+}
+
+function atelierGlisserFin() {
+  atelierGlisse = null;
+  document.querySelectorAll('.atelier-en-vol, .atelier-cible-haut, .atelier-cible-bas')
+    .forEach(el => el.classList.remove('atelier-en-vol', 'atelier-cible-haut', 'atelier-cible-bas'));
 }
 
 function atelierSupprimerExercice(i) {
@@ -16164,6 +16880,11 @@ function atelierItemsPourPdf() {
   const at = state.atelier;
   if (!at) return [];
   return at.items.map(it => {
+    // Énoncés écartés (symétries, vocabulaire) : on les retire d'une copie.
+    if (Array.isArray(it.ex.statements) && it.ex.statements.some(st => st._exclue)) {
+      const gardes = it.ex.statements.filter(st => !st._exclue);
+      if (gardes.length) it = { ...it, ex: { ...it.ex, statements: gardes } };
+    }
     const qs = it.ex.questions;
     if (!Array.isArray(qs) || !qs.some(q => q._exclue)) return it;
     const gardees = qs.filter(q => !q._exclue);
@@ -16182,6 +16903,50 @@ function atelierItemsPourPdf() {
   });
 }
 
+// Énoncés (symétries, vocabulaire à compléter) : mêmes gestes que pour une
+// question, sur `ex.statements`.
+function atelierBasculerEnonce(i, k, gardee) {
+  const st = state.atelier && state.atelier.items[i]
+    && (state.atelier.items[i].ex.statements || [])[k];
+  if (!st) return;
+  if (gardee) delete st._exclue; else st._exclue = true;
+  const bloc = document.querySelector(`[data-atelier-ex="${i}"]`);
+  const grp = bloc && bloc.querySelector(`[data-atelier-q="${k}"]`);
+  if (grp) {
+    grp.classList.toggle('atelier-q-exclue', !gardee);
+    const li = grp.closest('li');
+    if (li) li.classList.toggle('atelier-q-exclue', !gardee);
+  }
+}
+
+function _sigEnonce(st) {
+  if (!st) return '';
+  return [st.nom, st.art, (st.blanks || []).map(b => `${b.u}=${b.a}`).join('·')]
+    .filter(Boolean).join('¦');
+}
+
+async function atelierRefaireEnonce(i, k) {
+  const it = state.atelier && state.atelier.items[i];
+  if (!it || !Array.isArray(it.ex.statements) || !it.ex.statements[k]) return;
+  const interdits = new Set(it.ex.statements.map((st, x) => x === k ? '' : _sigEnonce(st)));
+  const avant = _sigEnonce(it.ex.statements[k]);
+  for (let essai = 0; essai < 25; essai++) {
+    const neuf = await atelierNouvelExercice(i);
+    if (!neuf || !Array.isArray(neuf.statements) || !neuf.statements.length) continue;
+    // Le nouvel exercice peut proposer ses énoncés dans un autre ordre : on
+    // prend le premier qui n'est pas déjà là.
+    const libre = neuf.statements.find(st => {
+      const sig = _sigEnonce(st);
+      return sig && sig !== avant && !interdits.has(sig);
+    });
+    if (!libre) continue;
+    it.ex.statements[k] = libre;
+    renderAtelier();
+    return;
+  }
+  alert("Aucun autre énoncé n'a été trouvé pour cette place : tous ceux que le générateur propose figurent déjà.");
+}
+
 function atelierBasculerQuestion(i, j, gardee) {
   const at = state.atelier;
   const q = at && at.items[i] && (at.items[i].ex.questions || [])[j];
@@ -16195,6 +16960,58 @@ function atelierBasculerQuestion(i, j, gardee) {
     const porteur = grp.closest('.multi-item') || grp.closest('tr') || grp.closest('.transform-row');
     if (porteur) porteur.classList.toggle('atelier-q-exclue', !gardee);
   }
+}
+
+// Bornes du sous-bloc qui contient la question `j`. Les exercices à sous-blocs
+// (developper) font repartir leurs libellés à a) dans chacun : un déplacement
+// qui franchirait une frontière changerait le sens du bloc. Sans sous-bloc,
+// les bornes sont celles de l'exercice entier.
+function atelierBornesSousGroupe(ex, j) {
+  const total = (ex && ex.questions ? ex.questions.length : 0);
+  if (!ex || !Array.isArray(ex.subgroups) || ex.subgroups.length < 2) {
+    return { debut: 0, fin: total };
+  }
+  let n = 0;
+  for (const g of ex.subgroups) {
+    const t = (g.questions || []).length;
+    if (j < n + t) return { debut: n, fin: n + t };
+    n += t;
+  }
+  return { debut: 0, fin: total };
+}
+
+// Déplace la question (i, j) d'un cran. L'ÉTIQUETTE EST POSITIONNELLE : elle
+// reste à sa place et seule la question bouge – même convention que le
+// renouvellement (atelierRemplacerQuestion). Vérifié sur tous les générateurs :
+// les libellés sont des repères de position (« a) » partout, « 1. » pour les
+// unités), jamais un contenu qu'il faudrait emmener avec la question.
+function atelierDeplacerQuestion(i, j, delta) {
+  const it = state.atelier && state.atelier.items[i];
+  const qs = it && it.ex && it.ex.questions;
+  if (!Array.isArray(qs) || !qs[j]) return;
+  const k = j + delta;
+  const bornes = atelierBornesSousGroupe(it.ex, j);
+  if (k < bornes.debut || k >= bornes.fin || !qs[k]) return;
+  const etiqJ = qs[j].label, etiqK = qs[k].label;
+  const tmp = qs[j]; qs[j] = qs[k]; qs[k] = tmp;
+  if (etiqJ !== undefined) qs[j].label = etiqJ;
+  if (etiqK !== undefined) qs[k].label = etiqK;
+  atelierResyncSousGroupes(it.ex);
+  atelierSyncCompo();
+  renderAtelier();
+}
+
+// Même geste sur les exercices bâtis sur des énoncés (symétries, vocabulaire à
+// compléter) : ils n'ont pas d'étiquette, la puce de la liste fait la place.
+function atelierDeplacerEnonce(i, k, delta) {
+  const it = state.atelier && state.atelier.items[i];
+  const sts = it && it.ex && it.ex.statements;
+  if (!Array.isArray(sts) || !sts[k]) return;
+  const m = k + delta;
+  if (m < 0 || m >= sts.length) return;
+  const tmp = sts[k]; sts[k] = sts[m]; sts[m] = tmp;
+  atelierSyncCompo();
+  renderAtelier();
 }
 
 // Refait une composition et rend l'exercice de rang `i`. Rend null si la
@@ -16230,41 +17047,146 @@ async function atelierRefaireExercice(i) {
   if (!ex) { alert("Cet exercice n'a pas pu être renouvelé."); return; }
   at.items[i].ex = ex;
   if (at.mode === 'domaine' && at.compo) at.compo.items[i].ex = ex;
+  await atelierDedoublonner(i);
   renderAtelier();
+}
+
+// ----------------------------------------------------------------------------
+// Unicité des questions
+// Une question ne doit jamais figurer deux fois dans la même série — ni entre
+// deux exercices, ni entre un exercice et son double. Le libellé (a, b, c…)
+// est ignoré : c'est la question qui compte, pas sa place.
+// ----------------------------------------------------------------------------
+function atelierSignature(q) {
+  if (!q) return '';
+  const morceaux = [q.text, q.equation, q.answer,
+    Array.isArray(q.expected) ? q.expected.join('·') : '',
+    Array.isArray(q.outputs) ? q.outputs.map(o => o && o.unit).join('·') : '',
+    Array.isArray(q.choices) ? q.choices.join('·') : ''];
+  return morceaux.filter(v => v !== undefined && v !== null && v !== '')
+    .join('¦').replace(/\s+/g, ' ').trim();
+}
+
+// Signatures de TOUTES les questions de la série, hors celle qu'on remplace
+// (ou hors l'exercice entier quand on le renouvelle).
+function atelierSignaturesAilleurs(sansI, sansJ) {
+  const vues = new Set();
+  (state.atelier ? state.atelier.items : []).forEach((it, i) => {
+    (it.ex.questions || []).forEach((q, j) => {
+      if (i === sansI && (sansJ === undefined || j === sansJ)) return;
+      const sig = atelierSignature(q);
+      if (sig) vues.add(sig);
+    });
+  });
+  return vues;
+}
+
+// Remplace la question (i, j) par une autre, absente de `interdites`.
+// Rend true si elle a changé.
+async function atelierRemplacerQuestion(i, j, interdites) {
+  const it = state.atelier.items[i];
+  const qs = it.ex.questions;
+  if (!Array.isArray(qs) || !qs[j]) return false;
+  const avant = atelierSignature(qs[j]);
+  const etiquette = qs[j].label;
+  for (let essai = 0; essai < 25; essai++) {
+    const neuf = await atelierNouvelExercice(i);
+    if (!neuf || !Array.isArray(neuf.questions) || !neuf.questions[j]) continue;
+    const q = { ...neuf.questions[j] };
+    if (etiquette !== undefined) q.label = etiquette;   // la place ne change pas
+    const sig = atelierSignature(q);
+    if (sig === avant) continue;                        // même tirage
+    if (interdites && interdites.has(sig)) continue;    // déjà ailleurs dans la série
+    qs[j] = q;
+    atelierResyncSousGroupes(it.ex);
+    unifierPrenoms(it.ex);
+    return true;
+  }
+  return false;
+}
+
+// Les exercices à sous-blocs (developper) tiennent la même liste deux fois.
+function atelierResyncSousGroupes(ex) {
+  if (!Array.isArray(ex.subgroups)) return;
+  let n = 0;
+  ex.subgroups.forEach(g => {
+    const taille = (g.questions || []).length;
+    g.questions = ex.questions.slice(n, n + taille);
+    n += taille;
+  });
+}
+
+// Chasse les doublons d'un exercice avec le reste de la série : utilisé après
+// avoir renouvelé ou dupliqué un exercice entier.
+async function atelierDedoublonner(i) {
+  const it = state.atelier && state.atelier.items[i];
+  if (!it || !Array.isArray(it.ex.questions)) return 0;
+  let corrigees = 0;
+  for (let j = 0; j < it.ex.questions.length; j++) {
+    const ailleurs = atelierSignaturesAilleurs(i, j);
+    if (!ailleurs.has(atelierSignature(it.ex.questions[j]))) continue;
+    if (await atelierRemplacerQuestion(i, j, ailleurs)) corrigees++;
+  }
+  return corrigees;
 }
 
 async function atelierRefaireQuestion(i, j) {
   const at = state.atelier;
   const it = at && at.items[i];
   if (!it || !Array.isArray(it.ex.questions) || !it.ex.questions[j]) return;
-  const avant = JSON.stringify(it.ex.questions[j]);
-  const etiquette = it.ex.questions[j].label;
-  for (let essai = 0; essai < 20; essai++) {
-    const neuf = await atelierNouvelExercice(i);
-    if (!neuf || !Array.isArray(neuf.questions) || !neuf.questions[j]) continue;
-    const q = { ...neuf.questions[j] };
-    if (etiquette !== undefined) q.label = etiquette;   // la place ne change pas
-    if (JSON.stringify(q) === avant) continue;          // même tirage : on relance
-    it.ex.questions[j] = q;
-    // Les exercices à sous-blocs (developper) tiennent la même liste deux fois.
-    if (Array.isArray(it.ex.subgroups)) {
-      let n = 0;
-      it.ex.subgroups.forEach(g => {
-        const taille = (g.questions || []).length;
-        g.questions = it.ex.questions.slice(n, n + taille);
-        n += taille;
-      });
-    }
-    renderAtelier();
-    return;
-  }
-  alert("Aucune autre question n'a été trouvée pour cette place.");
+  const ok = await atelierRemplacerQuestion(i, j, atelierSignaturesAilleurs(i, j));
+  if (!ok) { alert("Aucune AUTRE question n'a été trouvée pour cette place : toutes celles que le générateur propose figurent déjà dans la série."); return; }
+  renderAtelier();
+}
+
+// Voile d'attente : la génération d'un PDF prend plusieurs secondes, pendant
+// lesquelles rien ne bougeait à l'écran — on croyait le bouton sans effet.
+// Il est posé AVANT le premier `await` pour que le navigateur ait le temps de
+// le peindre.
+function ouvrirVoilePdf(texte) {
+  fermerVoilePdf();
+  const v = document.createElement('div');
+  v.id = 'voile-pdf';
+  v.className = 'voile-pdf';
+  v.innerHTML = `<div class="voile-pdf-boite">
+      <div class="voile-pdf-rond"></div>
+      <div class="voile-pdf-titre">Génération du PDF…</div>
+      <div class="voile-pdf-texte" id="voile-pdf-texte">${texte || ''}</div>
+    </div>`;
+  document.body.appendChild(v);
+  // Deux images successives : sans cela le voile n'apparaît qu'une fois le
+  // travail terminé, le fil d'exécution étant occupé entre-temps.
+  return new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+}
+
+function fermerVoilePdf() {
+  const v = document.getElementById('voile-pdf');
+  if (v) v.remove();
 }
 
 async function atelierGenererPdf() {
   const at = state.atelier;
-  if (!at || !at.items.length) return;
+  // Sans ce message, cliquer sur l'icône PDF avant d'avoir composé ne faisait
+  // RIEN du tout — on pouvait croire le bouton en panne.
+  if (!at || !at.items.length) {
+    alert("Compose d'abord une série d'exercices : coche des domaines ou des sous-domaines dans le menu, puis « Composer ».");
+    return;
+  }
   const items = atelierItemsPourPdf();
+  const nb = items.length;
+  await ouvrirVoilePdf(`${nb} exercice${nb > 1 ? 's' : ''} — cela prend quelques secondes.`);
+  try {
+    await atelierGenererPdfInterne(at, items);
+  } catch (e) {
+    // Une erreur silencieuse donnait un bouton qui « ne fait rien ».
+    console.error(e);
+    alert("La génération du PDF a échoué :\n" + (e && e.message ? e.message : e));
+  } finally {
+    fermerVoilePdf();
+  }
+}
+
+async function atelierGenererPdfInterne(at, items) {
   if (at.mode === 'domaine') {
     await downloadDomainPdf(at.domainNum, {
       domain: at.compo.domain,
@@ -16282,11 +17204,18 @@ async function atelierGenererPdf() {
     await downloadDomainPdf(at.domainNum, { domain, items, idxConstruction: -1 });
     return;
   }
-  const savedSub = state.activeSubId;
+  const savedSub = state.activeSubId, savedEx = state.exercises;
   try {
     state.activeSubId = ids[0];
-    await downloadPdf({ exercicesImposes: items.map(it => it.ex) });
-  } finally { state.activeSubId = savedSub; }
+    // downloadPdf compose à partir de state.exercises avant d'accepter la
+    // liste imposée : les deux doivent décrire la même chose, sans quoi ses
+    // cas particuliers travaillent sur des exercices d'un autre sous-domaine.
+    state.exercises = items.map(it => it.ex);
+    await downloadPdf({ exercicesImposes: state.exercises });
+  } finally {
+    state.activeSubId = savedSub;
+    state.exercises = savedEx;
+  }
 }
 
 // ----------------------------------------------------------------------------
@@ -16321,11 +17250,40 @@ function compositionSerialiser(at) {
   };
 }
 
+// Reconstitue ce que JSON ne sait pas transporter. Sans cela, un exercice
+// relu depuis un fichier faisait échouer le rendu de TOUTE la page.
+function reconstruireEx(ex) {
+  if (!ex || !ex.geo || typeof ex.geo.f === 'function') return ex;
+  if (ex._geoParams) {
+    ex.geo = cercleGeo(ex._geoParams.rot, ex._geoParams.mirror);
+    return ex;
+  }
+  // Fichier enregistré AVANT que _geoParams existe : la rotation se retrouve
+  // dans la figure elle-même. letterPos.rayon est le milieu de [O, A], donc
+  // A = 2·rayon − O, et l'angle de A donne la rotation. Le miroir se lit au
+  // sens de l'arc (letterPos.arc d'un côté ou de l'autre du diamètre).
+  const lp = ex.geo.letterPos;
+  if (!lp || !lp.rayon) { delete ex.geo; return ex; }
+  const A = [2 * lp.rayon[0] - 100, 2 * lp.rayon[1] - 100];
+  const rot = Math.atan2(A[1] - 100, A[0] - 100) * 180 / Math.PI;
+  // On essaie les deux miroirs et l'on garde celui dont l'arc retombe au bon
+  // endroit : c'est le seul point qui distingue les deux figures.
+  const ecart = (m) => {
+    const g = cercleGeo(rot, m);
+    if (!g.letterPos || !g.letterPos.arc || !lp.arc) return Infinity;
+    return Math.hypot(g.letterPos.arc[0] - lp.arc[0], g.letterPos.arc[1] - lp.arc[1]);
+  };
+  const mirror = ecart(true) < ecart(false);
+  ex.geo = cercleGeo(rot, mirror);
+  ex._geoParams = { rot, mirror };
+  return ex;
+}
+
 function compositionRestaurer(data) {
   if (!data || !Array.isArray(data.items)) return null;
   const items = data.items.map(o => {
     const found = findSubdomain(o.subId);
-    return found ? { sub: found.sub, ex: o.ex, niveau: o.niveau } : null;
+    return found ? { sub: found.sub, ex: reconstruireEx(o.ex), niveau: o.niveau } : null;
   }).filter(Boolean);
   if (!items.length) return null;
   const at = { mode: data.mode || 'sousdomaine', domainNum: data.domainNum, items, nom: '' };
@@ -16434,10 +17392,42 @@ function majListeCompositions() {
   sel.disabled = !noms.length;
 }
 
+// « Composer » tant que rien n'est fait, « Ajouter » ensuite. Le bouton Vider
+// n'apparaît qu'une fois qu'il y a quelque chose à vider.
+function atelierMajBoutonComposer() {
+  const at = state.atelier;
+  const plein = !!(at && at.items && at.items.length);
+  const b = document.getElementById('atelier-bouton-composer');
+  if (b) {
+    b.textContent = plein ? 'Ajouter' : 'Composer';
+    b.title = plein
+      ? "Insère les exercices cochés à leur place, sans toucher au reste"
+      : "Compose la série à partir de ce qui est coché";
+  }
+  const v = document.getElementById('atelier-bouton-vider');
+  if (v) v.style.display = plein ? '' : 'none';
+}
+
+// Un exercice qui ne sait plus s'afficher (relu depuis un fichier d'une version
+// antérieure, par exemple) ne doit pas emporter la page entière : il annonce
+// son état et propose de se refaire.
+function rendreExerciceAtelier(it, i) {
+  try {
+    return renderExercise(it.ex, i + 1, i);
+  } catch (e) {
+    console.error('Exercice illisible :', it.sub.id, e);
+    return `<div class="placeholder"><strong>Cet exercice n'a pas pu être réaffiché</strong>`
+      + `${esc2(it.sub.title)} — il vient probablement d'un fichier enregistré par une version`
+      + ` antérieure. Le bouton « Toutes les questions » de son en-tête en tire un nouveau.</div>`;
+  }
+}
+const esc2 = (t) => String(t).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+
 function renderAtelier() {
   const at = state.atelier;
   const zone = document.getElementById('atelier-zone');
   if (!zone) return;
+  atelierMajBoutonComposer();
   if (!at || !at.items.length) {
     zone.innerHTML = '<div class="placeholder"><strong>Rien à afficher</strong>Choisis un domaine puis compose.</div>';
     return;
@@ -16452,14 +17442,23 @@ function renderAtelier() {
                  && !SANS_RUBRIQUE.has(it.sub.id))
       ? it.sub.niveauLabels[Math.min(it.niveau, it.sub.niveauLabels.length) - 1] : null;
     const nbQ = Array.isArray(it.ex.questions) ? it.ex.questions.length : 0;
-    html += `<div class="atelier-item" data-atelier-ex="${i}">
+    html += `<div class="atelier-item" data-atelier-ex="${i}"
+        ondragover="atelierGlisserSurvol(event, ${i})"
+        ondragleave="atelierGlisserQuitte(${i})"
+        ondrop="atelierDeposer(event, ${i})">
         <div class="atelier-entete">
+          <span class="atelier-poignee" draggable="true" title="Glisser pour déplacer cet exercice"
+                ondragstart="atelierGlisserDebut(event, ${i})" ondragend="atelierGlisserFin()">⠿</span>
           <span class="atelier-titre">${i + 1}. ${it.sub.title}${rub ? ' – ' + rub : ''}</span>
+          <button class="btn-action btn-icon-mini" onclick="atelierDeplacerExercice(${i}, -1)" title="Monter"${i === 0 ? ' disabled' : ''}>▲</button>
+          <button class="btn-action btn-icon-mini" onclick="atelierDeplacerExercice(${i}, 1)" title="Descendre"${i === at.items.length - 1 ? ' disabled' : ''}>▼</button>
           <button class="btn-action" onclick="atelierRefaireExercice(${i})" title="Renouveler">${ICONE_RECHARGER}<span>${nbQ ? 'Toutes les questions' : "L'exercice"}</span></button>
           <button class="btn-action" onclick="atelierAjouterExercice('${it.sub.id}', ${i})" title="Ajouter un exercice du même sous-domaine">＋</button>
+          ${atelierFusionPossible(i) ? `<button class="btn-action" onclick="atelierFusionner(${i})" title="Fusionner avec l'exercice suivant">⊕</button>` : ''}
+          ${Array.isArray(it._avantFusion) ? `<button class="btn-action" onclick="atelierDefusionner(${i})" title="Défusionner : revenir aux deux exercices d'origine">⊖</button>` : ''}
           <button class="btn-action" onclick="atelierSupprimerExercice(${i})" title="Retirer cet exercice">✕</button>
         </div>
-        ${renderExercise(it.ex, i + 1, i)}
+        ${rendreExerciceAtelier(it, i)}
       </div>`;
   });
   zone.innerHTML = html;
@@ -16476,6 +17475,99 @@ function renderAtelier() {
   poserBoutonsQuestion(zone);
 }
 
+// ----------------------------------------------------------------------------
+// FUSION DE DEUX EXERCICES VOISINS (même sous-domaine)
+// Le précédent est la fusion N1+N2 de composerItemsDomaine : elle crée un objet
+// NEUF, d'où l'obligation de recopier explicitement les réglages d'affichage
+// portés par l'exercice — sinon ils ne valent plus rien après la fusion.
+// La fusion reste dans UN sous-domaine : toute la mise en page PDF s'aiguille
+// sur `sub.id`, et un exercice fusionné ne peut en porter qu'un.
+// ----------------------------------------------------------------------------
+
+// Clés qui portent du CONTENU propre à un exercice (une figure, un repère, un
+// jeu d'étiquettes) : deux exercices qui en ont ne peuvent pas n'en faire qu'un.
+const CLES_CONTENU_EXERCICE = ['svg', 'svgCorrige', 'svgId', 'placePoints', 'pointsCD',
+  'solides', 'patrons', 'groups', 'attrs', 'solids', 'matching', 'countTable',
+  'figureSvg', 'clicMap', 'subgroups'];
+
+// Réglages d'affichage à reprendre sur l'exercice fusionné.
+const CLES_AFFICHAGE_EXERCICE = ['champsLarges', 'stackedStatements', 'singleColumn',
+  'introInTitle', 'threeColsByColumn', 'fillBlanks', 'tableMode', 'unitesTemps',
+  'sideLayout', 'multi'];
+
+// Sous-domaines dont le rendu ne survit pas à une fusion (constaté au banc
+// d'essai, pas supposé) : leur gabarit suppose un nombre de questions fixe ou
+// une disposition à l'écran qui ne suit pas l'ordre de `ex.questions`.
+const FUSION_INTERDITE = new Set(['proportion', 'pythagore']);
+
+// Rend 'questions', 'statements' ou null selon que les exercices i et i+1
+// peuvent n'en faire qu'un.
+function atelierFusionPossible(i) {
+  const at = state.atelier;
+  const A = at && at.items[i], B = at && at.items[i + 1];
+  if (!A || !B || !A.ex || !B.ex) return null;
+  if (A.sub.id !== B.sub.id || FUSION_INTERDITE.has(A.sub.id)) return null;
+  if (A.ex._construction || B.ex._construction || A.ex._instrKind || B.ex._instrKind) return null;
+  if (CLES_CONTENU_EXERCICE.some(k => A.ex[k] !== undefined || B.ex[k] !== undefined)) return null;
+  const qA = A.ex.questions, qB = B.ex.questions;
+  if (Array.isArray(qA) && qA.length && Array.isArray(qB) && qB.length) return 'questions';
+  const sA = A.ex.statements, sB = B.ex.statements;
+  if (Array.isArray(sA) && sA.length && Array.isArray(sB) && sB.length) return 'statements';
+  return null;
+}
+
+// Réétiquette une suite de questions en gardant la CONVENTION du premier
+// libellé : « a) b) c) » partout, « 1. 2. 3. » pour les unités.
+function atelierReetiqueter(qs) {
+  const numerique = qs.length && /^\d+\.$/.test(String(qs[0].label || ''));
+  const abc = 'abcdefghijklmnopqrstuvwxyz';
+  qs.forEach((q, k) => { q.label = numerique ? `${k + 1}.` : `${abc[k] || (k + 1)})`; });
+}
+
+function atelierFusionner(i) {
+  const at = state.atelier;
+  const type = atelierFusionPossible(i);
+  if (!type) return;
+  const A = at.items[i], B = at.items[i + 1];
+  const introA = String(A.ex.intro || '').trim(), introB = String(B.ex.intro || '').trim();
+  // Deux consignes différentes : une seule survit. On le dit plutôt que de
+  // choisir en silence.
+  if (introA && introB && introA !== introB
+      && !confirm("Ces deux exercices n'ont pas la même consigne.\n\n"
+        + `Celle qui sera gardée :\n« ${introA} »\n\n`
+        + `Celle qui sera perdue :\n« ${introB} »\n\nFusionner quand même ?`)) return;
+  const ex = { ...A.ex };
+  if (type === 'questions') {
+    ex.questions = [...A.ex.questions, ...B.ex.questions].map(q => ({ ...q }));
+    atelierReetiqueter(ex.questions);
+  } else {
+    ex.statements = [...A.ex.statements, ...B.ex.statements].map(st => ({ ...st }));
+  }
+  CLES_AFFICHAGE_EXERCICE.forEach(k => { if (A.ex[k] || B.ex[k]) ex[k] = true; });
+  if (!introA && introB) ex.intro = B.ex.intro;
+  at.items.splice(i, 2, {
+    sub: A.sub,
+    ex,
+    niveau: (A.niveau === B.niveau) ? A.niveau : 'mixed',
+    // Les deux exercices d'origine, pour pouvoir revenir en arrière. Ce champ
+    // vit sur l'ITEM : compositionSerialiser ne garde que { subId, niveau, ex },
+    // il ne part donc ni à l'enregistrement ni à l'export — une fusion relue
+    // depuis un fichier ne se défusionne plus.
+    _avantFusion: [A, B]
+  });
+  atelierSyncCompo();
+  renderAtelier();
+}
+
+function atelierDefusionner(i) {
+  const at = state.atelier;
+  const it = at && at.items[i];
+  if (!it || !Array.isArray(it._avantFusion)) return;
+  at.items.splice(i, 1, ...it._avantFusion);
+  atelierSyncCompo();
+  renderAtelier();
+}
+
 // Un bouton « ↻ » devant chaque question. Les familles interactives (vocabulaire,
 // développements, symétries…) n'ont pas de questions repérables : seul le bouton
 // d'exercice les concerne.
@@ -16486,8 +17578,56 @@ function poserBoutonsQuestion(racine) {
     const bloc = racine.querySelector(`[data-atelier-ex="${i}"]`);
     if (!bloc) return;
     const qs = Array.isArray(it.ex.questions) ? it.ex.questions : [];
-    if (!qs.length) return;
-    // Une case (garder la question) et un bouton ↻ (en tirer une autre).
+    const sts = Array.isArray(it.ex.statements) ? it.ex.statements : [];
+    // Ni questions ni énoncés (appariements, sélections, clics sur figure) :
+    // seul le bouton de l'exercice les concerne.
+    if (!qs.length && !sts.length) return;
+    // Deux flèches empilées pour déplacer l'élément d'un cran.
+    const fleches = (peutMonter, peutDescendre, bouge) => {
+      const w = document.createElement('span');
+      w.className = 'atelier-bouger';
+      const mk = (txt, titre, actif, delta) => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.textContent = txt;
+        b.title = titre;
+        b.disabled = !actif;
+        if (actif) b.onclick = () => bouge(delta);
+        return b;
+      };
+      w.appendChild(mk('▲', 'Monter', peutMonter, -1));
+      w.appendChild(mk('▼', 'Descendre', peutDescendre, 1));
+      return w;
+    };
+    // Une case (garder l'élément) et un bouton ↻ (en tirer un autre).
+    const commandes = (j, coche, onCoche, onRefaire, bouge, peutMonter, peutDescendre) => {
+      const grp = document.createElement('span');
+      grp.className = 'atelier-outils';
+      grp.setAttribute('data-atelier-q', String(j));
+      if (!coche) grp.classList.add('atelier-q-exclue');
+      const c = document.createElement('input');
+      c.type = 'checkbox';
+      c.className = 'atelier-garder';
+      c.title = 'Garder cet élément dans le PDF';
+      c.checked = coche;
+      c.onchange = () => onCoche(c.checked);
+      const b = document.createElement('button');
+      b.className = 'atelier-refaire';
+      b.type = 'button';
+      b.title = 'En tirer un autre à cette place';
+      b.textContent = '↻';
+      b.onclick = onRefaire;
+      grp.appendChild(c);
+      grp.appendChild(b);
+      if (bouge) grp.appendChild(fleches(peutMonter, peutDescendre, bouge));
+      return grp;
+    };
+    const boutonEnonce = (ix, k) => commandes(k,
+      !(it.ex.statements[k] && it.ex.statements[k]._exclue),
+      (garde) => atelierBasculerEnonce(ix, k, garde),
+      () => atelierRefaireEnonce(ix, k),
+      (delta) => atelierDeplacerEnonce(ix, k, delta),
+      k > 0, k < sts.length - 1);
     const bouton = (j) => {
       const grp = document.createElement('span');
       grp.className = 'atelier-outils';
@@ -16507,8 +17647,23 @@ function poserBoutonsQuestion(racine) {
       b.onclick = () => atelierRefaireQuestion(i, j);
       grp.appendChild(c);
       grp.appendChild(b);
+      // Déplacement borné à son sous-bloc (developper) ou à l'exercice entier.
+      const bornes = atelierBornesSousGroupe(it.ex, j);
+      grp.appendChild(fleches(j > bornes.debut, j < bornes.fin - 1,
+        (delta) => atelierDeplacerQuestion(i, j, delta)));
       return grp;
     };
+    // Exercices bâtis sur des ÉNONCÉS et non des questions (symétries,
+    // vocabulaire à compléter) : chaque <li> de la liste reçoit les mêmes
+    // commandes, pour qu'on puisse en écarter et en renouveler comme ailleurs.
+    if (Array.isArray(it.ex.statements) && it.ex.statements.length) {
+      [...bloc.querySelectorAll('.fill-list > li')].forEach((li, k) => {
+        if (k >= it.ex.statements.length || li.querySelector('.atelier-outils')) return;
+        li.insertBefore(boutonEnonce(i, k), li.firstChild);
+        if (it.ex.statements[k]._exclue) li.classList.add('atelier-q-exclue');
+      });
+      return;
+    }
     const items = [...bloc.querySelectorAll('.multi-item')];
     if (items.length) {
       items.forEach((mi, j) => {
@@ -16524,73 +17679,356 @@ function poserBoutonsQuestion(racine) {
       const pref = `inp-${i}-${j}`;
       const champ = [...bloc.querySelectorAll('input')]
         .find(el => el.id === pref || (el.id || '').startsWith(pref + '-'));
-      const ligne = champ && champ.closest
-        ? (champ.closest('tr') || champ.closest('.transform-row')) : null;
-      if (!ligne || ligne.querySelector('.atelier-refaire')) return;
-      const cellule = (ligne.tagName === 'TR') ? ligne.querySelector('td, th') : ligne;
-      if (cellule) cellule.insertBefore(bouton(j), cellule.firstChild);
-      if (q._exclue) ligne.classList.add('atelier-q-exclue');
+      if (!champ || !champ.closest) return;
+      const ligneTab = champ.closest('tr');
+      const ligneTrans = champ.closest('.transform-row');
+      if (ligneTab) {
+        // Un tableau peut porter PLUSIEURS questions sur la même ligne (les
+        // tableaux de proportionnalité en ont jusqu'à trois) : les commandes
+        // se posent contre leur champ, pas en tête de ligne.
+        const cellule = champ.closest('td, th') || ligneTab;
+        // Le champ n'est pas toujours un enfant DIRECT de la cellule : la
+        // colonne sexagésimale des unités enveloppe ses trois mini-champs.
+        // On remonte jusqu'à l'enfant direct, sinon insertBefore échoue et
+        // interrompt la pose des commandes pour tout le reste de l'exercice.
+        let ancre = champ;
+        while (ancre.parentNode && ancre.parentNode !== cellule) ancre = ancre.parentNode;
+        if (ancre.parentNode !== cellule) ancre = cellule.firstChild;
+        // Une cellule peut contenir deux champs : on regarde si CE champ-là a
+        // déjà ses commandes, pas la cellule entière.
+        const precede = ancre && ancre.previousElementSibling;
+        if (precede && precede.classList.contains('atelier-outils')) return;
+        cellule.insertBefore(bouton(j), ancre);
+        if (q._exclue) cellule.classList.add('atelier-q-exclue');
+        return;
+      }
+      if (ligneTrans) {
+        if (ligneTrans.querySelector('.atelier-outils')) return;
+        ligneTrans.insertBefore(bouton(j), ligneTrans.firstChild);
+        if (q._exclue) ligneTrans.classList.add('atelier-q-exclue');
+        return;
+      }
+      // Champ isolé, hors tableau et hors ligne (le coefficient d'un tableau
+      // de proportionnalité) : les commandes se posent juste devant lui.
+      const precedeSeul = champ.previousElementSibling;
+      if (precedeSeul && precedeSeul.classList.contains('atelier-outils')) return;
+      if (champ.parentNode) champ.parentNode.insertBefore(bouton(j), champ);
     });
+  });
+  // Garde-fou : dans quelques exercices (les tableaux de proportionnalité), les
+  // questions ne sont PAS disposées à l'écran dans l'ordre du tableau
+  // `ex.questions`. Un ▲ y déplacerait autre chose que ce qu'on croit viser :
+  // on retire alors les flèches de cet exercice et l'on garde la case et le ↻.
+  at.items.forEach((it, i) => {
+    const bloc = racine.querySelector(`[data-atelier-ex="${i}"]`);
+    if (!bloc) return;
+    const rangs = [...bloc.querySelectorAll('.atelier-outils')]
+      .map(o => Number(o.getAttribute('data-atelier-q')));
+    const croissant = rangs.every((r, k) => k === 0 || r > rangs[k - 1]);
+    if (!croissant) bloc.querySelectorAll('.atelier-bouger').forEach(el => el.remove());
   });
 }
 
-// Liste à cocher des sous-domaines du domaine choisi, plus le menu d'ajout.
-function atelierMajSousDomaines() {
-  const selDom = document.getElementById('atelier-domaine');
-  const boite = document.getElementById('atelier-subs');
-  if (!selDom || !boite) return;
-  const subs = atelierSousDomaines(parseInt(selDom.value, 10));
-  boite.innerHTML = subs.map(sub =>
-    `<label class="eval-sub"><input type="checkbox" value="${sub.id}"> ${sub.title}</label>`).join('');
-  const ajout = document.getElementById('atelier-ajout');
-  if (ajout) {
-    const tous = DOMAINS.flatMap(d => atelierSousDomaines(d.num).map(sub => ({ d, sub })));
-    ajout.innerHTML = '<option value="">— ajouter un exercice —</option>'
-      + tous.map(({ d, sub }) => `<option value="${sub.id}">${d.num}. ${sub.title}</option>`).join('');
+// ----------------------------------------------------------------------------
+// Menu déroulant à deux niveaux : domaines, et sous le pli de chacun, ses
+// sous-domaines. Un seul menu remplace le couple « choisir un domaine » +
+// « cocher des sous-domaines », et permet de piocher dans PLUSIEURS domaines à
+// la fois — ce que l'ancienne barre ne savait pas faire.
+// Cocher un domaine entier ne vaut pas cocher tous ses sous-domaines un à un :
+// dans le premier cas on prend sa composition structurée (l'ordre fixe des
+// domaines 4 et 5) ; dans le second, les sous-domaines se suivent.
+// ----------------------------------------------------------------------------
+const atelierSelection = {};        // { numéroDeDomaine : Set(idSousDomaine) }
+
+function atelierMenuHtml() {
+  return DOMAINS.map(d => {
+    const subs = atelierSousDomaines(d.num);
+    if (!subs.length) return '';
+    const choisis = atelierSelection[d.num] || new Set();
+    return `<div class="eval-dom${choisis.size ? ' ouvert' : ''}" id="atelier-dom-${d.num}">
+      <div class="eval-dom-head" onclick="atelierBasculerOuverture(${d.num}, event)">
+        <input type="checkbox" id="atelier-chk-${d.num}"
+               onclick="event.stopPropagation(); atelierCocherDomaine(${d.num}, this.checked)">
+        <span class="domain-chip ${d.color || ''}">${d.icon || d.num}</span>
+        <span class="eval-dom-titre">${d.title}</span>
+        <span class="eval-dom-fleche">›</span>
+      </div>
+      <div class="eval-subs">
+        ${subs.map(sub => `
+          <label class="eval-sub">
+            <input type="checkbox" id="atelier-chk-${d.num}-${sub.id}"
+                   ${choisis.has(sub.id) ? 'checked' : ''}
+                   onclick="event.stopPropagation(); atelierCocherSub(${d.num}, '${sub.id}', this.checked)">
+            <span>${sub.title}</span>
+          </label>`).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function atelierBasculerMenu(ouvrir) {
+  const menu = document.getElementById('atelier-menu');
+  if (!menu) return;
+  const veut = (ouvrir === undefined) ? !menu.classList.contains('ouvert') : !!ouvrir;
+  menu.classList.toggle('ouvert', veut);
+}
+
+function atelierBasculerOuverture(num, ev) {
+  if (ev) ev.stopPropagation();
+  const bloc = document.getElementById(`atelier-dom-${num}`);
+  if (bloc) bloc.classList.toggle('ouvert');
+}
+
+function atelierCocherDomaine(num, coche) {
+  const subs = atelierSousDomaines(num);
+  atelierSelection[num] = coche ? new Set(subs.map(s => s.id)) : new Set();
+  subs.forEach(s => {
+    const c = document.getElementById(`atelier-chk-${num}-${s.id}`);
+    if (c) c.checked = coche;
+  });
+  atelierRafraichirMenu();
+}
+
+function atelierCocherSub(num, subId, coche) {
+  if (!atelierSelection[num]) atelierSelection[num] = new Set();
+  if (coche) atelierSelection[num].add(subId); else atelierSelection[num].delete(subId);
+  atelierRafraichirMenu();
+}
+
+// Cases de domaine (pleines / à demi) et résumé porté par le bouton du menu.
+function atelierRafraichirMenu() {
+  let nbDom = 0, nbSub = 0, complets = 0, dernierTitre = '';
+  for (const d of DOMAINS) {
+    const subs = atelierSousDomaines(d.num);
+    if (!subs.length) continue;
+    const sel = atelierSelection[d.num] || new Set();
+    const chk = document.getElementById(`atelier-chk-${d.num}`);
+    if (chk) {
+      chk.checked = sel.size === subs.length;
+      chk.indeterminate = sel.size > 0 && sel.size < subs.length;
+    }
+    if (sel.size) { nbDom++; nbSub += sel.size; dernierTitre = d.title; }
+    if (sel.size === subs.length) complets++;
+  }
+  const etiq = document.getElementById('atelier-menu-resume');
+  if (etiq) {
+    etiq.textContent = !nbSub ? 'Choisir des domaines ou des sous-domaines…'
+      : (nbDom === 1 && complets === 1) ? `${dernierTitre} (domaine entier)`
+      : `${nbDom} domaine${nbDom > 1 ? 's' : ''} · ${nbSub} sous-domaine${nbSub > 1 ? 's' : ''}`;
   }
 }
 
+// L'espace enseignant a plusieurs pages : un accueil qui les présente, et pour
+// l'instant un seul chantier ouvert, l'atelier de séries d'exercices.
 function renderEspaceEnseignant() {
+  const vue = state.enseignantVue || 'accueil';
+  if (vue === 'atelier') return renderAtelierPage();
+  if (vue === 'prenoms') return renderPrenoms();
+  if (vue === 'test') return renderEnseignantAVenir(vue);
+  return renderAccueilEnseignant();
+}
+
+function ouvrirVueEnseignant(vue) {
+  state.enseignantVue = vue;
+  renderMain();
+}
+
+function enteteEnseignant(titre, retourAccueil) {
+  return `
+    <div class="content-header">
+      <div class="content-header-row">
+        <h2 class="content-header-h2-inline">${titre}</h2>
+        <span class="atelier-nom" id="atelier-nom"></span>
+        <div class="content-header-actions">
+          ${retourAccueil ? '<button class="btn-action" onclick="ouvrirVueEnseignant(\'accueil\')">← Espace enseignant·e</button>' : ''}
+          <button class="btn-action" onclick="quitterEspaceEnseignant()">Quitter</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+const VUES_ENSEIGNANT = [
+  { id: 'atelier', titre: "Créer une série d'exercices à la carte",
+    texte: "Composer une série à partir des domaines et sous-domaines, renouveler les questions une à une, en écarter, réordonner, puis générer le PDF.",
+    pret: true },
+  { id: 'test', titre: "Créer un test sur mesure",
+    texte: "Choisir les exercices et les questions d'un test, comme pour une série, et l'enregistrer pour le proposer aux élèves.",
+    pret: false },
+  { id: 'prenoms', titre: "Modifier les prénoms dans les problèmes",
+    texte: "Adapter la liste des prénoms qui apparaissent dans les énoncés, pour qu'ils parlent à la classe.",
+    pret: true }
+];
+
+function renderAccueilEnseignant() {
   const main = document.getElementById('main');
   const tbDom = document.getElementById('topbar-domain');
   if (tbDom) tbDom.textContent = 'Espace enseignant·e';
-  const options = DOMAINS.map(d => `<option value="${d.num}">${d.num}. ${d.title}</option>`).join('');
-  main.innerHTML = `
-    <div class="content-header">
-      <div class="content-header-row">
-        <h2 class="content-header-h2-inline">Espace enseignant·e</h2>
-        <span class="atelier-nom" id="atelier-nom"></span>
-        <div class="content-header-actions">
-          <button class="btn-action" onclick="quitterEspaceEnseignant()">Retour</button>
-        </div>
+  main.innerHTML = enteteEnseignant('Espace enseignant·e', false)
+    + `<div class="ens-cartes">`
+    + VUES_ENSEIGNANT.map(v => `
+      <button class="ens-carte${v.pret ? '' : ' ens-carte-avenir'}" onclick="ouvrirVueEnseignant('${v.id}')">
+        <span class="ens-carte-titre">${v.titre}</span>
+        <span class="ens-carte-texte">${v.texte}</span>
+        ${v.pret ? '' : '<span class="ens-carte-etat">à venir</span>'}
+      </button>`).join('')
+    + `</div>`;
+}
+
+// ----------------------------------------------------------------------------
+// Modifier les prénoms des énoncés
+// Deux zones de texte, un prénom par ligne : on peut coller une liste de classe
+// d'un coup, ce qu'une suite de petits champs ne permet pas. Les doublons et
+// les lignes vides sont écartés silencieusement à l'enregistrement.
+// ----------------------------------------------------------------------------
+// Une liste collée arrive souvent sur une seule ligne, séparée par des espaces,
+// des virgules ou des points-virgules : tout cela vaut saut de ligne.
+// CONSÉQUENCE : un prénom composé écrit avec une espace (« Anne Sophie ») est
+// coupé en deux. Écrit avec un trait d'union (« Anne-Sophie »), il reste entier.
+// L'enregistrement réécrit les deux zones une ligne par prénom, pour qu'une
+// coupure de ce genre se voie tout de suite.
+function prenomsLire(id) {
+  const z = document.getElementById(id);
+  if (!z) return [];
+  const vus = new Set();
+  return z.value.split(/[\s,;]+/)
+    .map(l => l.trim())
+    .filter(l => l && !vus.has(l.toLowerCase()) && vus.add(l.toLowerCase()));
+}
+
+function prenomsMajCompte() {
+  const m = prenomsLire('prenoms-m').length, f = prenomsLire('prenoms-f').length;
+  const el = document.getElementById('prenoms-compte');
+  if (el) el.textContent = `${m + f} prénoms — ${m} masculin${m > 1 ? 's' : ''}, ${f} féminin${f > 1 ? 's' : ''}`;
+}
+
+function prenomsEnregistrer() {
+  const m = prenomsLire('prenoms-m'), f = prenomsLire('prenoms-f');
+  // Un tirage au sort dans une liste vide ne rendrait rien : chaque liste doit
+  // garder au moins un prénom, sous peine d'énoncés sans personne.
+  if (!m.length || !f.length) {
+    alert("Chaque liste doit garder au moins un prénom : les énoncés en tirent un au hasard.");
+    return;
+  }
+  appliquerPrenoms(m, f);
+  // Remise en forme visible : un prénom par ligne.
+  const zm = document.getElementById('prenoms-m'), zf = document.getElementById('prenoms-f');
+  if (zm) zm.value = m.join('\n');
+  if (zf) zf.value = f.join('\n');
+  // Les exercices déjà tirés gardent leurs anciens prénoms : on vide le cache
+  // pour que le prochain passage sur un sous-domaine les renouvelle.
+  Object.keys(state.exercisesCache).forEach(k => { delete state.exercisesCache[k]; });
+  let stocke = false;
+  try {
+    window.localStorage.setItem(CLE_PRENOMS, JSON.stringify({ m, f }));
+    stocke = true;
+  } catch (e) { stocke = false; }
+  const info = document.getElementById('prenoms-info');
+  if (info) {
+    info.textContent = stocke
+      ? "Enregistré. Les prochains exercices utiliseront ces prénoms."
+      : "Appliqué pour cette séance seulement : ce navigateur refuse le stockage local sur un fichier ouvert depuis le disque. Les prénoms d'origine reviendront à la prochaine ouverture.";
+    info.className = 'atelier-aide ' + (stocke ? 'prenoms-ok' : 'prenoms-attention');
+  }
+  prenomsMajCompte();
+}
+
+function prenomsRetablir() {
+  if (!confirm("Revenir à la liste d'origine ?")) return;
+  const zm = document.getElementById('prenoms-m'), zf = document.getElementById('prenoms-f');
+  if (zm) zm.value = PRENOMS_M_ORIGINE.join('\n');
+  if (zf) zf.value = PRENOMS_F_ORIGINE.join('\n');
+  appliquerPrenoms(PRENOMS_M_ORIGINE, PRENOMS_F_ORIGINE);
+  try { window.localStorage.removeItem(CLE_PRENOMS); } catch (e) { /* rien à retirer */ }
+  Object.keys(state.exercisesCache).forEach(k => { delete state.exercisesCache[k]; });
+  const info = document.getElementById('prenoms-info');
+  if (info) { info.textContent = "Liste d'origine rétablie."; info.className = 'atelier-aide prenoms-ok'; }
+  prenomsMajCompte();
+}
+
+function renderPrenoms() {
+  const main = document.getElementById('main');
+  const tbDom = document.getElementById('topbar-domain');
+  if (tbDom) tbDom.textContent = 'Espace enseignant·e';
+  main.innerHTML = enteteEnseignant('Modifier les prénoms dans les problèmes', true) + `
+    <p class="atelier-aide">Un prénom par ligne — mais tu peux aussi coller une liste séparée
+      par des espaces ou des virgules : l'enregistrement la remet en forme. Un prénom composé
+      s'écrit alors avec un trait d'union (Anne-Sophie), sans quoi il serait coupé en deux.</p>
+    <p class="atelier-aide">Ces listes alimentent tous les énoncés qui nomment quelqu'un :
+      problèmes concrets, proportionnalité, problèmes à mettre en équation. Le genre sert à
+      accorder l'énoncé — « il » ou « elle », « son » ou « sa ».</p>
+    <div class="prenoms-cols">
+      <div class="prenoms-col">
+        <label class="prenoms-titre" for="prenoms-m">Prénoms masculins</label>
+        <textarea id="prenoms-m" oninput="prenomsMajCompte()">${PRENOMS_M.join('\n')}</textarea>
+      </div>
+      <div class="prenoms-col">
+        <label class="prenoms-titre" for="prenoms-f">Prénoms féminins</label>
+        <textarea id="prenoms-f" oninput="prenomsMajCompte()">${PRENOMS_F.join('\n')}</textarea>
       </div>
     </div>
     <div class="atelier-barre">
-      <select class="variant-select" id="atelier-domaine" onchange="atelierMajSousDomaines()">${options}</select>
-      <button class="btn-action btn-primary" onclick="atelierComposer()">Composer</button>
-      <button class="btn-action" onclick="atelierGenererPdf()">📄 Générer le PDF</button>
+      <button class="btn-action btn-primary" onclick="prenomsEnregistrer()">Enregistrer</button>
+      <button class="btn-action" onclick="prenomsRetablir()">Rétablir la liste d'origine</button>
+      <span class="atelier-nom" id="prenoms-compte"></span>
     </div>
-    <div class="atelier-subs" id="atelier-subs"></div>
-    <p class="atelier-aide">Aucun sous-domaine coché : c'est le domaine entier qui est composé,
-      avec sa structure habituelle. Sinon, les sous-domaines cochés se suivent dans l'ordre du menu.</p>
+    <p class="atelier-aide" id="prenoms-info"></p>`;
+  prenomsMajCompte();
+}
+
+function renderEnseignantAVenir(vue) {
+  const info = VUES_ENSEIGNANT.find(v => v.id === vue) || { titre: '', texte: '' };
+  const main = document.getElementById('main');
+  const tbDom = document.getElementById('topbar-domain');
+  if (tbDom) tbDom.textContent = 'Espace enseignant·e';
+  main.innerHTML = enteteEnseignant(info.titre, true)
+    + `<div class="placeholder"><strong>Pas encore en place</strong>${info.texte}</div>`;
+}
+
+function renderAtelierPage() {
+  const main = document.getElementById('main');
+  const tbDom = document.getElementById('topbar-domain');
+  if (tbDom) tbDom.textContent = 'Espace enseignant·e';
+  main.innerHTML = enteteEnseignant("Créer une série d'exercices à la carte", true) + `
     <div class="atelier-barre">
-      <select class="variant-select" id="atelier-ajout"></select>
-      <button class="btn-action" onclick="atelierAjouterDepuisMenu()">Ajouter</button>
+      <div class="atelier-menu" id="atelier-menu">
+        <button class="atelier-menu-btn" onclick="atelierBasculerMenu()">
+          <span id="atelier-menu-resume">Choisir des domaines ou des sous-domaines…</span>
+          <span class="atelier-menu-fleche">▾</span>
+        </button>
+        <div class="atelier-menu-panneau">${atelierMenuHtml()}</div>
+      </div>
+      <button class="btn-action btn-primary" id="atelier-bouton-composer" onclick="atelierComposerOuAjouter()">Composer</button>
+      <button class="btn-action" id="atelier-bouton-vider" onclick="atelierVider()" title="Vider la composition">Vider</button>
+      <button class="btn-action btn-icon" onclick="atelierGenererPdf()" title="Générer le PDF"><img class="btn-icon-img" src="" alt="PDF"></button>
       <span class="atelier-sep"></span>
       <select class="variant-select" id="atelier-enregistrees" onchange="atelierCharger()"></select>
-      <button class="btn-action" onclick="atelierEnregistrer()">Enregistrer sous…</button>
+      <button class="btn-action" onclick="atelierEnregistrer()" title="Garder cette composition dans le navigateur, sous un nom">Enregistrer</button>
       <button class="btn-action" onclick="atelierSupprimerEnregistree()" title="Supprimer la composition choisie">✕</button>
       <button class="btn-action" onclick="atelierExporter()" title="Enregistrer dans un fichier .json">Exporter</button>
       <label class="btn-action" title="Relire un fichier .json">Importer
         <input type="file" accept=".json,application/json" style="display:none" onchange="atelierImporter(this)">
       </label>
     </div>
+    <p class="atelier-aide">Cocher un domaine entier reprend sa structure habituelle ; cocher quelques
+      sous-domaines les met bout à bout, et l'on peut piocher dans plusieurs domaines. Une fois la
+      composition faite, le bouton devient <strong>Ajouter</strong> : les exercices cochés viennent
+      s'insérer à leur place, sans rien changer au reste.</p>
     <p class="atelier-aide">Chaque question porte une case (la garder dans le PDF) et un bouton ↻
       (en tirer une autre à la même place). L'en-tête d'un exercice permet de le renouveler
-      entièrement, d'en ajouter un du même type ou de le retirer.</p>
+      entièrement, d'en ajouter un du même type, de le déplacer ou de le retirer.</p>
     <div id="atelier-zone"><div class="placeholder"><strong>Aucune composition</strong>Choisis un domaine, puis « Composer ».</div></div>`;
-  atelierMajSousDomaines();
+  atelierRafraichirMenu();
+  atelierMajBoutonComposer();
+  const imgPdf = document.querySelector('#main .atelier-barre .btn-icon-img');
+  if (imgPdf) imgPdf.src = ICONE_PDF;
   majListeCompositions();
+  // Un clic hors du menu le referme.
+  document.addEventListener('click', (ev) => {
+    const menu = document.getElementById('atelier-menu');
+    if (menu && menu.classList.contains('ouvert') && !menu.contains(ev.target)) {
+      menu.classList.remove('ouvert');
+    }
+  });
 }
 
 function renderInstruments(found) {
@@ -23034,14 +24472,17 @@ function composerItemsDomaine(domainNum, filtreSubIds) {
 
   // ====== Cas spécial : Domaine 4 (Grandeurs et mesures · Pythagore) ======
   // Structure fixe en 7 exercices :
-  //   Ex 1 : perim-aire N2 (énoncés textuels)     → 4 questions
-  //   Ex 2 : volumes N1 « Solides »                → 2 questions sans cube/pavé
-  //   Ex 3 : volumes N2 « Énoncés »                → 4 énoncés sans cube/pavé
-  //                                                  ni les kinds choisis en ex 2
-  //   Ex 4 : volumes N3 « Bases composées »        → 2 questions parmi {L, maison, tunnel, T}
+  //   Ex 1 : perim-aire N2 (énoncés textuels)     → 3 questions
+  //   Ex 2 : perim-aire N3 « Problèmes »           → 3 énoncés, 1 figure au plus
+  //   Ex 3 : volumes N1 « Solides » + N3 « Bases composées » réunis → 4 questions
+  //   Ex 4 : volumes N2 « Énoncés »                → 4 énoncés sans cube/pavé
+  //                                                  ni les kinds choisis en ex 3
   //   Ex 5 : unités · Mélange                       → 10 questions
   //   Ex 6 : pythagore (tableau)                    → 3 questions
   //   Ex 7 : pythagore « Problèmes » (triade)       → 3 énoncés facile/moyen/difficile
+  //   Les mises en page PDF de ce domaine ne se repèrent PLUS par l'index de
+  //   l'exercice mais par son sous-domaine et son niveau : insérer un exercice
+  //   décalait sinon tous les réglages d'un cran.
   // ====== Cas spécial : Domaine 5 (Espace) ======
   // Structure fixe :
   //   Ex 1 : vocab « Compléter »                    → 4 questions
@@ -23120,17 +24561,34 @@ function composerItemsDomaine(domainNum, filtreSubIds) {
       const subPyth  = subById('pythagore');
       const relabel = (qs) => qs.forEach((q, i) => { q.label = String.fromCharCode(97 + i) + ')'; });
 
-      // --- Ex 1 : perim-aire N2 (4 questions textuelles) ---
+      // --- Ex 1 : perim-aire N2 (3 questions textuelles) ---
       // On garde aussi les questions dualPA (cercle, etc.) ; les labels P= /
       // A= seront cachés au moment du rendu PDF (cf. post-traitement plus bas).
       if (subPerim) {
         state.niveau = 2;
         const exP = subPerim.gen();
         if (exP && Array.isArray(exP.questions)) {
-          exP.questions = exP.questions.slice(0, 4);
+          exP.questions = exP.questions.slice(0, 3);
           relabel(exP.questions);
           exP.stackedStatements = true;
           items.push({ sub: subPerim, ex: exP, niveau: 2 });
+        }
+
+        // --- Ex 2 : perim-aire N3 « Problèmes » (3 énoncés) ---
+        // Une figure au plus : dans le PDF de domaine, deux illustrations
+        // pousseraient le 3e énoncé sur la page suivante.
+        state.niveau = 3;
+        const exPb = subPerim.gen();
+        if (exPb && Array.isArray(exPb.questions)) {
+          const avecFig = exPb.questions.filter(q => q.figureLeft);
+          const sansFig = exPb.questions.filter(q => !q.figureLeft);
+          const choisies = avecFig.slice(0, 1).concat(sansFig).slice(0, 3);
+          if (choisies.length === 3) {
+            exPb.questions = choisies;
+            relabel(exPb.questions);
+            exPb.stackedStatements = true;
+            items.push({ sub: subPerim, ex: exPb, niveau: 3 });
+          }
         }
       }
 
@@ -23413,6 +24871,8 @@ function composerItemsDomaine(domainNum, filtreSubIds) {
       items.splice(idxConstruction, 0, { sub: subInstr, ex: exCons, niveau: 1 });
     }
   }
+  // Un prénom ne revient pas d'une question à l'autre d'un même exercice.
+  items.forEach(({ ex }) => unifierPrenoms(ex));
   // « Estimer le résultat d'un calcul » : une seule question, au PDF comme au
   // test (le générateur en produit deux pour la feuille du sous-domaine).
   items.forEach(({ sub, ex }) => {
@@ -23422,6 +24882,67 @@ function composerItemsDomaine(domainNum, filtreSubIds) {
     }
   });
   return { domain, items, idxConstruction };
+}
+
+// Corrigé de l'association solide ↔ développement : l'ensemble reproduit en
+// plus petit, avec sous chaque patron le numéro du solide. Partagé par les deux
+// PDF — le corrigé de domaine laissait cet exercice VIDE, faute de ce bloc.
+function corrigeMatchingInner(ex) {
+  if (!ex || !ex.matching || !Array.isArray(ex.solides) || !Array.isArray(ex.patrons)) return '';
+  const figBox = s => `<div style="width:58px;height:58px;margin:0 auto;">${s}</div>`;
+  let inner = `<div style="padding-left: 16px;">`;
+  inner += `<div style="display:flex; flex-wrap:wrap; gap:6px 10px; margin-bottom:12px;">`;
+  ex.solides.forEach(s => {
+    inner += `<div style="text-align:center; width:62px;">${figBox(s.svg)}<div style="font-weight:800; font-size:13px; color:#1F2937;">${s.n}</div></div>`;
+  });
+  inner += `</div><div style="display:flex; flex-wrap:wrap; gap:6px 10px;">`;
+  ex.patrons.forEach(p => {
+    inner += `<div style="text-align:center; width:62px;">${figBox(p.svg)}<div style="font-size:13px; color:#1F2937;">n° : <strong style="color:#16A34A;">${p.solid}</strong></div></div>`;
+  });
+  return inner + `</div></div>`;
+}
+
+// Association solide ↔ développement : au PDF, pas de traits interactifs.
+// Disposition « fiche » : solides sur une ligne de 6, patrons sur une ligne de
+// 6, chacun avec « n° : ___ » à compléter. Partagée par le PDF de sous-domaine
+// et celui de domaine — elle n'existait que dans le premier, et l'exercice
+// s'étalait sur une demi-page dans le second.
+function appliquerMiseEnPageMatching(exoDiv, ex, subId) {
+  if (!(subId === 'developpements' || (ex && ex.matching))) return;
+      // PDF uniquement : réduire les figures pour tenir dans la largeur de page.
+      exoDiv.querySelectorAll('.match-fig, .match-fig-patron').forEach(f => {
+        f.style.width = '86px';
+        f.style.height = '86px';
+      });
+      exoDiv.querySelectorAll('.match-num').forEach(n => { n.style.fontSize = '13px'; });
+      exoDiv.querySelectorAll('.match-pick').forEach(p => { p.style.fontSize = '13px'; p.style.minHeight = '0'; });
+      exoDiv.querySelectorAll('.match-solides').forEach(r => {
+        r.style.display = 'grid';
+        r.style.gridTemplateColumns = 'repeat(6, 1fr)';
+        r.style.gap = '4px';
+        r.style.marginBottom = '20px';
+        r.style.justifyItems = 'center';
+      });
+      exoDiv.querySelectorAll('.match-patrons').forEach(r => {
+        r.style.display = 'grid';
+        r.style.gridTemplateColumns = 'repeat(6, 1fr)';
+        r.style.gap = '6px';
+        r.style.justifyItems = 'center';
+      });
+      exoDiv.querySelectorAll('.match-cell').forEach(c => { c.style.border = 'none'; c.style.background = 'transparent'; c.style.padding = '2px'; });
+      exoDiv.querySelectorAll('.match-num').forEach(n => { n.style.background = 'none'; n.style.color = '#1F2937'; n.style.boxShadow = 'none'; });
+      exoDiv.querySelectorAll('.match-pick-label').forEach(l => { l.style.display = 'inline'; l.textContent = 'n° : '; });
+      exoDiv.querySelectorAll('.match-assigned').forEach(a => {
+        a.className = 'match-assigned';
+        a.textContent = '';
+        a.style.background = 'none';
+        a.style.boxShadow = 'none';
+        a.style.display = 'inline-block';
+        a.style.minWidth = '40px';
+        a.style.height = '16px';
+        a.style.verticalAlign = 'middle';
+        a.style.borderBottom = '1px dotted #9CA3AF';
+      });
 }
 
 // `compoImposee` : composition déjà retouchée dans l'atelier enseignant
@@ -23507,6 +25028,10 @@ async function downloadDomainPdf(domainNum, compoImposee) {
       if (!ex._construction) {
         try { applyEspacePdfLayout(exoDiv, ex, { sideBySide: true }); } catch (e) { /* mise en page par défaut */ }
       }
+      // Association solide ↔ développement : la même disposition compacte que
+      // dans le PDF du sous-domaine. Sans elle, l'exercice s'étalait sur une
+      // demi-page, figures pleine taille et patrons en vrac.
+      appliquerMiseEnPageMatching(exoDiv, ex, sub.id);
       // Les 3 premiers exercices tiennent sur la page 1 ; les propriétés des
       // figures occupent la page 2 ; la construction a sa page à elle ; le
       // reste suit. Les repères se décalent avec l'insertion de l'exercice.
@@ -23710,7 +25235,13 @@ async function downloadDomainPdf(domainNum, compoImposee) {
       //     inégal entre a-b et les suivants).
       //   - Forcer la mise en 1 colonne et padding-bottom UNIFORME (85px).
       //   - Activer data-paginate-items pour paginer énoncé par énoncé.
-      if (idx === 0 || idx === 2) {
+      const estPerimEnonces = (sub.id === 'perim-aire' && niveau === 2);
+      const estPerimProblemes = (sub.id === 'perim-aire' && niveau === 3);
+      const estVolEnonces = (sub.id === 'volumes' && niveau === 2);
+      const estVolSolides = (sub.id === 'volumes' && niveau === 1);
+      const estPythTableau = (sub.id === 'pythagore' && !!ex.tableMode);
+      const estPythProblemes = (sub.id === 'pythagore' && !ex.tableMode);
+      if (estPerimEnonces || estVolEnonces) {
         exoDiv.querySelectorAll('.perim-aire-fields').forEach(f => f.remove());
         exoDiv.querySelectorAll('input.answer-input, input.answer-input-cell, input.answer-input-inline').forEach(i => i.remove());
         exoDiv.querySelectorAll('.multi-grid').forEach(g => {
@@ -23721,7 +25252,7 @@ async function downloadDomainPdf(domainNum, compoImposee) {
         // Padding-bottom = 85px pour ex 1 (perim-aire) et 110px pour ex 3
         // (volumes N2 – l'élève a besoin d'une ligne supplémentaire car les
         // calculs de volume sont plus longs).
-        const padBottom = (idx === 2) ? '134px' : '109px';   // +24px = une ligne
+        const padBottom = estVolEnonces ? '134px' : '109px';   // +24px = une ligne
         exoDiv.querySelectorAll('.multi-item').forEach(it => {
           it.style.paddingBottom = padBottom;
         });
@@ -23734,7 +25265,7 @@ async function downloadDomainPdf(domainNum, compoImposee) {
       //   - a/b : libellé AU-DESSUS de la figure, 70px de blanc dessous.
       //   - c/d : libellé À GAUCHE de la figure (mise en page des bases
       //     composées), 100px de blanc dessous – les calculs sont plus longs.
-      if (idx === 1) {
+      if (estVolSolides) {
         exoDiv.querySelectorAll('.perim-aire-fields').forEach(f => f.remove());
         exoDiv.querySelectorAll('input.answer-input, input.answer-input-cell, input.answer-input-inline').forEach(i => i.remove());
         const nbSimples = (typeof ex._nbSolidesSimples === 'number') ? ex._nbSolidesSimples : 2;
@@ -23748,12 +25279,28 @@ async function downloadDomainPdf(domainNum, compoImposee) {
       // et se terminait trop bas pour qu'une rangée de l'ex 4 tienne dessous –
       // d'où la page qui s'intercalait. En flux libre, ses énoncés sont paginés
       // un par un et l'ex 4 vient directement à la suite.
-      if (idx === 2) {
+      if (estVolEnonces) {
         exoDiv.setAttribute('data-paginate-items', '1');
       }
-      // Ex 4 (idx 3, unités · Mélange) : nouvelle page + une ligne d'écart
+      // Ex 2 (perim-aire « Problèmes ») : même traitement que les énoncés –
+      // 1 colonne, pas de trait de réponse, l'élève rédige au stylo. Pas de
+      // saut de page forcé : il suit l'ex 1 sur la même page tant qu'il tient.
+      // Espace de résolution plus large (les problèmes demandent deux ou trois
+      // étapes) et pagination énoncé par énoncé, figures comprises.
+      if (estPerimProblemes) {
+        exoDiv.querySelectorAll('.perim-aire-fields').forEach(f => f.remove());
+        exoDiv.querySelectorAll('input.answer-input, input.answer-input-cell, input.answer-input-inline').forEach(i => i.remove());
+        exoDiv.querySelectorAll('.multi-grid').forEach(g => {
+          g.classList.remove('multi-grid-stacked');
+          g.style.gridTemplateColumns = '1fr';
+          g.style.gap = '0';
+        });
+        exoDiv.querySelectorAll('.multi-item').forEach(it => { it.style.paddingBottom = '119px'; });
+        exoDiv.setAttribute('data-paginate-items', '1');
+      }
+      // Ex 4 (unités · Mélange) : nouvelle page + une ligne d'écart
       // entre chaque transformation.
-      if (idx === 3) {
+      if (sub.id === 'unites') {
         exoDiv.setAttribute('data-page-break-before', '1');
         exoDiv.querySelectorAll('.transform-list').forEach(list => {
           list.style.rowGap = '30px';
@@ -23763,8 +25310,8 @@ async function downloadDomainPdf(domainNum, compoImposee) {
       //   - Triangle et tableau CÔTE À CÔTE (pas en colonne)
       //   - Agrandir colonnes du tableau pour l'écriture manuscrite
       //   - Pas de coupe (le tableau de 3 lignes doit rester compact)
-      if (idx === 4) {
-        // Pas de saut de page : l'ex 5 se place directement sous l'ex 4.
+      if (estPythTableau) {
+        // Pas de saut de page : il se place directement sous l'exercice des unités.
         // Force le layout flex en nowrap : le SVG reste à gauche, le tableau
         // à droite, sans qu'aucun ne passe à la ligne.
         exoDiv.querySelectorAll('.pyth-layout').forEach(l => {
@@ -23788,7 +25335,7 @@ async function downloadDomainPdf(domainNum, compoImposee) {
       //   - espace de résolution sous chaque énoncé ;
       //   - pagination énoncé par énoncé (data-paginate-items) ;
       //   - SEUL sur la dernière page (saut de page forcé).
-      if (idx === 5) {
+      if (estPythProblemes) {
         exoDiv.setAttribute('data-page-break-before', '1');
         exoDiv.querySelectorAll('input.answer-input, input.answer-input-cell, input.answer-input-inline').forEach(i => i.remove());
         exoDiv.querySelectorAll('.multi-grid').forEach(g => {
@@ -23938,7 +25485,7 @@ async function downloadDomainPdf(domainNum, compoImposee) {
       numDiv.innerHTML = `${idx + 1}. ${titre}`;
       // Domaine 4, ex 2 (solides + bases composées) : l'énoncé n'est porté par
       // aucune question – la consigne vient donc en commentaire du titre.
-      if (domainNum === 4 && idx === 1) {
+      if (domainNum === 4 && sub.id === 'volumes' && niveau === 1) {
         numDiv.innerHTML += ` <span style="color:#6B7280; font-weight:600; font-size:14px; text-transform:none;">– Calcule le volume de ces solides.</span>`;
       }
     }
@@ -24011,6 +25558,17 @@ async function downloadDomainPdf(domainNum, compoImposee) {
         wrapEsp.setAttribute('data-pdf-corrige-line', '1');
         wrapEsp.innerHTML = espHtml;
         exDiv.appendChild(wrapEsp);
+        corrige.appendChild(exDiv);
+        return;
+      }
+      // Association solide ↔ développement : espaceCorrigeInner ne la traite
+      // pas, et ce corrigé restait VIDE dans le PDF de domaine.
+      const matHtml = corrigeMatchingInner(ex);
+      if (matHtml) {
+        const wrapMat = document.createElement('div');
+        wrapMat.setAttribute('data-pdf-corrige-line', '1');
+        wrapMat.innerHTML = matHtml;
+        exDiv.appendChild(wrapMat);
         corrige.appendChild(exDiv);
         return;
       }
@@ -24930,6 +26488,7 @@ async function downloadPdf(opts) {
     if (Array.isArray(opts.exercicesImposes) && opts.exercicesImposes.length) {
       exercisesForPdf = opts.exercicesImposes;
     }
+    exercisesForPdf.forEach(ex => unifierPrenoms(ex));
     if (opts.composerSeulement) return exercisesForPdf;
     // Maintenant qu'on connait le nombre d'exercices, on divise l'espace
     // disponible en N tranches égales – SAUF pour la proportion, où l'on empile
@@ -25272,42 +26831,7 @@ async function downloadPdf(opts) {
       // Association solide ↔ développement : au PDF, pas de traits interactifs.
       // Disposition « fiche » verticale : solides en une ligne (6), patrons en
       // grille 3×2, chaque patron avec « Solide : ___ » à compléter à la main.
-      if (found.sub.id === 'developpements' || ex.matching) {
-        // PDF uniquement : réduire les figures pour tenir dans la largeur de page.
-        exoDiv.querySelectorAll('.match-fig, .match-fig-patron').forEach(f => {
-          f.style.width = '86px';
-          f.style.height = '86px';
-        });
-        exoDiv.querySelectorAll('.match-num').forEach(n => { n.style.fontSize = '13px'; });
-        exoDiv.querySelectorAll('.match-pick').forEach(p => { p.style.fontSize = '13px'; p.style.minHeight = '0'; });
-        exoDiv.querySelectorAll('.match-solides').forEach(r => {
-          r.style.display = 'grid';
-          r.style.gridTemplateColumns = 'repeat(6, 1fr)';
-          r.style.gap = '4px';
-          r.style.marginBottom = '20px';
-          r.style.justifyItems = 'center';
-        });
-        exoDiv.querySelectorAll('.match-patrons').forEach(r => {
-          r.style.display = 'grid';
-          r.style.gridTemplateColumns = 'repeat(6, 1fr)';
-          r.style.gap = '6px';
-          r.style.justifyItems = 'center';
-        });
-        exoDiv.querySelectorAll('.match-cell').forEach(c => { c.style.border = 'none'; c.style.background = 'transparent'; c.style.padding = '2px'; });
-        exoDiv.querySelectorAll('.match-num').forEach(n => { n.style.background = 'none'; n.style.color = '#1F2937'; n.style.boxShadow = 'none'; });
-        exoDiv.querySelectorAll('.match-pick-label').forEach(l => { l.style.display = 'inline'; l.textContent = 'n° : '; });
-        exoDiv.querySelectorAll('.match-assigned').forEach(a => {
-          a.className = 'match-assigned';
-          a.textContent = '';
-          a.style.background = 'none';
-          a.style.boxShadow = 'none';
-          a.style.display = 'inline-block';
-          a.style.minWidth = '40px';
-          a.style.height = '16px';
-          a.style.verticalAlign = 'middle';
-          a.style.borderBottom = '1px dotted #9CA3AF';
-        });
-      }
+      appliquerMiseEnPageMatching(exoDiv, ex, found.sub.id);
       applyEspacePdfLayout(exoDiv, ex);
       // Prop-concret « % - rabais » (niveau 3) : pas de trait pointillé après les
       // énoncés – l'élève rédige sa réponse dans l'espace blanc sous chaque problème.
@@ -25573,25 +27097,14 @@ async function downloadPdf(opts) {
           cCor.appendChild(exDiv);
           return;
         } }
-      // Cas spécial : association solide ↔ développement → reproduire l'ensemble
-      // en plus petit avec, sous chaque patron, le bon numéro de solide.
-      if (ex.matching) {
-        const figBox = s => `<div style="width:58px;height:58px;margin:0 auto;">${s}</div>`;
-        inner += `<div style="padding-left: 16px;">`;
-        inner += `<div style="display:flex; flex-wrap:wrap; gap:6px 10px; margin-bottom:12px;">`;
-        ex.solides.forEach(s => {
-          inner += `<div style="text-align:center; width:62px;">${figBox(s.svg)}<div style="font-weight:800; font-size:13px; color:#1F2937;">${s.n}</div></div>`;
-        });
-        inner += `</div>`;
-        inner += `<div style="display:flex; flex-wrap:wrap; gap:6px 10px;">`;
-        ex.patrons.forEach(p => {
-          inner += `<div style="text-align:center; width:62px;">${figBox(p.svg)}<div style="font-size:13px; color:#1F2937;">n° : <strong style="color:#16A34A;">${p.solid}</strong></div></div>`;
-        });
-        inner += `</div></div>`;
-        exDiv.innerHTML = inner;
-        cCor.appendChild(exDiv);
-        return;
-      }
+      // Cas spécial : association solide ↔ développement.
+      { const _m = corrigeMatchingInner(ex);
+        if (_m) {
+          inner += _m;
+          exDiv.innerHTML = inner;
+          cCor.appendChild(exDiv);
+          return;
+        } }
       // Cas spécial : repérage dans un système d'axes → montrer la grille du
       // corrigé (A,B,C,D placés) + la liste des coordonnées.
       if (ex.svgCorrige) {
@@ -26426,6 +27939,9 @@ attachSidebarOutsideClick();
   if (img) img.src = ICONE_PDF;
   const imgTest = document.querySelector('#btn-eval .btn-icon-img');
   if (imgTest) imgTest.src = ICONE_TEST;
+  chargerPrenomsEnregistres();
+  const bEns = document.getElementById('btn-enseignant');
+  if (bEns) bEns.innerHTML = ICONE_ENSEIGNANT;
 })();
 
 if (typeof pushHistoryState === 'function') pushHistoryState(true);
