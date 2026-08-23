@@ -386,6 +386,25 @@ PDF de domaine :
 Cette section décrit l'ÉTAT, non l'historique. Les numéros de version ne sont
 cités que lorsqu'ils aident à retrouver un choix dans le fichier.
 
+v446 — SÉRIE PAR L'ADRESSE, et BROUILLON automatique.
+ · `…/eva_maths.html?serie=mix-test.json` ouvre directement la série. Le fichier
+   est cherché à côté de l'application ; le nom peut s'écrire avec ou sans
+   l'extension. Bloc d'init en fin de fichier. NE MARCHE QU'EN http(s) : ouvert
+   depuis le disque, `fetch` refuse de lire un fichier voisin — le message
+   d'erreur le dit.
+   Cette voie rend inutile d'encoder la série DANS l'adresse : mesuré, une
+   composition va de 2,7 ko (3 exercices) à 122 ko (les 5 domaines), soit
+   jusqu'à 163 ko une fois encodée — les navigateurs suivraient, les clients
+   mail non.
+ · BROUILLON : `atelierSauverBrouillon()` est appelé depuis `renderAtelier()`,
+   point de passage de TOUTE modification — inutile d'instrumenter chaque geste.
+   Écriture différée de 500 ms (sérialiser une grosse composition se voit).
+   Clé `eva-atelier-brouillon`. Si la page de l'atelier s'ouvre sur une
+   composition vide alors qu'un brouillon existe, `atelierProposerBrouillon()`
+   pose une ligne « Reprendre / Ignorer » en tête de zone. Le brouillon
+   s'efface tout seul quand la composition est vidée.
+   C'est un filet, pas un archivage : propre au navigateur et à la machine.
+
 v445 — Vignette : formulation d'Aurelio reprise mot pour mot.
 
 v444 — SÉRIE OUVERTE = ÉCRAN VERROUILLÉ. Un élève à qui l'on transmet une série
@@ -1380,6 +1399,14 @@ ainsi (une remarque prise pour une consigne, une sélection ambiguë).
   .atelier-barre .btn-action { white-space: nowrap; }
   /* Enregistrer / Exporter / Importer (et la liste des compositions) forment un
      groupe poussé À DROITE, séparé des gestes de composition. */
+  .atelier-brouillon {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    padding: 8px 12px; margin: 0 0 14px;
+    border-radius: var(--radius-sm);
+    border: 1px dashed var(--border);
+    background: var(--surface2, #F3F4F6);
+    font-size: 13px; color: var(--muted);
+  }
   .atelier-barre-droite {
     display: flex; align-items: center; gap: 8px;
     margin-left: auto; flex: 0 0 auto;
@@ -16082,7 +16109,7 @@ const ICONE_ENSEIGNANT = '<svg viewBox="0 0 24 24" width="21" height="21" fill="
 const ICONE_PDF = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJkAAACUCAMAAAC3HHtWAAAAk1BMVEXi5ef////xVkKwt73K0dji6OrxW0jyUDnG2eHlzczmgnrV2t/x8/T19vbxUTzwTDX4u7Xnvr28wsf+8/L84N3yYlD1jID1hXf1kYb4q6L4t7D96ujwQib1mY7++Pf70c3zcWHxSC/zeGn3pJv6ysX72dXy2Nbj1dXtgnfyaFf3sKj6w73UubvV4ebco6HkioPitLFLhhsqAAAElUlEQVR4nO3ca5eaOhQG4ICOtHUa7AAqIgiIbdVezv//dUcS7tlAXIYkq4v308xCzeNOCAEVZAzmKxKWj8Xi4324tVbQyGahsqdow7J3wbLFgp82LHsTLuOv2rBMIKyQ8dMGZQLHfyXjpsmX8dIUyDhpKmR8NCUyLpoa2eLjq64yjqqpko1XTZlstGrqZGM0hbIRmkrZME2pbJCmVjZEUywboKmW9dOUy3qnXPWyvqppIOupmg4yuGpayMCq6SGDqiZPthySAVWTJ1sPytiqyZMNdydbNYmykaJ1aRJlY0Xr0GTKnqNJlY3sn22aXBlaL4fr1qBJlpEsB/KmVDZEUywboKmW9dOUy3pp6mV9NA1kPTQdZDBNCxlI00MG0TSRATRdZCxNGxlD00fWpWkkQ/rKkL4ypK8M6StD+sqQvjKkrwzpK0P6ypC+MqSvDOkrQ/rKkL6ytbYyVF+tnWWiZW8T5jlZ4Lby/fN0+YFAGyxzw9hbyUoc/oBooOxi2tiUFmybEA2SRaklz5XH/slZs5PEgtGsPrNFg2R3W7YMf+OTbWbZLJtls2yWzbJWrORYJklaaxFs2WUsiznm1htpoIPySzK8PQVl3Oyc1gQrDX3/nMc/h/t0lbTb3vqthDGwkHlFhneO0YyTXYtHWdvWFsc9xA3b6m504nhs1V6R2QemhT192OrS3WJs4rLx7hvKcz8KlVkbpoWI9ovnMlsMN4ULSnJIJpA5gUNStL+qZRFN+RLBDvfJgpXY3qSy2zXOs/MpIbRLWeT/3OYJb0UFL7R9KnMOdXzRewCV+TYmsa8BKdqxku3oFsvGu4C+SFLL3MakwU4rgmTlv/u8ak5emEJWVcKOadmuuJYBmKlkmHpiQGZaMenrg61EZppknso9jMw8khnG9fSTWWletCjF9TizHnmMwsdInFqG6S4A9mY5keR7LpUFYRX4JFugLPHzf6OK0ZatTuWDmfnM2UO012XnI931zTMZ5KfGrNFsEGdkF0igmdaJgQ59XZaFZE1xO9GZlrx/QGYS2Q2UGdtJZO3c6+NmZ5yRg/wZ6k3j4rEvLlrm0h2NlRW7R17R4uh0qnIA1kCCZVF2pW2wMjvMH+BcG7MGmTbywBfmBMqcU2gWbQDzGSnZhfwpa6Y9nWn2qVm9d0ZGZxQyzOTJzkfaJc0+6cjwMSQ7bmRLrZkPbClkCSZoHG+iumQayIzs9lgV3g73YqYzsuJp6mWdXK7N1baMccYpy7xi2EmQ2ed8C3Q4Zs/qorA6CcFpLhu9WP7a1YNNFB3AdULqRjXKcU/bY+P5OHQiN51UhnG6gz/AsLxdndSz2s+249119IOPF68F9axHyZY6TzxNmGzCzLJZNstm2TSyTPpnwh7nZ8KBbBiOGVfPdw9u7DXeSWHHX785ZVGYJNV52ORJ8J/lmlP2WOv54b6VL5Pl73/LT0/Iunn/NF3yLzXyjjNAxvzkQWy0lQEwPWTAKOOXrScM5PoXvrM3y2bZLJtls+zfk3He90Do3TnFykTe0ZQr9Q8XRmTSi9a4zcyITOQNap+Djckk92fzbin/A8PQxx30Ei25AAAAAElFTkSuQmCC';
 
 // Numéro de version, affiché en pied de menu.
-const APP_VERSION = '445';
+const APP_VERSION = '446';
 
 const DOMAINS = [
   {
@@ -18937,6 +18964,82 @@ function compositionRestaurer(data) {
   return at;
 }
 
+// ----------------------------------------------------------------------------
+// BROUILLON : la composition en cours est écrite dans le navigateur à chaque
+// modification, et proposée au retour si elle n'a pas été enregistrée. C'est un
+// FILET, pas un archivage : propre à ce navigateur et à cette machine, effacé
+// par un nettoyage d'historique. « Enregistrer » reste le geste qui compte.
+// ----------------------------------------------------------------------------
+const CLE_BROUILLON = 'eva-atelier-brouillon';
+let _brouillonMinuteur = null;
+
+function atelierSauverBrouillon() {
+  // Différé : renderAtelier est appelé à chaque petit geste, et sérialiser une
+  // grosse composition coûte assez pour se voir.
+  if (_brouillonMinuteur) clearTimeout(_brouillonMinuteur);
+  _brouillonMinuteur = setTimeout(() => {
+    _brouillonMinuteur = null;
+    try {
+      const at = state.atelier;
+      if (!at || !Array.isArray(at.items) || !at.items.length) {
+        localStorage.removeItem(CLE_BROUILLON);
+        return;
+      }
+      localStorage.setItem(CLE_BROUILLON, JSON.stringify({
+        quand: Date.now(),
+        nom: at.nom || '',
+        compo: compositionSerialiser(at)
+      }));
+    } catch (e) { /* stockage refusé : on s'en passe, sans rien dire */ }
+  }, 500);
+}
+
+function atelierBrouillonDisponible() {
+  try {
+    const brut = localStorage.getItem(CLE_BROUILLON);
+    if (!brut) return null;
+    const o = JSON.parse(brut);
+    return (o && o.compo && Array.isArray(o.compo.items) && o.compo.items.length) ? o : null;
+  } catch (e) { return null; }
+}
+
+function atelierReprendreBrouillon() {
+  const o = atelierBrouillonDisponible();
+  if (!o) return;
+  const at = compositionRestaurer(o.compo);
+  if (!at) { atelierOublierBrouillon(); return; }
+  at.nom = o.nom || '';
+  state.atelier = at;
+  renderAtelier();   // pose aussi l'étiquette du nom
+  atelierMajBoutonComposer();
+}
+
+function atelierOublierBrouillon() {
+  try { localStorage.removeItem(CLE_BROUILLON); } catch (e) {}
+  const ligne = document.getElementById('atelier-brouillon');
+  if (ligne) ligne.remove();
+}
+
+// Ligne discrète proposée quand la page s'ouvre sur une composition vide alors
+// qu'un brouillon dort dans le navigateur.
+function atelierProposerBrouillon() {
+  const zone = document.getElementById('atelier-zone');
+  if (!zone) return;
+  const o = atelierBrouillonDisponible();
+  if (!o) return;
+  const quand = new Date(o.quand);
+  const jour = quand.toLocaleDateString('fr-CH', { day: '2-digit', month: '2-digit' });
+  const heure = quand.toLocaleTimeString('fr-CH', { hour: '2-digit', minute: '2-digit' });
+  const combien = o.compo.items.length;
+  const div = document.createElement('div');
+  div.id = 'atelier-brouillon';
+  div.className = 'atelier-brouillon';
+  div.innerHTML = `<span>Composition en cours du ${jour} à ${heure} — ${combien} exercice${combien > 1 ? 's' : ''}${o.nom ? ' (« ' + o.nom + ' »)' : ''}.</span>`
+    + `<button class="btn-action" onclick="atelierReprendreBrouillon()">Reprendre</button>`
+    + `<button class="btn-action" onclick="atelierOublierBrouillon()">Ignorer</button>`;
+  zone.insertBefore(div, zone.firstChild);
+}
+
 function atelierEnregistrer() {
   const at = state.atelier;
   if (!at || !at.items.length) { alert("Compose d'abord une série d'exercices."); return; }
@@ -19073,6 +19176,9 @@ function renderAtelier() {
   const zone = document.getElementById('atelier-zone');
   if (!zone) return;
   atelierMajBoutonComposer();
+  // Toute modification passe par ici : c'est le point où le brouillon se met à
+  // jour, sans avoir à instrumenter chaque geste.
+  atelierSauverBrouillon();
   if (!at || !at.items.length) {
     zone.innerHTML = '<div class="placeholder"><strong>Rien à afficher</strong>Choisis un domaine puis compose.</div>';
     return;
@@ -19791,6 +19897,8 @@ function renderAtelierPage() {
   // redessine si elle existe.
   if (state.atelier && Array.isArray(state.atelier.items) && state.atelier.items.length) {
     renderAtelier();
+  } else {
+    atelierProposerBrouillon();
   }
   // Un clic hors du menu le referme.
   document.addEventListener('click', (ev) => {
@@ -29993,6 +30101,36 @@ attachSidebarOutsideClick();
 })();
 
 if (typeof pushHistoryState === 'function') pushHistoryState(true);
+
+// ----------------------------------------------------------------------------
+// SÉRIE OUVERTE PAR L'ADRESSE : « …/eva_maths.html?serie=mix-test.json ».
+// Le fichier est cherché à côté de l'application (même dossier), ou à l'adresse
+// donnée si elle est complète. C'est ce qui permet de transmettre un simple LIEN
+// plutôt qu'un fichier à télécharger puis à ouvrir.
+// Ne marche QUE servi en http(s) : ouvert depuis le disque, le navigateur
+// refuse de lire un fichier voisin.
+// ----------------------------------------------------------------------------
+(() => {
+  let nom = null;
+  try { nom = new URLSearchParams(window.location.search).get('serie'); } catch (e) { nom = null; }
+  if (!nom) return;
+  if (!/\.json$/i.test(nom)) nom += '.json';
+  fetch(nom, { cache: 'no-store' })
+    .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+    .then(data => {
+      const at = compositionRestaurer(data);
+      const items = (at && Array.isArray(at.items) ? at.items : [])
+        .filter(it => it && it.ex && !it.ex._construction && !it.ex._instrKind)
+        .map(it => ({ sub: it.sub, niveau: it.niveau, ex: { ...it.ex } }));
+      if (!items.length) throw new Error('vide');
+      ouvrirSerie(at.nom || String(nom).replace(/\.json$/i, ''), items);
+    })
+    .catch(() => {
+      alert("La série « " + nom + " » n'a pas pu être ouverte.\n\n"
+        + "Vérifie que le fichier est bien déposé à côté de l'application, "
+        + "et que la page est ouverte depuis son adresse web (et non depuis le disque).");
+    });
+})();
 
 </script>
 </body>
