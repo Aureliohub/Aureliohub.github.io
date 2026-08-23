@@ -386,6 +386,44 @@ PDF de domaine :
 Cette section décrit l'ÉTAT, non l'historique. Les numéros de version ne sont
 cités que lorsqu'ils aident à retrouver un choix dans le fichier.
 
+v449 — SÉRIE OUVERTE PAR UN ÉLÈVE : quatre ajustements.
+ · Pas de bouton SOLUTIONS quand la série ne vient pas de l'atelier
+   (`s.origine === 'atelier'` le conserve dans l'aperçu de l'enseignant).
+ · Le menu de gauche ne joue plus son ouverture-repli de bienvenue : `ouvrirSerie`
+   annule la minuterie et retire `forced-open` / `slow-retract`. Le mouvement
+   survenait plusieurs secondes après le chargement, une fois la série déjà à
+   l'écran, et attirait l'œil sur un menu éteint.
+ · EXPORT : avertissement (confirm) quand des réponses manquent ou que des
+   exercices n'ont pas été validés — le compte des deux est donné, l'export
+   reste possible.
+ · EXPORT : les solutions ne figurent QUE pour les exercices validés.
+   `serieExerciceValide(i)` lit la marque de correction dans le bloc
+   (`.correct / .incorrect / .unite-partielle`) ; sans elle, `rendu()` rend la
+   réponse en neutre, sans couleur ni « → attendu ». Ne concerne que
+   `sansPoints` : l'export d'un test, validé d'un bloc, ne change pas.
+
+v448 — PURGE À L'EXPORT : `atelierExporter` sérialise désormais
+`atelierItemsPourPdf()` et non la composition brute — le fichier ne contient que
+les questions COCHÉES, libellés renumérotés, exactement ce qui partirait au PDF.
+Un fichier exporté est un résultat fini (c'est aussi celui qu'on met en ligne
+pour les élèves) ; les compositions gardées dans le navigateur et le brouillon
+conservent TOUT, ce sont des copies de travail où l'on veut pouvoir remettre une
+question écartée. Le mode d'emploi le dit.
+
+v447 — SÉRIE : export des réponses, et pas de « Valider » dans la composition.
+ · `exporterSerie()` produit le MÊME document que l'export du test, sans aucun
+   point : réponse saisie en vert ou en rouge, bonne réponse en gris à côté
+   quand c'est faux. Il emprunte `exporterTest(opts)` en lui prêtant, le temps
+   d'un appel, un `state.test` bâti sur la série — d'où l'attribut
+   `data-test-ex` posé AUSSI sur les blocs de la vue série, dont dépendent tous
+   les sélecteurs de l'export. `opts.sansPoints` coupe le récapitulatif, la
+   durée, le score par exercice et le préfixe « Test – » du titre.
+ · Le bouton « Valider » ne s'affiche plus dans l'ATELIER (`dansAtelier` en tête
+   de `renderExercise`) : on y compose un exercice, on ne le résout pas. Il
+   reste dans l'aperçu écran, dans une série ouverte et dans le menu principal.
+ · Ouverture par l'adresse : URL résolue explicitement et message d'erreur
+   circonstancié (404 / page ouverte depuis le disque / contenu illisible).
+
 v446 — SÉRIE PAR L'ADRESSE, et BROUILLON automatique.
  · `…/eva_maths.html?serie=mix-test.json` ouvre directement la série. Le fichier
    est cherché à côté de l'application ; le nom peut s'écrire avec ou sans
@@ -4014,6 +4052,9 @@ ainsi (une remarque prise pour une consigne, une sélection ambiguë).
       <li><strong>Aperçu écran</strong> ouvre la même série dans l'application : chaque exercice
         garde son bouton <strong>Valider</strong> et l'œil affiche les solutions, comme dans le
         menu principal. Les questions décochées en sont retirées, comme au PDF.</li>
+      <li><strong>Exporter</strong> ne garde que les questions cochées : le fichier est la série
+        finie, telle qu'elle sortirait au PDF. Les compositions gardées dans le navigateur, elles,
+        conservent les questions écartées — on peut les remettre.</li>
       <li>Pour faire travailler sur un AUTRE poste : <strong>Exporter</strong> la série, puis
         sur l'autre ordinateur, depuis la page d'accueil, <strong>Ouvrir une série…</strong> et
         choisir le fichier. Aucun passage par l'espace enseignant.</li>
@@ -16109,7 +16150,7 @@ const ICONE_ENSEIGNANT = '<svg viewBox="0 0 24 24" width="21" height="21" fill="
 const ICONE_PDF = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJkAAACUCAMAAAC3HHtWAAAAk1BMVEXi5ef////xVkKwt73K0dji6OrxW0jyUDnG2eHlzczmgnrV2t/x8/T19vbxUTzwTDX4u7Xnvr28wsf+8/L84N3yYlD1jID1hXf1kYb4q6L4t7D96ujwQib1mY7++Pf70c3zcWHxSC/zeGn3pJv6ysX72dXy2Nbj1dXtgnfyaFf3sKj6w73UubvV4ebco6HkioPitLFLhhsqAAAElUlEQVR4nO3ca5eaOhQG4ICOtHUa7AAqIgiIbdVezv//dUcS7tlAXIYkq4v308xCzeNOCAEVZAzmKxKWj8Xi4324tVbQyGahsqdow7J3wbLFgp82LHsTLuOv2rBMIKyQ8dMGZQLHfyXjpsmX8dIUyDhpKmR8NCUyLpoa2eLjq64yjqqpko1XTZlstGrqZGM0hbIRmkrZME2pbJCmVjZEUywboKmW9dOUy3qnXPWyvqppIOupmg4yuGpayMCq6SGDqiZPthySAVWTJ1sPytiqyZMNdydbNYmykaJ1aRJlY0Xr0GTKnqNJlY3sn22aXBlaL4fr1qBJlpEsB/KmVDZEUywboKmW9dOUy3pp6mV9NA1kPTQdZDBNCxlI00MG0TSRATRdZCxNGxlD00fWpWkkQ/rKkL4ypK8M6StD+sqQvjKkrwzpK0P6ypC+MqSvDOkrQ/rKkL6ytbYyVF+tnWWiZW8T5jlZ4Lby/fN0+YFAGyxzw9hbyUoc/oBooOxi2tiUFmybEA2SRaklz5XH/slZs5PEgtGsPrNFg2R3W7YMf+OTbWbZLJtls2yWzbJWrORYJklaaxFs2WUsiznm1htpoIPySzK8PQVl3Oyc1gQrDX3/nMc/h/t0lbTb3vqthDGwkHlFhneO0YyTXYtHWdvWFsc9xA3b6m504nhs1V6R2QemhT192OrS3WJs4rLx7hvKcz8KlVkbpoWI9ovnMlsMN4ULSnJIJpA5gUNStL+qZRFN+RLBDvfJgpXY3qSy2zXOs/MpIbRLWeT/3OYJb0UFL7R9KnMOdXzRewCV+TYmsa8BKdqxku3oFsvGu4C+SFLL3MakwU4rgmTlv/u8ak5emEJWVcKOadmuuJYBmKlkmHpiQGZaMenrg61EZppknso9jMw8khnG9fSTWWletCjF9TizHnmMwsdInFqG6S4A9mY5keR7LpUFYRX4JFugLPHzf6OK0ZatTuWDmfnM2UO012XnI931zTMZ5KfGrNFsEGdkF0igmdaJgQ59XZaFZE1xO9GZlrx/QGYS2Q2UGdtJZO3c6+NmZ5yRg/wZ6k3j4rEvLlrm0h2NlRW7R17R4uh0qnIA1kCCZVF2pW2wMjvMH+BcG7MGmTbywBfmBMqcU2gWbQDzGSnZhfwpa6Y9nWn2qVm9d0ZGZxQyzOTJzkfaJc0+6cjwMSQ7bmRLrZkPbClkCSZoHG+iumQayIzs9lgV3g73YqYzsuJp6mWdXK7N1baMccYpy7xi2EmQ2ed8C3Q4Zs/qorA6CcFpLhu9WP7a1YNNFB3AdULqRjXKcU/bY+P5OHQiN51UhnG6gz/AsLxdndSz2s+249119IOPF68F9axHyZY6TzxNmGzCzLJZNstm2TSyTPpnwh7nZ8KBbBiOGVfPdw9u7DXeSWHHX785ZVGYJNV52ORJ8J/lmlP2WOv54b6VL5Pl73/LT0/Iunn/NF3yLzXyjjNAxvzkQWy0lQEwPWTAKOOXrScM5PoXvrM3y2bZLJtls+zfk3He90Do3TnFykTe0ZQr9Q8XRmTSi9a4zcyITOQNap+Djckk92fzbin/A8PQxx30Ei25AAAAAElFTkSuQmCC';
 
 // Numéro de version, affiché en pied de menu.
-const APP_VERSION = '446';
+const APP_VERSION = '449';
 
 const DOMAINS = [
   {
@@ -17191,7 +17232,10 @@ function renderSerie() {
       <div class="content-header-row">
         <h2 class="content-header-h2-inline">${s.titre || 'Série d\'exercices'}</h2>
         <div class="content-header-actions">
-          <button class="btn-action btn-icon" onclick="toggleSolutions()" title="${solTitle}">${solLabel}</button>
+          ${s.origine === 'atelier'
+            ? `<button class="btn-action btn-icon" onclick="toggleSolutions()" title="${solTitle}">${solLabel}</button>`
+            : ''}
+          <button class="btn-action" id="btn-export-serie" onclick="exporterSerie()" title="Un PDF des réponses saisies, avec la correction en regard des erreurs">Exporter</button>
           <button class="btn-action" onclick="quitterSerie()">${s.origine === 'atelier' ? 'Retour' : 'Quitter'}</button>
         </div>
       </div>
@@ -17202,7 +17246,9 @@ function renderSerie() {
       ? it.sub.niveauLabels[Math.min(it.niveau, it.sub.niveauLabels.length) - 1] : null;
     const sousTitre = it.sub.title + (rub ? ` – ${rub}` : '');
     html += `<div class="exercise-sub-title" style="font-weight:800; font-size:13px; color:#6B7280; text-transform:uppercase; letter-spacing:0.02em; margin:18px 0 6px 2px;">${sousTitre}</div>`;
-    html += `<div data-serie-ex="${i}">${renderExercise(it.ex, i + 1, i)}</div>`;
+    // `data-test-ex` en plus : c'est par cet attribut que l'export retrouve les
+    // champs de saisie et leurs marques de correction.
+    html += `<div data-serie-ex="${i}" data-test-ex="${i}">${renderExercise(it.ex, i + 1, i)}</div>`;
   });
   main.innerHTML = html;
   s.items.forEach((it, i) => {
@@ -17236,6 +17282,12 @@ function ouvrirSerie(titre, items, origine) {
   // « Retour », et l'on retombe dans l'atelier, composition intacte.
   state.serie = { titre, items, origine: origine || null };
   document.body.classList.add('mode-serie');
+  // Le menu de gauche s'ouvre en grand à l'arrivée sur l'application, puis se
+  // referme au bout de quelques secondes. Sur une série, il est éteint : ce
+  // mouvement n'a plus aucun sens et attire l'œil au mauvais endroit.
+  if (typeof cancelSidebarAutoClose === 'function') cancelSidebarAutoClose();
+  const sb = document.getElementById('sidebar');
+  if (sb) sb.classList.remove('forced-open', 'slow-retract');
   state.exercises = items.map(it => it.ex);
   renderSidebar();
   renderMain();
@@ -19094,8 +19146,16 @@ function atelierSupprimerEnregistree() {
 function atelierExporter() {
   const at = state.atelier;
   if (!at || !at.items.length) return;
+  // PURGE À L'EXPORT : le fichier ne garde que les questions COCHÉES, avec
+  // leurs libellés renumérotés — exactement ce qui partirait au PDF. Un fichier
+  // exporté est un résultat fini, pas un chantier : celui qu'on met en ligne
+  // pour les élèves ne doit pas transporter ce qu'on a écarté.
+  // Les compositions gardées dans le navigateur (« Enregistrer ») et le
+  // brouillon, eux, conservent TOUT : ce sont des copies de travail, et l'on
+  // veut pouvoir y remettre une question mise de côté.
+  const aExporter = { ...at, items: atelierItemsPourPdf() };
   let texte;
-  try { texte = JSON.stringify(compositionSerialiser(at), null, 1); }
+  try { texte = JSON.stringify(compositionSerialiser(aExporter), null, 1); }
   catch (e) { alert("Cette composition n'a pas pu être exportée."); return; }
   const nom = (at.nom || 'composition').replace(/[^\w-]+/g, '-');
   const blob = new Blob([texte], { type: 'application/json' });
@@ -21506,8 +21566,12 @@ function clicReset(exIdx) {
 }
 
 function renderExercise(ex, num, exIdx) {
+  // Dans l'ATELIER, l'exercice est un objet qu'on COMPOSE, pas qu'on résout :
+  // le bouton « Valider » n'y a pas sa place. Il revient dans l'aperçu écran,
+  // dans une série ouverte et dans le menu principal.
+  const dansAtelier = !!(state.espaceEnseignant && state.enseignantVue === 'atelier' && !state.serie);
   // L'en-tête de l'exercice : numéro à gauche, bouton Valider à droite pour les multi/tableMode
-  const validateBtn = ex.matching
+  const validateBtn = dansAtelier ? '' : ex.matching
     ? `<button class="btn-validate no-print" onclick="matchValidate(${exIdx})">✓ Valider</button>`
     : ex.clicMap
     ? `<button class="btn-validate no-print" onclick="clicValidate(${exIdx})">✓ Valider</button>`
@@ -25353,16 +25417,61 @@ function attendusInteractifs(ex) {
   return [];
 }
 
-async function exporterTest() {
+// Export d'une SÉRIE : le même document que celui du test, mais sans aucun
+// point — juste ce que l'élève a saisi, et la bonne réponse en regard quand
+// c'est faux. On emprunte la machinerie de l'export du test en lui prêtant le
+// temps d'un appel un `state.test` bâti sur la série ; c'est pourquoi la vue
+// série marque ses blocs avec `data-test-ex`.
+// Un exercice est « validé » quand sa correction a été demandée : ses champs
+// portent alors une marque, juste ou fausse. Sans cela, l'export donnerait la
+// solution d'un exercice que l'élève n'a même pas tenté.
+function serieExerciceValide(i) {
+  const bloc = document.querySelector(`[data-serie-ex="${i}"]`);
+  if (!bloc) return false;
+  return !!bloc.querySelector('.correct, .incorrect, .unite-partielle');
+}
+
+async function exporterSerie() {
+  const s = state.serie;
+  if (!s || !Array.isArray(s.items) || !s.items.length) return;
+  // Réponses manquantes : on prévient, sans interdire.
+  const champs = [...document.querySelectorAll('#main [data-serie-ex] input.answer-input')];
+  const vides = champs.filter(c => !(c.value || '').trim()).length;
+  const nonValides = s.items.filter((_, i) => !serieExerciceValide(i)).length;
+  if (vides || nonValides) {
+    const bouts = [];
+    if (vides) bouts.push(`${vides} réponse${vides > 1 ? 's' : ''} non saisie${vides > 1 ? 's' : ''}`);
+    if (nonValides) bouts.push(`${nonValides} exercice${nonValides > 1 ? 's' : ''} non validé${nonValides > 1 ? 's' : ''}`);
+    if (!confirm(`Il reste ${bouts.join(' et ')}.\n\n`
+      + "Les exercices non validés figureront dans le document, mais sans leur correction.\n\n"
+      + 'Exporter quand même ?')) return;
+  }
+  const sauve = state.test;
+  state.test = {
+    items: s.items,
+    domaines: [],
+    valide: true,
+    score: { obtenus: 0, total: 0 },
+    debut: null,
+    duree: null,
+    titre: s.titre || "Série d'exercices"
+  };
+  try { await exporterTest({ sansPoints: true }); }
+  finally { state.test = sauve; }
+}
+
+async function exporterTest(opts) {
   const t = state.test;
   if (!t) return;
+  // Série : ni score par exercice, ni récapitulatif, ni durée.
+  const sansPoints = !!(opts && opts.sansPoints);
   if (typeof html2canvas === 'undefined' || typeof window.jspdf === 'undefined') {
     alert("Les librairies PDF ne sont pas chargées. Vérifie la connexion internet et recharge la page.");
     return;
   }
   // Les deux boutons d'export – celui du bandeau et celui de la fenêtre de
   // sortie – passent en attente pendant la fabrication du document.
-  const btns = [...document.querySelectorAll('#btn-export-test, #btn-export')];
+  const btns = [...document.querySelectorAll('#btn-export-test, #btn-export, #btn-export-serie')];
   const libelles = btns.map(b => b.innerHTML);
   btns.forEach(b => { b.innerHTML = '⏳ Export…'; b.disabled = true; });
 
@@ -25371,11 +25480,12 @@ async function exporterTest() {
   const nb = n => String(Math.round(n * 2) / 2).replace('.', ',');
   // Au-delà d'un domaine, la liste complète débordait de la ligne : « Test –
   // 5 domaines », comme le bandeau de l'écran.
-  const titreTest = (t.domaines.length === 1) ? t.domaines[0] : `${t.domaines.length} domaines`;
+  const titreTest = t.titre
+    || ((t.domaines.length === 1) ? t.domaines[0] : `${t.domaines.length} domaines`);
   const d = new Date();
   const dateFr = `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')}.${d.getFullYear()}`;
   // Durée du test : arrêtée à la validation, sinon comptée jusqu'à l'export.
-  const ms = (t.duree != null) ? t.duree : (t.debut ? Date.now() - t.debut : null);
+  const ms = sansPoints ? null : ((t.duree != null) ? t.duree : (t.debut ? Date.now() - t.debut : null));
   const dureeFr = (() => {
     if (ms == null) return '';
     const min = Math.max(0, Math.round(ms / 60000));
@@ -25397,7 +25507,7 @@ async function exporterTest() {
   // Titre à gauche, date et heure à droite sur la même ligne. Le score n'y
   // figure plus : le récapitulatif qui suit le donne, domaine par domaine.
   entete.innerHTML = `<div style="display:flex; align-items:baseline; gap:16px;">`
-    + `<div style="flex:1; font-size:22px; font-weight:800;">Test – ${titreTest}</div>`
+    + `<div style="flex:1; font-size:22px; font-weight:800;">${sansPoints ? '' : 'Test – '}${titreTest}</div>`
     + `<div style="font-size:13px; color:#6B7280; white-space:nowrap;">${dateFr}`
     + (dureeFr ? ` &nbsp;·&nbsp; ⏱ ${dureeFr}` : '') + `</div></div>`;
   cont.appendChild(entete);
@@ -25428,9 +25538,9 @@ async function exporterTest() {
   // proportionnalité, les niveaux fusionnés) n'occupe qu'une ligne, où ses
   // scores sont cumulés. Les exercices hors barème (constructions) n'ouvrent
   // pas de ligne.
-  const scores = state.test.items.map((it, i) => scoreExercice(it, i));
+  const scores = sansPoints ? [] : state.test.items.map((it, i) => scoreExercice(it, i));
   const parDom = [];
-  state.test.items.forEach((it, i) => {
+  if (!sansPoints) state.test.items.forEach((it, i) => {
     const sc = scores[i];
     if (sc.horsBareme || sc.total <= 0) return;
     const cleDom = it.domainTitle || (state.test.domaines[0] || '');
@@ -25470,8 +25580,11 @@ async function exporterTest() {
   let domExport = null;
   const notesCalcExport = notesCalculatrice(state.test.items);
   state.test.items.forEach((it, i) => {
-    const sc = scoreExercice(it, i);
-    const pctEx = sc.total > 0 ? Math.round(sc.obtenus / sc.total * 100) : null;
+    const sc = sansPoints ? { obtenus: 0, total: 0 } : scoreExercice(it, i);
+    // Série : un exercice que l'élève n'a pas fait corriger part sans sa
+    // correction — on n'y donne pas la réponse à sa place.
+    const montrerCorrection = !sansPoints || serieExerciceValide(i);
+    const pctEx = sansPoints ? null : (sc.total > 0 ? Math.round(sc.obtenus / sc.total * 100) : null);
     const couleurEx = pctEx === null ? '#9CA3AF'
       : (pctEx >= 60 ? '#16A34A' : (pctEx >= 40 ? '#B45309' : '#DC2626'));
     const rub = (Array.isArray(it.sub.niveauLabels) && typeof it.niveau === 'number'
@@ -25503,9 +25616,11 @@ async function exporterTest() {
     let corps = `<div style="display:flex; align-items:baseline; gap:10px; border-bottom:1px solid #E5E7EB; padding-bottom:3px; margin-bottom:6px;">`
       + `<span style="font-weight:800; font-size:14px;">Exercice ${i + 1}.</span>`
       + `<span style="flex:1; font-size:13px; color:#374151;">${esc(it.sub.title)}${rub ? ' – ' + esc(rub) : ''}</span>`
-      + `<span style="font-weight:800; font-size:13px; color:${couleurEx};">`
-      + (pctEx === null ? 'non compté' : `${nb(sc.obtenus)} / ${nb(sc.total)} – ${pctEx} %`)
-      + `</span></div>`;
+      + (sansPoints ? ''
+         : `<span style="font-weight:800; font-size:13px; color:${couleurEx};">`
+           + (pctEx === null ? 'non compté' : `${nb(sc.obtenus)} / ${nb(sc.total)} – ${pctEx} %`)
+           + `</span>`)
+      + `</div>`;
 
     // Réponse donnée en vert ou rouge, et – quand elle est fausse – la réponse
     // attendue en gris juste à côté. Même règle partout.
@@ -25520,6 +25635,11 @@ async function exporterTest() {
     const rendu = (donnee, juste, attendu, partiel, avecExposants) => {
       donnee = donnee ? esc(donnee) : '';
       if (avecExposants && donnee) donnee = exposants(donnee);
+      // Exercice non validé : la réponse est reprise telle quelle, en neutre,
+      // sans marque de justesse ni solution.
+      if (!montrerCorrection) {
+        return `<span style="color:#1F2937; font-weight:700;">${donnee || '–'}</span>`;
+      }
       const couleur = partiel ? '#B45309' : (juste ? '#16A34A' : '#DC2626');
       return `<span style="color:${couleur}; font-weight:700;">`
         + (donnee || '–') + (partiel ? ' (✓)' : '') + '</span>'
@@ -30115,8 +30235,9 @@ if (typeof pushHistoryState === 'function') pushHistoryState(true);
   try { nom = new URLSearchParams(window.location.search).get('serie'); } catch (e) { nom = null; }
   if (!nom) return;
   if (!/\.json$/i.test(nom)) nom += '.json';
-  fetch(nom, { cache: 'no-store' })
-    .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+  const urlSerie = new URL(nom, window.location.href).href;
+  fetch(urlSerie, { cache: 'no-store' })
+    .then(r => { if (!r.ok) throw new Error(String(r.status)); return r.json(); })
     .then(data => {
       const at = compositionRestaurer(data);
       const items = (at && Array.isArray(at.items) ? at.items : [])
@@ -30125,10 +30246,16 @@ if (typeof pushHistoryState === 'function') pushHistoryState(true);
       if (!items.length) throw new Error('vide');
       ouvrirSerie(at.nom || String(nom).replace(/\.json$/i, ''), items);
     })
-    .catch(() => {
-      alert("La série « " + nom + " » n'a pas pu être ouverte.\n\n"
-        + "Vérifie que le fichier est bien déposé à côté de l'application, "
-        + "et que la page est ouverte depuis son adresse web (et non depuis le disque).");
+    .catch((err) => {
+      // Message circonstancié : sans lui, « ça ne s'ouvre pas » ne dit pas
+      // si le fichier manque, s'il est illisible, ou si la page tourne
+      // depuis le disque.
+      const raison = (String(err && err.message) === '404')
+        ? "Le fichier n'existe pas à cette adresse : " + urlSerie
+        : (location.protocol === 'file:')
+        ? "La page est ouverte depuis le disque ; le navigateur refuse alors de lire un fichier voisin. Il faut passer par l'adresse web."
+        : "Le fichier a été trouvé mais son contenu n'est pas une série lisible (" + String(err && err.message) + ").";
+      alert("La série « " + nom + " » n'a pas pu être ouverte.\n\n" + raison);
     });
 })();
 
