@@ -386,6 +386,49 @@ PDF de domaine :
 Cette section décrit l'ÉTAT, non l'historique. Les numéros de version ne sont
 cités que lorsqu'ils aident à retrouver un choix dans le fichier.
 
+v453 — MENUS DE RÉGLAGE ABSENTS SUR LES EXERCICES AJOUTÉS À UNE SÉRIE DE
+DOMAINE. Les menus « niveau » et « variante » étaient conditionnés par
+`at.mode !== 'domaine'` — une propriété de la COMPOSITION. Partir de « Série du
+domaine » puis ajouter des notions d'un autre domaine laissait donc toute la
+composition en mode domaine, et les exercices ajoutés perdaient leurs menus
+alors que rien ne les calibre.
+ · Le drapeau vit désormais sur CHAQUE exercice : `it._epreuve`, posé par
+   `atelierEpreuveDomaine` sur les seuls exercices de la sélection calibrée.
+   Les menus, eux, se décident item par item (`calibre`).
+ · Même correction pour le RENOUVELLEMENT : un exercice `_epreuve` se refait en
+   recomposant le domaine et en reprenant celui de même rang ; un exercice
+   ajouté se refait par son sous-domaine, comme dans une composition ordinaire.
+   Auparavant il ne se renouvelait pas du tout (le sous-domaine ne
+   correspondait pas au rang, la fonction rendait null).
+ · `compo.items` n'est plus écrit au-delà de sa longueur : un exercice ajouté
+   n'a pas de place dans la sélection calibrée, y écrire creusait un trou.
+ · Le drapeau et les réglages par exercice sont désormais SÉRIALISÉS
+   (`epreuve`, `reglages`) : une composition rouverte garde la distinction.
+ Vérifié : série du domaine 1 (9 exercices, aucun menu) + deux notions de
+ Proportionnalité (un menu chacune) ; survit à un export/import ; renouvellement
+ et changement de niveau fonctionnels sur les exercices ajoutés.
+
+v452 — Retouches sur la sortie Test.
+ · Message d'accueil : « Réponds à toutes les questions puis valide une fois
+   terminé. »
+ · « (sans calculatrice) » ajouté aux sous-titres du TEST : la mention suit le
+   DOMAINE (`mentionSansCalc(it.domainNum)`), le PDF la portait déjà, l'écran
+   non.
+ · FENÊTRE D'ATTENTE pendant l'export (`ouvrirAttenteExport` /
+   `majAttenteExport` / `fermerAttenteExport`, fermée dans le `finally`). Sans
+   elle, la page restait figée plusieurs secondes sans rien dire et l'on
+   recliquait — d'où l'impression d'un export en panne. Deux points à retenir :
+   un `await setTimeout(0)` après CHAQUE bloc photographié, sinon le navigateur
+   ne repeint jamais et la fenêtre reste vide ; et un court délai après son
+   ouverture, pour qu'elle s'affiche avant que le travail commence.
+ · Nom du fichier exporté : prénom + nom du test (+ pourcentage hors série).
+   Le bandeau et l'export ne préfixent plus « Test – » quand le test porte son
+   propre nom.
+ · `REMPLISSAGE_AUTO = true` : le bouton « ⚡ Remplir » (en veille depuis v379)
+   revient dans le pied du test, le temps de la mise au point. À REPASSER À
+   false avant de donner l'application aux élèves — le bouton est visible de
+   tous. Mesuré : 72 % sur un test de 16 points.
+
 v451 — TROISIÈME SORTIE DE L'ATELIER : LE TEST. Décision d'architecture : il
 n'y a PAS d'atelier « test » séparé. Une composition est une composition ; ce
 qui change, c'est sa LIVRAISON. La vignette « Créer un test sur mesure » est
@@ -1486,6 +1529,21 @@ ainsi (une remarque prise pour une consigne, une sélection ambiguë).
   .test-accueil-alerte { color: #B45309; font-weight: 600; }
   .test-accueil-label { display: block; font-weight: 700; margin: 16px 0 6px; }
   .test-accueil input { width: 100%; margin-bottom: 18px; }
+  /* Barre d'attente de l'export : un mouvement continu, sans prétendre mesurer
+     une progression qu'on ne connaît pas d'avance. */
+  .export-barre {
+    height: 6px; border-radius: 3px; overflow: hidden;
+    background: var(--surface2, #E5E7EB);
+  }
+  .export-barre span {
+    display: block; height: 100%; width: 40%; border-radius: 3px;
+    background: var(--accent);
+    animation: export-va-et-vient 1.1s ease-in-out infinite;
+  }
+  @keyframes export-va-et-vient {
+    0%   { margin-left: -40%; }
+    100% { margin-left: 100%; }
+  }
   .atelier-brouillon {
     display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
     padding: 8px 12px; margin: 0 0 14px;
@@ -16229,7 +16287,7 @@ const ICONE_ENSEIGNANT = '<svg viewBox="0 0 24 24" width="21" height="21" fill="
 const ICONE_PDF = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJkAAACUCAMAAAC3HHtWAAAAk1BMVEXi5ef////xVkKwt73K0dji6OrxW0jyUDnG2eHlzczmgnrV2t/x8/T19vbxUTzwTDX4u7Xnvr28wsf+8/L84N3yYlD1jID1hXf1kYb4q6L4t7D96ujwQib1mY7++Pf70c3zcWHxSC/zeGn3pJv6ysX72dXy2Nbj1dXtgnfyaFf3sKj6w73UubvV4ebco6HkioPitLFLhhsqAAAElUlEQVR4nO3ca5eaOhQG4ICOtHUa7AAqIgiIbdVezv//dUcS7tlAXIYkq4v308xCzeNOCAEVZAzmKxKWj8Xi4324tVbQyGahsqdow7J3wbLFgp82LHsTLuOv2rBMIKyQ8dMGZQLHfyXjpsmX8dIUyDhpKmR8NCUyLpoa2eLjq64yjqqpko1XTZlstGrqZGM0hbIRmkrZME2pbJCmVjZEUywboKmW9dOUy3qnXPWyvqppIOupmg4yuGpayMCq6SGDqiZPthySAVWTJ1sPytiqyZMNdydbNYmykaJ1aRJlY0Xr0GTKnqNJlY3sn22aXBlaL4fr1qBJlpEsB/KmVDZEUywboKmW9dOUy3pp6mV9NA1kPTQdZDBNCxlI00MG0TSRATRdZCxNGxlD00fWpWkkQ/rKkL4ypK8M6StD+sqQvjKkrwzpK0P6ypC+MqSvDOkrQ/rKkL6ytbYyVF+tnWWiZW8T5jlZ4Lby/fN0+YFAGyxzw9hbyUoc/oBooOxi2tiUFmybEA2SRaklz5XH/slZs5PEgtGsPrNFg2R3W7YMf+OTbWbZLJtls2yWzbJWrORYJklaaxFs2WUsiznm1htpoIPySzK8PQVl3Oyc1gQrDX3/nMc/h/t0lbTb3vqthDGwkHlFhneO0YyTXYtHWdvWFsc9xA3b6m504nhs1V6R2QemhT192OrS3WJs4rLx7hvKcz8KlVkbpoWI9ovnMlsMN4ULSnJIJpA5gUNStL+qZRFN+RLBDvfJgpXY3qSy2zXOs/MpIbRLWeT/3OYJb0UFL7R9KnMOdXzRewCV+TYmsa8BKdqxku3oFsvGu4C+SFLL3MakwU4rgmTlv/u8ak5emEJWVcKOadmuuJYBmKlkmHpiQGZaMenrg61EZppknso9jMw8khnG9fSTWWletCjF9TizHnmMwsdInFqG6S4A9mY5keR7LpUFYRX4JFugLPHzf6OK0ZatTuWDmfnM2UO012XnI931zTMZ5KfGrNFsEGdkF0igmdaJgQ59XZaFZE1xO9GZlrx/QGYS2Q2UGdtJZO3c6+NmZ5yRg/wZ6k3j4rEvLlrm0h2NlRW7R17R4uh0qnIA1kCCZVF2pW2wMjvMH+BcG7MGmTbywBfmBMqcU2gWbQDzGSnZhfwpa6Y9nWn2qVm9d0ZGZxQyzOTJzkfaJc0+6cjwMSQ7bmRLrZkPbClkCSZoHG+iumQayIzs9lgV3g73YqYzsuJp6mWdXK7N1baMccYpy7xi2EmQ2ed8C3Q4Zs/qorA6CcFpLhu9WP7a1YNNFB3AdULqRjXKcU/bY+P5OHQiN51UhnG6gz/AsLxdndSz2s+249119IOPF68F9axHyZY6TzxNmGzCzLJZNstm2TSyTPpnwh7nZ8KBbBiOGVfPdw9u7DXeSWHHX785ZVGYJNV52ORJ8J/lmlP2WOv54b6VL5Pl73/LT0/Iunn/NF3yLzXyjjNAxvzkQWy0lQEwPWTAKOOXrScM5PoXvrM3y2bZLJtls+zfk3He90Do3TnFykTe0ZQr9Q8XRmTSi9a4zcyITOQNap+Djckk92fzbin/A8PQxx30Ei25AAAAAElFTkSuQmCC';
 
 // Numéro de version, affiché en pied de menu.
-const APP_VERSION = '451';
+const APP_VERSION = '453';
 
 const DOMAINS = [
   {
@@ -17439,8 +17497,7 @@ function renderTestAccueil() {
     <div class="test-accueil">
       <h2>${a.titre}</h2>
       <p>${a.items.length} exercice${a.items.length > 1 ? 's' : ''}, ${nbQ} question${nbQ > 1 ? 's' : ''}.</p>
-      <p>Tu répondras à tout, puis tu valideras une seule fois à la fin.
-         Les solutions ne sont pas consultables pendant le test.</p>
+      <p>Réponds à toutes les questions puis valide une fois terminé.</p>
       ${dejaFait ? `<p class="test-accueil-alerte">Ce test a déjà été passé sur cet ordinateur${dejaFait.prenom ? ' par ' + dejaFait.prenom : ''}. Un nouveau passage sera signalé comme tel.</p>` : ''}
       <label class="test-accueil-label" for="test-prenom">Ton prénom</label>
       <input type="text" id="test-prenom" class="answer-input" autocomplete="off"
@@ -17582,7 +17639,11 @@ function renderTest() {
     const rub = (Array.isArray(it.sub.niveauLabels) && typeof it.niveau === 'number'
                  && !SANS_RUBRIQUE.has(it.sub.id))
       ? it.sub.niveauLabels[Math.min(it.niveau, it.sub.niveauLabels.length) - 1] : null;
-    const sousTitre = it.sub.title + (rub ? ` – ${rub}` : '');
+    // La mention « (sans calculatrice) » suit le domaine, pas le sous-domaine :
+    // elle manquait ici alors que le PDF la porte.
+    const sansCalc = mentionSansCalc(it.domainNum);
+    const sousTitre = it.sub.title + (rub ? ` – ${rub}` : '')
+      + (sansCalc ? ` <span style="text-transform:none; font-weight:700;">${sansCalc.trim()}</span>` : '');
     const consigne = UNITE_EXIGEE.has(it.sub.id)
       ? ` <span style="text-transform:none; font-weight:700; color:#B45309;">– donne le résultat avec son unité</span>` : '';
     html += `<div class="exercise-sub-title" style="font-weight:800; font-size:13px; color:#6B7280; text-transform:uppercase; letter-spacing:0.02em; margin:18px 0 6px 2px;">${sousTitre}${consigne}</div>`;
@@ -17591,6 +17652,7 @@ function renderTest() {
   // Un seul bouton de validation pour tout le test, en pied de page.
   html += `
     <div class="test-pied">
+      ${REMPLISSAGE_AUTO ? '<button class="btn-action" onclick="remplirTestAuto()" title="Aide à la mise au point : remplit le test pour un score de 70 à 80 %">⚡ Remplir</button>' : ''}
       <button class="btn-action btn-primary" id="test-valider" onclick="validerTest()">✓ Valider le test</button>
     </div>`;
   main.innerHTML = html;
@@ -17992,7 +18054,13 @@ function separateurDomaine(it, premier, plusieurs, mention) {
 // à chaque aller-retour.
 // ============================================================================
 const MDP_ENSEIGNANT = 'ClaudIA*';
-const MDP_ENSEIGNANT_ACTIF = false;   // ← true pour redemander le mot de passe
+const MDP_ENSEIGNANT_ACTIF = false;
+
+// Aide à la MISE AU POINT : le bouton « ⚡ Remplir » du pied de test remplit les
+// réponses pour un score de 70 à 80 %, ce qui évite de saisir douze réponses à
+// la main à chaque essai. À REPASSER À false avant de donner l'application aux
+// élèves — le bouton est visible de tous.
+const REMPLISSAGE_AUTO = true;   // ← true pour redemander le mot de passe
 
 function ouvrirEspaceEnseignant() {
   if (serieVerrouille()) return;
@@ -18207,6 +18275,11 @@ function atelierEpreuveDomaine(num) {
       && !confirm(`Remplacer la composition en cours par l'épreuve du domaine « ${d.title} » ?`)) return;
   const compo = composerItemsDomaine(num);
   if (!compo || !compo.items.length) { alert("Ce domaine n'a produit aucun exercice."); return; }
+  // Ces exercices-là forment une sélection CALIBRÉE : leur niveau et leur
+  // variante ne se règlent pas à la main, sous peine de défaire l'équilibre du
+  // domaine. Le drapeau vit sur CHAQUE exercice et non sur la composition —
+  // ceux qu'on ajoute ensuite, eux, gardent leurs menus.
+  compo.items.forEach(it => { it._epreuve = true; });
   state.atelier = {
     mode: 'domaine', domainNum: num, items: compo.items, nom: '',
     compo: { domain: d, items: compo.items,
@@ -18538,7 +18611,11 @@ async function atelierNouvelExercice(i, reglagesForces) {
   const attendu = at.items[i].sub.id;
   const savedNiveau = state.niveau, savedSub = state.activeSubId;
   try {
-    if (at.mode === 'domaine') {
+    // Un exercice de la sélection calibrée se renouvelle en recomposant le
+    // domaine et en reprenant celui de même rang. Un exercice AJOUTÉ à cette
+    // série n'y figure pas : il se renouvelle comme dans une composition
+    // ordinaire, par son sous-domaine.
+    if (at.mode === 'domaine' && at.items[i]._epreuve) {
       const compo = composerItemsDomaine(at.domainNum);
       const neuf = compo && compo.items[i];
       return (neuf && neuf.sub.id === attendu) ? neuf.ex : null;
@@ -18576,7 +18653,9 @@ async function atelierReglerExercice(i, champ, valeur) {
   it._reglages = reglages;
   it.ex = choisi.ex;
   it.niveau = choisi.niveau;
-  if (at.mode === 'domaine' && at.compo) at.compo.items[i] = it;
+  // `compo.items` décrit la sélection calibrée du domaine : un exercice AJOUTÉ
+  // après coup n'y a pas de place, et y écrire créerait un trou dans le tableau.
+  if (at.mode === 'domaine' && at.compo && i < at.compo.items.length) at.compo.items[i] = it;
   await atelierDedoublonner(i);
   renderAtelier();
 }
@@ -18595,7 +18674,7 @@ async function atelierRefaireExercice(i) {
   const ex = await atelierNouvelExercice(i);
   if (!ex) { alert("Cet exercice n'a pas pu être renouvelé."); return; }
   at.items[i].ex = ex;
-  if (at.mode === 'domaine' && at.compo) at.compo.items[i].ex = ex;
+  if (at.mode === 'domaine' && at.compo && at.compo.items[i]) at.compo.items[i].ex = ex;
   await atelierDedoublonner(i);
   renderAtelier();
 }
@@ -19154,7 +19233,14 @@ function compositionSerialiser(at) {
   return {
     mode: at.mode,
     domainNum: at.domainNum,
-    items: at.items.map(it => ({ subId: it.sub.id, niveau: it.niveau, ex: it.ex }))
+    // `epreuve` : cet exercice vient de la sélection calibrée d'un domaine, ses
+    // menus de réglage restent fermés. Sans cette marque, une composition
+    // rouverte perdait la distinction.
+    items: at.items.map(it => ({
+      subId: it.sub.id, niveau: it.niveau, ex: it.ex,
+      ...(it._epreuve ? { epreuve: true } : {}),
+      ...(it._reglages ? { reglages: it._reglages } : {})
+    }))
   };
 }
 
@@ -19191,7 +19277,11 @@ function compositionRestaurer(data) {
   if (!data || !Array.isArray(data.items)) return null;
   const items = data.items.map(o => {
     const found = findSubdomain(o.subId);
-    return found ? { sub: found.sub, ex: reconstruireEx(o.ex), niveau: o.niveau } : null;
+    if (!found) return null;
+    const it = { sub: found.sub, ex: reconstruireEx(o.ex), niveau: o.niveau };
+    if (o.epreuve) it._epreuve = true;
+    if (o.reglages) it._reglages = o.reglages;
+    return it;
   }).filter(Boolean);
   if (!items.length) return null;
   const at = { mode: data.mode || 'sousdomaine', domainNum: data.domainNum, items, nom: '' };
@@ -19469,7 +19559,10 @@ function renderAtelier() {
     // les deux menus et le bouton « Toutes les questions » : seul le ↻ de
     // chaque question, qui sait d'où elle vient, reste utilisable.
     const fusionne = !!it.ex._fusionne;
-    const selNiveau = (it.sub.hasNiveau2 && nivLabels && at.mode !== 'domaine' && !fusionne) ? `
+    // Les menus se décident exercice par exercice : un exercice ajouté à une
+    // série de domaine garde les siens.
+    const calibre = !!it._epreuve;
+    const selNiveau = (it.sub.hasNiveau2 && nivLabels && !calibre && !fusionne) ? `
           <select class="variant-select atelier-reglage" aria-label="Niveau de cet exercice"
                   onchange="atelierReglerExercice(${i}, 'niveau', this.value)">
             ${nivLabels.map((lab, k) => `<option value="${k + 1}"${nivCourant === k + 1 ? ' selected' : ''}>${lab}</option>`).join('')}
@@ -19479,7 +19572,7 @@ function renderAtelier() {
     const vars = Array.isArray(it.sub.variants) ? it.sub.variants
       : (Array.isArray(varsAtelier) && varsAtelier.length ? varsAtelier : null);
     const varCourante = regl.variant || (vars && vars[0].key);
-    const selVariante = (vars && at.mode !== 'domaine' && !fusionne) ? `
+    const selVariante = (vars && !calibre && !fusionne) ? `
           <select class="variant-select atelier-reglage" aria-label="Variante de cet exercice"
                   onchange="atelierReglerExercice(${i}, 'variant', this.value)">
             ${vars.map(v => `<option value="${v.key}"${v.key === varCourante ? ' selected' : ''}>${v.label}</option>`).join('')}
@@ -25654,6 +25747,37 @@ async function exporterSerie() {
   finally { state.test = sauve; }
 }
 
+// Fenêtre d'attente de l'export : ouverte au début, refermée quoi qu'il arrive.
+function ouvrirAttenteExport(nbExercices) {
+  let m = document.getElementById('export-attente-modal');
+  if (!m) {
+    m = document.createElement('div');
+    m.id = 'export-attente-modal';
+    m.className = 'modal-overlay';
+    document.body.appendChild(m);
+  }
+  m.innerHTML = `
+    <div class="modal" style="max-width:400px; text-align:center;">
+      <h3 style="font-size:17px; font-weight:800; margin-bottom:10px;">Construction du document…</h3>
+      <p style="color:var(--muted); font-size:13.5px; line-height:1.5; margin-bottom:14px;">
+        ${nbExercices} exercice${nbExercices > 1 ? 's' : ''} à mettre en page.
+        Cela prend quelques secondes — ne ferme pas la page.</p>
+      <div class="export-barre"><span></span></div>
+      <p id="export-attente-etat" style="color:var(--muted); font-size:12.5px; margin-top:10px;"></p>
+    </div>`;
+  m.style.display = 'flex';
+}
+
+function majAttenteExport(fait, total) {
+  const e = document.getElementById('export-attente-etat');
+  if (e) e.textContent = `Exercice ${Math.min(fait, total)} sur ${total}`;
+}
+
+function fermerAttenteExport() {
+  const m = document.getElementById('export-attente-modal');
+  if (m) m.style.display = 'none';
+}
+
 async function exporterTest(opts) {
   const t = state.test;
   if (!t) return;
@@ -25668,6 +25792,12 @@ async function exporterTest(opts) {
   const btns = [...document.querySelectorAll('#btn-export-test, #btn-export, #btn-export-serie')];
   const libelles = btns.map(b => b.innerHTML);
   btns.forEach(b => { b.innerHTML = '⏳ Export…'; b.disabled = true; });
+  // Un document met plusieurs secondes à se fabriquer, exercice par exercice.
+  // Sans rien à l'écran, la page paraît figée et l'on reclique — d'où des
+  // exports qui « buguent ». Une fenêtre d'attente le dit, et empêche de
+  // cliquer ailleurs pendant ce temps.
+  ouvrirAttenteExport(t.items.length);
+  await new Promise(r => setTimeout(r, 30));   // laisse la fenêtre s'afficher
 
   const { obtenus, total } = t.score || { obtenus: 0, total: 0 };
   const pct = total > 0 ? Math.round(obtenus / total * 100) : 0;
@@ -25701,8 +25831,10 @@ async function exporterTest(opts) {
   // Titre à gauche, date et heure à droite sur la même ligne. Le score n'y
   // figure plus : le récapitulatif qui suit le donne, domaine par domaine.
   entete.innerHTML = `<div style="display:flex; align-items:baseline; gap:16px;">`
-    + `<div style="flex:1; font-size:22px; font-weight:800;">${sansPoints ? '' : 'Test – '}${titreTest}`
-    + (t.eleve ? `<div style="font-size:13px; font-weight:600; color:#6B7280; margin-top:2px;">${esc(t.eleve)}${t.passage > 1 ? ` · ${t.passage}ᵉ passage` : ''}</div>` : '')
+    + `<div style="flex:1; font-size:22px; font-weight:800;">${(sansPoints || t.titre) ? '' : 'Test – '}${titreTest}`
+    + (t.eleve ? `<div style="font-size:13px; font-weight:600; color:#6B7280; margin-top:2px;">`
+        + String(t.eleve).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        + `${t.passage > 1 ? ` · ${t.passage}ᵉ passage` : ''}</div>` : '')
     + `</div>`
     + `<div style="font-size:13px; color:#6B7280; white-space:nowrap;">${dateFr}`
     + (dureeFr ? ` &nbsp;·&nbsp; ⏱ ${dureeFr}` : '') + `</div></div>`;
@@ -26179,9 +26311,15 @@ async function exporterTest(opts) {
     // On photographie tout AVANT de paginer : placer une séparation de domaine
     // demande de connaître la hauteur du bloc qui la suit.
     const blocs = [];
+    const aFaire = cont.children.length;
+    let fait = 0;
     for (const el of cont.children) {
       const canvas = await html2canvas(el, { scale: 2, backgroundColor: '#ffffff', logging: false, useCORS: true });
       if (canvas && canvas.width) blocs.push({ el, canvas });
+      majAttenteExport(++fait, aFaire);
+      // Une pause d'un battement : sans elle, la fenêtre d'attente ne se
+      // rafraîchit jamais — le navigateur reste occupé du début à la fin.
+      await new Promise(r => setTimeout(r, 0));
     }
     let forcerPage = false;
     blocs.forEach(({ el, canvas }, k) => {
@@ -26202,7 +26340,9 @@ async function exporterTest(opts) {
       pdf.setTextColor(150, 150, 150);
       pdf.text(`${p} / ${pages}`, 210 - MG, 291, { align: 'right' });
     }
-    const nom = `test_${titreTest.replace(/[^\w]+/g, '-').slice(0, 40)}_${pct}pct.pdf`;
+    const nom = (t.eleve ? `${t.eleve.replace(/[^\w]+/g, '-')}_` : '')
+      + `${titreTest.replace(/[^\w]+/g, '-').slice(0, 40)}`
+      + (sansPoints ? '' : `_${pct}pct`) + '.pdf';
     pdf.save(nom);
   } catch (e) {
     console.error('Export du test :', e);
@@ -26210,6 +26350,7 @@ async function exporterTest(opts) {
   } finally {
     if (cont.parentNode) document.body.removeChild(cont);
     btns.forEach((b, k) => { b.innerHTML = libelles[k]; b.disabled = false; });
+    fermerAttenteExport();
   }
 }
 
