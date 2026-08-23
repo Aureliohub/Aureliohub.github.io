@@ -1,0 +1,716 @@
+{
+ "mode": "sousdomaine",
+ "domainNum": 1,
+ "items": [
+  {
+   "subId": "rationnels",
+   "niveau": 1,
+   "ex": {
+    "multi": true,
+    "intro": "Calcule et donne le résultat sous forme de fraction irréductible :",
+    "questions": [
+     {
+      "label": "a)",
+      "text": "<span style=\"display:inline-flex; flex-direction:column; align-items:stretch; vertical-align:middle; margin:0 2px; line-height:1.05;\">\n    <span style=\"padding:0 6px; text-align:center;\">2</span>\n    <span style=\"border-top:1.2px solid currentColor; padding:0 6px; text-align:center;\">9</span>\n  </span> + <span style=\"display:inline-flex; flex-direction:column; align-items:stretch; vertical-align:middle; margin:0 2px; line-height:1.05;\">\n    <span style=\"padding:0 6px; text-align:center;\">6</span>\n    <span style=\"border-top:1.2px solid currentColor; padding:0 6px; text-align:center;\">9</span>\n  </span> = ",
+      "answer": "<span style=\"display:inline-flex; flex-direction:column; align-items:center; vertical-align:middle; margin:0 2px; line-height:1.05;\">\n    <span style=\"padding:0 4px;\">8</span>\n    <span style=\"border-top:1.2px solid currentColor; padding:0 4px; min-width:14px; text-align:center;\">9</span>\n  </span>"
+     },
+     {
+      "label": "b)",
+      "text": "<span style=\"display:inline-flex; flex-direction:column; align-items:stretch; vertical-align:middle; margin:0 2px; line-height:1.05;\">\n    <span style=\"padding:0 6px; text-align:center;\">9</span>\n    <span style=\"border-top:1.2px solid currentColor; padding:0 6px; text-align:center;\">6</span>\n  </span> + <span style=\"display:inline-flex; flex-direction:column; align-items:stretch; vertical-align:middle; margin:0 2px; line-height:1.05;\">\n    <span style=\"padding:0 6px; text-align:center;\">7</span>\n    <span style=\"border-top:1.2px solid currentColor; padding:0 6px; text-align:center;\">5</span>\n  </span> = ",
+      "answer": "<span style=\"display:inline-flex; flex-direction:column; align-items:center; vertical-align:middle; margin:0 2px; line-height:1.05;\">\n    <span style=\"padding:0 4px;\">29</span>\n    <span style=\"border-top:1.2px solid currentColor; padding:0 4px; min-width:14px; text-align:center;\">10</span>\n  </span>"
+     },
+     {
+      "label": "c)",
+      "text": "<span style=\"display:inline-flex; flex-direction:column; align-items:stretch; vertical-align:middle; margin:0 2px; line-height:1.05;\">\n    <span style=\"padding:0 6px; text-align:center;\">5</span>\n    <span style=\"border-top:1.2px solid currentColor; padding:0 6px; text-align:center;\">6</span>\n  </span> × <span style=\"display:inline-flex; flex-direction:column; align-items:stretch; vertical-align:middle; margin:0 2px; line-height:1.05;\">\n    <span style=\"padding:0 6px; text-align:center;\">9</span>\n    <span style=\"border-top:1.2px solid currentColor; padding:0 6px; text-align:center;\">10</span>\n  </span> = ",
+      "answer": "<span style=\"display:inline-flex; flex-direction:column; align-items:center; vertical-align:middle; margin:0 2px; line-height:1.05;\">\n    <span style=\"padding:0 4px;\">3</span>\n    <span style=\"border-top:1.2px solid currentColor; padding:0 4px; min-width:14px; text-align:center;\">4</span>\n  </span>"
+     },
+     {
+      "label": "d)",
+      "text": "<span style=\"display:inline-flex; flex-direction:column; align-items:stretch; vertical-align:middle; margin:0 2px; line-height:1.05;\">\n    <span style=\"padding:0 6px; text-align:center;\">8</span>\n    <span style=\"border-top:1.2px solid currentColor; padding:0 6px; text-align:center;\">9</span>\n  </span> ÷ <span style=\"display:inline-flex; flex-direction:column; align-items:stretch; vertical-align:middle; margin:0 2px; line-height:1.05;\">\n    <span style=\"padding:0 6px; text-align:center;\">3</span>\n    <span style=\"border-top:1.2px solid currentColor; padding:0 6px; text-align:center;\">2</span>\n  </span> = ",
+      "answer": "<span style=\"display:inline-flex; flex-direction:column; align-items:center; vertical-align:middle; margin:0 2px; line-height:1.05;\">\n    <span style=\"padding:0 4px;\">16</span>\n    <span style=\"border-top:1.2px solid currentColor; padding:0 4px; min-width:14px; text-align:center;\">27</span>\n  </span>"
+     }
+    ],
+    "_realNiveau": 1
+   }
+  },
+  {
+   "subId": "hierarchie",
+   "niveau": 1,
+   "ex": {
+    "multi": true,
+    "intro": "Calcule en appliquant la hiérarchie des opérations :",
+    "questions": [
+     {
+      "label": "a)",
+      "text": "7 + 7 × 6 = ",
+      "answer": "49"
+     },
+     {
+      "label": "b)",
+      "text": "(15 + 9) × 5 − 19 = ",
+      "answer": "101"
+     },
+     {
+      "label": "c)",
+      "text": "20 − 3 × 3 + 4 = ",
+      "answer": "15"
+     },
+     {
+      "label": "d)",
+      "text": "<span data-math-type=\"pow\" data-base=\"4\" data-exp=\"2\">4<sup style=\"font-size:0.72em; vertical-align:baseline; position:relative; top:-0.4em; line-height:0;\">2</sup></span> + 7 × 8 = ",
+      "answer": "72"
+     },
+     {
+      "label": "e)",
+      "text": "<span data-math-type=\"pow\" data-base=\"(19 − 7)\" data-exp=\"2\">(19 − 7)<sup style=\"font-size:0.72em; vertical-align:baseline; position:relative; top:-0.4em; line-height:0;\">2</sup></span> ÷ 3 = ",
+      "answer": "48"
+     },
+     {
+      "label": "f)",
+      "text": "[19 − (5 + 8)] × 3 = ",
+      "answer": "18"
+     }
+    ],
+    "_realNiveau": 1
+   }
+  },
+  {
+   "subId": "pct-inverse",
+   "niveau": 1,
+   "ex": {
+    "multi": true,
+    "intro": "Calcule la valeur manquante :",
+    "questions": [
+     {
+      "label": "a)",
+      "text": "200 = 40 % de ",
+      "answer": "500",
+      "inlineInput": false
+     },
+     {
+      "label": "b)",
+      "text": "1'750 = 25 % de ",
+      "answer": "7000",
+      "inlineInput": false
+     },
+     {
+      "label": "c)",
+      "text": "125 = __INPUT__ % de 500",
+      "answer": "25",
+      "inlineInput": true
+     },
+     {
+      "label": "d)",
+      "text": "400 = 20 % de ",
+      "answer": "2000",
+      "inlineInput": false
+     },
+     {
+      "label": "e)",
+      "text": "20 = __INPUT__ % de 50",
+      "answer": "40",
+      "inlineInput": true
+     },
+     {
+      "label": "f)",
+      "text": "16 = __INPUT__ % de 200",
+      "answer": "8",
+      "inlineInput": true
+     },
+     {
+      "label": "g)",
+      "text": "350 = 50 % de ",
+      "answer": "700",
+      "inlineInput": false
+     },
+     {
+      "label": "h)",
+      "text": "50 = __INPUT__ % de 500",
+      "answer": "10",
+      "inlineInput": true
+     }
+    ],
+    "_realNiveau": 1
+   }
+  },
+  {
+   "subId": "prop-concret",
+   "niveau": 1,
+   "ex": {
+    "multi": true,
+    "intro": "",
+    "questions": [
+     {
+      "label": "a)",
+      "text": "Au bureau de change, 40 CHF valent 38 EUR. Combien d'euros obtient-on pour 60 CHF ?",
+      "answer": "60 ÷ 40 × 38 = 57 EUR.",
+      "uniteApres": "EUR"
+     },
+     {
+      "label": "b)",
+      "text": "Pour préparer du jus de fruit, on mélange 9 dL de concentré pour 15 L d'eau. Combien de dL de concentré faut-il pour 25 L d'eau ?",
+      "answer": "25 ÷ 15 × 9 = 15 dL de concentré.",
+      "uniteApres": "dL"
+     },
+     {
+      "label": "c)",
+      "text": "À l'épicerie, on a payé 14 CHF pour 400 g de fromage. Quel est le prix au kilo ?",
+      "answer": "Prix au kilo : (14 ÷ 400) × 1000 = 35 CHF/kg.",
+      "uniteApres": "CHF/kg"
+     },
+     {
+      "label": "d)",
+      "text": "Trois amis ont loué ensemble un paddle pour la journée. La location revient à 45 CHF. Ils décident de payer chacun proportionnellement au temps d'utilisation : Maksymilian 2 heures, Medhanie 6 heures, Amanuel 7 heures. Quelle est la part à payer pour Maksymilian ?",
+      "answer": "Total des heures : 2 + 6 + 7 = 15 h. Prix par heure : 45 ÷ 15 = 3 CHF/h. Part de Maksymilian : 3 × 2 = 6 CHF.",
+      "uniteApres": "CHF"
+     }
+    ],
+    "stackedStatements": true,
+    "_propNiveau": 1,
+    "_realNiveau": 1
+   }
+  },
+  {
+   "subId": "resoudre-eq",
+   "niveau": 1,
+   "ex": {
+    "multi": true,
+    "intro": "Résous les équations suivantes :",
+    "questions": [
+     {
+      "label": "a)",
+      "text": "2(x − 7) = −x − 35",
+      "answer": "-7",
+      "prefixeChamp": "x ="
+     },
+     {
+      "label": "b)",
+      "text": "x − 8 = -17",
+      "answer": "-9",
+      "prefixeChamp": "x ="
+     },
+     {
+      "label": "c)",
+      "text": "-63 = −6x − 9",
+      "answer": "9",
+      "prefixeChamp": "x ="
+     },
+     {
+      "label": "d)",
+      "text": "3x = −x + 4",
+      "answer": "1",
+      "prefixeChamp": "x ="
+     }
+    ],
+    "_realNiveau": 1
+   }
+  },
+  {
+   "subId": "pb-equation",
+   "niveau": 1,
+   "ex": {
+    "multi": true,
+    "intro": "",
+    "introPdf": "Pour chaque énoncé, écris l'équation puis donne la valeur de x.",
+    "questions": [
+     {
+      "label": "a)",
+      "_modele": "pbeq-2",
+      "text": "Quel est le nombre dont le double augmenté de 10 vaut 40 ?",
+      "answerType": "eq+val",
+      "equation": "2x + 10 = 40",
+      "acceptAltEq": [
+       "2x+10=40",
+       "10 + 2x = 40",
+       "10+2x=40",
+       "40 = 2x + 10",
+       "40 = 10 + 2x"
+      ],
+      "answer": "15"
+     },
+     {
+      "label": "b)",
+      "_modele": "pbeq-0",
+      "text": "Quel est le nombre qui diminué de 21 donne 45 ?",
+      "answerType": "eq+val",
+      "equation": "x − 21 = 45",
+      "acceptAltEq": [
+       "x - 21 = 45",
+       "x-21=45",
+       "45 = x − 21",
+       "45 = x - 21",
+       "45+21=x",
+       "45 + 21 = x"
+      ],
+      "answer": "66"
+     },
+     {
+      "label": "c)",
+      "_modele": "pbeq-1",
+      "text": "Quel est le nombre dont le quintuple diminué de 25 donne 85 ?",
+      "answerType": "eq+val",
+      "equation": "5x − 25 = 85",
+      "acceptAltEq": [
+       "5x - 25 = 85",
+       "5x-25=85",
+       "85 = 5x − 25",
+       "85 = 5x - 25"
+      ],
+      "answer": "22"
+     },
+     {
+      "label": "d)",
+      "_modele": "pbeq-10",
+      "text": "La longueur d'un rectangle est le quadruple de sa largeur. Son périmètre vaut 50 cm. Quelle est la largeur ?",
+      "answerType": "eq+val",
+      "equation": "2(x + 4x) = 50",
+      "acceptAltEq": [
+       "2(x+4x)=50",
+       "2(4x + x) = 50",
+       "2(4x+x)=50",
+       "10x = 50",
+       "10x=50",
+       "2x + 8x = 50",
+       "2x+8x=50",
+       "x + 4x + x + 4x = 50",
+       "x+4x+x+4x=50",
+       "50 = 2(x + 4x)",
+       "50 = 10x",
+       "50 = x + 4x + x + 4x"
+      ],
+      "answer": "5"
+     },
+     {
+      "label": "e)",
+      "_modele": "pbeq-9",
+      "text": "Mon frère a 7 ans de moins que ma sœur. Mon père a le triple de l'âge de ma sœur. Ensemble, ils ont 53 ans. Quel est l'âge de chacun ?",
+      "answerType": "multi-named",
+      "equation": "x + (x − 7) + 3x = 53",
+      "acceptAltEq": [
+       "x+(x-7)+3x=53",
+       "x + (x - 7) + 3x = 53",
+       "x + x − 7 + 3x = 53",
+       "x+x-7+3x=53",
+       "5x − 7 = 53",
+       "5x-7=53",
+       "53 = 5x − 7",
+       "53 = x + (x − 7) + 3x"
+      ],
+      "multiAnswers": [
+       {
+        "label": "ma sœur",
+        "value": "12"
+       },
+       {
+        "label": "mon frère",
+        "value": "5"
+       },
+       {
+        "label": "mon père",
+        "value": "36"
+       }
+      ],
+      "answer": "ma sœur: 12 ; mon frère: 5 ; mon père: 36"
+     },
+     {
+      "label": "f)",
+      "_modele": "pbeq-8",
+      "text": "Dans un parc animalier, on compte des girafes, des zèbres et des antilopes. Il y a 7 zèbres de plus que de girafes, et deux fois plus d'antilopes que de girafes. Au total, on compte 167 animaux. Combien y a-t-il d'animaux de chaque sorte ?",
+      "answerType": "multi-named",
+      "equation": "x + (x + 7) + 2x = 167",
+      "acceptAltEq": [
+       "x+(x+7)+2x=167",
+       "x + x + 7 + 2x = 167",
+       "x+x+7+2x=167",
+       "4x + 7 = 167",
+       "4x+7=167",
+       "167 = x + (x + 7) + 2x",
+       "167 = 4x + 7"
+      ],
+      "multiAnswers": [
+       {
+        "label": "girafes",
+        "value": "40"
+       },
+       {
+        "label": "zèbres",
+        "value": "47"
+       },
+       {
+        "label": "antilopes",
+        "value": "80"
+       }
+      ],
+      "answer": "girafes: 40 ; zèbres: 47 ; antilopes: 80"
+     }
+    ],
+    "_realNiveau": 1
+   }
+  },
+  {
+   "subId": "perim-aire",
+   "niveau": 1,
+   "ex": {
+    "multi": true,
+    "intro": "Calcule le périmètre et l'aire de ces figures.",
+    "introInTitle": true,
+    "questions": [
+     {
+      "label": "a)",
+      "text": "Calcule le périmètre et l'aire de ce carré.<div class=\"perim-figure\"><svg viewBox=\"0 0 180 100\" style=\"width:100%;max-width:200px;height:auto;display:block;\">\n      <rect x=\"40\" y=\"15\" width=\"70\" height=\"70\" fill=\"none\" stroke=\"#1F2937\" stroke-width=\"1.4\"/>\n      <text x=\"115\" y=\"55\" font-size=\"12\" fill=\"#1F2937\">10 cm</text>\n    </svg></div>",
+      "figureName": "Carré",
+      "dualPA": true,
+      "answerP": "40 cm",
+      "answerA": "100 cm²",
+      "solutionDetail": "P = 4 × 10 = 40 cm ; A = 10² = 100 cm²",
+      "layoutFigure": true
+     },
+     {
+      "label": "b)",
+      "text": "Calcule le périmètre et l'aire de ce rectangle.<div class=\"perim-figure\"><svg viewBox=\"0 0 220 100\" style=\"width:100%;max-width:230px;height:auto;display:block;\">\n      <rect x=\"30\" y=\"20\" width=\"140\" height=\"60\" fill=\"none\" stroke=\"#1F2937\" stroke-width=\"1.4\"/>\n      <text x=\"100\" y=\"14\" font-size=\"12\" text-anchor=\"middle\" fill=\"#1F2937\">12 cm</text>\n      <text x=\"178\" y=\"54\" font-size=\"12\" fill=\"#1F2937\">5 cm</text>\n    </svg></div>",
+      "figureName": "Rectangle",
+      "dualPA": true,
+      "answerP": "34 cm",
+      "answerA": "60 cm²",
+      "solutionDetail": "P = 2 × (12 + 5) = 34 cm ; A = 12 × 5 = 60 cm²",
+      "layoutFigure": true
+     },
+     {
+      "label": "c)",
+      "text": "Calcule le périmètre et l'aire de ce triangle.<div class=\"perim-figure\"><svg viewBox=\"0 0 200 110\" style=\"width:100%;max-width:210px;height:auto;display:block;\">\n      <path d=\"M 40 90 L 160 90 L 100 20 Z\" fill=\"none\" stroke=\"#1F2937\" stroke-width=\"1.4\"/>\n      <!-- hauteur en pointillé -->\n      <line x1=\"100\" y1=\"90\" x2=\"100\" y2=\"20\" stroke=\"#9CA3AF\" stroke-width=\"1\" stroke-dasharray=\"3,3\"/>\n      <!-- angle droit : \"L renversé\" (2 petits segments perpendiculaires) -->\n      <line x1=\"100\" y1=\"84\" x2=\"106\" y2=\"84\" stroke=\"#9CA3AF\" stroke-width=\"0.8\"/>\n      <line x1=\"106\" y1=\"84\" x2=\"106\" y2=\"90\" stroke=\"#9CA3AF\" stroke-width=\"0.8\"/>\n      <!-- base sous le triangle -->\n      <text x=\"100\" y=\"103\" font-size=\"11\" text-anchor=\"middle\" fill=\"#1F2937\">10 cm</text>\n      <!-- hauteur : juste à droite du pointillé, en bas où le triangle est large -->\n      <text x=\"104\" y=\"80\" font-size=\"11\" text-anchor=\"start\" fill=\"#6B7280\">h = 12 cm</text>\n      <!-- côté gauche : proche du côté, à l'extérieur -->\n      <text x=\"62\" y=\"55\" font-size=\"11\" text-anchor=\"end\" fill=\"#1F2937\">13 cm</text>\n      <!-- côté droit : proche du côté, à l'extérieur -->\n      <text x=\"138\" y=\"55\" font-size=\"11\" text-anchor=\"start\" fill=\"#1F2937\">13 cm</text>\n    </svg></div>",
+      "figureName": "Triangle",
+      "dualPA": true,
+      "answerP": "36 cm",
+      "answerA": "60 cm²",
+      "solutionDetail": "P = 10 + 2 × 13 = 36 cm ; A = (10 × 12) ÷ 2 = 60 cm²",
+      "layoutFigure": true
+     },
+     {
+      "label": "d)",
+      "text": "Calcule le périmètre et l'aire de ce parallélogramme.<div class=\"perim-figure\"><svg viewBox=\"0 0 220 110\" style=\"width:100%;max-width:220px;height:auto;display:block;\">\n      <path d=\"M 40 80 L 160 80 L 190 25 L 70 25 Z\" fill=\"none\" stroke=\"#1F2937\" stroke-width=\"1.4\"/>\n      <!-- hauteur en pointillé depuis sommet bas droit -->\n      <line x1=\"160\" y1=\"80\" x2=\"160\" y2=\"25\" stroke=\"#9CA3AF\" stroke-width=\"1\" stroke-dasharray=\"3,3\"/>\n      <!-- angle droit : \"L renversé\" -->\n      <line x1=\"154\" y1=\"74\" x2=\"160\" y2=\"74\" stroke=\"#9CA3AF\" stroke-width=\"0.8\"/>\n      <line x1=\"154\" y1=\"74\" x2=\"154\" y2=\"80\" stroke=\"#9CA3AF\" stroke-width=\"0.8\"/>\n      <!-- base (sous le parallélogramme) -->\n      <text x=\"100\" y=\"95\" font-size=\"11\" text-anchor=\"middle\" fill=\"#1F2937\">11 cm</text>\n      <!-- hauteur : centrée à l'intérieur du parallélogramme, à gauche du pointillé -->\n      <text x=\"153\" y=\"55\" font-size=\"11\" text-anchor=\"end\" fill=\"#6B7280\">h = 4 cm</text>\n      <!-- côté gauche : décalé à gauche du parallélogramme -->\n      <text x=\"38\" y=\"55\" font-size=\"11\" text-anchor=\"end\" fill=\"#1F2937\">5 cm</text>\n    </svg></div>",
+      "figureName": "Parallélogramme",
+      "dualPA": true,
+      "answerP": "32 cm",
+      "answerA": "44 cm²",
+      "solutionDetail": "P = 2 × (11 + 5) = 32 cm ; A = 11 × 4 = 44 cm²",
+      "layoutFigure": true
+     },
+     {
+      "label": "e)",
+      "text": "Calcule le périmètre et l'aire de ce losange.<div class=\"perim-figure\"><svg viewBox=\"0 0 200 130\" style=\"width:100%;max-width:200px;height:auto;display:block;\">\n      <path d=\"M 30 65 L 100 20 L 170 65 L 100 110 Z\" fill=\"none\" stroke=\"#1F2937\" stroke-width=\"1.4\"/>\n      <!-- diagonales en pointillé -->\n      <line x1=\"30\" y1=\"65\" x2=\"170\" y2=\"65\" stroke=\"#9CA3AF\" stroke-width=\"1\" stroke-dasharray=\"3,3\"/>\n      <line x1=\"100\" y1=\"20\" x2=\"100\" y2=\"110\" stroke=\"#9CA3AF\" stroke-width=\"1\" stroke-dasharray=\"3,3\"/>\n      <text x=\"100\" y=\"62\" font-size=\"10\" text-anchor=\"middle\" fill=\"#1F2937\">d₁ = 10</text>\n      <text x=\"105\" y=\"80\" font-size=\"10\" fill=\"#1F2937\">d₂ = 24</text>\n      <text x=\"60\" y=\"35\" font-size=\"10\" fill=\"#1F2937\">13 cm</text>\n    </svg></div>",
+      "figureName": "Losange",
+      "dualPA": true,
+      "answerP": "52 cm",
+      "answerA": "120 cm²",
+      "solutionDetail": "P = 4 × 13 = 52 cm ; A = (10 × 24) ÷ 2 = 120 cm²",
+      "layoutFigure": true
+     },
+     {
+      "label": "f)",
+      "text": "Calcule le périmètre et l'aire de ce trapèze isocèle.<div class=\"perim-figure\"><svg viewBox=\"0 0 220 120\" style=\"width:100%;max-width:220px;height:auto;display:block;\">\n      <path d=\"M 30 90 L 190 90 L 160 25 L 60 25 Z\" fill=\"none\" stroke=\"#1F2937\" stroke-width=\"1.4\"/>\n      <!-- hauteur en pointillé -->\n      <line x1=\"60\" y1=\"90\" x2=\"60\" y2=\"25\" stroke=\"#9CA3AF\" stroke-width=\"1\" stroke-dasharray=\"3,3\"/>\n      <!-- angle droit : \"L renversé\" -->\n      <line x1=\"60\" y1=\"84\" x2=\"66\" y2=\"84\" stroke=\"#9CA3AF\" stroke-width=\"0.8\"/>\n      <line x1=\"66\" y1=\"84\" x2=\"66\" y2=\"90\" stroke=\"#9CA3AF\" stroke-width=\"0.8\"/>\n      <text x=\"110\" y=\"105\" font-size=\"11\" text-anchor=\"middle\" fill=\"#1F2937\">B = 18 cm</text>\n      <text x=\"110\" y=\"20\" font-size=\"11\" text-anchor=\"middle\" fill=\"#1F2937\">b = 8 cm</text>\n      <!-- hauteur : à droite du pointillé -->\n      <text x=\"68\" y=\"60\" font-size=\"11\" text-anchor=\"start\" fill=\"#6B7280\">h = 12 cm</text>\n      <!-- côté gauche : à gauche -->\n      <text x=\"28\" y=\"55\" font-size=\"11\" text-anchor=\"end\" fill=\"#1F2937\">13 cm</text>\n    </svg></div>",
+      "figureName": "Trapèze isocèle",
+      "dualPA": true,
+      "answerP": "52 cm",
+      "answerA": "156 cm²",
+      "solutionDetail": "P = 18 + 8 + 2 × 13 = 52 cm ; A = (18 + 8) × 12 ÷ 2 = 156 cm²",
+      "layoutFigure": true
+     },
+     {
+      "label": "g)",
+      "text": "Calcule le périmètre et l'aire de ce disque (π ≈ 3,14).<div class=\"perim-figure\"><svg viewBox=\"0 0 200 110\" style=\"width:100%;max-width:200px;height:auto;display:block;\">\n      <circle cx=\"100\" cy=\"55\" r=\"40\" fill=\"none\" stroke=\"#1F2937\" stroke-width=\"1.4\"/>\n      <!-- rayon (en bleu) du centre vers le bord droit -->\n      <line x1=\"100\" y1=\"55\" x2=\"140\" y2=\"55\" stroke=\"#2563EB\" stroke-width=\"1.4\"/>\n      <!-- point central -->\n      <circle cx=\"100\" cy=\"55\" r=\"2\" fill=\"#1F2937\"/>\n      <!-- label r centré à gauche du milieu du rayon, à l'intérieur du cercle -->\n      <text x=\"115\" y=\"50\" font-size=\"11\" text-anchor=\"middle\" fill=\"#2563EB\" font-weight=\"700\">r = 6 cm</text>\n    </svg></div>",
+      "figureName": "Disque (π ≈ 3,14)",
+      "dualPA": true,
+      "answerP": "37,68 cm",
+      "answerA": "113,04 cm²",
+      "solutionDetail": "P = 2 × π × 6 ≈ 37,68 cm ; A = π × 6² ≈ 113,04 cm²",
+      "layoutFigure": true
+     }
+    ],
+    "_realNiveau": 1
+   }
+  },
+  {
+   "subId": "pythagore",
+   "niveau": 1,
+   "ex": {
+    "tableMode": true,
+    "pythagoreCorrige": true,
+    "_sansOutilsQuestion": true,
+    "intro": "Complète le tableau en utilisant le théorème de Pythagore (arrondis à 0,01 près).\n    <div class=\"pyth-layout\">\n      <div class=\"pyth-fig\"><svg viewBox=\"0 0 140 115\" style=\"width:100%;max-width:160px;height:auto;display:block;\">\n    <path d=\"M 25 95 L 120 95 L 25 20 Z\" fill=\"none\" stroke=\"#1F2937\" stroke-width=\"1.6\" stroke-linejoin=\"round\"/>\n    <rect x=\"25\" y=\"85\" width=\"10\" height=\"10\" fill=\"none\" stroke=\"#1F2937\" stroke-width=\"1.2\"/>\n    <text x=\"72\" y=\"111\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1F2937\" font-weight=\"700\">B</text>\n    <text x=\"14\" y=\"62\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1F2937\" font-weight=\"700\">A</text>\n    <text x=\"82\" y=\"52\" font-size=\"15\" text-anchor=\"middle\" fill=\"#1F2937\" font-weight=\"700\">C</text>\n  </svg></div>\n      <div class=\"pyth-tab\"><table class=\"prop-table pyth-table\">\n    <thead><tr>\n      <th class=\"prop-th\"></th>\n      <th class=\"prop-th\">A (cm)</th>\n      <th class=\"prop-th\">B (cm)</th>\n      <th class=\"prop-th\">C (cm)</th>\n      <th class=\"pyth-sol-th\"></th>\n    </tr></thead>\n    <tbody><tr><th class=\"prop-th\">a)</th><td class=\"prop-cell-input\"><input type=\"text\" class=\"answer-input answer-input-cell no-print\" id=\"__INP_pyth_0__\" placeholder=\"?\" autocomplete=\"off\"></td><td>15</td><td>20</td><td class=\"pyth-sol-cell\"><span id=\"__SOL_pyth_0__\" class=\"pyth-sol-display\"></span></td></tr><tr><th class=\"prop-th\">b)</th><td>7</td><td class=\"prop-cell-input\"><input type=\"text\" class=\"answer-input answer-input-cell no-print\" id=\"__INP_pyth_1__\" placeholder=\"?\" autocomplete=\"off\"></td><td>13</td><td class=\"pyth-sol-cell\"><span id=\"__SOL_pyth_1__\" class=\"pyth-sol-display\"></span></td></tr><tr><th class=\"prop-th\">c)</th><td>15</td><td class=\"prop-cell-input\"><input type=\"text\" class=\"answer-input answer-input-cell no-print\" id=\"__INP_pyth_2__\" placeholder=\"?\" autocomplete=\"off\"></td><td>22</td><td class=\"pyth-sol-cell\"><span id=\"__SOL_pyth_2__\" class=\"pyth-sol-display\"></span></td></tr><tr><th class=\"prop-th\">d)</th><td>21</td><td>5</td><td class=\"prop-cell-input\"><input type=\"text\" class=\"answer-input answer-input-cell no-print\" id=\"__INP_pyth_3__\" placeholder=\"?\" autocomplete=\"off\"></td><td class=\"pyth-sol-cell\"><span id=\"__SOL_pyth_3__\" class=\"pyth-sol-display\"></span></td></tr><tr><th class=\"prop-th\">e)</th><td>18</td><td class=\"prop-cell-input\"><input type=\"text\" class=\"answer-input answer-input-cell no-print\" id=\"__INP_pyth_4__\" placeholder=\"?\" autocomplete=\"off\"></td><td>25</td><td class=\"pyth-sol-cell\"><span id=\"__SOL_pyth_4__\" class=\"pyth-sol-display\"></span></td></tr><tr><th class=\"prop-th\">f)</th><td class=\"prop-cell-input\"><input type=\"text\" class=\"answer-input answer-input-cell no-print\" id=\"__INP_pyth_5__\" placeholder=\"?\" autocomplete=\"off\"></td><td>7</td><td>27</td><td class=\"pyth-sol-cell\"><span id=\"__SOL_pyth_5__\" class=\"pyth-sol-display\"></span></td></tr><tr><th class=\"prop-th\">g)</th><td class=\"prop-cell-input\"><input type=\"text\" class=\"answer-input answer-input-cell no-print\" id=\"__INP_pyth_6__\" placeholder=\"?\" autocomplete=\"off\"></td><td>15</td><td>24</td><td class=\"pyth-sol-cell\"><span id=\"__SOL_pyth_6__\" class=\"pyth-sol-display\"></span></td></tr><tr><th class=\"prop-th\">h)</th><td>8</td><td>19</td><td class=\"prop-cell-input\"><input type=\"text\" class=\"answer-input answer-input-cell no-print\" id=\"__INP_pyth_7__\" placeholder=\"?\" autocomplete=\"off\"></td><td class=\"pyth-sol-cell\"><span id=\"__SOL_pyth_7__\" class=\"pyth-sol-display\"></span></td></tr></tbody></table></div>\n    </div>",
+    "questions": [
+     {
+      "label": "a)",
+      "text": "",
+      "answer": "13,23 cm",
+      "answerNum": "13,23",
+      "inputIdHint": "__INP_pyth_0__",
+      "solIdHint": "__SOL_pyth_0__",
+      "A": null,
+      "B": 15,
+      "C": 20,
+      "unknown": "A"
+     },
+     {
+      "label": "b)",
+      "text": "",
+      "answer": "10,95 cm",
+      "answerNum": "10,95",
+      "inputIdHint": "__INP_pyth_1__",
+      "solIdHint": "__SOL_pyth_1__",
+      "A": 7,
+      "B": null,
+      "C": 13,
+      "unknown": "B"
+     },
+     {
+      "label": "c)",
+      "text": "",
+      "answer": "16,09 cm",
+      "answerNum": "16,09",
+      "inputIdHint": "__INP_pyth_2__",
+      "solIdHint": "__SOL_pyth_2__",
+      "A": 15,
+      "B": null,
+      "C": 22,
+      "unknown": "B"
+     },
+     {
+      "label": "d)",
+      "text": "",
+      "answer": "21,59 cm",
+      "answerNum": "21,59",
+      "inputIdHint": "__INP_pyth_3__",
+      "solIdHint": "__SOL_pyth_3__",
+      "A": 21,
+      "B": 5,
+      "C": null,
+      "unknown": "C"
+     },
+     {
+      "label": "e)",
+      "text": "",
+      "answer": "17,35 cm",
+      "answerNum": "17,35",
+      "inputIdHint": "__INP_pyth_4__",
+      "solIdHint": "__SOL_pyth_4__",
+      "A": 18,
+      "B": null,
+      "C": 25,
+      "unknown": "B"
+     },
+     {
+      "label": "f)",
+      "text": "",
+      "answer": "26,08 cm",
+      "answerNum": "26,08",
+      "inputIdHint": "__INP_pyth_5__",
+      "solIdHint": "__SOL_pyth_5__",
+      "A": null,
+      "B": 7,
+      "C": 27,
+      "unknown": "A"
+     },
+     {
+      "label": "g)",
+      "text": "",
+      "answer": "18,73 cm",
+      "answerNum": "18,73",
+      "inputIdHint": "__INP_pyth_6__",
+      "solIdHint": "__SOL_pyth_6__",
+      "A": null,
+      "B": 15,
+      "C": 24,
+      "unknown": "A"
+     },
+     {
+      "label": "h)",
+      "text": "",
+      "answer": "20,62 cm",
+      "answerNum": "20,62",
+      "inputIdHint": "__INP_pyth_7__",
+      "solIdHint": "__SOL_pyth_7__",
+      "A": 8,
+      "B": 19,
+      "C": null,
+      "unknown": "C"
+     }
+    ],
+    "_realNiveau": 1
+   }
+  },
+  {
+   "subId": "developpements",
+   "niveau": 1,
+   "ex": {
+    "matching": true,
+    "intro": "Associe chaque solide à son développement.",
+    "solides": [
+     {
+      "n": 1,
+      "nom": "cylindre",
+      "svg": "<svg viewBox=\"-3.0 -3.0 32.0 50.0\" preserveAspectRatio=\"xMidYMid meet\" style=\"width:100%;height:100%;display:block;\">\n      <line x1=\"0\" y1=\"5\" x2=\"0\" y2=\"39\" fill=\"none\" stroke=\"#1F2937\" stroke-width=\"1.5\" vector-effect=\"non-scaling-stroke\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/>\n      <line x1=\"26\" y1=\"5\" x2=\"26\" y2=\"39\" fill=\"none\" stroke=\"#1F2937\" stroke-width=\"1.5\" vector-effect=\"non-scaling-stroke\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/>\n      <path d=\"M0 39 A13 5 0 0 0 26 39\" fill=\"none\" stroke=\"#1F2937\" stroke-width=\"1.5\" vector-effect=\"non-scaling-stroke\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/>\n      <path d=\"M0 39 A13 5 0 0 1 26 39\" fill=\"none\" stroke=\"#9CA3AF\" stroke-width=\"1.1\" vector-effect=\"non-scaling-stroke\" stroke-dasharray=\"4 3\"/>\n      <ellipse cx=\"13\" cy=\"5\" rx=\"13\" ry=\"5\" fill=\"#FFFFFF\" stroke=\"#1F2937\" stroke-width=\"1.5\" vector-effect=\"non-scaling-stroke\" stroke-linejoin=\"round\"/></svg>"
+     },
+     {
+      "n": 2,
+      "nom": "cône",
+      "svg": "<svg viewBox=\"-3.0 -3.0 32.0 51.0\" preserveAspectRatio=\"xMidYMid meet\" style=\"width:100%;height:100%;display:block;\">\n      <path d=\"M0 40 A13 5 0 0 1 26 40\" fill=\"none\" stroke=\"#9CA3AF\" stroke-width=\"1.1\" vector-effect=\"non-scaling-stroke\" stroke-dasharray=\"4 3\"/>\n      <line x1=\"13\" y1=\"0\" x2=\"0\" y2=\"40\" fill=\"none\" stroke=\"#1F2937\" stroke-width=\"1.5\" vector-effect=\"non-scaling-stroke\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/>\n      <line x1=\"13\" y1=\"0\" x2=\"26\" y2=\"40\" fill=\"none\" stroke=\"#1F2937\" stroke-width=\"1.5\" vector-effect=\"non-scaling-stroke\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/>\n      <path d=\"M0 40 A13 5 0 0 0 26 40\" fill=\"none\" stroke=\"#1F2937\" stroke-width=\"1.5\" vector-effect=\"non-scaling-stroke\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/></svg>"
+     },
+     {
+      "n": 3,
+      "nom": "pyramide à base carrée",
+      "svg": "<svg viewBox=\"-3.0 -3.0 43.0 44.0\" preserveAspectRatio=\"xMidYMid meet\" style=\"width:100%;height:100%;display:block;\">\n      <line x1=\"0\" y1=\"38\" x2=\"26\" y2=\"38\" fill=\"none\" stroke=\"#1F2937\" stroke-width=\"1.5\" vector-effect=\"non-scaling-stroke\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/>\n      <line x1=\"26\" y1=\"38\" x2=\"37\" y2=\"27\" fill=\"none\" stroke=\"#1F2937\" stroke-width=\"1.5\" vector-effect=\"non-scaling-stroke\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/>\n      <line x1=\"18.5\" y1=\"0\" x2=\"0\" y2=\"38\" fill=\"none\" stroke=\"#1F2937\" stroke-width=\"1.5\" vector-effect=\"non-scaling-stroke\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/>\n      <line x1=\"18.5\" y1=\"0\" x2=\"26\" y2=\"38\" fill=\"none\" stroke=\"#1F2937\" stroke-width=\"1.5\" vector-effect=\"non-scaling-stroke\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/>\n      <line x1=\"18.5\" y1=\"0\" x2=\"37\" y2=\"27\" fill=\"none\" stroke=\"#1F2937\" stroke-width=\"1.5\" vector-effect=\"non-scaling-stroke\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/>\n      <line x1=\"18.5\" y1=\"0\" x2=\"11\" y2=\"27\" fill=\"none\" stroke=\"#9CA3AF\" stroke-width=\"1.1\" vector-effect=\"non-scaling-stroke\" stroke-dasharray=\"4 3\"/>\n      <line x1=\"11\" y1=\"27\" x2=\"0\" y2=\"38\" fill=\"none\" stroke=\"#9CA3AF\" stroke-width=\"1.1\" vector-effect=\"non-scaling-stroke\" stroke-dasharray=\"4 3\"/>\n      <line x1=\"11\" y1=\"27\" x2=\"37\" y2=\"27\" fill=\"none\" stroke=\"#9CA3AF\" stroke-width=\"1.1\" vector-effect=\"non-scaling-stroke\" stroke-dasharray=\"4 3\"/></svg>"
+     },
+     {
+      "n": 4,
+      "nom": "cube",
+      "svg": "<svg viewBox=\"-3.0 -3.0 41.0 41.0\" preserveAspectRatio=\"xMidYMid meet\" style=\"width:100%;height:100%;display:block;\">\n      <polygon points=\"0,9 26,9 35,0 9,0\" fill=\"none\" stroke=\"#1F2937\" stroke-width=\"1.5\" vector-effect=\"non-scaling-stroke\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/>\n      <polygon points=\"26,9 26,35 35,26 35,0\" fill=\"none\" stroke=\"#1F2937\" stroke-width=\"1.5\" vector-effect=\"non-scaling-stroke\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/>\n      <rect x=\"0\" y=\"9\" width=\"26\" height=\"26\" fill=\"none\" stroke=\"#1F2937\" stroke-width=\"1.5\" vector-effect=\"non-scaling-stroke\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/>\n      <line x1=\"9\" y1=\"0\" x2=\"9\" y2=\"26\" fill=\"none\" stroke=\"#9CA3AF\" stroke-width=\"1.1\" vector-effect=\"non-scaling-stroke\" stroke-dasharray=\"4 3\"/>\n      <line x1=\"9\" y1=\"26\" x2=\"35\" y2=\"26\" fill=\"none\" stroke=\"#9CA3AF\" stroke-width=\"1.1\" vector-effect=\"non-scaling-stroke\" stroke-dasharray=\"4 3\"/>\n      <line x1=\"9\" y1=\"26\" x2=\"0\" y2=\"35\" fill=\"none\" stroke=\"#9CA3AF\" stroke-width=\"1.1\" vector-effect=\"non-scaling-stroke\" stroke-dasharray=\"4 3\"/></svg>"
+     },
+     {
+      "n": 5,
+      "nom": "pavé droit",
+      "svg": "<svg viewBox=\"-3.0 -3.0 64.0 38.0\" preserveAspectRatio=\"xMidYMid meet\" style=\"width:100%;height:100%;display:block;\">\n      <polygon points=\"0,12 46,12 58,0 12,0\" fill=\"none\" stroke=\"#1F2937\" stroke-width=\"1.5\" vector-effect=\"non-scaling-stroke\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/>\n      <polygon points=\"46,12 46,32 58,20 58,0\" fill=\"none\" stroke=\"#1F2937\" stroke-width=\"1.5\" vector-effect=\"non-scaling-stroke\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/>\n      <rect x=\"0\" y=\"12\" width=\"46\" height=\"20\" fill=\"none\" stroke=\"#1F2937\" stroke-width=\"1.5\" vector-effect=\"non-scaling-stroke\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/>\n      <line x1=\"12\" y1=\"0\" x2=\"12\" y2=\"20\" fill=\"none\" stroke=\"#9CA3AF\" stroke-width=\"1.1\" vector-effect=\"non-scaling-stroke\" stroke-dasharray=\"4 3\"/>\n      <line x1=\"12\" y1=\"20\" x2=\"58\" y2=\"20\" fill=\"none\" stroke=\"#9CA3AF\" stroke-width=\"1.1\" vector-effect=\"non-scaling-stroke\" stroke-dasharray=\"4 3\"/>\n      <line x1=\"12\" y1=\"20\" x2=\"0\" y2=\"32\" fill=\"none\" stroke=\"#9CA3AF\" stroke-width=\"1.1\" vector-effect=\"non-scaling-stroke\" stroke-dasharray=\"4 3\"/></svg>"
+     },
+     {
+      "n": 6,
+      "nom": "prisme à base triangulaire",
+      "svg": "<svg viewBox=\"-3.0 0.0 48.0 37.0\" preserveAspectRatio=\"xMidYMid meet\" style=\"width:100%;height:100%;display:block;\">\n      <polygon points=\"0,34 24,34 12,13\" fill=\"none\" stroke=\"#1F2937\" stroke-width=\"1.5\" vector-effect=\"non-scaling-stroke\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/>\n      <line x1=\"12\" y1=\"13\" x2=\"30\" y2=\"3\" fill=\"none\" stroke=\"#1F2937\" stroke-width=\"1.5\" vector-effect=\"non-scaling-stroke\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/>\n      <line x1=\"24\" y1=\"34\" x2=\"42\" y2=\"24\" fill=\"none\" stroke=\"#1F2937\" stroke-width=\"1.5\" vector-effect=\"non-scaling-stroke\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/>\n      <line x1=\"30\" y1=\"3\" x2=\"42\" y2=\"24\" fill=\"none\" stroke=\"#1F2937\" stroke-width=\"1.5\" vector-effect=\"non-scaling-stroke\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/>\n      <line x1=\"0\" y1=\"34\" x2=\"18\" y2=\"24\" fill=\"none\" stroke=\"#9CA3AF\" stroke-width=\"1.1\" vector-effect=\"non-scaling-stroke\" stroke-dasharray=\"4 3\"/>\n      <line x1=\"18\" y1=\"24\" x2=\"42\" y2=\"24\" fill=\"none\" stroke=\"#9CA3AF\" stroke-width=\"1.1\" vector-effect=\"non-scaling-stroke\" stroke-dasharray=\"4 3\"/>\n      <line x1=\"18\" y1=\"24\" x2=\"30\" y2=\"3\" fill=\"none\" stroke=\"#9CA3AF\" stroke-width=\"1.1\" vector-effect=\"non-scaling-stroke\" stroke-dasharray=\"4 3\"/></svg>"
+     }
+    ],
+    "patrons": [
+     {
+      "id": "p3",
+      "solid": 4,
+      "svg": "<svg viewBox=\"-3.0 -3.0 84.0 110.0\" preserveAspectRatio=\"xMidYMid meet\" style=\"width:100%;height:100%;display:block;\"><rect x=\"26\" y=\"0\" width=\"26\" height=\"26\" fill=\"#FFFFFF\" stroke=\"#1F2937\" stroke-width=\"1.5\" vector-effect=\"non-scaling-stroke\" stroke-linejoin=\"round\"/><rect x=\"0\" y=\"26\" width=\"26\" height=\"26\" fill=\"#FFFFFF\" stroke=\"#1F2937\" stroke-width=\"1.5\" vector-effect=\"non-scaling-stroke\" stroke-linejoin=\"round\"/><rect x=\"26\" y=\"26\" width=\"26\" height=\"26\" fill=\"#FFFFFF\" stroke=\"#1F2937\" stroke-width=\"1.5\" vector-effect=\"non-scaling-stroke\" stroke-linejoin=\"round\"/><rect x=\"52\" y=\"26\" width=\"26\" height=\"26\" fill=\"#FFFFFF\" stroke=\"#1F2937\" stroke-width=\"1.5\" vector-effect=\"non-scaling-stroke\" stroke-linejoin=\"round\"/><rect x=\"26\" y=\"52\" width=\"26\" height=\"26\" fill=\"#FFFFFF\" stroke=\"#1F2937\" stroke-width=\"1.5\" vector-effect=\"non-scaling-stroke\" stroke-linejoin=\"round\"/><rect x=\"26\" y=\"78\" width=\"26\" height=\"26\" fill=\"#FFFFFF\" stroke=\"#1F2937\" stroke-width=\"1.5\" vector-effect=\"non-scaling-stroke\" stroke-linejoin=\"round\"/></svg>"
+     },
+     {
+      "id": "p1",
+      "solid": 2,
+      "svg": "<svg viewBox=\"4.4 -3.0 71.3 68.0\" preserveAspectRatio=\"xMidYMid meet\" style=\"width:100%;height:100%;display:block;\">\n      <path d=\"M 40 0 L 72.6 15.2 A 36 36 0 0 1 7.4 15.2 Z\" fill=\"#FFFFFF\" stroke=\"#1F2937\" stroke-width=\"1.5\" vector-effect=\"non-scaling-stroke\" stroke-linejoin=\"round\"/>\n      <circle cx=\"40\" cy=\"49\" r=\"13\" fill=\"#FFFFFF\" stroke=\"#1F2937\" stroke-width=\"1.5\" vector-effect=\"non-scaling-stroke\" stroke-linejoin=\"round\"/></svg>"
+     },
+     {
+      "id": "p0",
+      "solid": 1,
+      "svg": "<svg viewBox=\"-3.0 -3.0 92.0 88.0\" preserveAspectRatio=\"xMidYMid meet\" style=\"width:100%;height:100%;display:block;\">\n      <rect x=\"26\" y=\"0\" width=\"34\" height=\"82\" fill=\"#FFFFFF\" stroke=\"#1F2937\" stroke-width=\"1.5\" vector-effect=\"non-scaling-stroke\" stroke-linejoin=\"round\"/>\n      <circle cx=\"13\" cy=\"41\" r=\"13\" fill=\"#FFFFFF\" stroke=\"#1F2937\" stroke-width=\"1.5\" vector-effect=\"non-scaling-stroke\" stroke-linejoin=\"round\"/>\n      <circle cx=\"73\" cy=\"41\" r=\"13\" fill=\"#FFFFFF\" stroke=\"#1F2937\" stroke-width=\"1.5\" vector-effect=\"non-scaling-stroke\" stroke-linejoin=\"round\"/></svg>"
+     },
+     {
+      "id": "p5",
+      "solid": 6,
+      "svg": "<svg viewBox=\"-3.0 -3.0 78.0 82.0\" preserveAspectRatio=\"xMidYMid meet\" style=\"width:100%;height:100%;display:block;\">\n      <rect x=\"0\" y=\"21\" width=\"24\" height=\"34\" fill=\"#FFFFFF\" stroke=\"#1F2937\" stroke-width=\"1.5\" vector-effect=\"non-scaling-stroke\" stroke-linejoin=\"round\"/><rect x=\"24\" y=\"21\" width=\"24\" height=\"34\" fill=\"#FFFFFF\" stroke=\"#1F2937\" stroke-width=\"1.5\" vector-effect=\"non-scaling-stroke\" stroke-linejoin=\"round\"/><rect x=\"48\" y=\"21\" width=\"24\" height=\"34\" fill=\"#FFFFFF\" stroke=\"#1F2937\" stroke-width=\"1.5\" vector-effect=\"non-scaling-stroke\" stroke-linejoin=\"round\"/>\n      <polygon points=\"24,21 48,21 36,0\" fill=\"#FFFFFF\" stroke=\"#1F2937\" stroke-width=\"1.5\" vector-effect=\"non-scaling-stroke\" stroke-linejoin=\"round\"/>\n      <polygon points=\"24,55 48,55 36,76\" fill=\"#FFFFFF\" stroke=\"#1F2937\" stroke-width=\"1.5\" vector-effect=\"non-scaling-stroke\" stroke-linejoin=\"round\"/></svg>"
+     },
+     {
+      "id": "p4",
+      "solid": 5,
+      "svg": "<svg viewBox=\"-3.0 -3.0 76.0 70.0\" preserveAspectRatio=\"xMidYMid meet\" style=\"width:100%;height:100%;display:block;\"><rect x=\"12\" y=\"0\" width=\"46\" height=\"12\" fill=\"#FFFFFF\" stroke=\"#1F2937\" stroke-width=\"1.5\" vector-effect=\"non-scaling-stroke\" stroke-linejoin=\"round\"/><rect x=\"12\" y=\"12\" width=\"46\" height=\"20\" fill=\"#FFFFFF\" stroke=\"#1F2937\" stroke-width=\"1.5\" vector-effect=\"non-scaling-stroke\" stroke-linejoin=\"round\"/><rect x=\"12\" y=\"32\" width=\"46\" height=\"12\" fill=\"#FFFFFF\" stroke=\"#1F2937\" stroke-width=\"1.5\" vector-effect=\"non-scaling-stroke\" stroke-linejoin=\"round\"/><rect x=\"12\" y=\"44\" width=\"46\" height=\"20\" fill=\"#FFFFFF\" stroke=\"#1F2937\" stroke-width=\"1.5\" vector-effect=\"non-scaling-stroke\" stroke-linejoin=\"round\"/><rect x=\"0\" y=\"12\" width=\"12\" height=\"20\" fill=\"#FFFFFF\" stroke=\"#1F2937\" stroke-width=\"1.5\" vector-effect=\"non-scaling-stroke\" stroke-linejoin=\"round\"/><rect x=\"58\" y=\"12\" width=\"12\" height=\"20\" fill=\"#FFFFFF\" stroke=\"#1F2937\" stroke-width=\"1.5\" vector-effect=\"non-scaling-stroke\" stroke-linejoin=\"round\"/></svg>"
+     },
+     {
+      "id": "p2",
+      "solid": 3,
+      "svg": "<svg viewBox=\"-3.0 -3.0 76.0 76.0\" preserveAspectRatio=\"xMidYMid meet\" style=\"width:100%;height:100%;display:block;\">\n      <rect x=\"22\" y=\"22\" width=\"26\" height=\"26\" fill=\"#FFFFFF\" stroke=\"#1F2937\" stroke-width=\"1.5\" vector-effect=\"non-scaling-stroke\" stroke-linejoin=\"round\"/>\n      <polygon points=\"22,22 48,22 35,0\" fill=\"#FFFFFF\" stroke=\"#1F2937\" stroke-width=\"1.5\" vector-effect=\"non-scaling-stroke\" stroke-linejoin=\"round\"/>\n      <polygon points=\"22,48 48,48 35,70\" fill=\"#FFFFFF\" stroke=\"#1F2937\" stroke-width=\"1.5\" vector-effect=\"non-scaling-stroke\" stroke-linejoin=\"round\"/>\n      <polygon points=\"22,22 22,48 0,35\" fill=\"#FFFFFF\" stroke=\"#1F2937\" stroke-width=\"1.5\" vector-effect=\"non-scaling-stroke\" stroke-linejoin=\"round\"/>\n      <polygon points=\"48,22 48,48 70,35\" fill=\"#FFFFFF\" stroke=\"#1F2937\" stroke-width=\"1.5\" vector-effect=\"non-scaling-stroke\" stroke-linejoin=\"round\"/></svg>"
+     }
+    ],
+    "_realNiveau": 1
+   }
+  },
+  {
+   "subId": "symetries",
+   "niveau": 1,
+   "ex": {
+    "fillBlanks": true,
+    "intro": "Complète avec les nombres adéquats.",
+    "statements": [
+     {
+      "kind": "sym",
+      "art": "Un",
+      "nom": "losange",
+      "blanks": [
+       {
+        "u": "axe(s) de symétrie",
+        "a": 2
+       },
+       {
+        "u": "centre(s) de symétrie",
+        "a": 1
+       }
+      ]
+     },
+     {
+      "kind": "sym",
+      "art": "Un",
+      "nom": "triangle quelconque",
+      "blanks": [
+       {
+        "u": "axe(s) de symétrie",
+        "a": 0
+       },
+       {
+        "u": "centre(s) de symétrie",
+        "a": 0
+       }
+      ]
+     },
+     {
+      "kind": "sym",
+      "art": "Un",
+      "nom": "trapèze isocèle",
+      "blanks": [
+       {
+        "u": "axe(s) de symétrie",
+        "a": 1
+       },
+       {
+        "u": "centre(s) de symétrie",
+        "a": 0
+       }
+      ]
+     },
+     {
+      "kind": "sym",
+      "art": "Un",
+      "nom": "triangle équilatéral",
+      "blanks": [
+       {
+        "u": "axe(s) de symétrie",
+        "a": 3
+       },
+       {
+        "u": "centre(s) de symétrie",
+        "a": 0
+       }
+      ]
+     },
+     {
+      "kind": "sym",
+      "art": "Un",
+      "nom": "carré",
+      "blanks": [
+       {
+        "u": "axe(s) de symétrie",
+        "a": 4
+       },
+       {
+        "u": "centre(s) de symétrie",
+        "a": 1
+       }
+      ]
+     },
+     {
+      "kind": "sym",
+      "art": "Un",
+      "nom": "rectangle",
+      "blanks": [
+       {
+        "u": "axe(s) de symétrie",
+        "a": 2
+       },
+       {
+        "u": "centre(s) de symétrie",
+        "a": 1
+       }
+      ]
+     }
+    ],
+    "_realNiveau": 1
+   }
+  }
+ ]
+}
