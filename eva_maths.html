@@ -386,6 +386,34 @@ PDF de domaine :
 Cette section décrit l'ÉTAT, non l'historique. Les numéros de version ne sont
 cités que lorsqu'ils aident à retrouver un choix dans le fichier.
 
+v451 — TROISIÈME SORTIE DE L'ATELIER : LE TEST. Décision d'architecture : il
+n'y a PAS d'atelier « test » séparé. Une composition est une composition ; ce
+qui change, c'est sa LIVRAISON. La vignette « Créer un test sur mesure » est
+supprimée de l'espace enseignant.
+ · Bouton « Test » dans la barre → `ouvrirReglagesTest()` : nom, tentative
+   unique, chronomètre, plus un récapitulatif (exercices, questions, et ce qui
+   est écarté faute d'être corrigeable à l'écran). Deux issues :
+   `testExporter()` (fichier .json) et `testCopierLien()` (l'adresse de
+   l'application + `?serie=<nom>.json`).
+ · Le fichier porte `sortie: 'test'` et ses réglages. ATTENTION : ne pas se
+   servir de la clé `mode`, déjà prise par le mode de composition
+   (choix / domaine).
+ · CÔTÉ ÉLÈVE : les deux chemins d'ouverture (fichier et adresse) regardent
+   `sortie === 'test'` et appellent alors `ouvrirTestFichier()` plutôt que
+   `ouvrirSerie()`. Écran d'entrée `renderTestAccueil()` : titre, nombre de
+   questions, prénom OBLIGATOIRE, avertissement si le test a déjà été passé sur
+   cet ordinateur (`eva-test-fait:<titre>` en stockage local, compteur de
+   passages). Puis `demarrerTestFichier()` bâtit `state.test` et le MODE
+   ÉVALUATION EXISTANT prend le relais — validation unique, score, pas de
+   solutions, export. Rien de ce moteur n'a été réécrit.
+ · `state.test.titre` / `.eleve` / `.passage` : le bandeau et l'export portent
+   le nom du test, le prénom et le rang du passage. Sans `titre`, le bandeau
+   garde son ancien libellé « Test – N domaines » (mode évaluation classique).
+ · Verrouillage de l'écran étendu au test (`testEstVerrouille()` rejoint
+   `serieVerrouille()`), levé par `fermerTest`.
+ · RESTE À FAIRE : l'envoi des résultats vers un tableur Google. Un seul point
+   de branchement, à la fin de `validerTest`, quand `state.test.eleve` existe.
+
 v450 — AUCUN EFFET VISUEL À L'OUVERTURE D'UNE SÉRIE PAR L'ADRESSE. En v449 je
 DÉFAISAIS l'animation d'accueil une fois la série chargée : le menu s'ouvrait
 donc bel et bien, puis se refermait d'un coup — l'éclair désagréable. La bonne
@@ -1448,6 +1476,16 @@ ainsi (une remarque prise pour une consigne, une sélection ambiguë).
   .atelier-barre .btn-action { white-space: nowrap; }
   /* Enregistrer / Exporter / Importer (et la liste des compositions) forment un
      groupe poussé À DROITE, séparé des gestes de composition. */
+  .test-accueil {
+    max-width: 520px; margin: 40px auto; padding: 26px 28px;
+    border: 1px solid var(--border); border-radius: var(--radius);
+    background: var(--surface); text-align: left;
+  }
+  .test-accueil h2 { font-size: 22px; font-weight: 800; margin-bottom: 10px; }
+  .test-accueil p { color: var(--muted); font-size: 14px; line-height: 1.5; margin-bottom: 10px; }
+  .test-accueil-alerte { color: #B45309; font-weight: 600; }
+  .test-accueil-label { display: block; font-weight: 700; margin: 16px 0 6px; }
+  .test-accueil input { width: 100%; margin-bottom: 18px; }
   .atelier-brouillon {
     display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
     padding: 8px 12px; margin: 0 0 14px;
@@ -4000,6 +4038,36 @@ ainsi (une remarque prise pour une consigne, une sélection ambiguë).
       <span class="modal-label">Domaines :</span>
     </div>
     <div class="modal-domain-list" id="modal-domain-list"></div>
+  </div>
+</div>
+
+<!-- Réglages de la sortie TEST : la composition est la même que pour un PDF ou
+     une série, seule sa LIVRAISON change. -->
+<div class="modal-overlay" id="test-reglages-modal" style="display:none;" onclick="fermerReglagesTest(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-head">
+      <h3>Livrer en test</h3>
+      <button class="modal-close" onclick="fermerReglagesTest()" title="Fermer">×</button>
+    </div>
+    <p class="modal-intro">La composition ne change pas. Ce qui change, c'est la façon dont l'élève
+      la reçoit : une seule validation à la fin, un score, et pas de solutions.</p>
+
+    <div class="modal-row">
+      <label class="modal-label" for="test-nom">Nom du test</label>
+      <input type="text" id="test-nom" class="answer-input" style="width:100%;" placeholder="Test de calcul – février">
+    </div>
+
+    <div class="modal-checks">
+      <label><input type="checkbox" id="test-tentative-unique" checked> Une seule tentative par élève</label>
+      <label><input type="checkbox" id="test-chrono" checked> Mesurer la durée</label>
+    </div>
+
+    <p class="modal-hint" id="test-recap"></p>
+
+    <div class="modal-foot" style="gap:8px;">
+      <button class="btn-action" onclick="testCopierLien()">Copier le lien</button>
+      <button class="btn-action btn-primary" onclick="testExporter()">Exporter le test</button>
+    </div>
   </div>
 </div>
 
@@ -16161,7 +16229,7 @@ const ICONE_ENSEIGNANT = '<svg viewBox="0 0 24 24" width="21" height="21" fill="
 const ICONE_PDF = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJkAAACUCAMAAAC3HHtWAAAAk1BMVEXi5ef////xVkKwt73K0dji6OrxW0jyUDnG2eHlzczmgnrV2t/x8/T19vbxUTzwTDX4u7Xnvr28wsf+8/L84N3yYlD1jID1hXf1kYb4q6L4t7D96ujwQib1mY7++Pf70c3zcWHxSC/zeGn3pJv6ysX72dXy2Nbj1dXtgnfyaFf3sKj6w73UubvV4ebco6HkioPitLFLhhsqAAAElUlEQVR4nO3ca5eaOhQG4ICOtHUa7AAqIgiIbdVezv//dUcS7tlAXIYkq4v308xCzeNOCAEVZAzmKxKWj8Xi4324tVbQyGahsqdow7J3wbLFgp82LHsTLuOv2rBMIKyQ8dMGZQLHfyXjpsmX8dIUyDhpKmR8NCUyLpoa2eLjq64yjqqpko1XTZlstGrqZGM0hbIRmkrZME2pbJCmVjZEUywboKmW9dOUy3qnXPWyvqppIOupmg4yuGpayMCq6SGDqiZPthySAVWTJ1sPytiqyZMNdydbNYmykaJ1aRJlY0Xr0GTKnqNJlY3sn22aXBlaL4fr1qBJlpEsB/KmVDZEUywboKmW9dOUy3pp6mV9NA1kPTQdZDBNCxlI00MG0TSRATRdZCxNGxlD00fWpWkkQ/rKkL4ypK8M6StD+sqQvjKkrwzpK0P6ypC+MqSvDOkrQ/rKkL6ytbYyVF+tnWWiZW8T5jlZ4Lby/fN0+YFAGyxzw9hbyUoc/oBooOxi2tiUFmybEA2SRaklz5XH/slZs5PEgtGsPrNFg2R3W7YMf+OTbWbZLJtls2yWzbJWrORYJklaaxFs2WUsiznm1htpoIPySzK8PQVl3Oyc1gQrDX3/nMc/h/t0lbTb3vqthDGwkHlFhneO0YyTXYtHWdvWFsc9xA3b6m504nhs1V6R2QemhT192OrS3WJs4rLx7hvKcz8KlVkbpoWI9ovnMlsMN4ULSnJIJpA5gUNStL+qZRFN+RLBDvfJgpXY3qSy2zXOs/MpIbRLWeT/3OYJb0UFL7R9KnMOdXzRewCV+TYmsa8BKdqxku3oFsvGu4C+SFLL3MakwU4rgmTlv/u8ak5emEJWVcKOadmuuJYBmKlkmHpiQGZaMenrg61EZppknso9jMw8khnG9fSTWWletCjF9TizHnmMwsdInFqG6S4A9mY5keR7LpUFYRX4JFugLPHzf6OK0ZatTuWDmfnM2UO012XnI931zTMZ5KfGrNFsEGdkF0igmdaJgQ59XZaFZE1xO9GZlrx/QGYS2Q2UGdtJZO3c6+NmZ5yRg/wZ6k3j4rEvLlrm0h2NlRW7R17R4uh0qnIA1kCCZVF2pW2wMjvMH+BcG7MGmTbywBfmBMqcU2gWbQDzGSnZhfwpa6Y9nWn2qVm9d0ZGZxQyzOTJzkfaJc0+6cjwMSQ7bmRLrZkPbClkCSZoHG+iumQayIzs9lgV3g73YqYzsuJp6mWdXK7N1baMccYpy7xi2EmQ2ed8C3Q4Zs/qorA6CcFpLhu9WP7a1YNNFB3AdULqRjXKcU/bY+P5OHQiN51UhnG6gz/AsLxdndSz2s+249119IOPF68F9axHyZY6TzxNmGzCzLJZNstm2TSyTPpnwh7nZ8KBbBiOGVfPdw9u7DXeSWHHX785ZVGYJNV52ORJ8J/lmlP2WOv54b6VL5Pl73/LT0/Iunn/NF3yLzXyjjNAxvzkQWy0lQEwPWTAKOOXrScM5PoXvrM3y2bZLJtls+zfk3He90Do3TnFykTe0ZQr9Q8XRmTSi9a4zcyITOQNap+Djckk92fzbin/A8PQxx30Ei25AAAAAElFTkSuQmCC';
 
 // Numéro de version, affiché en pied de menu.
-const APP_VERSION = '450';
+const APP_VERSION = '451';
 
 const DOMAINS = [
   {
@@ -16510,7 +16578,8 @@ function renderSidebar() {
 // la barre de titre sont éteints en CSS (`body.mode-serie`), mais on ferme aussi
 // la porte côté code — le CSS n'arrête ni le clavier ni un appel direct.
 function serieVerrouille() {
-  return !!(state.serie && Array.isArray(state.serie.items) && state.serie.items.length);
+  if (state.serie && Array.isArray(state.serie.items) && state.serie.items.length) return true;
+  return typeof testEstVerrouille === 'function' && testEstVerrouille();
 }
 
 function toggleDomain(num) {
@@ -17314,8 +17383,8 @@ function ouvrirSerieDepuisFichier(input) {
   if (!f) return;
   const lecteur = new FileReader();
   lecteur.onload = () => {
-    let at = null;
-    try { at = compositionRestaurer(JSON.parse(String(lecteur.result))); }
+    let at = null, donnees = null;
+    try { donnees = JSON.parse(String(lecteur.result)); at = compositionRestaurer(donnees); }
     catch (e) { at = null; }
     if (!at || !Array.isArray(at.items) || !at.items.length) {
       alert("Ce fichier ne contient pas de série d'exercices lisible.");
@@ -17330,11 +17399,118 @@ function ouvrirSerieDepuisFichier(input) {
       input.value = '';
       return;
     }
-    ouvrirSerie(at.nom || (f.name || '').replace(/\.json$/i, '') || "Série d'exercices", items);
+    const titre = at.nom || (f.name || '').replace(/\.json$/i, '') || "Série d'exercices";
+    if (donnees && donnees.sortie === 'test') {
+      ouvrirTestFichier((donnees.test && donnees.test.nom) || titre, items, donnees.test);
+    } else {
+      ouvrirSerie(titre, items);
+    }
     input.value = '';
   };
   lecteur.onerror = () => { alert("Ce fichier n'a pas pu être lu."); input.value = ''; };
   lecteur.readAsText(f);
+}
+
+// ----------------------------------------------------------------------------
+// CÔTÉ ÉLÈVE : un fichier marqué `sortie: 'test'` n'ouvre pas la vue « série »
+// mais le MODE ÉVALUATION qui existe déjà — validation unique, score, pas de
+// solutions. On lui ajoute seulement un écran d'entrée qui demande le prénom.
+// ----------------------------------------------------------------------------
+function ouvrirTestFichier(titre, items, reglages) {
+  state.testEnAttente = { titre, items, reglages: reglages || {} };
+  document.body.classList.add('mode-serie');
+  if (typeof cancelSidebarAutoClose === 'function') cancelSidebarAutoClose();
+  const sb = document.getElementById('sidebar');
+  if (sb) sb.classList.remove('forced-open', 'slow-retract');
+  renderTestAccueil();
+}
+
+function renderTestAccueil() {
+  const a = state.testEnAttente;
+  if (!a) return;
+  const main = document.getElementById('main');
+  const tbDom = document.getElementById('topbar-domain');
+  if (tbDom) tbDom.textContent = '';
+  const nbQ = a.items.reduce((n, it) => n + ((it.ex.questions || []).length || 1), 0);
+  // Déjà passé ? On le dit, sans interdire : sans compte élève, on ne peut pas
+  // faire mieux, et le second passage sera signalé dans les résultats.
+  const dejaFait = testDejaPasse(a.titre);
+  main.innerHTML = `
+    <div class="test-accueil">
+      <h2>${a.titre}</h2>
+      <p>${a.items.length} exercice${a.items.length > 1 ? 's' : ''}, ${nbQ} question${nbQ > 1 ? 's' : ''}.</p>
+      <p>Tu répondras à tout, puis tu valideras une seule fois à la fin.
+         Les solutions ne sont pas consultables pendant le test.</p>
+      ${dejaFait ? `<p class="test-accueil-alerte">Ce test a déjà été passé sur cet ordinateur${dejaFait.prenom ? ' par ' + dejaFait.prenom : ''}. Un nouveau passage sera signalé comme tel.</p>` : ''}
+      <label class="test-accueil-label" for="test-prenom">Ton prénom</label>
+      <input type="text" id="test-prenom" class="answer-input" autocomplete="off"
+             onkeydown="if(event.key==='Enter') demarrerTestFichier()">
+      <div><button class="btn-action btn-primary" onclick="demarrerTestFichier()">Commencer</button></div>
+    </div>`;
+  const champ = document.getElementById('test-prenom');
+  if (champ) champ.focus();
+}
+
+function testCleTentative(titre) { return 'eva-test-fait:' + String(titre || ''); }
+
+function testDejaPasse(titre) {
+  try {
+    const brut = localStorage.getItem(testCleTentative(titre));
+    return brut ? JSON.parse(brut) : null;
+  } catch (e) { return null; }
+}
+
+function testMarquerPasse(titre, prenom) {
+  try {
+    const avant = testDejaPasse(titre);
+    localStorage.setItem(testCleTentative(titre), JSON.stringify({
+      prenom, quand: Date.now(), passages: (avant && avant.passages ? avant.passages : 0) + 1
+    }));
+  } catch (e) {}
+}
+
+function demarrerTestFichier() {
+  const a = state.testEnAttente;
+  if (!a) return;
+  const champ = document.getElementById('test-prenom');
+  const prenom = ((champ && champ.value) || '').trim();
+  if (!prenom) {
+    alert('Écris ton prénom avant de commencer.');
+    if (champ) champ.focus();
+    return;
+  }
+  const avant = testDejaPasse(a.titre);
+  if (a.reglages.tentativeUnique && avant
+      && !confirm("Ce test a déjà été passé sur cet ordinateur.\n\nLe recommencer quand même ?")) return;
+
+  matchState = {}; selectState = {}; countState = {}; fillState = {}; clicState = {};
+  state.showSolutions = false;
+  state.activeSubId = null;
+  const domaines = [];
+  a.items.forEach(it => {
+    const d = (findSubdomain(it.sub.id) || {}).domain;
+    if (d) {
+      it.domainNum = d.num;
+      if (!domaines.includes(d.title)) domaines.push(d.title);
+    }
+    if (it.ex) it.ex._subId = it.sub.id;
+  });
+  state.test = {
+    domaines,
+    items: a.items,
+    debut: a.reglages.chrono === false ? null : Date.now(),
+    raccourci: false,
+    complet: false,
+    titre: a.titre,
+    eleve: prenom,
+    passage: (avant && avant.passages ? avant.passages : 0) + 1
+  };
+  state.exercises = a.items.map(it => it.ex);
+  testMarquerPasse(a.titre, prenom);
+  state.testEnAttente = null;
+  renderSidebar();
+  renderMain();
+  if (typeof window !== 'undefined' && window.scrollTo) window.scrollTo(0, 0);
 }
 
 function quitterSerie() {
@@ -17351,10 +17527,12 @@ function renderTest() {
   const t = state.test;
   const tbDom = document.getElementById('topbar-domain');
   if (tbDom) tbDom.textContent = 'Évaluation';
-  const titre = (t.domaines.length === 1)
-    ? t.domaines[0]
-    : `${t.domaines.length} domaines`;
-  const note = `${t.items.length} exercice${t.items.length > 1 ? 's' : ''}`
+  // Un test livré depuis l'atelier porte SON nom, et le prénom de qui le passe.
+  const titre = t.titre
+    || ((t.domaines.length === 1) ? t.domaines[0] : `${t.domaines.length} domaines`);
+  const note = (t.eleve ? `${t.eleve} · ` : '')
+    + `${t.items.length} exercice${t.items.length > 1 ? 's' : ''}`
+    + (t.passage > 1 ? ` · ${t.passage}ᵉ passage` : '')
     + (t.raccourci ? ' · version raccourcie' : '');
   // Une seule astuce de saisie pour tout le test : elle vaut pour l'algèbre
   // entière, et se répétait jusqu'ici sous plusieurs exercices. Elle est posée
@@ -17380,7 +17558,7 @@ function renderTest() {
 
   let html = `
     <div class="test-bandeau">
-      <span class="test-bandeau-titre">Test – ${titre}</span>
+      <span class="test-bandeau-titre">${t.titre ? '' : 'Test – '}${titre}</span>
       <span class="test-bandeau-note" id="test-resultat">${note}</span>
       ${t.valide ? '<button class="btn-action" id="btn-export-test" onclick="exporterTest()">Exporter</button>' : ''}
       <button class="btn-action" onclick="quitterEvaluation()">Quitter</button>
@@ -19794,11 +19972,8 @@ function enteteEnseignant(titre, retourAccueil, aide) {
 
 const VUES_ENSEIGNANT = [
   { id: 'atelier', titre: "Créer une série d'exercices à la carte",
-    texte: "Composer une série à partir des domaines et sous-domaines, renouveler les questions une à une, en écarter, réordonner, puis générer un PDF ou une série interactive.",
+    texte: "Composer une série à partir des domaines et sous-domaines, renouveler les questions une à une, en écarter, réordonner, puis générer un PDF, une série interactive ou un test.",
     pret: true },
-  { id: 'test', titre: "Créer un test sur mesure",
-    texte: "Choisir les exercices et les questions d'un test, comme pour une série, et l'enregistrer pour le proposer aux élèves.",
-    pret: false },
   { id: 'prenoms', titre: "Modifier les prénoms dans les problèmes",
     texte: "Adapter la liste des prénoms qui apparaissent dans les énoncés, pour qu'ils parlent à la classe.",
     pret: true }
@@ -19946,6 +20121,7 @@ function renderAtelierPage() {
       <button class="btn-action" id="atelier-bouton-vider" onclick="atelierVider()" title="Vider la composition">Vider</button>
       <button class="btn-action btn-icon" onclick="atelierGenererPdf()" title="Générer le PDF"><img class="btn-icon-img" src="" alt="PDF"></button>
       <button class="btn-action" id="atelier-bouton-ecran" onclick="atelierTravailEcran()" title="Voir et faire cette série à l'écran, chaque exercice avec son bouton Valider">Aperçu écran</button>
+      <button class="btn-action" id="atelier-bouton-test" onclick="ouvrirReglagesTest()" title="Livrer cette composition comme un test : une seule validation, un score">Test</button>
       <span class="atelier-barre-droite">
         <select class="variant-select" id="atelier-enregistrees" onchange="atelierCharger()" title="Rouvrir une composition gardée"></select>
         <button class="btn-action" id="atelier-bouton-suppr-compo" onclick="atelierSupprimerEnregistree()" title="Supprimer la composition choisie">✕</button>
@@ -25274,6 +25450,11 @@ function quitterEvaluation() {
   fermerTest();
 }
 
+// Un test ouvert par un élève ne laisse rien d'autre accessible.
+function testEstVerrouille() {
+  return !!(state.test && state.test.eleve) || !!state.testEnAttente;
+}
+
 function fermerTest() {
   // La sélection ne survit pas au test : rouvrir la fenêtre repart d'une page
   // blanche plutôt que des domaines du test précédent.
@@ -25283,6 +25464,8 @@ function fermerTest() {
   const sb = document.getElementById('sidebar');
   if (sb) sb.classList.remove('sidebar-inerte');
   state.test = null;
+  state.testEnAttente = null;
+  document.body.classList.remove('mode-serie');
   state.showSolutions = false;
   state.exercises = [];
   renderSidebar();
@@ -25518,7 +25701,9 @@ async function exporterTest(opts) {
   // Titre à gauche, date et heure à droite sur la même ligne. Le score n'y
   // figure plus : le récapitulatif qui suit le donne, domaine par domaine.
   entete.innerHTML = `<div style="display:flex; align-items:baseline; gap:16px;">`
-    + `<div style="flex:1; font-size:22px; font-weight:800;">${sansPoints ? '' : 'Test – '}${titreTest}</div>`
+    + `<div style="flex:1; font-size:22px; font-weight:800;">${sansPoints ? '' : 'Test – '}${titreTest}`
+    + (t.eleve ? `<div style="font-size:13px; font-weight:600; color:#6B7280; margin-top:2px;">${esc(t.eleve)}${t.passage > 1 ? ` · ${t.passage}ᵉ passage` : ''}</div>` : '')
+    + `</div>`
     + `<div style="font-size:13px; color:#6B7280; white-space:nowrap;">${dateFr}`
     + (dureeFr ? ` &nbsp;·&nbsp; ⏱ ${dureeFr}` : '') + `</div></div>`;
   cont.appendChild(entete);
@@ -26025,6 +26210,99 @@ async function exporterTest(opts) {
   } finally {
     if (cont.parentNode) document.body.removeChild(cont);
     btns.forEach((b, k) => { b.innerHTML = libelles[k]; b.disabled = false; });
+  }
+}
+
+// ----------------------------------------------------------------------------
+// SORTIE « TEST » : la composition est la même que pour un PDF ou un aperçu ;
+// seule sa LIVRAISON change. Le fichier exporté porte `sortie: 'test'` et ses
+// réglages ; à l'ouverture, l'application bascule dans le mode évaluation qui
+// existe déjà (validation unique, score, pas de solutions).
+// ----------------------------------------------------------------------------
+function ouvrirReglagesTest() {
+  const at = state.atelier;
+  if (!at || !at.items.length) {
+    alert("Compose d'abord une série d'exercices : coche des notions dans le menu, puis « Composer ».");
+    return;
+  }
+  const m = document.getElementById('test-reglages-modal');
+  if (!m) return;
+  const champ = document.getElementById('test-nom');
+  if (champ && !champ.value) champ.value = at.nom || '';
+  const recap = document.getElementById('test-recap');
+  if (recap) {
+    const items = atelierItemsPourTest();
+    const ecartes = atelierItemsPourPdf().length - items.length;
+    const nbQ = items.reduce((n, it) => n + ((it.ex.questions || []).length || 1), 0);
+    recap.textContent = `${items.length} exercice${items.length > 1 ? 's' : ''}, ${nbQ} question${nbQ > 1 ? 's' : ''}.`
+      + (ecartes ? ` ${ecartes} exercice${ecartes > 1 ? 's' : ''} écarté${ecartes > 1 ? 's' : ''} : une construction à la règle et au compas ne se corrige pas à l'écran.` : '');
+  }
+  m.style.display = 'flex';
+  if (champ) champ.focus();
+}
+
+function fermerReglagesTest(ev) {
+  if (ev && ev.currentTarget !== ev.target) return;
+  const m = document.getElementById('test-reglages-modal');
+  if (m) m.style.display = 'none';
+}
+
+// Ce qui part dans un test : les questions cochées, sans les exercices qu'on ne
+// sait pas corriger à l'écran.
+function atelierItemsPourTest() {
+  return atelierItemsPourPdf()
+    .filter(it => it && it.ex && !it.ex._construction && !it.ex._instrKind);
+}
+
+function testReglagesSaisis() {
+  const val = (id) => { const e = document.getElementById(id); return e ? e.value : ''; };
+  const coche = (id) => { const e = document.getElementById(id); return !!(e && e.checked); };
+  return {
+    nom: (val('test-nom') || '').trim() || "Test",
+    tentativeUnique: coche('test-tentative-unique'),
+    chrono: coche('test-chrono')
+  };
+}
+
+function testFichier() {
+  const at = state.atelier;
+  const r = testReglagesSaisis();
+  const base = compositionSerialiser({ ...at, items: atelierItemsPourTest() });
+  return { fichier: { ...base, sortie: 'test', test: r }, reglages: r };
+}
+
+function testExporter() {
+  const at = state.atelier;
+  if (!at || !at.items.length) return;
+  const { fichier, reglages } = testFichier();
+  let texte;
+  try { texte = JSON.stringify(fichier, null, 1); }
+  catch (e) { alert("Cette composition n'a pas pu être mise en fichier."); return; }
+  const nomFichier = reglages.nom.replace(/[^\w\-À-ÿ ]+/g, '').replace(/\s+/g, '_') || 'test';
+  const blob = new Blob([texte], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = nomFichier + '.json';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 0);
+  fermerReglagesTest();
+}
+
+// Le lien à donner aux élèves : l'application, plus le nom du fichier de test
+// déposé à côté d'elle. Le fichier lui-même s'exporte par le bouton voisin.
+function testCopierLien() {
+  const r = testReglagesSaisis();
+  const nomFichier = (r.nom.replace(/[^\w\-À-ÿ ]+/g, '').replace(/\s+/g, '_') || 'test') + '.json';
+  const base = window.location.href.split('?')[0].split('#')[0];
+  const lien = base + '?serie=' + encodeURIComponent(nomFichier);
+  const dire = () => alert("Lien copié :\n\n" + lien
+    + "\n\nIl ne marchera qu'une fois le fichier « " + nomFichier
+    + " » déposé au même endroit que l'application.");
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(lien).then(dire, () => prompt("Lien du test :", lien));
+  } else {
+    prompt("Lien du test :", lien);
   }
 }
 
@@ -30269,7 +30547,12 @@ if (typeof pushHistoryState === 'function') pushHistoryState(true);
         .filter(it => it && it.ex && !it.ex._construction && !it.ex._instrKind)
         .map(it => ({ sub: it.sub, niveau: it.niveau, ex: { ...it.ex } }));
       if (!items.length) throw new Error('vide');
-      ouvrirSerie(at.nom || String(nom).replace(/\.json$/i, ''), items);
+      const titre = at.nom || String(nom).replace(/\.json$/i, '');
+      if (data && data.sortie === 'test') {
+        ouvrirTestFichier((data.test && data.test.nom) || titre, items, data.test);
+      } else {
+        ouvrirSerie(titre, items);
+      }
     })
     .catch((err) => {
       // Message circonstancié : sans lui, « ça ne s'ouvre pas » ne dit pas
