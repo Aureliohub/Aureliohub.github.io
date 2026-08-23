@@ -3,7 +3,7 @@
 ═══════════════════════════════════════════════════════════════════════════════
 NOTE POUR CLAUDE – REPRISE DU PROJET DANS UNE NOUVELLE CONVERSATION
 ═══════════════════════════════════════════════════════════════════════════════
-Projet : « Générateur EVA Maths » – application mono-fichier HTML (~27 500 lignes)
+Projet : « Générateur EVA Maths » – application mono-fichier HTML (~28 800 lignes)
 générant des exercices de mathématiques pour adultes (programme PAI, Suisse).
 Product owner : Aurelio (Onex/Genève). Répondre en FRANÇAIS.
 
@@ -21,6 +21,9 @@ Product owner : Aurelio (Onex/Genève). Répondre en FRANÇAIS.
   « const state = window.__state = { » (même astuce pour DOMAINS) puis
   w.eval du bloc principal.
 - L'environnement se réinitialise entre les tours : recréer harnais et copie.
+- HARNAIS DE NON-RÉGRESSION PDF (§3 bis) : À RECRÉER ET À LANCER dès qu'on
+  touche à downloadPdf ou downloadDomainPdf. Aurelio ne veut PAS avoir à
+  revérifier ses PDF à la main ; c'est cet outil qui le lui évite.
 - Aurelio décrit ses demandes en langage de mise en page (« une ligne de plus »,
   « remonter l'ex 2 ») : une ligne ≈ 24 px dans les grilles PDF.
 
@@ -35,10 +38,19 @@ Product owner : Aurelio (Onex/Genève). Répondre en FRANÇAIS.
   Rendu en .multi-grid (2 colonnes par défaut ; -fullwidth, -stacked, -eqval,
   -3cols-bycolumn, -propfig selon les cas).
 - Navigation : pushHistoryState / applyHistoryState + popstate.
-- Deux générateurs de PDF, INDÉPENDANTS :
-    downloadPdf(opts)        → PDF d'un sous-domaine
+- TROIS générateurs de PDF :
+    downloadPdf(opts)        → PDF d'un sous-domaine. Options ajoutées, sans
+                             effet quand elles sont absentes : `pdfPartage`
+                             (écrire dans un document existant, sans enregistrer
+                             ni numéroter), `corrigesDifferes` (mettre le
+                             corrigé de côté), `rendreBlocs` (construire la mise
+                             en page puis RENDRE les blocs sans rien paginer).
     downloadDomainPdf(num, compo?) → PDF d'un domaine (1 exercice par
                              sous-domaine), ou d'une composition imposée.
+    downloadCartePdf(items)  → série « à la carte » mêlant des sous-domaines :
+                             elle demande ses blocs à downloadPdf, groupe par
+                             groupe, et les enchaîne EN FLUX (§8.2).
+  Les trois sont INDÉPENDANTS : une retouche dans l'un ne se propage pas.
 
 ───────────────────────────────────────────────────────────────────────────────
 3. MOTEUR PDF – CE QU'IL FAUT SAVOIR AVANT DE TOUCHER À UNE MISE EN PAGE
@@ -82,6 +94,73 @@ Product owner : Aurelio (Onex/Genève). Répondre en FRANÇAIS.
     · libelleUnite(v) – élision correcte (« unités d'aire »).
 
 ───────────────────────────────────────────────────────────────────────────────
+3 ter. VRAI NAVIGATEUR — À MONTER EN PREMIER, AVANT TOUTE QUESTION DE MISE EN
+PAGE (recette du 23.08 ; tout est perdu à la réinitialisation, ~5 min à refaire)
+───────────────────────────────────────────────────────────────────────────────
+jsdom ne met RIEN en page : il ne sait pas dire à quelle hauteur tombe un bloc,
+donc aucune question de pagination ne s'y tranche. Un vrai Chromium tourne dans
+le bac à sable et produit le VRAI PDF, qu'on peut ensuite REGARDER.
+ 1. `npm install puppeteer @sparticuz/chromium jspdf html2canvas katex`
+    (le binaire de Chrome ne se télécharge PAS : storage.googleapis.com est
+    bloqué. Celui de @sparticuz/chromium arrive DANS le paquet npm.)
+ 2. décompresser `node_modules/@sparticuz/chromium/bin/chromium.br` en brotli
+    vers /tmp/chr/chromium, chmod +x. `--version` doit répondre.
+ 3. `prep.js` : copie du fichier où les balises de script CDN sont remplacées par les
+    paquets npm locaux — sans réseau, KaTeX / jsPDF / html2canvas ne chargent
+    pas et rien ne fonctionne.
+ 4. `pdfreel.js` : puppeteer lance /tmp/chr/chromium avec --no-sandbox, ouvre la
+    copie en file://, ENVELOPPE le constructeur jsPDF pour récupérer
+    `output('datauristring')` au lieu d'enregistrer, appelle
+    atelierComposerSousDomaine puis downloadCartePdf, écrit le PDF.
+    ATTENTION : jsPDF pose ses méthodes sur l'INSTANCE, pas sur le prototype —
+    patcher le prototype ne capte rien. Envelopper l'instance.
+ 5. `pdftoppm -png -r 60 x.pdf /tmp/p` (poppler-utils s'installe par apt) puis
+    REGARDER les images. Tracer aussi les addImage (page, y, hauteur) : c'est
+    ce qui dit POURQUOI un bloc a changé de page, au millimètre.
+Le harnais jsdom (§3 bis) reste utile pour la NON-RÉGRESSION des 31 documents
+(rapide, déterministe) ; le navigateur sert à trancher les questions de hauteur.
+
+3 bis. HARNAIS DE NON-RÉGRESSION DES PDF (à recréer : les fichiers .js ne
+survivent pas d'une session à l'autre)
+───────────────────────────────────────────────────────────────────────────────
+But : prouver qu'une modification des chaînes PDF n'a RIEN changé aux 31
+documents existants (5 domaines + 26 sous-domaines), sans ouvrir un seul PDF.
+Principe : on n'imprime pas, on intercepte ce que l'application envoie au rendu,
+et on compare deux versions du fichier.
+
+Recette :
+ 1. Charger le fichier dans jsdom (squelette = le <body> réel, scripts retirés).
+ 2. NEUTRALISER LE HASARD : remplacer w.Math.random par un générateur à graine
+    fixe (congruentiel linéaire). Sans cela deux exécutions ne se comparent pas.
+ 3. Stubber html2canvas : il enregistre une empreinte de l'élément reçu et rend
+    une hauteur ESTIMÉE à partir du contenu (lignes de texte, figures, paddings
+    des .multi-item, min-height explicite) — jsdom ne met rien en page.
+ 4. Stubber jsPDF : compter les addPage ET LES save (voir plus bas).
+ 5. Empreinte d'un document = pour chaque bloc rasterisé : texte normalisé,
+    nombre de svg, nombre d'input, et la « mise » = pour chaque nœud, ses
+    attributs de pagination (data-page-break-before, data-paginate-items,
+    data-no-slice, data-fill-stop) et ses styles inline de mise en page
+    (padding, min-height, grid-template-*, gap, margin-bottom).
+ 6. Empreinte du DOCUMENT COMPLET prise au moment où jsPDF est construit, donc
+    AVANT la pagination.
+ 7. Comparer : nombre de fichiers, nombre de pages, document complet, puis
+    chaque bloc.
+
+TROIS ANGLES MORTS découverts en SABOTANT volontairement le fichier — refaire
+ces sabotages après avoir recréé le harnais, sinon il ne prouve rien :
+ · ne regarder que les DESCENDANTS d'un bloc : ses propres attributs de
+   pagination échappaient à l'empreinte ;
+ · photographier le document PENDANT la pagination : celle-ci déplace les
+   morceaux et efface les attributs ;
+ · ne pas compter les save() : un chemin de downloadPdf enregistrait encore son
+   propre fichier en mode partagé et sortait HUIT PDF au lieu d'un, sans que le
+   harnais bronche.
+Sabotages qui doivent être détectés : un padding de 109 → 110 px, une hauteur de
+grille 780 → 781 px, un exercice à 4 questions au lieu de 5, un
+data-paginate-items retiré (attention : il est posé DEUX fois pour les énoncés
+de volumes — retirer les deux), un save() de trop.
+
+───────────────────────────────────────────────────────────────────────────────
 4. RÉGLAGES DE MISE EN PAGE ACTUELS (validés par Aurelio, ne pas « harmoniser »
    spontanément : chaque valeur a été demandée)
 ───────────────────────────────────────────────────────────────────────────────
@@ -101,6 +180,10 @@ PDF de sous-domaine – écart entre rangées (grid.style.gap) / empilement :
                 (a–d puis e–f, page 2 sans titre ni consigne)
   perim-aire    grille en space-between, minHeight 780px
   volumes       ex 1 space-between, ex 2 space-evenly, ex 3 rowGap 230px
+En-tête du PDF de SOUS-DOMAINE (v423) : titre 18px, trait 1px, padding-bottom
+  8px (auparavant 22px / 2px / 12px). Même réglage dans la branche multi-pages
+  de prop-concret. L'en-tête du CORRIGÉ n'a pas été touché : son titre est
+  « ✅ Corrigé » (22px, trait vert 2px), le nom du sous-domaine y est en 13px.
 PDF de domaine :
   DOMAIN_ROWGAP : decimaux 330px, relatifs 48, rationnels 72, puissances 48,
   racines 48, hierarchie 120, défaut 22.
@@ -133,6 +216,55 @@ PDF de domaine :
   (1 ; 1000 ; 100,0 ; 50,0 ; 20,0 ; 5,0) qui rendaient le calcul trivial ;
   _estimerDerniersModeles exclut le tirage précédent (4 modèles par feuille) ;
   modèle « (99,9 + 100,1) × c » : correct = 200 × c, calculé et non figé.
+- decimaux (v408) — QUATRE VARIANTES au second menu déroulant : « 4 opérations »
+  (a) + b) − c) × d) ÷, comportement d'origine), Soustractions,
+  Multiplications, Divisions, chacune en 4 calculs de la MÊME opération.
+  PREMIER sous-domaine à porter DEUX menus (niveau ET variante) : le code le
+  permettait déjà (clé de cache subId|variante|niveau, les deux <select> sont
+  posés côte à côte) mais aucun sous-domaine ne l'exerçait. Deux conséquences :
+  · la présence de `variants` fait passer l'écran de 2 exercices à 1 (voulu) ;
+  · le PDF de sous-domaine générait un niveau non visité avec `sub.gen()`,
+    c'est-à-dire le MÉLANGE : corrigé, il prend le générateur de la variante.
+  Pas de variante « Additions » (refusée par Aurelio). Dans un exercice à
+  opération unique, deux calculs identiques sont refusés, et les divisions
+  imposent quatre diviseurs différents.
+  DÉCOUPE D'UN EXERCICE TROP LONG (v411, `Q_PAR_PAGE = { decimaux: 6 }`) : les
+  conteneurs de page sont à HAUTEUR FIXE, débordement masqué — un exercice qui
+  ne tient pas n'est pas reporté, il est PERDU SANS ERREUR. Un exercice de
+  décimaux fusionné (8 questions) laissait e) f) g) h) hors du PDF. On construit
+  donc `exercicesEnonce`, copie de exercisesForPdf découpée en tranches de 4
+  questions ; le côté ÉNONCÉ (boucle de rendu, pageGroups, gridTemplateRows)
+  travaille dessus, le CORRIGÉ reste sur exercisesForPdf pour garder a)–h)
+  groupées. Les tranches gardent le numéro d'origine (`_numeroPdf`) et les
+  suivantes portent « (suite) ». jsdom ne mesure pas la troncature (pas de
+  moteur de rendu) : le test vérifie la RÉPARTITION (jamais plus de 4 questions
+  par page, aucune perdue), pas le pixel.
+  PDF DU SOUS-DOMAINE (v409, branche `found.sub.id === 'decimaux'` placée AVANT
+  la branche générique hasNiveau2) : deux exercices, l'Exercice 1 étant celui
+  affiché à l'écran. Sur le niveau 1 → 1 puis 2 ; sur le niveau 2 → 2 puis 2.
+  Le second exercice est retiré jusqu'à ce qu'AUCUN calcul ne se retrouve dans
+  les deux (il n'existait aucun contrôle de ce genre avant la v409). Le PDF de
+  DOMAINE est inchangé : il passe par composerItemsDomaine, pas par ici.
+- decimaux (v405) — ce qui SÉPARE les deux niveaux, mesuré sur 5000 tirages :
+  · addition : 2 termes (N1) contre 3 dont un entier (N2).
+  · soustraction : N2 impose un 0 dans le premier terme.
+  · multiplication : le 2e facteur porte 1 décimale au N1 et 2 au N2. Avant la
+    v405 il en portait 1 aux deux niveaux et la différence tenait à la longueur
+    du 1er facteur, si bien que 25 % des tirages N1 étaient des tirages N2
+    parfaitement valables. Recouvrement désormais NUL.
+  · division : mêmes nombres aux deux niveaux, la difficulté est le 0 intérieur
+    du quotient, exigé au N2 et interdit au N1. JAMAIS de 0 aux centièmes du
+    quotient (pas de 4,50) : essayé en v406, REFUSÉ par Aurelio, revenu en
+    arrière en v407 — ne pas le reproposer. Le N2 ajoute (v405) les
+    diviseurs à DEUX décimales 0,11 / 0,12 / 0,15. Un diviseur qui gagne une
+    décimale en fait perdre une au quotient : generateDivision reçoit donc la
+    liste des diviseurs et déduit `decDiviseur` de leur écriture, le dividende
+    gagne un chiffre, et decimalesQuotient = décimales du dividende − décimales
+    du diviseur. Dividende plafonné à 4 décimales pour rester lisible.
+  · le dernier recours de generateDivision renvoyait « 14,56 ÷ 0,7 = 20,80 » EN
+    DUR : faux dès que le diviseur tiré n'était pas 0,7 (663 divisions fausses
+    sur 800 quand on force ce chemin). Il construit désormais une division juste
+    à partir du diviseur réellement tiré.
 - prop-concret niveau 3 (« % - rabais ») : 5 questions a)–e) (4 rabais + 1 perte
   cuisine).
 - perim-aire niveau 3 « Problèmes » (v401, genPerimAireN3) : 13 modèles issus
@@ -249,11 +381,428 @@ PDF de domaine :
   ligne approximatifs. Réversible, ~30 min. Ne pas lancer sans l'accord d'Aurelio.
 
 ───────────────────────────────────────────────────────────────────────────────
-8. ÉTAT DU PROJET AU 19 AOÛT 2026 (v397)
+8. ÉTAT DU PROJET AU 22 AOÛT 2026 (v421)
 ───────────────────────────────────────────────────────────────────────────────
-Cette section a été remise au propre à la fin de la session du 19.08 : elle
-décrit l'ÉTAT, non l'historique. Les numéros de version ne sont cités que
-lorsqu'ils aident à retrouver un choix dans le fichier.
+Cette section décrit l'ÉTAT, non l'historique. Les numéros de version ne sont
+cités que lorsqu'ils aident à retrouver un choix dans le fichier.
+
+v445 — Vignette : formulation d'Aurelio reprise mot pour mot.
+
+v444 — SÉRIE OUVERTE = ÉCRAN VERROUILLÉ. Un élève à qui l'on transmet une série
+ne doit pas pouvoir en sortir par la bande : le menu des domaines et les trois
+boutons de la barre de titre (PDF, évaluation, espace enseignant) sont éteints,
+ainsi que le titre cliquable. Deux verrous, volontairement :
+ · `body.mode-serie` en CSS (opacity 0.4, pointer-events none) — l'aspect grisé
+   dit que c'est éteint ;
+ · `serieVerrouille()` en tête de `toggleDomain`, `selectSubdomain`, `goHome`,
+   `openDomainPdfModal`, `openEvalModal`, `ouvrirEspaceEnseignant` — le CSS
+   n'arrête ni le clavier ni un appel direct, et un clic programmatique passait.
+La classe est posée par `ouvrirSerie` et retirée par `quitterSerie`. Vaut aussi
+pour l'aperçu venu de l'atelier : la sortie y est le bouton « Retour ».
+Vignette de l'espace enseignant : « …puis générer un PDF ou une série
+interactive. » (formulation d'Aurelio)
+
+v443 — RETOUR DE L'APERÇU : la composition restait en mémoire mais ne
+s'affichait plus. `renderAtelierPage` rebâtit toute la page, zone d'exercices
+comprise, avec son texte « Aucune composition » — tant qu'on n'y arrivait que
+par le menu, personne ne s'en apercevait. Elle appelle maintenant
+`renderAtelier()` quand `state.atelier.items` n'est pas vide. À retenir :
+`renderAtelierPage` dessine le CADRE, `renderAtelier` le CONTENU ; toute
+nouvelle façon d'arriver sur cette page doit appeler les deux.
+
+v442 — ATELIER, retouches d'écran.
+ · « Épreuve du domaine » devient « SÉRIE DU DOMAINE » partout (bouton du menu,
+   aide du menu, étiquette de composition, mode d'emploi).
+ · « À l'écran » devient « APERÇU ÉCRAN ».
+ · Enregistrer / Exporter / Importer, la liste des compositions et sa croix sont
+   réunis dans `.atelier-barre-droite` (`margin-left: auto`) : groupe poussé à
+   droite, séparé des gestes de composition. Le séparateur `atelier-sep-compo`
+   n'existe plus.
+ · Vue série : plus rien dans la barre de titre (le nom de la série est déjà en
+   tête de page), et le bouton dit « Retour » quand elle vient de l'atelier
+   (`state.serie.origine === 'atelier'`) — « Quitter » quand elle vient d'un
+   fichier. Dans les deux cas la composition est intacte au retour.
+ · Accueil : `.home-refresh-wrap` passe en flex centré, « Autres exercices » et
+   « Ouvrir une série… » sont alignés.
+
+v441 — SÉRIE TRAVAILLÉE À L'ÉCRAN, et PARTAGEABLE. Reprend la v440 sur d'autres
+bases : le bouton « À l'écran » n'ouvre plus le mode TEST (qui appartient à
+l'espace évaluation, à venir) mais une vue « série » qui se comporte comme le
+menu principal.
+ · `state.serie = { titre, items }`, `renderSerie()`, `ouvrirSerie(titre, items)`,
+   `quitterSerie()`. Chaque exercice garde SON bouton « Valider » et l'œil
+   affiche les solutions ; ni score global, ni chronomètre, ni validation unique.
+   `renderSerie` refait les mêmes passes de finition que la vue d'un
+   sous-domaine (KaTeX, figures, exercices interactifs) — sans elles tout reste
+   inerte.
+ · `renderMain` place la série AVANT l'espace enseignant : on y retombe en
+   quittant. Les exercices sont copiés, la composition n'en garde pas trace.
+   Chaque exercice porte `_subId`, comme dans le test : la correction en a
+   besoin et `state.activeSubId` est nul.
+ · `toggleSolutions` acceptait de ne rien faire sans sous-domaine actif ; il
+   accepte maintenant la série.
+ · PARTAGE : la page d'accueil porte « Ouvrir une série… », qui lit un fichier
+   .json exporté depuis l'atelier (`ouvrirSerieDepuisFichier`) et ouvre la vue
+   série SANS passer par l'espace enseignant. On compose sur un poste, on
+   transmet le fichier, l'élève l'ouvre sur le sien. Vérifié bout en bout : la
+   sérialisation existante (`compositionSerialiser` / `compositionRestaurer`)
+   suffit, ~3 ko pour trois exercices.
+
+v440 — TRAVAIL À L'ÉCRAN depuis l'atelier (bouton « À l'écran »).
+ · `atelierTravailEcran()` rejoue la composition dans le MODE TEST existant :
+   même saisie, même « Valider », même score, même export. Seule la SOURCE des
+   exercices change — `atelierItemsPourPdf()` (donc les questions décochées sont
+   retirées, comme au PDF) au lieu d'une sélection de domaines.
+ · L'espace enseignant reste ouvert derrière : `renderMain` donne la priorité au
+   test, et « Quitter » retombe donc dans l'atelier, composition intacte. Les
+   exercices sont COPIÉS (`{...it.ex}`) pour que le test ne marque pas ceux de
+   la composition.
+ · `state.test.origine === 'atelier'` et `state.test.titre` : la barre affiche
+   « Travail à l'écran » et le bandeau le nom de la composition.
+ · Écartés comme dans le mode évaluation : `_construction` et `_instrKind`.
+ · Chaque item reçoit `domainNum` — renderTest s'en sert pour poser l'astuce de
+   saisie de l'algèbre.
+ · La largeur du menu des notions revient à 300 px (`flex: 0 1 300px`) : en v438
+   il s'étirait sur toute la place libre.
+
+v439 — ATELIER, barre d'outils.
+ · CHEVAUCHEMENT du menu des notions sur « Composer / Ajouter » : le bouton
+   portait `min-width: 300px`, qui l'emportait sur le `width: 100%` posé en
+   v438. Il débordait de sa case sans que rien ne le contienne. `min-width: 0`
+   dans la barre, et le libellé se coupe proprement (ellipsis).
+ · La LISTE des compositions enregistrées, sa croix de suppression et leur
+   séparateur ne s'affichent QUE s'il y a quelque chose à ouvrir. Ils
+   reviennent au premier « Enregistrer » ou au premier import — les trois
+   chemins (enregistrer, supprimer, importer) appellent déjà
+   `majListeCompositions`, qui porte la décision.
+ · Libellé de la liste raccourci : « — compositions — ».
+
+v438 — ATELIER, resserrement de l'écran.
+ · Le bandeau de mode ne porte plus SA REMARQUE : il ne reste que l'étiquette,
+   sur une ligne (« Exercices choisis » / « Épreuve du domaine – <domaine> »).
+   Elle est gardée à dessein : cocher un domaine entier et cocher toutes ses
+   cases une à une donnent deux compositions différentes, et rien d'autre ne le
+   dit. Le contenu des remarques vit désormais dans le mode d'emploi.
+ · « Mode d'emploi » quitte la barre d'outils pour la LIGNE DE TITRE :
+   `enteteEnseignant(titre, retourAccueil, aide)` prend un troisième argument.
+ · La barre d'outils tient sur UNE SEULE LIGNE : `flex-wrap: nowrap`, le menu
+   des notions absorbe la place disponible (`flex: 1 1 190px`), la liste des
+   compositions cède la sienne, et sous 1080 px une media-query resserre le pas
+   et le rembourrage des boutons. Vérifié sans débordement de 940 à 1440 px ;
+   en dessous de ~900 px la ligne débordera.
+
+v437 — ATELIER, aide et mode d'emploi.
+ · L'aide du menu déroulant perd « calibrée pour une évaluation ».
+ · Les deux paragraphes d'aide qui vivaient SOUS la barre d'outils sont
+   supprimés. Ils sont remplacés par un bouton « Mode d'emploi » dans la barre,
+   qui ouvre une modale en surimpression (`#aide-atelier-modal`,
+   `ouvrirAideAtelier` / `fermerAideAtelier`, même patron que les autres
+   modales : overlay cliquable pour fermer, croix, stopPropagation sur la boîte).
+   Cinq sections : choisir les notions, régler un exercice, régler une question,
+   fusionner, garder et sortir.
+ · La modale décrit les boutons RÉELS (⊕ ⊖ ＋ ▲ ▼ ✕ ⠿ ↻) : à tenir à jour si
+   l'en-tête d'exercice change.
+
+v436 — Consigne d'« Estimer le résultat d'un calcul » reformulée à la demande
+d'Aurelio : « Estime le résultat (sans calculer précisément) et sélectionne la
+réponse la plus proche : ».
+
+v435 — FUSION DES EXERCICES DE SÉLECTION (« Entoure les développements qui
+permettent de construire un cube »). Le bouton n'était pas proposé parce que
+`atelierFusionPossible` n'admettait que deux formes : `questions` ou
+`statements`. Ces exercices n'ont ni l'une ni l'autre — un solide et ses
+options, rien de plus.
+ · Nouveau type de fusion `'select'` : les exercices deviennent un exercice à
+   RANGÉES (`ex.rows`), un solide à gauche, ses développements à droite. Cette
+   forme existait DÉJÀ pour « Droites du triangle » et était traitée partout —
+   écran, corrigé, mise en page PDF, barème (qui aplatit `rows` depuis
+   longtemps) ; il manquait seulement de pouvoir mettre un SOLIDE à gauche au
+   lieu d'un libellé texte, ajouté à l'écran et au corrigé (`row.solid`).
+ · Les identifiants d'options sont refaits par rangée (`r0o0`, `r1o0`…) : deux
+   « o0 » dans la même grille se seraient cochés ensemble.
+ · Consigne fusionnée : « Sélectionne les développements qui permettent de
+   construire chaque solide. » Le début est conservé mot pour mot, la passe PDF
+   y remplaçant « Sélectionne » par « Entoure ».
+ · `consigneFusion` est maintenant consulté pour TOUS les types de fusion, plus
+   seulement pour celles fondées sur les questions.
+
+v434 — « NIVEAU 1 / 2 » remplacé par le NOM de la sous-rubrique partout où le
+sous-domaine en nomme une (`niveauLabels` et pas dans SANS_RUBRIQUE) : à
+l'énoncé ET au corrigé, dans le PDF de sous-domaine comme dans les séries.
+ Le libellé existait déjà mais dépendait du drapeau `_noNiveauTag`, posé par une
+ seule branche de la composition du PDF de sous-domaine : il ne voyageait pas
+ jusqu'à la série, qui retombait sur « Niveau 1 ». Il est désormais déduit de
+ `found.sub.niveauLabels[ex._realNiveau - 1]` — donc du niveau RÉEL de
+ l'exercice, jamais de sa position. Concerne prop-figures (« Déduction
+ d'angle » / « Arc - secteur ») ; prop-concret garde sa branche dédiée,
+ perim-aire et volumes la leur (SANS_RUBRIQUE), developpements et vocab
+ n'affichent toujours rien.
+
+v433 — Note de la v432 corrigée (voir le paragraphe « À NE PAS CROIRE »).
+
+v432 — Deux demandes d'Aurelio.
+ · FUSION DE DEUX EXERCICES DE DÉCIMAUX : leurs consignes diffèrent selon
+   l'opération (« Pose les multiplications en colonne », « Pose les divisions en
+   colonne (quotient à deux décimales au minimum) ») et l'atelier demandait
+   laquelle sacrifier. Or il en existe une qui les couvre toutes : celle de
+   l'exercice à quatre opérations. `consigneFusion(subId, introA, introB, questions)`
+   la choisit d'office quand les DEUX consignes sont de la famille
+   « Pose les … en colonne », avec la remarque sur le quotient dès qu'un « ÷ »
+   figure dans le lot — sinon « Pose les opérations en colonne » tout court.
+   L'avertissement ne s'affiche plus dans ce cas ; il reste pour les autres
+   sous-domaines et pour toute consigne hors de cette famille.
+ · TABLEAU DE PYTHAGORE : cases-réponses sans fond (#F9FAFB retiré du CSS
+   `.pdf-mode .pyth-table .prop-cell-input`) et SANS trait pointillé. Attention,
+   le pointillé ne venait pas de `replaceInputBlank` mais de la passe
+   `.prop-table` (partagée avec le tableau de proportionnalité), qui remplace
+   chaque input par un span pointillé : la coupure se fait là, sur
+   `tbl.classList.contains('pyth-table')`. Les deux blocs
+   `if (state.activeSubId === 'pythagore')` qui retirent les inputs plus bas
+   sont DÉJÀ trop tard — ne pas s'y fier.
+   À NE PAS CROIRE en lisant cette passe : le tableau de PROPORTIONNALITÉ
+   n'affiche AUCUN pointillé au PDF. Le span y est bien créé, mais une passe
+   suivante propre au sous-domaine (`.prop-table span[style*="dotted"]` →
+   borderBottom none) l'efface, ne laissant que celui du coefficient. Le span
+   survit, invisible, pour réserver la largeur de la case.
+
+v431 — FIGURES ROGNÉES : la vraie cause, enfin. Trois versions à côté, donc à
+lire avant de toucher aux figures.
+ Le coupable est la MARGE HORIZONTALE du <svg>. Les figures sont centrées par
+ `.perim-figure svg { margin: 0 auto }` ; html2canvas applique cette marge DEUX
+ FOIS — une fois pour placer la boîte, une fois pour dessiner à l'intérieur. Le
+ tracé part vers la droite et se fait rogner contre le bord droit de sa PROPRE
+ boîte (`overflow:hidden`, valeur par défaut d'un svg). D'où des figures coupées
+ à ~70 % de leur largeur, toujours à droite, et seulement celles qui étaient
+ centrées dans une boîte plus large qu'elles.
+ `figerTailleSvg` remet donc la marge du svg à zéro et reporte le décalage sur
+ le PARENT, en padding (box-sizing: border-box partout, sa largeur ne bouge pas).
+ Le rendu est identique à l'écran, et le dessin est entier au PDF.
+ Ce que j'avais cru avant, et qui était FAUX : ni le viewBox (le dessin y tient),
+ ni les attributs width/height manquants (les figer ne changeait rien), ni le
+ conteneur `.pdf-mode`, ni la position à top:-100000px. Les figer reste utile
+ par ailleurs, mais ce n'était pas la cause.
+ MÉTHODE qui a fini par trancher : rasteriser le MÊME nœud à trois niveaux
+ (.perim-figure, son parent, la question) et comparer, puis rejouer la structure
+ seule dans un conteneur neuf. C'est l'écart entre les deux qui a désigné la
+ marge.
+
+v430 — Trois retours d'Aurelio, dont DEUX régressions que j'avais introduites
+en v429. À lire avant de toucher à quoi que ce soit dans ces zones.
+ · VOLUMES ex 3 étalé sur deux pages : mon « espace sous la dernière question »
+   (v429) ajoutait l'intervalle inter-questions à TOUS les blocs, y compris à
+   ceux qui laissaient DÉJÀ de la place (volumes ex 3 : rowGap de 230 px sur une
+   grille alignée en haut, réglage validé de longue date). La règle mesure
+   maintenant le blanc DÉJÀ présent sous la dernière question et ne comble que
+   ce qui manque, avec un plafond de 150 px. Leçon : une règle générale posée
+   sur une mise en page réglée cas par cas défait les réglages — vérifier le
+   blanc existant avant d'en ajouter.
+ · CORRIGÉ DE PERIM-AIRE N1 sans réponses : la grille figure + réponse verte de
+   `espaceCorrigeInner` lisait `q.answer`, or ces questions attendent DEUX
+   valeurs (`answerP` / `answerA`, drapeau `dualPA`) et n'ont pas de `answer` du
+   tout. La case verte était vide depuis longtemps, silencieusement. Elle rend
+   désormais « P = … ; A = … ». Piège général : une réponse peut vivre ailleurs
+   que dans `q.answer`.
+ · TABLEAU DE PROPORTIONNALITÉ (proportion N1) : les quatre cases à trouver
+   tiraient leur ligne à pile ou face, donc un tirage sur seize les mettait
+   TOUTES sur x (ou toutes sur y) — l'élève refaisait quatre fois la même
+   opération dans le même sens. Au moins une case est maintenant imposée sur
+   chaque ligne. Vérifié sur 500 tirages : 500 mélangés, 0 uniforme.
+
+v429 — Relecture d'Aurelio sur quatre séries. Dix corrections ; celles marquées
+[3 chaînes] valent aussi pour le PDF de sous-domaine et le PDF de domaine.
+ · [3 chaînes] La SUITE d'un exercice coupé ne reprend plus sa consigne (ni son
+   titre) : classe `.exo-consigne` posée sur la consigne des exercices `multi`,
+   retirée sur la moitié basse d'une coupure en flux et sur les tranches
+   `_suitePdf` (décimaux « (suite) »).
+ · [3 chaînes] UNITÉ D'AIDE À LA SAISIE (`.answer-unite`, « CHF », « g », « m² »
+   à droite du champ) retirée de tous les PDF : elle guide la frappe à l'écran,
+   sur papier elle souffle la réponse.
+ · [3 chaînes] FIGURES ROGNÉES — la trouvaille de la session. html2canvas
+   rasterise un <svg> SANS attributs width/height à la taille de son VIEWBOX,
+   puis le pose dans la boîte CSS : le débordement est coupé net, sans erreur.
+   Une figure de viewBox 292 dans une boîte de 200 px perdait 32 % de sa
+   largeur — le côté droit du dessin. `figerTailleSvg(root)` fige la taille
+   rendue en attributs juste avant la photo ; le CSS l'emporte sur les
+   attributs, donc l'écran ne bouge pas. À APPLIQUER à toute figure ajoutée
+   plus tard qui n'aurait pas ses attributs.
+ · [3 chaînes] CHAPEAU D'ANGLE raboté : il était posé en absolu au-dessus de sa
+   boîte (top négatif), donc hors du cadre photographié. Il est passé DANS le
+   flux, pointe franchement à l'intérieur du viewBox (0 0 100 30, apex y=7).
+ · ESPACE SOUS LA DERNIÈRE QUESTION en flux : les grilles qui répartissent leurs
+   questions sur une hauteur imposée (perim-aire 780 px, volumes 900 px,
+   `space-between`) collent la dernière au bas du bloc. Le PDF de sous-domaine
+   laissait le bas de page ; en flux, l'exercice suivant venait s'y coller. On
+   rend à la dernière question le MÊME intervalle qu'entre deux questions,
+   mesuré sur la mise en page réelle.
+ · `_realNiveau` est désormais posé par atelierComposerSousDomaine : dans une
+   série, un exercice est SEUL de son groupe, donc sa POSITION ne dit plus rien
+   de son niveau. Le corrigé de perim-aire N3 (liste, sans grille de figures)
+   retombait ainsi sur le niveau 1. Toute mise en page qui dépend du niveau doit
+   lire `_realNiveau`, jamais l'index.
+ · [3 chaînes] Corrigé des UNITÉS : gras sur la seule VALEUR, pas sur l'unité
+   qui était donnée dans l'énoncé.
+ · [3 chaînes] Corrigé de PYTHAGORE : réponses en vert (#059669), cellules
+   blanches — plus de fond #D1FAE5.
+ · [3 chaînes] Corrigé des PUISSANCES : `q.attenduExport` (les deux écritures,
+   « 1/10'000 ou 0,0001 ») est repris quand il existe, au lieu de la seule
+   décimale.
+ · `.transform-split` (« Trouve l'unité demandée ») : police des consignes,
+   plus de gras.
+
+v428 — SÉRIE À LA CARTE : passe de vérification sur les CINQ domaines (version
+« exercices complets » de l'atelier), PDF produits et regardés au navigateur.
+ · EN-TÊTE DE RUBRIQUE : le nom du domaine n'est plus répété quand deux
+   rubriques voisines viennent du MÊME domaine — l'en-tête passe de 16 à 9,6 mm.
+   C'est la hauteur qui décide si l'exercice suivant peut commencer en bas de
+   page ; sur le domaine 1, elle fait tenir trois rubriques sur la page 3.
+ · Le blanc de fin ignoré par le test de tenue est PLAFONNÉ À LA MARGE BASSE
+   (MB − 2). Sans plafond, une rangée de décimaux se posait en bas de page et
+   ses 69 mm d'espace de calcul tombaient hors feuille : l'élève n'avait plus
+   où poser l'opération. Mesuré : un bloc finissait 41 mm après le bord.
+ · AMORCE mesurée sur la RANGÉE telle qu'elle est mise en page, pas sur le
+   texte de la question. Une rangée de décimaux tient 283 px pour qu'on puisse
+   poser l'opération dessous : le bas du texte donnait 20 mm là où il en faut
+   78, et l'en-tête acceptait une fin de page où la rangée ne tenait pas — il y
+   restait seul. L'amorce retranche le seul blanc d'écriture de cette rangée,
+   qui peut déborder dans la marge.
+ · CORRIGÉ : le titre d'une rubrique y est désormais solidaire de son premier
+   bloc, comme à l'énoncé (vu sur le domaine 5, « Repérer un point… » isolé en
+   bas de page).
+ Résultat mesuré sur les cinq séries (7, 4, 6, 5 et 7 pages) : aucun en-tête
+ orphelin, aucun bloc hors feuille, aucune page vide, et les seules pages peu
+ remplies sont les dernières d'une section.
+
+v427 — SÉRIE À LA CARTE : mesures réelles, prises dans un vrai navigateur
+(§3 ter). Deux notions remplacent les constantes devinées :
+ · HAUTEUR UTILE (`m.hUtile = m.hMm − m.blanc`) : le blanc laissé SOUS la
+   dernière question d'un bloc est de l'espace d'écriture ; il peut déborder
+   sous la marge basse sans que rien ne se voie. Le compter dans le test de
+   tenue en page coûtait, à UN millimètre près, la place de l'exercice suivant
+   — c'est ce qui renvoyait « Calculer avec des relatifs » à la page suivante
+   après le passage du blanc de fin en padding (v426). `blancDeFin` le mesure
+   par getBoundingClientRect (bas du bloc − bas de la dernière question), donc
+   quelle qu'en soit la cause : padding, reste de rangée, gap.
+ · AMORCE (`m.amorce`) : titre + consigne + PREMIÈRE RANGÉE, mesurée elle
+   aussi, plancher à MIN_AMORCE = 40 mm. C'est le plus petit morceau qui ait un
+   sens en bas de page. Elle remplace l'ancien seuil fixe de 55 mm et sert aux
+   DEUX décisions, qui doivent s'accorder : ce que l'en-tête de groupe exige
+   pour rester, et ce que la coupure exige pour couper. Avec un seuil fixe,
+   l'en-tête pouvait accepter une fin de page que la coupure refusait ensuite —
+   en-tête orphelin.
+ · Respiration entre deux groupes ramenée de 6 à 4 mm.
+ Mesuré sur le vrai PDF : plus aucune page ne s'arrête au tiers, les fractions
+ KaTeX de fin d'exercice ne sont plus rognées, corrigé et numérotation justes.
+ Un exercice ne descend plus que lorsque la place manque VRAIMENT (en-tête
+ 16 mm + amorce ≈ 38 mm : sous ~55 mm de libre, il passe à la page suivante).
+
+v426 — SÉRIE À LA CARTE, suite. L'exercice suivant refusait toujours de
+commencer sous le précédent : ce n'était pas la coupure (v425) mais la
+SOLIDARITÉ de l'en-tête de groupe, qui réservait la hauteur de l'exercice
+ENTIER — l'en-tête et l'exercice partaient donc ensemble à la page suivante
+avant même que la coupure ait son mot à dire. Quand l'exercice est SÉCABLE,
+l'en-tête n'exige plus qu'une amorce (`MIN_COUPURE`).
+ · `secable(el)` : au moins deux `.multi-item` ET pas de figure commune. Une
+   figure posée dans l'énoncé (droite graduée, repère) sert à TOUTES les
+   questions — la couper la dupliquerait et séparerait les questions de leur
+   dessin. Un exercice plus haut qu'une page entière reste coupé quand même :
+   le seul autre choix serait le rognage.
+ · La coupure se fait sur des RANGÉES entières (`colonnes`, `rangees`) : la
+   version précédente arrondissait le nombre de questions puis le bornait, ce
+   qui pouvait couper une rangée en deux. Un exercice d'une seule rangée n'est
+   plus coupé du tout.
+ · Le blanc de fin d'exercice est posé en PADDING et non en marge : le padding
+   agrandit la boîte, donc la photographie du bloc englobe ce qui déborde de la
+   dernière ligne. Une fraction KaTeX (« √90 / 3 ») dépassait son interligne et
+   se retrouvait rognée par le bas du bloc. Les sous-domaines hors
+   STACK_ROWGAP reçoivent 10 px, juste de quoi ne rien perdre.
+ Banc d'essai (hauteurs ×1 à ×2,8) : 45 questions posées dans tous les cas.
+
+v425 — SÉRIE À LA CARTE, suite. Trois défauts vus sur un export d'Aurelio :
+ · RACINES VIDES : `renderKatex()` n'était appelé que dans l'assemblage du PDF,
+   donc APRÈS le retour `rendreBlocs`. Les blocs d'une série partaient avec des
+   <span data-tex> vides — l'exercice « Calculer des racines » perdait tous ses
+   radicandes, à l'énoncé comme au corrigé, sans erreur. KaTeX est désormais
+   rendu avant ce retour.
+ · BLANC SOUS LA DERNIÈRE RANGÉE : il vient du `rowGap` du conteneur, qui ne
+   s'applique qu'ENTRE deux enfants ; en flux le dernier exercice n'en recevait
+   aucun et le suivant se collait à ses réponses. `STACK_ROWGAP[subId]` est
+   reposé en `margin-bottom` sur chaque bloc. Les décimaux, qui ne sont pas
+   dans cette table, reçoivent leurs rangées de hauteur égale dès qu'on est en
+   flux (`opts.rendreBlocs`), pas seulement quand l'exercice est découpé.
+ · COUPURE DE FIN DE PAGE : `placerEnFlux` ne coupait un exercice que s'il
+   dépassait une page ENTIÈRE. Un exercice trop haut pour la place restante
+   partait donc entier à la page suivante, laissant un grand blanc derrière lui.
+   Il se coupe maintenant aussi pour remplir la fin de page, à une frontière de
+   question et sur une RANGÉE complète (`MIN_COUPURE = 55 mm` : en deçà, la fin
+   de page ne vaut pas d'être remplie). `ajusterHauteurs` met à l'échelle les
+   `min-height` et les `repeat(n, Xpx)` des deux moitiés, sinon chacune gardait
+   la hauteur forcée du tout. Banc d'essai (hauteurs gonflées ×1 à ×2,5 pour
+   forcer les coupures) : aucune question perdue (45 posées dans tous les cas),
+   aucun bloc plus haut qu'une page. Au-delà de ×3 la coupure sature (4 niveaux
+   au plus) — une seule question plus haute qu'une page ne peut pas être coupée.
+
+v424 — SÉRIE À LA CARTE (downloadCartePdf) et ATELIER :
+ · NUMÉROTATION CONTINUE : chaque groupe est bâti par downloadPdf, qui numérote
+   à partir de 1 — toute la série portait donc le numéro 1. `renumeroter`
+   décale les énoncés ET le corrigé d'un même groupe, puis cumule.
+ · PAGE QUASI BLANCHE : un exercice dont la mise en page force une page entière
+   (volumes, `min-height: 900px`) ne peut pas partager sa page avec l'en-tête du
+   groupe ; la solidarité en-tête/premier exercice envoyait l'en-tête seul sur
+   une page neuve et l'exercice sur la suivante. On mesure désormais l'en-tête
+   AVANT de placer, et si l'ensemble dépasse la page on retire à l'exercice
+   exactement la hauteur que l'en-tête lui prend (aucun effet quand ça tient).
+ · « ✅ Corrigé » n'apparaît plus qu'UNE fois : les groupes suivants ne gardent
+   que le nom de leur sous-domaine, qui sert de séparation.
+ · DÉCIMAUX : `Q_PAR_PAGE.decimaux` passe de 4 à 6, et une tranche (`_trancheDe`)
+   reçoit `gridTemplateRows: repeat(n, 283px)` + alignContent start au lieu d'un
+   gap de 400px : les trois rangées d'une page ont le même blanc dessous, et la
+   rangée restée seule sur la page suivante le garde aussi. Un exercice NON
+   découpé (4 questions, PDF de sous-domaine) conserve son gap de 400px.
+ · CORRIGÉ DES DÉVELOPPEMENTS sur UNE LIGNE partout : la présentation
+   « solide à gauche + développements en ligne » était réservée au PDF de
+   domaine (`sideBySide`) ; elle vaut maintenant dès que l'exercice n'a pas de
+   `rows`. Seul écart mesuré au harnais sur les 31 documents.
+ · Pythagore « Tableau » porte `_sansOutilsQuestion` : ses cases vivent dans
+   `intro`, les commandes par question n'y avaient pas de sens (même cas que
+   proportion N1). Seul le bouton « Toutes les questions » reste.
+ · `atelierVariants(niveau)` (nouveau) : variante affichée par l'atelier SEULEMENT,
+   sans toucher l'écran. Premier usage : developpements N2, dont l'écran montre
+   les trois solides à la suite alors que l'atelier ne retient qu'un exercice et
+   prenait toujours le pavé. `rang` désigne la place dans la composition PDF.
+
+v423 — PDF DE SOUS-DOMAINE : en-tête allégé (voir §4) ; corrigé de perim-aire
+sans les étiquettes « – Niveau N » ; corrigé du niveau 3 (« Problèmes ») rendu
+en LISTE de réponses et non plus en grille de figures. Cause : la branche
+générique de fin d'espaceCorrigeInner capte tout exercice `multi` dont une
+question porte `figureSvg` — or seuls 2 énoncés sur 5 sont illustrés au N3, d'où
+une grille à cases vides qui débordait du conteneur à hauteur fixe et faisait
+disparaître la fin du corrigé sans erreur (PIÈGE N°2). Le garde-fou est posé au
+POINT D'APPEL dans downloadPdf (`_sansGrilleFigures`), pas dans
+espaceCorrigeInner, pour ne rien changer au PDF de domaine ni aux autres
+sous-domaines. Vérifié au harnais : 34 documents comparés, les 5 PDF de domaine
+strictement identiques, les 26 PDF de sous-domaine différant du seul en-tête.
+
+CE QUI A ÉTÉ FAIT DANS LA SESSION DU 22.08 (v398 → v421), dans l'ordre :
+ · Atelier : ▲▼ pour déplacer une question ; fusion/défusion de deux exercices
+   d'un même sous-domaine ; menus niveau+variante par exercice ; un seul
+   exercice par sous-domaine coché ; bandeau de mode ; séparation des deux
+   gestes de sélection ; anti-répétition des modèles de problèmes.
+ · Contenu : perim-aire niveau 3 « Problèmes » (13 modèles) ; decimaux gagne
+   4 variantes et le 2e facteur des multiplications N2 passe à 2 décimales ;
+   diviseurs 0,11 / 0,12 / 0,15 au N2 ; domaine 4 accueille un exercice
+   « Problèmes » en 2e position.
+ · PDF : découpe d'un exercice trop long ; PDF de sous-domaine des décimaux ;
+   REFONTE du PDF des séries à la carte (§8.2) ; harnais de non-régression.
+ · Divers : icône du fichier (coche blanche sur carré bleu), libellé
+   « Enregistrer », correction d'un dernier recours de division qui rendait de
+   fausses réponses.
+
+ATTENTION, DEUX ERREURS COMMISES CETTE SESSION, à ne pas refaire :
+ · v419 : huit PDF au lieu d'un, parce qu'un chemin d'enregistrement avait été
+   oublié — et parce que le harnais ne comptait pas les enregistrements.
+ · v419 : une page par notion, parce que réutiliser la chaîne du sous-domaine
+   telle quelle produit des pages à hauteur fixe. Aurelio n'avait pas été
+   prévenu de cette conséquence avant la livraison ; il fallait la lui dire.
 
 8.1 CHANTIERS TERMINÉS
 ─────────────────────
@@ -322,7 +871,7 @@ e) ESPACE ENSEIGNANT — bouton clé de la barre de titre, accueil à trois entr
    l'ouvre (`selectSubdomain` remet `state.espaceEnseignant` à false). La
    composition en cours survit à l'aller-retour, elle vit dans `state.atelier`.
 
-f) PRÉNOMS — PRENOMS_M (6) / PRENOMS_F (8), liste de la classe d'Aurelio, ne
+f) PRÉNOMS — PRENOMS_M (7) / PRENOMS_F (6), liste de la classe d'Aurelio, ne
    figurent NULLE PART ailleurs ; les 20 générateurs qui nomment quelqu'un
    passent par pickPrenom / `pickPrenomsDistincts(n, genre)`.
    `appliquerPrenoms` remplace EN PLACE (const, mais le contenu est relu à
@@ -373,6 +922,104 @@ enregistrées · Enregistrer · ✕ · Exporter · Importer.
 sous… » a été retiré en v398, il laissait croire à un dossier. C'est « Exporter »
 qui écrit un vrai fichier.
 
+PDF D'UNE SÉRIE À LA CARTE MULTI-SOUS-DOMAINES (v419, `downloadCartePdf`) :
+elle empruntait la chaîne du DOMAINE avec le numéro du PREMIER domaine
+rencontré — mesuré sur un export d'Aurelio, 6 exercices sur 7 venaient d'un
+autre domaine et recevaient donc la mise en page du domaine 1 : titre et
+« sans calculatrice » erronés, espacements et tableaux d'un autre exercice,
+page blanche née d'un saut de page forcé, corrigé au mauvais format. UNE cause
+pour huit symptômes.
+Désormais : les exercices CONSÉCUTIFS d'un même sous-domaine forment un groupe.
+downloadPdf construit les blocs du groupe avec TOUTE la mise en page de son
+sous-domaine, puis s'arrête et les rend (option `rendreBlocs` → `opts.blocs` =
+{ entete, exercices, corrige }, retour AVANT toute pagination : sans l'option,
+rien ne change). downloadCartePdf enchaîne ensuite ces blocs EN FLUX, avec son
+propre curseur : en-tête de groupe (nom du domaine + titre du sous-domaine,
+solidaire du premier exercice pour ne pas rester en pied de page), exercices,
+puis tous les corrigés à la fin.
+DEUX PIÈGES, tous deux rencontrés en vrai :
+ · v419 : un chemin de downloadPdf enregistrait encore son propre fichier en
+   mode partagé → HUIT PDF au lieu d'un. Le harnais ne comptait pas les
+   enregistrements ; il les compte maintenant.
+ · v419 : chaque groupe occupait une page entière (conteneurs à hauteur fixe),
+   soit une page par notion. D'où le passage au FLUX en v420.
+Un exercice plus haut qu'une page est COUPÉ à une frontière de question
+(`placerEnFlux`, 4 niveaux au plus, la moitié basse perd son titre) : sans cela
+il serait rogné en silence, le défaut le plus coûteux de cette chaîne.
+NON-RÉGRESSION : `harnais.js` + `comparer.js` comparent 31 PDF (5 domaines,
+26 sous-domaines) page par page, hasard neutralisé par un générateur à graine
+fixe. Le harnais capture le document d'impression AVANT pagination (celle-ci
+efface les attributs) et l'élément lui-même, pas seulement ses descendants —
+deux angles morts découverts en le sabotant volontairement. Il détecte 1 px de
+padding, une hauteur de grille, un exercice en moins, une pagination retirée.
+À relancer après toute retouche des chaînes PDF.
+
+BANDEAU DE MODE (v414, `.atelier-mode` en tête de renderAtelier) : « Épreuve du
+domaine – <titre> » ou « Exercices choisis », avec une ligne d'explication. Rien
+à l'écran ne distinguait les deux modes, et la bascule se joue sur un effet de
+bord invisible — cocher TOUS les sous-domaines d'un domaine équivaut à cocher le
+domaine (`sel.size === subs.length`) et donne l'épreuve synthétique, pas les
+exercices complets. Le bandeau du mode domaine le dit explicitement.
+DEUX GESTES SÉPARÉS (v415) : un bouton « Épreuve du domaine » sur la ligne de
+chaque domaine (`atelierEpreuveDomaine`, qui REMPLACE la composition en cours
+après confirmation et reconstruit compo/idxConstruction pour le PDF de domaine),
+et des cases qui ne donnent PLUS QUE des exercices complets, quel qu'en soit le
+nombre — le raccourci `sel.size === subs.length` a disparu d'
+atelierExercicesSelectionnes et d'atelierComposer. La case du domaine ne fait
+plus que cocher toutes ses notions. Le menu porte une explication en deux lignes
+et le résumé ne dit plus « domaine entier ». Écart réel entre les deux modes,
+mesuré : d1 41 vs 45 questions, d2 25/25 mais 6 vs 4 exercices, d3 35 vs 40,
+d4 30 vs 38, d5 21 vs 16.
+
+ÉVITER LES MÊMES MODÈLES DE PROBLÈMES (v413) : les générateurs de problèmes
+étiquettent chaque question (`_modele`) — probleme, pb-equation, perim-aire N2
+et N3, volumes N2. Le ＋ tire alors jusqu'à 25 compositions et garde celle qui
+recoupe le moins les modèles déjà présents (atelierModelesUtilises /
+atelierChevauchementModeles) ; sans étiquette, la boucle ne tourne pas. Le ＋
+hérite aussi des réglages (niveau, variante) de l'exercice d'où il part.
+Les générateurs ne savent PAS exclure un modèle : d'où le tirage répété plutôt
+qu'un paramètre. Mesuré (modèles répétés dans le 2e exercice, avant → après) :
+probleme 41 → 8 %, perim-aire N3 42 → 8 %, pb-equation 70 → 50 %, perim-aire N2
+75 → 66 %, volumes N2 100 → 100 %. Les trois derniers sont AU PLANCHER
+ARITHMÉTIQUE : leur catalogue est trop petit (11 modèles pour 6 questions dont 3
+à position fixe ; 8 pour 6 ; 6 pour 6 — volumes N2 les emploie tous à chaque
+tirage). Seul l'ajout de modèles les améliorerait ; ne pas chercher à régler ça
+côté atelier. Les questions en double, elles, étaient DÉJÀ évitées
+(atelierDedoublonner) : 0 sur 168 paires vérifiées.
+
+UN SEUL EXERCICE PAR SOUS-DOMAINE SÉLECTIONNÉ (v412) : atelierComposerSousDomaine
+rend UN item, celui qui s'ouvre par défaut à l'écran pour le réglage demandé.
+La composition PDF en produit souvent plusieurs (un par niveau, ou un doublon) :
+on retient celui dont `_realNiveau` vaut le niveau voulu, sinon celui de rang
+niveau−1, la composition rangeant les exercices dans l'ordre des niveaux. Cela
+supprime aussi la logique de `rang` du ↻ et du menu déroulant, qui pouvait
+rendre un exercice d'un AUTRE niveau que celui affiché par le menu. Un second
+exercice du même sous-domaine s'obtient par le bouton ＋, avec ses propres
+réglages. Cocher un DOMAINE entier passe toujours par composerItemsDomaine :
+sa structure imposée est inchangée.
+
+RÉGLAGE PAR EXERCICE (v410) : en mode « à la carte », chaque exercice porte ses
+propres menus NIVEAU et VARIANTE (`atelierReglerExercice`, réglage gardé dans
+`it._reglages`, champ d'ITEM donc absent des fichiers enregistrés ; le ↻ le
+respecte). Ils ne sont PAS affichés en mode domaine, dont la structure est
+imposée. Surtout : l'atelier ne lit PLUS `state.niveauxParSubId` ni la variante
+laissée à l'écran — il compose ce qu'on verrait en ouvrant le sous-domaine à
+neuf (niveau 1, première variante). L'ancienne logique dépendait d'un état
+invisible depuis l'atelier ; Aurelio l'a rejetée. atelierComposerSousDomaine
+restaure la variante de l'écran en sortant, pour ne rien changer à ce que
+l'utilisateur retrouvera.
+
+EXERCICES SANS COMMANDES PAR QUESTION (v416, `ex._sansOutilsQuestion`) : quand
+les « questions » ne sont que les cases d'UN MÊME tableau posé dans `intro`, les
+commandes par question n'ont pas de sens et font du dégât. Mesuré sur
+« Poser une proportion et la résoudre » (proportion N1) : le ↻ restait sans
+effet (le tableau ne vit pas dans la question), et décocher une case retirait la
+question du corrigé en laissant le champ dans le tableau — 4 questions pour 5
+champs. poserBoutonsQuestion sort donc immédiatement sur ce drapeau ; seul le
+bouton de l'exercice s'y applique. Vérifié qu'aucun autre exercice ne perd ses
+commandes. Effet de bord : le garde-fou « ordre à l'écran ≠ ordre des
+questions » (v399) ne concerne plus personne, proportion N1 étant le seul cas.
+
 Sur chaque exercice : ↻ toutes les questions · ＋ (un autre du même
 sous-domaine, inséré juste après) · ✕ · ▲▼ et une poignée à glisser (l'ordre est
 celui du PDF). Sur chaque question ou énoncé : une CASE (la garder au PDF), un
@@ -398,6 +1045,29 @@ pour un nombre de questions FIXE : mesuré au banc d'essai, la fusion y perdait
 la moitié des champs (5/10 et 8/16) SANS erreur. Marche pour 41 combinaisons
 sous-domaine/niveau, dont deux familles à énoncés (symétries, vocab N3).
 Niveaux différents → niveau 'mixed' (la rubrique disparaît, comme pour N1+N2).
+COMMANDES D'ENSEMBLE RETIRÉES SUR UN EXERCICE FUSIONNÉ (v418, `ex._fusionne`,
+champ d'EXERCICE donc conservé à l'enregistrement) : les deux menus (niveau,
+variante) et le bouton « Toutes les questions » disparaissent. Un exercice
+fusionné n'a plus de niveau ni de variante uniques ; ces trois commandes le
+régénéraient d'un bloc et DÉTRUISAIENT la fusion en silence. Seul le ↻ de chaque
+question reste, qui sait d'où elle vient (v417). Les fonctions
+atelierRefaireExercice et atelierReglerExercice refusent aussi d'agir sur un
+exercice fusionné, au cas où elles seraient appelées autrement. Le ⊖, le ＋, le
+✕, les ▲▼ et la poignée restent. Après défusion, tout revient.
+
+RENOUVELER UNE QUESTION D'UN EXERCICE FUSIONNÉ (v417) : atelierRemplacerQuestion
+prenait `neuf.questions[j]` — or un exercice fusionné a 8 questions et une
+génération n'en rend que 4 : pour e) à h), la place était introuvable et le ↻
+échouait TOUJOURS (« Aucune AUTRE question n'a été trouvée »). Et pour a) à d),
+il tirait du générateur PAR DÉFAUT (mélange, niveau 1), remplaçant une
+multiplication par une addition. Mesuré sur une fusion multiplications+divisions
+en v416 : 4 renouvellements impossibles sur 8, et 3 opérations changées à tort ;
+0 et 0 après correction. Chaque question fusionnée porte donc `_rangSource` (son
+rang dans l'exercice d'origine) et `_reglagesSource` (niveau + variante de cet
+exercice), et atelierNouvelExercice accepte des réglages forcés. Ces deux champs
+vivent sur la QUESTION, donc ils survivent à l'enregistrement — une fusion relue
+depuis un fichier se renouvelle encore correctement (vérifié).
+
 Les deux exercices d'origine sont gardés dans `it._avantFusion`, champ d'ITEM :
 compositionSerialiser ne garde que { subId, niveau, ex }, une fusion relue
 depuis un fichier ne se défusionne donc plus.
@@ -491,8 +1161,21 @@ vers Exporter / Importer (.json), qui marche partout.
   Safari sur un fichier local.
 · L'anti-orphelin n'existe que pour prop-concret (PDF sous-domaine) ; il n'a pas
   été porté au PDF de domaine.
-· Index des sections en tête de fichier (§7) : proposé, non réalisé, ne pas
-  lancer sans l'accord d'Aurelio.
+· Index des sections en tête de fichier (§7) : ABANDONNÉ définitivement
+  (Aurelio n'ouvre pas le fichier lui-même). Ne plus le proposer.
+· PDF des séries à la carte : le RENDU AU PIXEL n'a jamais pu être vérifié
+  (jsdom ne met rien en page). Ce qui est prouvé : un seul fichier, aucun
+  corrigé mêlé aux énoncés, aucun énoncé perdu, PDF de domaine et de
+  sous-domaine inchangés. Ce qui ne l'est pas : où tombent exactement les
+  coupures, si les espacements entre groupes sont justes, si un titre de groupe
+  reste isolé. À demander à Aurelio au prochain passage.
+· Catalogues de modèles trop petits pour éviter les répétitions entre deux
+  exercices d'un même sous-domaine : pb-equation (11 modèles pour 6 questions
+  dont 3 à position fixe), perim-aire N2 (8 pour 6), volumes N2 (6 pour 6, tous
+  employés à chaque tirage). Aurelio a dit « laissons tel quel » ; seul l'ajout
+  de modèles y changerait quelque chose.
+· Code mort repéré, non nettoyé : dans la mise en page du domaine 4,
+  `data-paginate-items` est posé deux fois pour le même exercice.
 · Corrigé du PDF de domaine 4 : Aurelio a demandé sa forme d'origine (listes de
   réponses ex. 1–3, conversions complètes ex. 4, tableau rempli ex. 5). Rien à
   faire, sauf s'il demande un jour les figures des solides, déjà écrites pour
@@ -636,6 +1319,16 @@ ainsi (une remarque prise pour une consigne, une sélection ambiguë).
   .eval-dom-head:hover { background: var(--surface-2, #F7F7F5); }
   .eval-dom-head input { width: 17px; height: 17px; cursor: pointer; }
   .eval-dom-titre { flex: 1; font-weight: 800; font-size: 14px; }
+  /* Bouton « Épreuve du domaine » : le geste synthétique, distinct des cases. */
+  .eval-dom-epreuve {
+    flex: 0 0 auto; padding: 5px 10px; font-size: 12px; font-weight: 700;
+    white-space: nowrap;
+  }
+  .atelier-menu-aide {
+    margin: 0 0 10px; padding: 10px 12px; font-size: 12.5px; line-height: 1.5;
+    color: #4B5563; background: var(--surface-2, #F7F7F5);
+    border-radius: var(--radius-sm);
+  }
   .eval-dom-fleche { color: #6B7280; font-size: 13px; transition: transform 0.15s; }
   .eval-dom.ouvert .eval-dom-fleche { transform: rotate(90deg); }
   .eval-subs {
@@ -666,11 +1359,38 @@ ainsi (une remarque prise pour une consigne, une sélection ambiguë).
   }
   .eval-tout-case input { width: 16px; height: 16px; cursor: pointer; }
   /* ====== Atelier enseignant ====== */
+  /* Une SEULE ligne : les boutons ne se replient plus. Le menu des notions
+     absorbe la place disponible, la liste des compositions cède la sienne. */
   .atelier-barre {
-    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    display: flex; align-items: center; gap: 8px; flex-wrap: nowrap;
     margin: 0 0 8px;
   }
-  .atelier-barre .variant-select { max-width: 320px; }
+  .atelier-barre > * { flex: 0 0 auto; }
+  /* Largeur d'origine (300 px), qui peut se resserrer si la ligne manque de
+     place mais ne s'étire plus pour occuper tout le vide. */
+  .atelier-barre .atelier-menu { flex: 0 1 300px; width: 300px; min-width: 160px; }
+  /* `min-width: 300px` l'emportait sur `width: 100%` : le bouton débordait de
+     sa case et passait SOUS « Composer / Ajouter ». Il tient maintenant dans la
+     place qu'on lui donne, son libellé se coupant proprement. */
+  .atelier-barre .atelier-menu-btn { width: 100%; min-width: 0; }
+  .atelier-barre #atelier-menu-resume {
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0;
+  }
+  .atelier-barre .variant-select { flex: 0 1 200px; min-width: 80px; max-width: 200px; }
+  .atelier-barre .btn-action { white-space: nowrap; }
+  /* Enregistrer / Exporter / Importer (et la liste des compositions) forment un
+     groupe poussé À DROITE, séparé des gestes de composition. */
+  .atelier-barre-droite {
+    display: flex; align-items: center; gap: 8px;
+    margin-left: auto; flex: 0 0 auto;
+  }
+  /* Sous ~1000 px de large, la ligne déborderait : on resserre le pas plutôt
+     que de la laisser se replier. */
+  @media (max-width: 1080px) {
+    .atelier-barre { gap: 6px; }
+    .atelier-barre .btn-action { padding-left: 9px; padding-right: 9px; }
+    .atelier-barre .atelier-menu { flex: 0 1 260px; width: 260px; min-width: 130px; }
+  }
   .atelier-aide { font-size: 13px; color: var(--muted); margin: 0 0 18px; }
   .atelier-item { margin-bottom: 10px; }
   .atelier-entete {
@@ -682,6 +1402,24 @@ ainsi (une remarque prise pour une consigne, une sélection ambiguë).
     text-transform: uppercase; letter-spacing: 0.05em;
   }
   .atelier-entete .btn-action { display: inline-flex; align-items: center; gap: 7px; }
+  /* Bandeau de mode, en tête de la composition : dit lequel des deux modes a
+     été retenu, l'écran ne le montrait nulle part. */
+  .atelier-mode {
+    display: flex; align-items: center; gap: 8px;
+    padding: 5px 12px; margin: 0 0 12px;
+    border-radius: var(--radius-sm); border-left: 4px solid var(--accent);
+    background: var(--surface2, #F3F4F6);
+  }
+  .atelier-mode-domaine { border-left-color: #16A34A; }
+  .atelier-mode-titre { font-size: 13px; font-weight: 800; color: var(--text); }
+  .atelier-mode-note { font-size: 12.5px; color: #6B7280; line-height: 1.45; }
+  /* Menus « niveau » et « variante » posés sur chaque exercice de l'atelier :
+     même apparence que ceux du sous-domaine, en plus compact — l'en-tête porte
+     déjà le titre, les flèches et cinq boutons. */
+  .atelier-reglage {
+    padding: 4px 24px 4px 9px; font-size: 12px; font-weight: 700;
+    background-position: right 8px center; flex: 0 0 auto; max-width: 160px;
+  }
   .atelier-entete .btn-action svg { width: 16px; height: 16px; }
   /* Bouton « une autre question » : discret, à gauche de la question. */
   .atelier-refaire {
@@ -1037,6 +1775,35 @@ ainsi (une remarque prise pour une consigne, une sélection ambiguë).
   .pdf-check:hover { border-color: var(--border2, #CBD5E1); }
   .pdf-check input { width: 18px; height: 18px; cursor: pointer; accent-color: #2563EB; }
   .modal-foot { display: flex; justify-content: flex-end; }
+  /* Série ouverte : rien d'autre ne doit répondre. Le menu des domaines et les
+     trois boutons de la barre de titre sont éteints ; la seule sortie est le
+     bouton de l'en-tête de la série. */
+  body.mode-serie .sidebar,
+  body.mode-serie .topbar-actions {
+    opacity: 0.4;
+    pointer-events: none;
+    user-select: none;
+  }
+  body.mode-serie .topbar-title-clickable { pointer-events: none; cursor: default; }
+  /* Mode d'emploi de l'atelier : plus large que les modales de réglage, il se
+     lit comme une page. */
+  .modal.aide-atelier { max-width: 680px; }
+  .aide-titre {
+    margin: 18px 0 6px 0;
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--text);
+  }
+  .aide-titre:first-of-type { margin-top: 6px; }
+  .aide-liste {
+    margin: 0;
+    padding-left: 20px;
+    color: var(--muted);
+    font-size: 13.5px;
+    line-height: 1.55;
+  }
+  .aide-liste li { margin: 4px 0; }
+  .aide-liste strong { color: var(--text); }
   .modal-domain-btn {
     display: flex;
     align-items: center;
@@ -1660,7 +2427,10 @@ ainsi (une remarque prise pour une consigne, une sélection ambiguë).
   }
   .home-refresh-wrap {
     margin-top: 22px;
-    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
   }
   .home-refresh-btn {
     appearance: none;
@@ -2452,10 +3222,9 @@ ainsi (une remarque prise pour une consigne, une sélection ambiguë).
   .pdf-mode .pyth-table .pyth-sol-cell {
     display: none;
   }
-  /* PDF : les cases vides (inputs) ont une hauteur fixe et un fond clair
-     pour signaler la zone à compléter. */
+  /* PDF : les cases vides gardent une hauteur fixe pour qu'on puisse y écrire,
+     mais ni fond ni trait — la case vide se voit assez d'elle-même. */
   .pdf-mode .pyth-table .prop-cell-input {
-    background: #F9FAFB;
     min-width: 78px;
     min-height: 32px;
   }
@@ -2820,13 +3589,15 @@ ainsi (une remarque prise pour une consigne, une sélection ambiguë).
   }
   /* Séparateur entre le bloc 'value' (a-h) et le bloc 'unit' (i-p).
      grid-column: 1 / -1 le fait s'étendre sur les 2 colonnes de la grille. */
+  /* Deuxième consigne d'un exercice en deux parties (« Trouve l'unité
+     demandée ») : c'est une consigne, elle en prend la police — pas le gras. */
   .transform-split {
     grid-column: 1 / -1;
     margin: 14px 0 4px 0;
     padding: 6px 0 4px 0;
-    font-weight: 600;
+    font-weight: 400;
     color: #1F2937;
-    font-size: 14px;
+    font-size: 15px;
     border-top: 1px solid #E5E7EB;
   }
   .transform-fb {
@@ -3156,6 +3927,84 @@ ainsi (une remarque prise pour une consigne, une sélection ambiguë).
   </div>
 </div>
 
+<!-- Mode d'emploi de l'atelier : tout ce que la page permet, en surimpression.
+     Il remplace les deux paragraphes d'aide qui vivaient sous la barre d'outils
+     et qu'on finissait par ne plus lire. -->
+<div class="modal-overlay" id="aide-atelier-modal" style="display:none;" onclick="fermerAideAtelier(event)">
+  <div class="modal aide-atelier" onclick="event.stopPropagation()">
+    <div class="modal-head">
+      <h3>Mode d'emploi de l'atelier</h3>
+      <button class="modal-close" onclick="fermerAideAtelier()" title="Fermer">×</button>
+    </div>
+
+    <h4 class="aide-titre">Choisir les notions</h4>
+    <ul class="aide-liste">
+      <li><strong>Cases à cocher</strong> — l'exercice complet de chaque notion cochée, mis bout à
+        bout. On peut piocher dans plusieurs domaines à la fois.</li>
+      <li><strong>Série du domaine</strong> — une sélection resserrée qui couvre toutes les
+        notions du domaine. Ce n'est pas la même chose que cocher toutes ses cases.</li>
+      <li>Une fois la composition faite, le bouton <strong>Composer</strong> devient
+        <strong>Ajouter</strong> : les notions nouvellement cochées s'insèrent à leur place, sans
+        rien changer au reste.</li>
+    </ul>
+
+    <h4 class="aide-titre">Régler un exercice</h4>
+    <ul class="aide-liste">
+      <li>Les menus déroulants de l'en-tête changent le <strong>niveau</strong> et la
+        <strong>variante</strong> quand la notion en propose — « Déduction d'angle » ou
+        « Arc - secteur », « Multiplications » ou « Divisions », le solide des développements…</li>
+      <li><strong>Toutes les questions</strong> renouvelle l'exercice entier, avec ses réglages.
+        Un exercice fusionné n'a plus ce bouton : ses questions viennent de plusieurs sources.</li>
+      <li><strong>＋</strong> ajoute un second exercice de la même notion, juste en dessous.</li>
+      <li><strong>▲ ▼</strong> déplacent l'exercice dans la série ; on peut aussi le prendre par
+        sa poignée <strong>⠿</strong> et le glisser. <strong>✕</strong> le retire.</li>
+    </ul>
+
+    <h4 class="aide-titre">Régler une question</h4>
+    <ul class="aide-liste">
+      <li>La <strong>case</strong> devant chaque question décide si elle part au PDF.</li>
+      <li><strong>↻</strong> en tire une autre à la même place, du même générateur.</li>
+      <li>Quelques exercices n'ont pas de commandes par question — un tableau se tient d'un
+        seul tenant, on le renouvelle en entier.</li>
+    </ul>
+
+    <h4 class="aide-titre">Fusionner deux exercices</h4>
+    <ul class="aide-liste">
+      <li><strong>⊕</strong> réunit un exercice et son voisin du dessous, quand tous deux
+        viennent de la même notion : questions à la suite et libellés renumérotés. Pour les
+        développements, chaque solide prend une ligne.</li>
+      <li>Le bouton n'apparaît que si la fusion a un sens. Les tableaux de proportionnalité et
+        de Pythagore, bâtis d'un seul tenant, ne se fusionnent pas.</li>
+      <li>Si les deux consignes diffèrent, l'atelier le signale avant de fusionner — sauf quand
+        il en existe une qui les couvre toutes, qu'il prend alors d'office.</li>
+      <li><strong>⊖</strong> défait la fusion, tant qu'on n'a pas rouvert la composition depuis
+        un fichier ou depuis les compositions enregistrées.</li>
+    </ul>
+
+    <h4 class="aide-titre">Sur papier ou à l'écran</h4>
+    <ul class="aide-liste">
+      <li>Le bouton <strong>PDF</strong> produit la série et son corrigé, à imprimer.</li>
+      <li><strong>Aperçu écran</strong> ouvre la même série dans l'application : chaque exercice
+        garde son bouton <strong>Valider</strong> et l'œil affiche les solutions, comme dans le
+        menu principal. Les questions décochées en sont retirées, comme au PDF.</li>
+      <li>Pour faire travailler sur un AUTRE poste : <strong>Exporter</strong> la série, puis
+        sur l'autre ordinateur, depuis la page d'accueil, <strong>Ouvrir une série…</strong> et
+        choisir le fichier. Aucun passage par l'espace enseignant.</li>
+      <li>Les constructions à la règle et au compas sont écartées du travail à l'écran : rien n'y
+        est corrigeable. Elles restent dans le PDF.</li>
+      <li>« Quitter » ramène à l'atelier, la composition intacte.</li>
+    </ul>
+
+    <h4 class="aide-titre">Garder et sortir</h4>
+    <ul class="aide-liste">
+      <li><strong>Enregistrer</strong> garde la composition dans ce navigateur, sous un nom ;
+        le menu voisin la rouvre, la croix la supprime.</li>
+      <li><strong>Exporter</strong> et <strong>Importer</strong> passent par un fichier, pour
+        transporter une série d'un poste à l'autre.</li>
+    </ul>
+  </div>
+</div>
+
 <!-- Modale de sortie de test : les résultats ne sont pas conservés -->
 <div class="modal-overlay" id="quit-modal" style="display:none;" onclick="annulerQuitter(event)">
   <div class="modal" onclick="event.stopPropagation()">
@@ -3341,8 +4190,8 @@ const fmtSigned = (n) => n >= 0 ? `(+${n})` : `(${n})`;
 // Liste de la classe d'Aurelio, devenue la liste D'ORIGINE (v393) : le bouton
 // « Rétablir » y revient. Les prénoms précédents (Amir, Yusuf, Samir, Omar,
 // Mehdi / Laetitia, Fatima, Leïla, Aïcha, Nadia, Sofia) ne servent plus.
-const PRENOMS_M = ['Ayman', 'Ismael', 'Kefayat', 'Mouhamed', 'Mustafa', 'Qadir'];
-const PRENOMS_F = ['Sherin', 'Natalia', 'Esther', 'Jennedly', 'Luwam', 'Mariama', 'Rosalia', 'Nelly'];
+const PRENOMS_M = ['Daniel', 'Hussein', 'Medhanie', 'Ahmed', 'Belal', 'Maksymilian', 'Amanuel'];
+const PRENOMS_F = ['Soraya', 'Mafatoumata', 'Nicky', 'Natalia', 'Maria', 'Ayse'];
 const PRENOMS_M_ORIGINE = PRENOMS_M.slice();
 const PRENOMS_F_ORIGINE = PRENOMS_F.slice();
 const CLE_PRENOMS = 'eva-maths-prenoms';
@@ -3715,7 +4564,8 @@ function genProbleme() {
     do { q = PROBLEME_PATRONS[idx](); } while (isTrivial(q) && --safety > 0);
     // `answer` = solution rédigée (validation : on en extrait le résultat final) ;
     // `solutionDetail` affiche les étapes au corrigé.
-    const item = { label: labels[i], text: q.text, answer: q.answer, solutionDetail: q.answer };
+    const item = { label: labels[i], text: q.text, answer: q.answer, solutionDetail: q.answer,
+      _modele: `probleme-${idx}` };
     // Unité à droite du champ, comme pour les problèmes de proportionnalité :
     // l'élève n'écrit que la valeur et sait dans quoi elle s'exprime.
     const u = uniteDeLaReponse(q.answer);
@@ -3734,7 +4584,11 @@ function genProblemeSingle() {
 
 // 1.2 Décimaux – 2 niveaux. Un appel = 1 exercice de 4 questions (+, −, ×, ÷).
 // Le sous-domaine est configuré pour générer 2 exercices via le mécanisme `patrons`.
-function genDecimal() {
+// `operation` : null → l'exercice mêlé a) + b) − c) × d) ÷ (comportement
+// d'origine) ; 'soustraction' / 'multiplication' / 'division' → quatre calculs
+// de la MÊME opération. Les règles de chaque niveau sont identiques dans les
+// deux cas : c'est le même tirage, répété.
+function genDecimal(operation) {
   const niveau = state.niveau || 1;
   const toFr = (n) => {
     // Formate un nombre en notation française avec virgule, sans trailing zeros excessifs.
@@ -3853,10 +4707,13 @@ function genDecimal() {
       return { text: `${toFr(a)} × ${toFr(b)} = `, answer: toFr(r) };
     } else {
       // N2 : premier facteur à 4 chiffres (entier + décimales = 4 chiffres totaux)
-      // Par exemple : 3 chiffres entiers + 1 décimale, ou 2 chiffres entiers + 2 décimales
+      // Par exemple : 3 chiffres entiers + 1 décimale, ou 2 chiffres entiers + 2 décimales.
+      // Le SECOND facteur porte deux décimales (le N1 n'en a jamais qu'une) :
+      // c'est là que se joue la différence entre les deux niveaux, plutôt que
+      // dans la longueur du premier facteur, où les deux niveaux se recouvraient.
       const config = choice([[3, 1], [2, 2]]);
       const a = randDecimal(config[0], config[1]);
-      const b = randDecimal(1, 1);
+      const b = randDecimal(1, 2);
       const r = +(a * b).toFixed(6);
       return { text: `${toFr(a)} × ${toFr(b)} = `, answer: toFr(r) };
     }
@@ -3866,12 +4723,21 @@ function genDecimal() {
   // DIVISION
   // ===========================================================
   const opDiv = () => {
+    // Diviseurs à UNE décimale aux deux niveaux ; le niveau 2 y ajoute trois
+    // diviseurs à DEUX décimales. Le dividende gagne alors un chiffre, sinon
+    // le quotient n'atteindrait plus les deux décimales exigées (il perd une
+    // décimale chaque fois que le diviseur en gagne une).
+    const DIVISEURS_N1 = ['0,6', '0,7', '0,8', '0,9', '1,1', '1,2'];
+    const DIVISEURS_N2 = DIVISEURS_N1.concat(['0,11', '0,12', '0,15']);
     if (niveau === 1) {
-      // N1 : dividende avec un chiffre supplémentaire (4-5 chiffres au lieu de 3-4)
-      return generateDivision({ nbChiffresDividende: choice([4, 5]), quotientZero: false });
+      return generateDivision({
+        nbChiffresDividende: choice([4, 5]), quotientZero: false, diviseurs: DIVISEURS_N1
+      });
     } else {
       // N2 : quotient contient au moins un 0 (sauf le dernier chiffre)
-      return generateDivision({ nbChiffresDividende: choice([4, 5]), quotientZero: true });
+      return generateDivision({
+        nbChiffresDividende: choice([4, 5]), quotientZero: true, diviseurs: DIVISEURS_N2
+      });
     }
   };
 
@@ -3879,16 +4745,18 @@ function genDecimal() {
   // de sorte que le quotient ait AU MOINS 2 décimales (pas de quotient entier).
   // Si `quotientZero` est vrai, le quotient doit aussi contenir un 0 dans ses
   // chiffres significatifs (sauf le dernier).
-  function generateDivision({ nbChiffresDividende, quotientZero }) {
-    const divisorInt = choice([6, 7, 8, 9, 11, 12]);
-    let divisor;
-    if (divisorInt < 10) {
-      divisor = `0,${divisorInt}`;
-    } else {
-      divisor = `${String(divisorInt)[0]},${String(divisorInt)[1]}`;
-    }
-    const minDiv = Math.pow(10, nbChiffresDividende - 1);
-    const maxDiv = Math.pow(10, nbChiffresDividende) - 1;
+  function generateDivision({ nbChiffresDividende, quotientZero, diviseurs }) {
+    const divisor = choice(diviseurs || ['0,6', '0,7', '0,8', '0,9', '1,1', '1,2']);
+    // Le diviseur est décrit par ses chiffres et son nombre de décimales :
+    // « 0,6 » → 6 et 1 décimale, « 0,11 » → 11 et 2 décimales, « 1,1 » → 11 et
+    // 1 décimale. Deux diviseurs peuvent donc partager les mêmes chiffres.
+    const decDiviseur = divisor.length - divisor.indexOf(',') - 1;
+    const divisorInt = parseInt(divisor.replace(',', ''), 10);
+    // Un diviseur à deux décimales mange une décimale du quotient : on allonge
+    // le dividende d'autant pour garder des quotients de même calibre.
+    const nbChiffres = nbChiffresDividende + decDiviseur - 1;
+    const minDiv = Math.pow(10, nbChiffres - 1);
+    const maxDiv = Math.pow(10, nbChiffres) - 1;
     const aZero = (n) => String(n).includes('0');
 
     // Convertit (k, nbDecimales) en chaîne décimale française exacte sans flottant.
@@ -3924,11 +4792,15 @@ function genDecimal() {
       if (aZero(candidat)) continue; // dividende lisible
 
       const sDiv = String(candidat);
-      const maxPos = sDiv.length - 3; // garantit decimalesQuotient ≥ 2
+      // decimalesQuotient = décimales du dividende − décimales du diviseur
+      const maxPos = sDiv.length - 2 - decDiviseur; // garantit decimalesQuotient ≥ 2
       if (maxPos < 1) continue;
       const posVirgule = rand(1, maxPos);
       const dividend = sDiv.slice(0, posVirgule) + ',' + sDiv.slice(posVirgule);
-      const decimalesQuotient = sDiv.length - posVirgule - 1;
+      // Lisibilité : jamais plus de 4 décimales au dividende (les diviseurs à
+      // deux décimales en produiraient 5).
+      if (sDiv.length - posVirgule > 4) continue;
+      const decimalesQuotient = sDiv.length - posVirgule - decDiviseur;
 
       const quotientExactStr = formatExact(k, decimalesQuotient);
       const quotientStr = formatTronc2(k, decimalesQuotient);
@@ -3952,11 +4824,14 @@ function genDecimal() {
         if (candidat < minDiv || candidat > maxDiv) continue;
         if (aZero(candidat)) continue;
         const sDiv = String(candidat);
-        const maxPos = sDiv.length - 3;
+        const maxPos = sDiv.length - 2 - decDiviseur;
         if (maxPos < 1) continue;
         const posVirgule = rand(1, maxPos);
         const dividend = sDiv.slice(0, posVirgule) + ',' + sDiv.slice(posVirgule);
-        const decimalesQuotient = sDiv.length - posVirgule - 1;
+        // Lisibilité : jamais plus de 4 décimales au dividende (les diviseurs à
+        // deux décimales en produiraient 5).
+        if (sDiv.length - posVirgule > 4) continue;
+        const decimalesQuotient = sDiv.length - posVirgule - decDiviseur;
         const quotientStr = formatTronc2(k, decimalesQuotient);
         const quotientExactStr = formatExact(k, decimalesQuotient);
         if (quotientStr.replace(',', '').endsWith('0')) continue;
@@ -3965,7 +4840,18 @@ function genDecimal() {
       }
     }
     if (tirage === null) {
-      tirage = { dividend: '14,56', quotient: '20,80', quotientExact: '20,8' };
+      // Dernier recours : on CONSTRUIT une division juste pour le diviseur tiré.
+      // L'ancienne valeur en dur (14,56 ÷ 0,7) donnait une réponse fausse dès
+      // que le diviseur n'était pas 0,7.
+      const k = Math.max(11, rand(101, 989));
+      const candidat = k * divisorInt;
+      const sDiv = String(candidat);
+      const posVirgule = Math.max(1, sDiv.length - 2 - decDiviseur);
+      tirage = {
+        dividend: sDiv.slice(0, posVirgule) + ',' + sDiv.slice(posVirgule),
+        quotient: formatTronc2(k, sDiv.length - posVirgule - decDiviseur),
+        quotientExact: formatExact(k, sDiv.length - posVirgule - decDiviseur)
+      };
     }
     return {
       text: `${tirage.dividend} ÷ ${divisor} = `,
@@ -3977,6 +4863,40 @@ function genDecimal() {
   // Composition de l'exercice : 4 questions a/b/c/d
   const questions = [];
   const labels = ['a)', 'b)', 'c)', 'd)'];
+  const OP_SEULE = { soustraction: opSub, multiplication: opMul, division: opDiv };
+  const CONSIGNE = {
+    soustraction: "Pose les soustractions en colonne",
+    multiplication: "Pose les multiplications en colonne",
+    division: "Pose les divisions en colonne (quotient à deux décimales au minimum)"
+  };
+  const opSeule = OP_SEULE[operation];
+  if (opSeule) {
+    // Quatre fois la même opération : on refuse deux calculs identiques, et
+    // pour les divisions on impose quatre diviseurs différents (le niveau 1 en
+    // propose 6, le niveau 2 en propose 9 : il y en a toujours assez).
+    const dejaVus = new Set(), diviseursVus = new Set();
+    const diviseurDe = (t) => {
+      const parts = String(t).split('÷');
+      return parts.length > 1 ? parts[1].replace('=', '').trim() : '';
+    };
+    for (let i = 0; i < 4; i++) {
+      let q = null;
+      for (let essai = 0; essai < 80; essai++) {
+        const cand = opSeule();
+        if (dejaVus.has(cand.text)) continue;
+        if (operation === 'division' && diviseursVus.has(diviseurDe(cand.text))) continue;
+        q = cand;
+        break;
+      }
+      if (!q) q = opSeule();          // filet : plutôt un doublon qu'un trou
+      dejaVus.add(q.text);
+      if (operation === 'division') diviseursVus.add(diviseurDe(q.text));
+      const qObj = { label: labels[i], text: q.text, answer: q.answer };
+      if (q.acceptAlt) qObj.acceptAlt = q.acceptAlt;
+      questions.push(qObj);
+    }
+    return { multi: true, intro: CONSIGNE[operation], questions };
+  }
   const ops = [opAdd, opSub, opMul, opDiv];
   for (let i = 0; i < 4; i++) {
     const q = ops[i]();
@@ -3986,6 +4906,12 @@ function genDecimal() {
   }
   return { multi: true, intro: "Pose les opérations en colonne (pour les divisions, quotient à deux décimales au minimum)", questions };
 }
+
+// Les quatre variantes proposées dans le second menu déroulant du sous-domaine.
+function genDecimalMelange() { return genDecimal(null); }
+function genDecimalSoustractions() { return genDecimal('soustraction'); }
+function genDecimalMultiplications() { return genDecimal('multiplication'); }
+function genDecimalDivisions() { return genDecimal('division'); }
 
 // 1.3 Relatifs – 2 niveaux. Un appel = 1 exercice de 4 questions (a/b/c/d).
 // Le sous-domaine est configuré pour 2 exercices via le mécanisme `patrons`.
@@ -5028,7 +5954,7 @@ function genEstimer() {
       answer: formatProposition(tagged[correctIdx].v)
     };
   });
-  return { multi: true, intro: "Estime (sans calculer précisément) le résultat de chaque opération et sélectionne la réponse la plus proche :", questions };
+  return { multi: true, intro: "Estime le résultat (sans calculer précisément) et sélectionne la réponse la plus proche :", questions };
 }
 
 // Formatte une proposition pour l'affichage : entiers avec séparateur de milliers,
@@ -6421,6 +7347,13 @@ function genProportionN1() {
     row: Math.random() < 0.5 ? 'x' : 'y',
     col
   }));
+  // Un tirage sur seize cachait QUATRE x (ou quatre y) : l'élève n'avait alors
+  // plus qu'une seule opération à refaire quatre fois, toujours dans le même
+  // sens. On impose au moins une case à trouver sur chaque ligne.
+  if (hidden.every(h => h.row === 'x') || hidden.every(h => h.row === 'y')) {
+    const i = Math.floor(Math.random() * hidden.length);
+    hidden[i].row = (hidden[i].row === 'x') ? 'y' : 'x';
+  }
 
   // Construit le tableau HTML avec des inputs aux cases vides.
   // Format: tableau avec en-tête à gauche (x/y) et 5 colonnes.
@@ -6485,6 +7418,10 @@ function genProportionN1() {
     // On retourne `tableMode: true` pour signaler à renderExercise que la
     // structure est spéciale : pas de grid de questions, juste le tableau.
     tableMode: true,
+    // Le tableau est UN TOUT : ses cases ne se renouvellent ni ne se retirent
+    // une à une (elles sont posées dans `intro`, pas dans les questions).
+    // L'atelier n'y pose donc aucune commande par question.
+    _sansOutilsQuestion: true,
     questions
   };
 }
@@ -10417,6 +11354,7 @@ function genPbEquation() {
       // Patron concret à 3 inconnues : champs nommés (chevaux/vaches/...).
       questions.push({
         label: labels[i],
+        _modele: `pbeq-${orderUsed[i]}`,
         text: q.text,
         answerType: 'multi-named',
         equation: q.equation,
@@ -10427,6 +11365,7 @@ function genPbEquation() {
     } else {
       questions.push({
         label: labels[i],
+        _modele: `pbeq-${orderUsed[i]}`,
         text: q.text,
         // Champs de réponse spéciaux : on stocke équation et valeur séparément
         answerType: 'eq+val',
@@ -12012,7 +12951,8 @@ function genVolumesN2() {
   const labels = ['a)', 'b)', 'c)', 'd)', 'e)', 'f)', 'g)'];
   const questions = order.slice(0, 6).map((idx, i) => {
     const q = patrons[idx]();
-    return { label: labels[i], text: q.text, answer: q.answer, kind: kindByIdx[idx] };
+    return { label: labels[i], text: q.text, answer: q.answer, kind: kindByIdx[idx],
+      _modele: `volumes-${idx}` };
   });
   return {
     multi: true,
@@ -12905,6 +13845,7 @@ function genPerimAireN2() {
   let idx = 0;
   let safety = 200;
   while (questions.length < NB && idx < order.length && safety-- > 0) {
+    const modele = `perim-${order[idx]}`;
     const q = patrons[order[idx]]();
     idx++;
     if (seenTexts.has(q.text)) continue;
@@ -12914,6 +13855,7 @@ function genPerimAireN2() {
     seenFigures.add(fig);
     questions.push({
       label: labels[questions.length],
+      _modele: modele,
       text: q.text,
       answer: q.answer,
       acceptAlt: q.acceptAlt || [],
@@ -12928,11 +13870,13 @@ function genPerimAireN2() {
   // les répétitions de figure mais pas de texte exact.
   safety = 100;
   while (questions.length < NB && safety-- > 0) {
-    const q = patrons[choice(baseOrder)]();
+    const kFilet = choice(baseOrder);
+    const q = patrons[kFilet]();
     if (seenTexts.has(q.text)) continue;
     seenTexts.add(q.text);
     questions.push({
       label: labels[questions.length],
+      _modele: `perim-${kFilet}`,
       text: q.text,
       answer: q.answer,
       acceptAlt: q.acceptAlt || [],
@@ -13264,6 +14208,10 @@ function genPerimAireN3() {
   const pousser = (q) => {
     questions.push({
       label: labels[questions.length],
+      // Étiquette de MODÈLE : elle permet à l'atelier de proposer, dans un
+      // second exercice du même sous-domaine, des problèmes bâtis sur d'autres
+      // modèles que le premier.
+      _modele: q.modele || q.famille,
       text: q.text,
       answer: q.answer,
       acceptAlt: q.acceptAlt || [],
@@ -13275,6 +14223,7 @@ function genPerimAireN3() {
   for (const idx of ordre) {
     if (questions.length >= NB) break;
     const q = patrons[idx]();
+    q.modele = patrons[idx].name;
     if (familles.has(q.famille)) continue;
     if (q.figure && nbFigures >= MAX_FIGURES) continue;
     familles.add(q.famille);
@@ -13286,7 +14235,9 @@ function genPerimAireN3() {
   let garde = 60;
   const vus = new Set(questions.map(q => q.text));
   while (questions.length < NB && garde-- > 0) {
-    const q = patrons[choice(ordre)]();
+    const k = choice(ordre);
+    const q = patrons[k]();
+    q.modele = patrons[k].name;
     if (vus.has(q.text)) continue;
     if (q.figure && nbFigures >= MAX_FIGURES) continue;
     if (q.figure) nbFigures++;
@@ -13441,6 +14392,11 @@ function genPythagore(nbLines) {
   return {
     tableMode: true,
     pythagoreCorrige: true,   // flag pour le PDF corrigé
+    // Le tableau est UN TOUT : ses cases vivent dans `intro`, pas dans les
+    // questions. Déplacer ou décocher une case n'a donc pas de sens (même
+    // situation que « Poser une proportion et la résoudre »). L'atelier n'y
+    // pose que le bouton d'exercice, qui renouvelle toutes les questions.
+    _sansOutilsQuestion: true,
     intro,
     questions
   };
@@ -15126,7 +16082,7 @@ const ICONE_ENSEIGNANT = '<svg viewBox="0 0 24 24" width="21" height="21" fill="
 const ICONE_PDF = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJkAAACUCAMAAAC3HHtWAAAAk1BMVEXi5ef////xVkKwt73K0dji6OrxW0jyUDnG2eHlzczmgnrV2t/x8/T19vbxUTzwTDX4u7Xnvr28wsf+8/L84N3yYlD1jID1hXf1kYb4q6L4t7D96ujwQib1mY7++Pf70c3zcWHxSC/zeGn3pJv6ysX72dXy2Nbj1dXtgnfyaFf3sKj6w73UubvV4ebco6HkioPitLFLhhsqAAAElUlEQVR4nO3ca5eaOhQG4ICOtHUa7AAqIgiIbdVezv//dUcS7tlAXIYkq4v308xCzeNOCAEVZAzmKxKWj8Xi4324tVbQyGahsqdow7J3wbLFgp82LHsTLuOv2rBMIKyQ8dMGZQLHfyXjpsmX8dIUyDhpKmR8NCUyLpoa2eLjq64yjqqpko1XTZlstGrqZGM0hbIRmkrZME2pbJCmVjZEUywboKmW9dOUy3qnXPWyvqppIOupmg4yuGpayMCq6SGDqiZPthySAVWTJ1sPytiqyZMNdydbNYmykaJ1aRJlY0Xr0GTKnqNJlY3sn22aXBlaL4fr1qBJlpEsB/KmVDZEUywboKmW9dOUy3pp6mV9NA1kPTQdZDBNCxlI00MG0TSRATRdZCxNGxlD00fWpWkkQ/rKkL4ypK8M6StD+sqQvjKkrwzpK0P6ypC+MqSvDOkrQ/rKkL6ytbYyVF+tnWWiZW8T5jlZ4Lby/fN0+YFAGyxzw9hbyUoc/oBooOxi2tiUFmybEA2SRaklz5XH/slZs5PEgtGsPrNFg2R3W7YMf+OTbWbZLJtls2yWzbJWrORYJklaaxFs2WUsiznm1htpoIPySzK8PQVl3Oyc1gQrDX3/nMc/h/t0lbTb3vqthDGwkHlFhneO0YyTXYtHWdvWFsc9xA3b6m504nhs1V6R2QemhT192OrS3WJs4rLx7hvKcz8KlVkbpoWI9ovnMlsMN4ULSnJIJpA5gUNStL+qZRFN+RLBDvfJgpXY3qSy2zXOs/MpIbRLWeT/3OYJb0UFL7R9KnMOdXzRewCV+TYmsa8BKdqxku3oFsvGu4C+SFLL3MakwU4rgmTlv/u8ak5emEJWVcKOadmuuJYBmKlkmHpiQGZaMenrg61EZppknso9jMw8khnG9fSTWWletCjF9TizHnmMwsdInFqG6S4A9mY5keR7LpUFYRX4JFugLPHzf6OK0ZatTuWDmfnM2UO012XnI931zTMZ5KfGrNFsEGdkF0igmdaJgQ59XZaFZE1xO9GZlrx/QGYS2Q2UGdtJZO3c6+NmZ5yRg/wZ6k3j4rEvLlrm0h2NlRW7R17R4uh0qnIA1kCCZVF2pW2wMjvMH+BcG7MGmTbywBfmBMqcU2gWbQDzGSnZhfwpa6Y9nWn2qVm9d0ZGZxQyzOTJzkfaJc0+6cjwMSQ7bmRLrZkPbClkCSZoHG+iumQayIzs9lgV3g73YqYzsuJp6mWdXK7N1baMccYpy7xi2EmQ2ed8C3Q4Zs/qorA6CcFpLhu9WP7a1YNNFB3AdULqRjXKcU/bY+P5OHQiN51UhnG6gz/AsLxdndSz2s+249119IOPF68F9axHyZY6TzxNmGzCzLJZNstm2TSyTPpnwh7nZ8KBbBiOGVfPdw9u7DXeSWHHX785ZVGYJNV52ORJ8J/lmlP2WOv54b6VL5Pl73/LT0/Iunn/NF3yLzXyjjNAxvzkQWy0lQEwPWTAKOOXrScM5PoXvrM3y2bZLJtls+zfk3He90Do3TnFykTe0ZQr9Q8XRmTSi9a4zcyITOQNap+Djckk92fzbin/A8PQxx30Ei25AAAAAElFTkSuQmCC';
 
 // Numéro de version, affiché en pied de menu.
-const APP_VERSION = '397';
+const APP_VERSION = '445';
 
 const DOMAINS = [
   {
@@ -15136,7 +16092,17 @@ const DOMAINS = [
     color: "c1",
     subdomains: [
       { id: 'probleme',   title: "Résoudre un problème « concret » avec 4 opérations", gen: genProbleme, patrons: () => [genProbleme] },
-      { id: 'decimaux',   title: "Calculer avec des décimaux (4 opérations)",          gen: genDecimal, hasNiveau2: true, patrons: () => [genDecimal, genDecimal] },
+      { id: 'decimaux',   title: "Calculer avec des décimaux (4 opérations)",          gen: genDecimal, hasNiveau2: true, patrons: () => [genDecimal, genDecimal],
+        // Premier sous-domaine à porter DEUX menus déroulants : niveau et
+        // variante. Les deux se combinent (4 variantes × 2 niveaux) et le cache
+        // les distingue déjà (clé subId|variante|niveau).
+        variants: [
+          { key: 'melange',         label: '4 opérations',    gen: genDecimalMelange },
+          { key: 'soustractions',   label: 'Soustractions',   gen: genDecimalSoustractions },
+          { key: 'multiplications', label: 'Multiplications', gen: genDecimalMultiplications },
+          { key: 'divisions',       label: 'Divisions',       gen: genDecimalDivisions }
+        ]
+      },
       { id: 'relatifs',   title: "Calculer avec des relatifs (4 opérations)",          gen: genRelatif, hasNiveau2: true, patrons: () => [genRelatif, genRelatif] },
       { id: 'rationnels', title: "Calculer avec des rationnels (4 opérations)",        gen: genRationnel, hasNiveau2: true, patrons: () => [genRationnel, genRationnel] },
       { id: 'puissances', title: "Calculer des puissances",                            gen: genPuissance, patrons: () => [genPuissance] },
@@ -15216,7 +16182,17 @@ const DOMAINS = [
       { id: 'vocab',            title: "Connaître le vocabulaire relatif aux figures planes et aux solides", gen: genVocab, hasNiveau2: true, niveauLabels: ['Figures planes', 'Solides', 'Compléter', 'Cercle', 'Droites du triangle'], patrons: () => (typeof state !== 'undefined' && state.niveau === 5) ? [genTriangleAssoc, genTriangleAssoc2] : [genVocab] },
       { id: 'prop-figures',     title: "Appliquer les propriétés des figures planes (triangles, cercles)",   gen: genPropFigures, hasNiveau2: true, niveauLabels: ["Déduction d'angle", 'Arc - secteur'], patrons: () => [genPropFigures] },
       { id: 'instruments',      title: "Connaître l'utilisation des instruments de géométrie",               gen: null, embed: true },
-      { id: 'developpements',   title: "Associer les solides à leurs développements",                            gen: genDeveloppements, hasNiveau2: true, niveauLabels: ['Associer', 'Sélectionner'], patrons: () => state.niveau === 2 ? [genDevSelectPave, genDevSelectCube, genDevSelectPrismeTri] : [genDeveloppements] },
+      { id: 'developpements',   title: "Associer les solides à leurs développements",                            gen: genDeveloppements, hasNiveau2: true, niveauLabels: ['Associer', 'Sélectionner'], patrons: () => state.niveau === 2 ? [genDevSelectPave, genDevSelectCube, genDevSelectPrismeTri] : [genDeveloppements],
+        // L'écran du niveau 2 montre les TROIS solides à la suite ; l'atelier,
+        // lui, ne retient qu'un exercice par sous-domaine et prenait toujours
+        // le premier (le pavé). `atelierVariants` lui donne le choix, sans
+        // ajouter de menu à l'écran : `rang` désigne la place du solide dans la
+        // composition du PDF (0 = « Associer », puis pavé, cube, prisme).
+        atelierVariants: (niveau) => niveau === 2 ? [
+          { key: 'pave',   label: 'Pavé droit',            rang: 1 },
+          { key: 'cube',   label: 'Cube',                  rang: 2 },
+          { key: 'prisme', label: 'Prisme triangulaire',   rang: 3 }
+        ] : null },
       { id: 'reperage',         title: "Repérer un point dans un système d'axes orthonormés",                 gen: genReperage, patrons: () => [genReperage] },
       { id: 'symetries',        title: "Identifier les axes et le centre de symétrie d'une figure plane",     gen: genSymetries, patrons: () => [genSymetries] }
     ]
@@ -15283,6 +16259,49 @@ function reduireFiguresArcSecteur(root) {
 // composées surtout), d'où un grand blanc entre la lettre de la question et le
 // sommet de l'illustration. getBBox() donne les bornes réelles du contenu ;
 // on ne rogne que si le blanc dépasse 12 unités, et on laisse le bas intact.
+// html2canvas rasterise un <svg> SANS attributs width/height à la taille de son
+// viewBox, puis le pose dans la boîte CSS : tout ce qui dépasse est ROGNÉ. Une
+// figure de viewBox 292 posée dans 200 px perdait 32 % de sa largeur — le côté
+// droit du dessin, sans erreur ni trace. On fige donc la taille rendue en
+// attributs juste avant de photographier. Le CSS l'emporte sur les attributs :
+// la mise en page à l'écran n'en est pas changée.
+function figerTailleSvg(root) {
+  if (!root || !root.querySelectorAll) return;
+  root.querySelectorAll('svg[viewBox]').forEach(svg => {
+    if (svg.getAttribute('width') && svg.getAttribute('height')) return;
+    const r = svg.getBoundingClientRect();
+    if (!(r.width > 0) || !(r.height > 0)) return;
+    svg.setAttribute('width', Math.round(r.width));
+    svg.setAttribute('height', Math.round(r.height));
+    // …et la taille CSS avec. Tant que le style dit « width:100%; height:auto »,
+    // html2canvas sérialise le SVG dans un document isolé où ce pourcentage ne
+    // se résout plus contre rien : il le dessine plus petit que sa boîte et
+    // rogne ce qui dépasse. Une taille en pixels ne laisse aucune ambiguïté.
+    svg.style.width = Math.round(r.width) + 'px';
+    svg.style.height = Math.round(r.height) + 'px';
+    svg.style.maxWidth = 'none';
+    svg.style.maxHeight = 'none';
+    // …et neutraliser sa MARGE HORIZONTALE. Les figures sont centrées par
+    // `margin: 0 auto` ; html2canvas applique cette marge DEUX FOIS — une fois
+    // pour placer la boîte, une fois pour dessiner dedans. Le tracé partait
+    // vers la droite et se faisait rogner contre le bord droit de sa propre
+    // boîte : c'est l'origine des figures « coupées à 70 % ». On reporte le
+    // décalage sur le parent, en padding (box-sizing: border-box partout, donc
+    // sa largeur ne bouge pas), et la marge du SVG tombe à zéro.
+    const par = svg.parentElement;
+    if (par) {
+      const cs = window.getComputedStyle(svg);
+      const decalage = Math.round(parseFloat(cs.marginLeft) || 0);
+      svg.style.marginLeft = '0';
+      svg.style.marginRight = '0';
+      if (decalage > 0) {
+        const padPar = Math.round(parseFloat(window.getComputedStyle(par).paddingLeft) || 0);
+        par.style.paddingLeft = (padPar + decalage) + 'px';
+      }
+    }
+  });
+}
+
 function recadrerFiguresHaut(root) {
   const cible = root || document;
   if (!cible || typeof cible.querySelectorAll !== 'function') return;
@@ -15408,7 +16427,15 @@ function renderSidebar() {
 }
 
 // Ouvre/ferme la card d'un domaine. Plusieurs peuvent être ouvertes simultanément.
+// Une série ouverte occupe l'écran seul : le menu des domaines et les boutons de
+// la barre de titre sont éteints en CSS (`body.mode-serie`), mais on ferme aussi
+// la porte côté code — le CSS n'arrête ni le clavier ni un appel direct.
+function serieVerrouille() {
+  return !!(state.serie && Array.isArray(state.serie.items) && state.serie.items.length);
+}
+
 function toggleDomain(num) {
+  if (serieVerrouille()) return;
   if (state.openDomains.has(num)) {
     state.openDomains.delete(num);
   } else {
@@ -15509,6 +16536,7 @@ if (typeof window !== 'undefined') {
 }
 
 function selectSubdomain(id) {
+  if (serieVerrouille()) return;
   // Pendant un test, le menu est inerte : on ignore toute sélection, qui
   // remplacerait les exercices et effacerait les réponses déjà saisies.
   if (state.test) return;
@@ -16113,6 +17141,121 @@ const SANS_RUBRIQUE = new Set(['perim-aire', 'volumes']);
 // Sous-domaines où la réponse doit porter son unité.
 const UNITE_EXIGEE = new Set(['perim-aire', 'volumes', 'pythagore']);
 
+// ----------------------------------------------------------------------------
+// SÉRIE À L'ÉCRAN : une composition travaillée dans l'application, exercice par
+// exercice, comme dans le menu principal — chacun garde SON bouton « Valider »
+// et l'œil affiche les solutions. Ce n'est PAS le mode test : ni score global,
+// ni chronomètre, ni bouton unique de validation. Le test viendra dans l'espace
+// qui lui est destiné.
+// ----------------------------------------------------------------------------
+function renderSerie() {
+  const main = document.getElementById('main');
+  const s = state.serie;
+  // Rien dans la barre de titre : le nom de la série est déjà en tête de page.
+  const tbDom = document.getElementById('topbar-domain');
+  if (tbDom) tbDom.textContent = '';
+  // Mêmes icônes d'œil que la barre d'un sous-domaine.
+  const OEIL = `<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:block;"><path d="M2.5 12c3.3-5 6.7-7.5 9.5-7.5s6.2 2.5 9.5 7.5c-3.3 5-6.7 7.5-9.5 7.5S5.8 17 2.5 12z"/><circle cx="12" cy="12" r="3.2"/></svg>`;
+  const OEIL_BARRE = `<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:block;"><path d="M2.5 12c3.3-5 6.7-7.5 9.5-7.5s6.2 2.5 9.5 7.5c-3.3 5-6.7 7.5-9.5 7.5S5.8 17 2.5 12z"/><circle cx="12" cy="12" r="3.2"/><path d="M4 4l16 16"/></svg>`;
+  const solLabel = state.showSolutions ? OEIL_BARRE : OEIL;
+  const solTitle = state.showSolutions ? 'Masquer les solutions' : 'Afficher les solutions';
+  let html = `
+    <div class="content-header">
+      <div class="content-header-row">
+        <h2 class="content-header-h2-inline">${s.titre || 'Série d\'exercices'}</h2>
+        <div class="content-header-actions">
+          <button class="btn-action btn-icon" onclick="toggleSolutions()" title="${solTitle}">${solLabel}</button>
+          <button class="btn-action" onclick="quitterSerie()">${s.origine === 'atelier' ? 'Retour' : 'Quitter'}</button>
+        </div>
+      </div>
+    </div>`;
+  s.items.forEach((it, i) => {
+    const rub = (Array.isArray(it.sub.niveauLabels) && typeof it.niveau === 'number'
+                 && !SANS_RUBRIQUE.has(it.sub.id))
+      ? it.sub.niveauLabels[Math.min(it.niveau, it.sub.niveauLabels.length) - 1] : null;
+    const sousTitre = it.sub.title + (rub ? ` – ${rub}` : '');
+    html += `<div class="exercise-sub-title" style="font-weight:800; font-size:13px; color:#6B7280; text-transform:uppercase; letter-spacing:0.02em; margin:18px 0 6px 2px;">${sousTitre}</div>`;
+    html += `<div data-serie-ex="${i}">${renderExercise(it.ex, i + 1, i)}</div>`;
+  });
+  main.innerHTML = html;
+  s.items.forEach((it, i) => {
+    const bloc = main.querySelector(`[data-serie-ex="${i}"]`);
+    if (bloc) appliquerSousGroupes(bloc, it.ex);
+  });
+  // Mêmes passes de finition que l'affichage d'un sous-domaine : sans elles,
+  // figures, tableaux et exercices interactifs restent inertes.
+  renderKatex();
+  applyTableSolutions();
+  tightenPropFigures();
+  recadrerFiguresHaut(main);
+  matchRedrawAll();
+  selectRefreshAll();
+  countRefreshAll();
+  fillRefreshAll();
+  clicRefreshAll();
+  showDroiteSolutions();
+  showRepereSolutions();
+}
+
+// Ouvre une composition dans la vue « série ». `items` : [{ sub, ex, niveau }].
+function ouvrirSerie(titre, items, origine) {
+  matchState = {}; selectState = {}; countState = {}; fillState = {}; clicState = {};
+  state.showSolutions = false;
+  state.activeSubId = null;
+  // Chaque exercice retient son sous-domaine : la correction en a besoin
+  // (réponses longues, unités), et `state.activeSubId` est nul hors sous-domaine.
+  items.forEach(it => { if (it.ex) it.ex._subId = it.sub.id; });
+  // `origine` : 'atelier' quand on vient de la composition — le bouton dit alors
+  // « Retour », et l'on retombe dans l'atelier, composition intacte.
+  state.serie = { titre, items, origine: origine || null };
+  document.body.classList.add('mode-serie');
+  state.exercises = items.map(it => it.ex);
+  renderSidebar();
+  renderMain();
+  if (typeof window !== 'undefined' && window.scrollTo) window.scrollTo(0, 0);
+}
+
+// PARTAGE : une série exportée depuis l'atelier (fichier .json) s'ouvre ici,
+// sans passer par l'espace enseignant. C'est ce qui permet de composer sur un
+// poste et de faire travailler sur un autre : on transmet le fichier, l'élève
+// l'ouvre depuis la page d'accueil.
+function ouvrirSerieDepuisFichier(input) {
+  const f = input && input.files && input.files[0];
+  if (!f) return;
+  const lecteur = new FileReader();
+  lecteur.onload = () => {
+    let at = null;
+    try { at = compositionRestaurer(JSON.parse(String(lecteur.result))); }
+    catch (e) { at = null; }
+    if (!at || !Array.isArray(at.items) || !at.items.length) {
+      alert("Ce fichier ne contient pas de série d'exercices lisible.");
+      input.value = '';
+      return;
+    }
+    const items = at.items
+      .filter(it => it && it.ex && !it.ex._construction && !it.ex._instrKind)
+      .map(it => ({ sub: it.sub, niveau: it.niveau, ex: { ...it.ex } }));
+    if (!items.length) {
+      alert("Cette série ne contient aucun exercice à travailler à l'écran.");
+      input.value = '';
+      return;
+    }
+    ouvrirSerie(at.nom || (f.name || '').replace(/\.json$/i, '') || "Série d'exercices", items);
+    input.value = '';
+  };
+  lecteur.onerror = () => { alert("Ce fichier n'a pas pu être lu."); input.value = ''; };
+  lecteur.readAsText(f);
+}
+
+function quitterSerie() {
+  state.serie = null;
+  document.body.classList.remove('mode-serie');
+  state.showSolutions = false;
+  state.exercises = [];
+  renderSidebar();
+  renderMain();
+}
+
 function renderTest() {
   const main = document.getElementById('main');
   const t = state.test;
@@ -16584,6 +17727,7 @@ const MDP_ENSEIGNANT = 'ClaudIA*';
 const MDP_ENSEIGNANT_ACTIF = false;   // ← true pour redemander le mot de passe
 
 function ouvrirEspaceEnseignant() {
+  if (serieVerrouille()) return;
   if (state.test) {
     alert("Termine ou quitte le test en cours avant d'ouvrir l'espace enseignant·e.");
     return;
@@ -16637,13 +17781,21 @@ function atelierSousDomaines(domainNum) {
 
 // Composition d'UN sous-domaine, telle que downloadPdf l'aurait faite
 // (`composerSeulement`), rendue sous la forme uniforme { sub, ex, niveau }.
-async function atelierComposerSousDomaine(subId) {
+async function atelierComposerSousDomaine(subId, reglages) {
   const found = findSubdomain(subId);
   if (!found) return [];
   const savedSub = state.activeSubId, savedNiveau = state.niveau;
+  const aVariantes = Array.isArray(found.sub.variants) && found.sub.variants.length > 0;
+  const savedVariant = aVariantes ? state.variantParSubId[subId] : undefined;
   try {
     state.activeSubId = subId;
-    state.niveau = state.niveauxParSubId[subId] || 1;
+    // L'atelier ne dépend PLUS de ce qui avait été laissé à l'écran : par
+    // défaut il compose ce qu'on verrait en ouvrant le sous-domaine à neuf
+    // (niveau 1, première variante). Les menus déroulants posés sur chaque
+    // exercice passent ici leurs réglages, qui sont mémorisés sur l'item.
+    const r = reglages || {};
+    state.niveau = r.niveau || 1;
+    if (aVariantes) state.variantParSubId[subId] = r.variant || found.sub.variants[0].key;
     // Le cache rendrait deux fois le même exercice. On vide TOUTES ses entrées
     // pour ce sous-domaine : certaines compositions (prop-concret) relisent le
     // cache d'un autre niveau que celui affiché, et ne changeaient jamais.
@@ -16655,10 +17807,41 @@ async function atelierComposerSousDomaine(subId) {
     let exs = null;
     try { exs = await downloadPdf({ composerSeulement: true }); } catch (e) { exs = null; }
     if (!Array.isArray(exs) || !exs.length) exs = state.exercises.slice();
-    return exs.map(ex => ({ sub: found.sub, ex, niveau: ex._realNiveau || state.niveau }));
+    // UN SEUL exercice : celui qui s'ouvre par défaut à l'écran pour ce
+    // réglage. La composition du PDF en produit souvent plusieurs (un par
+    // niveau, ou un doublon) ; on retient celui du niveau demandé. `_realNiveau`
+    // quand il existe, sinon la position, la composition rangeant les exercices
+    // dans l'ordre des niveaux.
+    const nivVoulu = r.niveau || 1;
+    // Variante propre à l'atelier (developpements : quel solide) : elle désigne
+    // directement le rang de l'exercice dans la composition, là où le choix par
+    // niveau ne pouvait rendre que le premier des trois.
+    const varsAtelier = (typeof found.sub.atelierVariants === 'function')
+      ? found.sub.atelierVariants(nivVoulu) : null;
+    let choisi;
+    if (Array.isArray(varsAtelier) && varsAtelier.length) {
+      const v = varsAtelier.find(x => x.key === r.variant) || varsAtelier[0];
+      choisi = exs[v.rang] || exs[nivVoulu - 1] || exs[0];
+    } else {
+      choisi = exs.find(ex => ex && ex._realNiveau === nivVoulu)
+        || exs[nivVoulu - 1] || exs[0];
+    }
+    if (!choisi) return [];
+    // Le niveau doit VOYAGER avec l'exercice : dans une série, il est seul de
+    // son groupe et sa POSITION ne dit plus rien de son niveau. Les mises en
+    // page qui dépendent du niveau (corrigé de perim-aire N3, par exemple) se
+    // fiaient à la position et retombaient sur le niveau 1.
+    if (choisi._realNiveau == null) choisi._realNiveau = nivVoulu;
+    return [{ sub: found.sub, ex: choisi, niveau: choisi._realNiveau }];
   } finally {
     state.activeSubId = savedSub;
     state.niveau = savedNiveau;
+    // On rend au sous-domaine la variante qu'il avait à l'écran : l'atelier ne
+    // doit pas modifier ce que l'utilisateur retrouvera en y retournant.
+    if (aVariantes) {
+      if (savedVariant === undefined) delete state.variantParSubId[subId];
+      else state.variantParSubId[subId] = savedVariant;
+    }
   }
 }
 
@@ -16696,13 +17879,10 @@ async function atelierExercicesSelectionnes() {
     .map(d => ({ d, subs: atelierSousDomaines(d.num), sel: atelierSelection[d.num] || new Set() }))
     .filter(o => o.subs.length && o.sel.size);
   const items = [];
-  for (const { d, subs, sel } of retenus) {
-    if (sel.size === subs.length) {
-      // Domaine entier : sa composition structurée, telle quelle.
-      const compo = composerItemsDomaine(d.num);
-      if (compo) items.push(...compo.items);
-      continue;
-    }
+  for (const { subs, sel } of retenus) {
+    // Les cases ne donnent QUE des exercices complets, quel qu'en soit le
+    // nombre. L'épreuve synthétique a son propre bouton : auparavant, cocher
+    // tous les sous-domaines d'un domaine y basculait en silence.
     for (const sub of subs) {
       if (sel.has(sub.id)) items.push(...(await atelierComposerSousDomaine(sub.id)));
     }
@@ -16747,6 +17927,28 @@ async function atelierAjouterSelection() {
   renderAtelier();
 }
 
+// Épreuve synthétique d'un domaine : un GESTE À PART, déclenché par son propre
+// bouton. Elle a une structure imposée (ordre des exercices, exercice de
+// construction repéré) que le PDF de domaine attend, et elle remplace la
+// composition en cours plutôt que de s'y mêler.
+function atelierEpreuveDomaine(num) {
+  const d = DOMAINS.find(x => x.num === num);
+  if (!d) return;
+  const at = state.atelier;
+  if (at && at.items && at.items.length
+      && !confirm(`Remplacer la composition en cours par l'épreuve du domaine « ${d.title} » ?`)) return;
+  const compo = composerItemsDomaine(num);
+  if (!compo || !compo.items.length) { alert("Ce domaine n'a produit aucun exercice."); return; }
+  state.atelier = {
+    mode: 'domaine', domainNum: num, items: compo.items, nom: '',
+    compo: { domain: d, items: compo.items,
+             idxConstruction: compo.items.findIndex(it => it.ex && it.ex._construction) }
+  };
+  atelierViderSelection();
+  atelierBasculerMenu(false);
+  renderAtelier();
+}
+
 function atelierVider() {
   if (!state.atelier || !state.atelier.items.length) return;
   if (!confirm("Vider la composition et repartir de zéro ?")) return;
@@ -16769,24 +17971,57 @@ async function atelierComposer() {
     if (zone) zone.innerHTML = '<div class="placeholder"><strong>Rien à composer</strong>Aucun exercice n\'a été produit.</div>';
     return;
   }
-  // Un domaine entier, et lui seul : on garde sa composition structurée, avec
-  // son `idxConstruction` – c'est elle que le PDF de domaine attend.
-  const seulEtComplet = (retenus.length === 1 && retenus[0].sel.size === retenus[0].subs.length);
-  state.atelier = seulEtComplet
-    ? { mode: 'domaine', domainNum: retenus[0].d.num, items, nom: '',
-        compo: { domain: retenus[0].d, items, idxConstruction: items.findIndex(it => it.ex && it.ex._construction) } }
-    : { mode: 'sousdomaine', domainNum: retenus[0].d.num, items, nom: '' };
+  // Toujours « exercices choisis » : l'épreuve structurée d'un domaine passe
+  // par atelierEpreuveDomaine, qui est un geste explicite.
+  state.atelier = { mode: 'sousdomaine', domainNum: retenus[0].d.num, items, nom: '' };
   atelierViderSelection();
   renderAtelier();
 }
 
 // Ajoute un exercice : soit du même sous-domaine qu'un exercice existant
 // (bouton ＋ de son en-tête), soit celui choisi dans le menu du bas.
+// Modèles de problèmes déjà employés par les exercices d'un sous-domaine.
+// Les générateurs de problèmes étiquettent leurs questions (`_modele`) ; les
+// autres n'en portent pas et cette fonction rend alors un ensemble vide.
+function atelierModelesUtilises(subId) {
+  const at = state.atelier;
+  const vus = new Set();
+  (at ? at.items : []).forEach(it => {
+    if (!it || !it.sub || it.sub.id !== subId) return;
+    (it.ex.questions || []).forEach(q => { if (q && q._modele) vus.add(q._modele); });
+  });
+  return vus;
+}
+
+function atelierChevauchementModeles(item, vus) {
+  if (!item || !item.ex || !vus.size) return 0;
+  return (item.ex.questions || []).filter(q => q && q._modele && vus.has(q._modele)).length;
+}
+
 async function atelierAjouterExercice(subId, apres) {
   const at = state.atelier;
   if (!at) return;
-  const neufs = await atelierComposerSousDomaine(subId);
+  // Le nouvel exercice reprend les réglages de celui d'où part le ＋ (niveau,
+  // variante) : ajouter à côté d'un exercice « Divisions – Niveau 2 » doit en
+  // donner un autre du même genre.
+  const source = (typeof apres === 'number') ? at.items[apres] : null;
+  const reglages = (source && source.sub && source.sub.id === subId) ? source._reglages : null;
+  let neufs = await atelierComposerSousDomaine(subId, reglages);
   if (!neufs.length) { alert("Ce sous-domaine n'a produit aucun exercice."); return; }
+  // PROBLÈMES : le second exercice doit s'appuyer sur d'AUTRES modèles que le
+  // premier. Les générateurs ne savent pas exclure un modèle ; on tire donc
+  // plusieurs fois et l'on garde la version qui recoupe le moins. Sans
+  // étiquette de modèle (les autres sous-domaines), la boucle ne tourne pas.
+  const dejaVus = atelierModelesUtilises(subId);
+  if (dejaVus.size) {
+    let score = atelierChevauchementModeles(neufs[0], dejaVus);
+    for (let essai = 0; essai < 25 && score > 0; essai++) {
+      const cand = await atelierComposerSousDomaine(subId, reglages);
+      const s = atelierChevauchementModeles(cand[0], dejaVus);
+      if (s < score) { neufs = cand; score = s; }
+    }
+  }
+  if (reglages) neufs[0]._reglages = { ...reglages };
   const pos = (typeof apres === 'number') ? apres + 1 : at.items.length;
   at.items.splice(pos, 0, neufs[0]);
   atelierSyncCompo();
@@ -17026,7 +18261,10 @@ function atelierDeplacerEnonce(i, k, delta) {
 // nouvelle composition ne place plus le même sous-domaine à ce rang.
 // Asynchrone : la composition d'un sous-domaine passe par downloadPdf, qui
 // l'est aussi. Les boutons de l'atelier attendent donc le résultat.
-async function atelierNouvelExercice(i) {
+// `reglagesForces` : utilisé pour renouveler UNE question d'un exercice
+// fusionné, qui doit être retirée avec les réglages de l'exercice d'où elle
+// vient (une division ne se remplace pas par une multiplication).
+async function atelierNouvelExercice(i, reglagesForces) {
   const at = state.atelier;
   if (!at || !at.items[i]) return null;
   const attendu = at.items[i].sub.id;
@@ -17039,16 +18277,51 @@ async function atelierNouvelExercice(i) {
     }
     // Composition mixte : on recompose le sous-domaine de CET exercice, et on
     // reprend l'exercice de même rang parmi ceux qu'il produit.
-    const rang = at.items.slice(0, i).filter(x => x.sub.id === attendu).length;
-    const neufs = await atelierComposerSousDomaine(attendu);
-    return (neufs[rang] && neufs[rang].ex) || (neufs[0] && neufs[0].ex) || null;
+    // Un sous-domaine ne rend plus qu'un exercice : celui de ses réglages.
+    const neufs = await atelierComposerSousDomaine(attendu,
+      reglagesForces || at.items[i]._reglages);
+    return (neufs[0] && neufs[0].ex) || null;
   } finally {
     state.niveau = savedNiveau;
     state.activeSubId = savedSub;
   }
 }
 
+// Change le niveau ou la variante d'UN exercice de l'atelier. Le réglage est
+// gardé sur l'item (`_reglages`) pour que le ↻ le respecte ensuite. Champ
+// d'ITEM : compositionSerialiser ne garde que { subId, niveau, ex }, il ne part
+// donc pas dans les fichiers enregistrés.
+async function atelierReglerExercice(i, champ, valeur) {
+  const at = state.atelier;
+  const it = at && at.items[i];
+  if (!it) return;
+  if (it.ex && it.ex._fusionne) {
+    alert("Cet exercice est le résultat d'une fusion : son niveau et sa variante ne sont plus uniques. Défusionnez-le pour les changer.");
+    renderAtelier();
+    return;
+  }
+  const reglages = { ...(it._reglages || {}) };
+  reglages[champ] = (champ === 'niveau') ? parseInt(valeur, 10) : valeur;
+  const neufs = await atelierComposerSousDomaine(it.sub.id, reglages);
+  const choisi = neufs[0];
+  if (!choisi || !choisi.ex) { alert("Cet exercice n'a pas pu être régénéré."); return; }
+  it._reglages = reglages;
+  it.ex = choisi.ex;
+  it.niveau = choisi.niveau;
+  if (at.mode === 'domaine' && at.compo) at.compo.items[i] = it;
+  await atelierDedoublonner(i);
+  renderAtelier();
+}
+
 async function atelierRefaireExercice(i) {
+  // Garde-fou : renouveler d'un bloc un exercice fusionné le remplacerait par
+  // un exercice simple, fusion perdue. Le bouton est masqué, mais la fonction
+  // reste appelable (raccourci, composition relue).
+  const itF = state.atelier && state.atelier.items[i];
+  if (itF && itF.ex && itF.ex._fusionne) {
+    alert("Cet exercice est le résultat d'une fusion : renouvelez ses questions une à une, ou défusionnez-le d'abord.");
+    return;
+  }
   const at = state.atelier;
   if (!at || !at.items[i]) return;
   const ex = await atelierNouvelExercice(i);
@@ -17097,11 +18370,23 @@ async function atelierRemplacerQuestion(i, j, interdites) {
   if (!Array.isArray(qs) || !qs[j]) return false;
   const avant = atelierSignature(qs[j]);
   const etiquette = qs[j].label;
+  // Après une FUSION, la place j ne correspond plus à une place du générateur :
+  // un exercice fusionné a 8 questions, une génération n'en rend que 4, si bien
+  // que `neuf.questions[j]` était introuvable pour e) à h) et que le
+  // renouvellement échouait toujours. Chaque question fusionnée retient donc
+  // son rang et les réglages de l'exercice d'où elle vient.
+  const rangSource = (typeof qs[j]._rangSource === 'number') ? qs[j]._rangSource : j;
+  const reglagesSource = qs[j]._reglagesSource || null;
   for (let essai = 0; essai < 25; essai++) {
-    const neuf = await atelierNouvelExercice(i);
-    if (!neuf || !Array.isArray(neuf.questions) || !neuf.questions[j]) continue;
-    const q = { ...neuf.questions[j] };
+    const neuf = await atelierNouvelExercice(i, reglagesSource);
+    if (!neuf || !Array.isArray(neuf.questions) || !neuf.questions.length) continue;
+    // Filet pour les compositions relues d'une version antérieure, sans rang.
+    const rang = neuf.questions[rangSource] ? rangSource : (j % neuf.questions.length);
+    if (!neuf.questions[rang]) continue;
+    const q = { ...neuf.questions[rang] };
     if (etiquette !== undefined) q.label = etiquette;   // la place ne change pas
+    if (typeof qs[j]._rangSource === 'number') q._rangSource = qs[j]._rangSource;
+    if (qs[j]._reglagesSource) q._reglagesSource = qs[j]._reglagesSource;
     const sig = atelierSignature(q);
     if (sig === avant) continue;                        // même tirage
     if (interdites && interdites.has(sig)) continue;    // déjà ailleurs dans la série
@@ -17172,6 +18457,38 @@ function fermerVoilePdf() {
   if (v) v.remove();
 }
 
+// ----------------------------------------------------------------------------
+// TRAVAIL À L'ÉCRAN : la série composée est jouée comme un test, avec saisie,
+// correction et score — au lieu d'être imprimée. On réutilise entièrement la
+// machinerie du mode évaluation ; seule la SOURCE des exercices change (la
+// composition de l'atelier, au lieu d'une sélection de domaines).
+// L'espace enseignant reste « ouvert » derrière : renderMain donne la priorité
+// au test, et on retombe donc dans l'atelier en quittant.
+// ----------------------------------------------------------------------------
+function atelierTravailEcran() {
+  const at = state.atelier;
+  if (!at || !at.items.length) {
+    alert("Compose d'abord une série d'exercices : coche des notions dans le menu, puis « Composer ».");
+    return;
+  }
+  const items = atelierItemsPourSerie();
+  if (!items.length) {
+    alert("Aucun exercice de cette série ne peut se travailler à l'écran.\n"
+      + "Les constructions à la règle et au compas en sont écartées.");
+    return;
+  }
+  ouvrirSerie(at.nom || "Série d'exercices", items, 'atelier');
+}
+
+// Les exercices d'une composition, prêts pour la vue « série » : questions
+// décochées retirées (comme au PDF), exercices non corrigeables écartés, et
+// COPIÉS pour que le travail à l'écran ne marque pas la composition.
+function atelierItemsPourSerie() {
+  return atelierItemsPourPdf()
+    .filter(it => it && it.ex && !it.ex._construction && !it.ex._instrKind)
+    .map(it => ({ sub: it.sub, niveau: it.niveau, ex: { ...it.ex } }));
+}
+
 async function atelierGenererPdf() {
   const at = state.atelier;
   // Sans ce message, cliquer sur l'icône PDF avant d'avoir composé ne faisait
@@ -17194,6 +18511,322 @@ async function atelierGenererPdf() {
   }
 }
 
+// ----------------------------------------------------------------------------
+// PDF d'une série « à la carte » mêlant plusieurs sous-domaines.
+// Avant la v419, elle empruntait la chaîne du DOMAINE avec le numéro du PREMIER
+// domaine rencontré : les exercices des autres domaines recevaient donc la mise
+// en page du domaine 1 (titre, espacements, tableaux, sauts de page, corrigé).
+// Ici, chaque sous-domaine est rendu par SA propre chaîne — celle du PDF de
+// sous-domaine, déjà validée — et les groupes s'enchaînent dans un même
+// document. Chaque groupe porte son en-tête : nom du domaine puis titre du
+// sous-domaine, comme dans un test.
+// ----------------------------------------------------------------------------
+async function downloadCartePdf(items) {
+  if (typeof html2canvas === 'undefined' || typeof window.jspdf === 'undefined') {
+    alert("Les librairies PDF ne sont pas chargées. Vérifie la connexion internet et recharge la page.");
+    return;
+  }
+  // Groupes d'exercices CONSÉCUTIFS d'un même sous-domaine : l'ordre voulu par
+  // l'utilisateur est conservé, on ne regroupe pas ce qui est séparé.
+  const groupes = [];
+  items.forEach(it => {
+    const dernier = groupes[groupes.length - 1];
+    if (dernier && dernier.subId === it.sub.id) dernier.items.push(it);
+    else groupes.push({ subId: it.sub.id, items: [it] });
+  });
+  if (!groupes.length) return;
+
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
+  const LARGEUR = 210, HAUTEUR = 297;
+  const MG = 14, MD = 12, MH = 14, MB = 14;
+  const largeurUtile = LARGEUR - MG - MD;
+  const hauteurUtile = HAUTEUR - MH - MB;
+  let cursorY = MH, premiereEcriture = true;
+
+  // Facteur px → mm des blocs rendus (largeur utile du conteneur : 794 − 57 − 48).
+  const PX_PAR_MM = 689 / largeurUtile;
+  const MIN_AMORCE = 40;   // mm : plancher de l'amorce, pour ne pas commencer par une miette
+  // Blanc laissé SOUS la dernière question d'un bloc (padding de fin, reste de
+  // la dernière rangée…). C'est de l'espace d'écriture : il n'a pas à tenir
+  // dans la page, il peut déborder sous la marge sans que rien ne se voie. Le
+  // compter dans le test de tenue coûtait, à un ou deux millimètres près, la
+  // place de l'exercice suivant.
+  const blancDeFin = (el) => {
+    if (!el || !el.getBoundingClientRect) return 0;
+    const items = el.querySelectorAll('.multi-item');
+    if (!items.length) return 0;
+    const bas = el.getBoundingClientRect().bottom
+              - items[items.length - 1].getBoundingClientRect().bottom;
+    // Ce blanc ne peut déborder que dans la MARGE BASSE : au-delà, il sort de
+    // la feuille et la place d'écriture est perdue pour de bon. Sans ce
+    // plafond, une rangée de décimaux (69 mm de blanc réservé pour poser
+    // l'opération) se posait en bas de page et son espace de calcul tombait
+    // hors papier.
+    return Math.min(Math.max(0, bas) / PX_PAR_MM, MB - 2);
+  };
+  // AMORCE : hauteur du titre, de la consigne et de la PREMIÈRE RANGÉE. C'est
+  // le plus petit morceau d'exercice qui ait un sens en bas d'une page. Un
+  // seuil fixe ne convenait pas : trop haut, l'exercice suivant renonçait à
+  // une fin de page pourtant large ; trop bas, l'en-tête restait seul.
+  const amorceDe = (el) => {
+    if (!el || !el.getBoundingClientRect) return 0;
+    const items = Array.from(el.querySelectorAll('.multi-item'));
+    if (!items.length) return 0;
+    const haut = el.getBoundingClientRect().top;
+    const t0 = items[0].getBoundingClientRect().top;
+    let basR1 = items[0].getBoundingClientRect().bottom, hautR2 = null;
+    items.forEach(it => {
+      const r = it.getBoundingClientRect();
+      if (Math.abs(r.top - t0) < 2) basR1 = Math.max(basR1, r.bottom);
+      else if (hautR2 === null || r.top < hautR2) hautR2 = r.top;
+    });
+    // La rangée occupe la place que la mise en page lui RÉSERVE, pas celle de
+    // son texte : une rangée de décimaux tient 283 px pour qu'on puisse poser
+    // l'opération dessous. Mesurer le bas du texte donnait 20 mm là où il en
+    // faut 78, et l'en-tête acceptait une fin de page où la rangée ne tenait
+    // pas — il y restait seul. Seul le blanc d'écriture de cette rangée peut
+    // déborder dans la marge basse.
+    const finR1 = (hautR2 !== null ? hautR2 : basR1);
+    const blancR1 = Math.min((finR1 - basR1) / PX_PAR_MM, MB - 2);
+    return Math.max(0, (finR1 - haut) / PX_PAR_MM - blancR1);
+  };
+  // Mesure un élément et le place en flux : c'est ce qui enchaîne les exercices
+  // au lieu de leur donner une page chacun.
+  const rasteriser = async (el) => {
+    const canvas = await html2canvas(el, { scale: 1.5, useCORS: true, backgroundColor: '#FFFFFF' });
+    const wMm = largeurUtile;
+    const hMm = (canvas.height * wMm) / canvas.width;
+    const blanc = Math.min(blancDeFin(el), hMm);
+    const hUtile = hMm - blanc;
+    // Ce qu'il faut au minimum pour qu'un exercice commence ici.
+    const amorce = Math.min(hUtile, Math.max(amorceDe(el), MIN_AMORCE));
+    return { img: canvas.toDataURL('image/jpeg', 0.9), wMm, hMm, blanc, hUtile, amorce };
+  };
+  const placer = async (el, opts2, mesure) => {
+    const o = opts2 || {};
+    // `mesure` : bloc déjà photographié (l'en-tête a besoin de connaître la
+    // hauteur du premier exercice ; inutile de le rendre deux fois).
+    const m = mesure || await rasteriser(el);
+    // Un bloc plus haut qu'une page ne peut pas être reporté : on le pose et il
+    // sera rogné — mieux vaut le savoir que le perdre en silence.
+    const besoin = m.hUtile + (o.solidaireSuivant || 0);
+    if (!premiereEcriture && cursorY > MH && cursorY + besoin > MH + hauteurUtile) {
+      pdf.addPage();
+      cursorY = MH;
+    }
+    if (o.pageNeuve && cursorY > MH) { pdf.addPage(); cursorY = MH; }
+    pdf.addImage(m.img, 'JPEG', MG, cursorY, m.wMm, m.hMm);
+    cursorY += m.hMm;
+    premiereEcriture = false;
+    return m.hMm;
+  };
+
+  // Un exercice plus haut que la place disponible partait entier sur la page
+  // suivante, laissant un grand blanc derrière lui ; et un exercice plus haut
+  // qu'une page entière aurait été ROGNÉ. Dans les deux cas on le coupe à une
+  // frontière de question — de préférence sur une rangée complète. La moitié
+  // basse perd son titre : c'est la suite du même exercice.
+  // Un exercice SÉCABLE peut commencer en bas d'une page et se poursuivre sur
+  // la suivante. L'en-tête de son groupe n'a donc pas à réserver la hauteur de
+  // l'exercice ENTIER : exiger cela renvoyait l'en-tête ET l'exercice à la page
+  // suivante alors qu'il restait de quoi poser une ou deux rangées.
+  // Une figure posée dans l'énoncé (droite graduée, repère) sert à TOUTES les
+  // questions : couper l'exercice la dupliquerait d'une page à l'autre et
+  // séparerait les questions de leur dessin. On ne coupe donc pas — sauf si
+  // l'exercice dépasse une page entière, où le seul autre choix est le rognage.
+  const figureCommune = (el) => {
+    if (!el || !el.querySelectorAll) return false;
+    let dansItems = 0;
+    el.querySelectorAll('.multi-item').forEach(it => { dansItems += it.querySelectorAll('svg').length; });
+    return el.querySelectorAll('svg').length > dansItems;
+  };
+  const secable = (el) => !!el && el.querySelectorAll('.multi-item').length >= 2 && !figureCommune(el);
+  const ajusterHauteurs = (bloc, part) => {
+    [bloc].concat(Array.from(bloc.querySelectorAll('*'))).forEach(n => {
+      if (!n.style) return;
+      const mh = parseFloat(n.style.minHeight);
+      if (mh > 0) n.style.minHeight = Math.round(mh * part) + 'px';
+      const r = /repeat\((\d+),\s*([\d.]+px)\)/.exec(n.style.gridTemplateRows || '');
+      if (r) {
+        const rangees = Math.max(1, Math.ceil(n.querySelectorAll('.multi-item').length / (n.style.gridTemplateColumns === '1fr' ? 1 : 2)));
+        n.style.gridTemplateRows = `repeat(${rangees}, ${r[2]})`;
+      }
+    });
+  };
+  const placerEnFlux = async (el, mesure, profondeur) => {
+    const p = profondeur || 0;
+    const m = mesure || await rasteriser(el);
+    const restant = MH + hauteurUtile - cursorY;
+    const enHautDePage = premiereEcriture || cursorY <= MH;
+    const tientIci = enHautDePage || m.hUtile <= restant;
+    if ((m.hUtile <= hauteurUtile && tientIci) || p >= 4) { await placer(el, null, m); return; }
+    const items = Array.from(el.querySelectorAll('.multi-item'));
+    const tropHaut = m.hUtile > hauteurUtile;
+    // Rien à couper, ou trop peu de place pour que la coupure serve.
+    if (items.length < 2 || !el.parentNode
+        || (!tropHaut && (restant < m.amorce || !secable(el)))) {
+      await placer(el, tropHaut ? { pageNeuve: true } : null, m);
+      return;
+    }
+    const grille = el.querySelector('.multi-grid');
+    const uneColonne = !!grille && (grille.style.gridTemplateColumns === '1fr'
+      || /stacked|fullwidth|propfig/.test(grille.className || ''));
+    const colonnes = uneColonne ? 1 : 2;
+    const rangees = Math.ceil(items.length / colonnes);
+    // Une seule rangée : il n'y a rien à couper qui ne casse la rangée en deux.
+    if (rangees < 2) {
+      await placer(el, tropHaut ? { pageNeuve: true } : null, m);
+      return;
+    }
+    const rCoupe = tropHaut
+      ? Math.ceil(rangees / 2)
+      : Math.max(1, Math.min(rangees - 1, Math.floor(rangees * restant / m.hUtile)));
+    const coupe = Math.min(items.length - 1, rCoupe * colonnes);
+    const haut = el.cloneNode(true), bas = el.cloneNode(true);
+    Array.from(haut.querySelectorAll('.multi-item')).slice(coupe).forEach(n => n.remove());
+    Array.from(bas.querySelectorAll('.multi-item')).slice(0, coupe).forEach(n => n.remove());
+    // La suite d'un exercice ne reprend ni son titre ni sa consigne : elle
+    // continue la même liste de questions.
+    bas.querySelectorAll('.exercise-num, .exo-consigne').forEach(n => n.remove());
+    ajusterHauteurs(haut, coupe / items.length);
+    ajusterHauteurs(bas, (items.length - coupe) / items.length);
+    el.parentNode.insertBefore(haut, el);
+    el.parentNode.insertBefore(bas, el);
+    el.remove();
+    await placerEnFlux(haut, null, p + 1);
+    await placerEnFlux(bas, null, p + 1);
+  };
+
+  const savedSub = state.activeSubId, savedEx = state.exercises, savedNiv = state.niveau;
+  const aNettoyer = [];
+  // Chaque groupe est bâti par downloadPdf, qui numérote ses exercices à partir
+  // de 1 : sans cela toute la série porte le numéro 1. On renumérote donc les
+  // énoncés ET le corrigé d'un même groupe avec le même décalage.
+  const renumeroter = (racine, decalage) => {
+    let max = 0;
+    const textes = [];
+    const w = document.createTreeWalker(racine, 4 /* SHOW_TEXT */);
+    while (w.nextNode()) textes.push(w.currentNode);
+    textes.forEach(t => {
+      const m = t.nodeValue.match(/^(\s*Exercice\s+)(\d+)(\s*\.)/i);
+      if (!m) return;
+      const n = parseInt(m[2], 10);
+      if (n > max) max = n;
+      t.nodeValue = m[1] + (n + decalage) + m[3] + t.nodeValue.slice(m[0].length);
+    });
+    return max;
+  };
+  try {
+    const corriges = [];
+    let decalage = 0;
+    let dernierDomaine = null;
+    for (const g of groupes) {
+      state.activeSubId = g.subId;
+      // downloadPdf lit state.exercises avant d'accepter la liste imposée : les
+      // deux doivent décrire la même chose.
+      state.exercises = g.items.map(it => it.ex);
+      const o = { exercicesImposes: state.exercises, rendreBlocs: true };
+      await downloadPdf(o);
+      if (!o.blocs) continue;
+      aNettoyer.push(...o.blocs.conteneurs);
+      // Numérotation continue sur toute la série.
+      let maxGroupe = 0;
+      o.blocs.exercices.forEach(el => {
+        maxGroupe = Math.max(maxGroupe, renumeroter(el, decalage));
+      });
+      renumeroter(o.blocs.corrige, decalage);
+      decalage += maxGroupe;
+      // En-tête de rubrique : le nom du domaine (première ligne) n'est répété
+      // que lorsqu'on CHANGE de domaine. Deux rubriques voisines du même
+      // domaine ne gardent que leur titre de sous-domaine — 6 mm gagnés à
+      // chaque fois, et c'est cette hauteur-là qui décide si l'exercice suivant
+      // peut commencer en bas de page.
+      const domGroupe = (findSubdomain(g.subId) || {}).domain;
+      const numDom = domGroupe ? domGroupe.num : null;
+      if (numDom !== null && numDom === dernierDomaine) {
+        const ligneDom = o.blocs.entete.firstElementChild;
+        if (ligneDom) ligneDom.remove();
+      }
+      dernierDomaine = numDom;
+      // En-tête du groupe (nom du domaine puis titre du sous-domaine) : il ne
+      // doit jamais rester seul en pied de page, d'où la solidarité avec le
+      // premier exercice.
+      const prem = o.blocs.exercices[0];
+      const mEnt = await rasteriser(o.blocs.entete);
+      let mPrem = prem ? await rasteriser(prem) : null;
+      // Un exercice dont la mise en page force une hauteur de page entière
+      // (volumes : `min-height: 900px`) ne peut pas partager sa page avec
+      // l'en-tête du groupe : l'en-tête partait seul sur une page neuve et
+      // l'exercice sur la suivante — une page quasi blanche. On rend alors à
+      // l'exercice exactement la place que l'en-tête lui prend, pas davantage.
+      if (prem && mPrem && mEnt.hMm + 3 + mPrem.hUtile > hauteurUtile) {
+        const excesPx = Math.ceil((mEnt.hMm + 3 + mPrem.hUtile - hauteurUtile) * PX_PAR_MM);
+        let reduit = false;
+        [prem].concat(Array.from(prem.querySelectorAll('*'))).forEach(n => {
+          const mh = n.style ? parseFloat(n.style.minHeight) : NaN;
+          if (mh > excesPx) { n.style.minHeight = (mh - excesPx) + 'px'; reduit = true; }
+        });
+        if (reduit) mPrem = await rasteriser(prem);
+      }
+      const hSuivant = mPrem ? Math.min(mPrem.hUtile, secable(prem) ? mPrem.amorce : hauteurUtile - mEnt.hMm - 3) : 0;
+      await placer(o.blocs.entete, { solidaireSuivant: hSuivant + 3 }, mEnt);
+      cursorY += 3;
+      for (let k = 0; k < o.blocs.exercices.length; k++) {
+        await placerEnFlux(o.blocs.exercices[k], k === 0 ? mPrem : null);
+      }
+      cursorY += 4;                       // respiration entre deux groupes
+      corriges.push(o.blocs.corrige);
+    }
+    // Les corrigés de tous les sous-domaines, en flux eux aussi, à la suite.
+    pdf.addPage();
+    cursorY = MH;
+    premiereEcriture = true;
+    const premierePageCorrige = pdf.internal.getNumberOfPages();
+    corriges.forEach((cont, ci) => {
+      // « ✅ Corrigé » n'a de sens qu'une fois, en tête de la partie corrigé :
+      // chaque groupe apportait le sien. Les suivants ne gardent que le nom de
+      // leur sous-domaine, qui sert de séparation.
+      if (ci === 0) return;
+      const enTete = cont.firstElementChild;
+      if (!enTete) return;
+      Array.from(enTete.children).forEach(ch => {
+        if (/Corrigé/.test(ch.textContent || '')) ch.remove();
+      });
+    });
+    for (const cont of corriges) {
+      if (!cont.parentNode) document.body.appendChild(cont);
+      // Le conteneur du corrigé fait une page entière : on n'en garde que les
+      // blocs, pour les enchaîner.
+      const enfants = Array.from(cont.children);
+      for (let k = 0; k < enfants.length; k++) {
+        // Le premier enfant est le titre de la rubrique : comme à l'énoncé, il
+        // ne doit pas rester seul en pied de page (vu sur le corrigé du
+        // domaine 5, « Repérer un point… » isolé en bas de page).
+        if (k === 0 && enfants[1]) {
+          const mT = await rasteriser(enfants[0]);
+          const mS = await rasteriser(enfants[1]);
+          await placer(enfants[0], {
+            solidaireSuivant: Math.min(mS.hUtile, Math.max(0, hauteurUtile - mT.hMm - 1))
+          }, mT);
+          await placerEnFlux(enfants[1], mS);
+          k = 1;
+          continue;
+        }
+        await placerEnFlux(enfants[k]);
+      }
+      cursorY += 4;
+    }
+    addPageNumbers(pdf, premierePageCorrige);
+    pdf.save('Serie_exercices.pdf');
+  } finally {
+    aNettoyer.forEach(c => { if (c && c.parentNode) document.body.removeChild(c); });
+    state.activeSubId = savedSub;
+    state.exercises = savedEx;
+    state.niveau = savedNiv;
+  }
+}
+
 async function atelierGenererPdfInterne(at, items) {
   if (at.mode === 'domaine') {
     await downloadDomainPdf(at.domainNum, {
@@ -17208,8 +18841,7 @@ async function atelierGenererPdfInterne(at, items) {
   // domaine, qui sait enchaîner des exercices d'origines différentes.
   const ids = [...new Set(items.map(it => it.sub.id))];
   if (ids.length > 1) {
-    const domain = DOMAINS.find(d => d.num === at.domainNum);
-    await downloadDomainPdf(at.domainNum, { domain, items, idxConstruction: -1 });
+    await downloadCartePdf(items);
     return;
   }
   const savedSub = state.activeSubId, savedEx = state.exercises;
@@ -17393,11 +19025,16 @@ function majListeCompositions() {
   if (!sel) return;
   const tout = compositionsLire();
   const noms = tout ? Object.keys(tout).sort() : [];
-  sel.innerHTML = noms.length
-    ? '<option value="">— compositions enregistrées —</option>'
-      + noms.map(n => `<option value="${n}">${n}</option>`).join('')
-    : '<option value="">— aucune enregistrée —</option>';
-  sel.disabled = !noms.length;
+  sel.innerHTML = '<option value="">— compositions —</option>'
+    + noms.map(n => `<option value="${n}">${n}</option>`).join('');
+  // Tant qu'aucune composition n'est gardée, la liste et sa croix n'ont rien à
+  // proposer : elles ne s'affichent pas. Elles reviennent dès le premier
+  // « Enregistrer » ou le premier import.
+  const vide = !noms.length;
+  sel.style.display = vide ? 'none' : '';
+  const croix = document.getElementById('atelier-bouton-suppr-compo');
+  if (croix) croix.style.display = vide ? 'none' : '';
+
 }
 
 // « Composer » tant que rien n'est fait, « Ajouter » ensuite. Le bouton Vider
@@ -17444,12 +19081,54 @@ function renderAtelier() {
   // qui partiront au PDF, avec leurs figures et leurs tableaux.
   state.exercises = at.items.map(it => it.ex);
   state.showSolutions = false;
-  let html = '';
+  // Bandeau de MODE. Cocher un domaine entier et cocher tous ses sous-domaines
+  // un par un donnaient deux résultats différents sans que rien ne le dise :
+  // le mode se lit maintenant en tête de la composition.
+  const estDomaine = (at.mode === 'domaine');
+  const domTitre = estDomaine
+    ? ((DOMAINS.find(d => d.num === at.domainNum) || {}).title || '') : '';
+  // Les deux remarques qui accompagnaient ce bandeau sont supprimées (demande du
+  // 23.08) ; leur contenu vit dans le mode d'emploi. Il reste l'ÉTIQUETTE, sur
+  // une ligne : cocher un domaine entier et cocher toutes ses cases une à une
+  // donnent deux compositions différentes, et rien d'autre ne le dit.
+  let html = `<div class="atelier-mode ${estDomaine ? 'atelier-mode-domaine' : 'atelier-mode-choix'}">
+      <span class="atelier-mode-titre">${estDomaine
+        ? `Série du domaine${domTitre ? ' – ' + domTitre : ''}`
+        : 'Exercices choisis'}</span>
+    </div>`;
   at.items.forEach((it, i) => {
     const rub = (Array.isArray(it.sub.niveauLabels) && typeof it.niveau === 'number'
                  && !SANS_RUBRIQUE.has(it.sub.id))
       ? it.sub.niveauLabels[Math.min(it.niveau, it.sub.niveauLabels.length) - 1] : null;
     const nbQ = Array.isArray(it.ex.questions) ? it.ex.questions.length : 0;
+    // Menus déroulants de l'exercice : niveau et variante, quand le
+    // sous-domaine en propose. Ils affichent le réglage RÉEL de cet exercice —
+    // par défaut celui qu'on verrait en ouvrant le sous-domaine à neuf.
+    const regl = it._reglages || {};
+    const nivLabels = Array.isArray(it.sub.niveauLabels) ? it.sub.niveauLabels
+      : (it.sub.hasNiveau2 ? ['Niveau 1', 'Niveau 2'] : null);
+    const nivCourant = regl.niveau || (typeof it.niveau === 'number' ? it.niveau : 1);
+    // Un exercice FUSIONNÉ n'a plus de niveau ni de variante uniques : ses
+    // questions viennent de plusieurs exercices. Changer l'un ou l'autre le
+    // régénérerait d'un bloc et détruirait la fusion en silence. On retire donc
+    // les deux menus et le bouton « Toutes les questions » : seul le ↻ de
+    // chaque question, qui sait d'où elle vient, reste utilisable.
+    const fusionne = !!it.ex._fusionne;
+    const selNiveau = (it.sub.hasNiveau2 && nivLabels && at.mode !== 'domaine' && !fusionne) ? `
+          <select class="variant-select atelier-reglage" aria-label="Niveau de cet exercice"
+                  onchange="atelierReglerExercice(${i}, 'niveau', this.value)">
+            ${nivLabels.map((lab, k) => `<option value="${k + 1}"${nivCourant === k + 1 ? ' selected' : ''}>${lab}</option>`).join('')}
+          </select>` : '';
+    const varsAtelier = (typeof it.sub.atelierVariants === 'function')
+      ? it.sub.atelierVariants(nivCourant) : null;
+    const vars = Array.isArray(it.sub.variants) ? it.sub.variants
+      : (Array.isArray(varsAtelier) && varsAtelier.length ? varsAtelier : null);
+    const varCourante = regl.variant || (vars && vars[0].key);
+    const selVariante = (vars && at.mode !== 'domaine' && !fusionne) ? `
+          <select class="variant-select atelier-reglage" aria-label="Variante de cet exercice"
+                  onchange="atelierReglerExercice(${i}, 'variant', this.value)">
+            ${vars.map(v => `<option value="${v.key}"${v.key === varCourante ? ' selected' : ''}>${v.label}</option>`).join('')}
+          </select>` : '';
     html += `<div class="atelier-item" data-atelier-ex="${i}"
         ondragover="atelierGlisserSurvol(event, ${i})"
         ondragleave="atelierGlisserQuitte(${i})"
@@ -17457,10 +19136,10 @@ function renderAtelier() {
         <div class="atelier-entete">
           <span class="atelier-poignee" draggable="true" title="Glisser pour déplacer cet exercice"
                 ondragstart="atelierGlisserDebut(event, ${i})" ondragend="atelierGlisserFin()">⠿</span>
-          <span class="atelier-titre">${i + 1}. ${it.sub.title}${rub ? ' – ' + rub : ''}</span>
+          <span class="atelier-titre">${i + 1}. ${it.sub.title}${(rub && !selNiveau) ? ' – ' + rub : ''}</span>${selNiveau}${selVariante}
           <button class="btn-action btn-icon-mini" onclick="atelierDeplacerExercice(${i}, -1)" title="Monter"${i === 0 ? ' disabled' : ''}>▲</button>
           <button class="btn-action btn-icon-mini" onclick="atelierDeplacerExercice(${i}, 1)" title="Descendre"${i === at.items.length - 1 ? ' disabled' : ''}>▼</button>
-          <button class="btn-action" onclick="atelierRefaireExercice(${i})" title="Renouveler">${ICONE_RECHARGER}<span>${nbQ ? 'Toutes les questions' : "L'exercice"}</span></button>
+          ${fusionne ? '' : `<button class="btn-action" onclick="atelierRefaireExercice(${i})" title="Renouveler">${ICONE_RECHARGER}<span>${nbQ ? 'Toutes les questions' : "L'exercice"}</span></button>`}
           <button class="btn-action" onclick="atelierAjouterExercice('${it.sub.id}', ${i})" title="Ajouter un exercice du même sous-domaine">＋</button>
           ${atelierFusionPossible(i) ? `<button class="btn-action" onclick="atelierFusionner(${i})" title="Fusionner avec l'exercice suivant">⊕</button>` : ''}
           ${Array.isArray(it._avantFusion) ? `<button class="btn-action" onclick="atelierDefusionner(${i})" title="Défusionner : revenir aux deux exercices d'origine">⊖</button>` : ''}
@@ -17519,6 +19198,13 @@ function atelierFusionPossible(i) {
   if (CLES_CONTENU_EXERCICE.some(k => A.ex[k] !== undefined || B.ex[k] !== undefined)) return null;
   const qA = A.ex.questions, qB = B.ex.questions;
   if (Array.isArray(qA) && qA.length && Array.isArray(qB) && qB.length) return 'questions';
+  // Exercices de SÉLECTION (« Entoure les développements qui permettent de
+  // construire un cube ») : ils n'ont ni questions ni statements, seulement un
+  // solide et ses options. Fusionnés, ils deviennent un exercice à RANGÉES —
+  // un solide par ligne, ses développements à droite —, forme que l'écran, le
+  // corrigé, le PDF et le barème savent déjà traiter.
+  const selDe = (ex) => ex.select && (Array.isArray(ex.options) || Array.isArray(ex.rows));
+  if (selDe(A.ex) && selDe(B.ex)) return 'select';
   const sA = A.ex.statements, sB = B.ex.statements;
   if (Array.isArray(sA) && sA.length && Array.isArray(sB) && sB.length) return 'statements';
   return null;
@@ -17532,6 +19218,31 @@ function atelierReetiqueter(qs) {
   qs.forEach((q, k) => { q.label = numerique ? `${k + 1}.` : `${abc[k] || (k + 1)})`; });
 }
 
+// Deux exercices de décimaux n'ont pas la même consigne selon l'opération
+// (« Pose les multiplications en colonne », « Pose les divisions… »). À la
+// fusion, l'une écrasait l'autre et l'atelier demandait laquelle sacrifier. Or
+// il existe une consigne qui les couvre TOUTES : celle de l'exercice à quatre
+// opérations. On la choisit d'office, avec la remarque sur le quotient dès
+// qu'une division figure dans le lot.
+function consigneFusion(subId, introA, introB, questions) {
+  // Développements : chaque exercice nomme SON solide (« …un cube »). Fusionnés,
+  // ils en présentent plusieurs : la consigne le dit une fois pour toutes. Le
+  // début est conservé mot pour mot — la passe PDF y remplace « Sélectionne »
+  // par « Entoure ».
+  if (subId === 'developpements') {
+    return /^Sélectionne les développements/.test(String(introA || ''))
+      ? 'Sélectionne les développements qui permettent de construire chaque solide.'
+      : null;
+  }
+  if (subId !== 'decimaux') return null;
+  const famille = (t) => /^Pose les .+ en colonne/.test(String(t || ''));
+  if (!famille(introA) || !famille(introB)) return null;
+  const avecDivision = (questions || []).some(q => /÷/.test(String(q.text || '')));
+  return avecDivision
+    ? "Pose les opérations en colonne (pour les divisions, quotient à deux décimales au minimum)"
+    : "Pose les opérations en colonne";
+}
+
 function atelierFusionner(i) {
   const at = state.atelier;
   const type = atelierFusionPossible(i);
@@ -17540,19 +19251,45 @@ function atelierFusionner(i) {
   const introA = String(A.ex.intro || '').trim(), introB = String(B.ex.intro || '').trim();
   // Deux consignes différentes : une seule survit. On le dit plutôt que de
   // choisir en silence.
-  if (introA && introB && introA !== introB
+  const introFusion = consigneFusion(A.sub.id, introA, introB,
+    [...(A.ex.questions || []), ...(B.ex.questions || [])]);
+  if (!introFusion && introA && introB && introA !== introB
       && !confirm("Ces deux exercices n'ont pas la même consigne.\n\n"
         + `Celle qui sera gardée :\n« ${introA} »\n\n`
         + `Celle qui sera perdue :\n« ${introB} »\n\nFusionner quand même ?`)) return;
-  const ex = { ...A.ex };
-  if (type === 'questions') {
-    ex.questions = [...A.ex.questions, ...B.ex.questions].map(q => ({ ...q }));
+  const ex = { ...A.ex, _fusionne: true };
+  if (type === 'select') {
+    // Chaque exercice apporte SA rangée : son solide à gauche, ses
+    // développements à droite. Les identifiants d'options sont refaits par
+    // rangée — deux « o0 » dans la même grille se cocheraient ensemble.
+    const rangeesDe = (src) => Array.isArray(src.rows)
+      ? src.rows.map(r => ({ ...r }))
+      : [{ solid: src.solid, label: src.leftLabel, options: src.options }];
+    ex.rows = [...rangeesDe(A.ex), ...rangeesDe(B.ex)].map((r, iR) => ({
+      ...r,
+      options: (r.options || []).map((o, k) => ({ ...o, id: `r${iR}o${k}` }))
+    }));
+    delete ex.options;
+    delete ex.solid;
+    delete ex.leftLabel;
+  } else if (type === 'questions') {
+    // Chaque question retient SON rang dans l'exercice d'origine et les
+    // réglages de celui-ci : sans quoi elle ne pourrait plus être renouvelée
+    // (place introuvable) ni retirée du bon générateur (variante, niveau).
+    const marquer = (source, liste) => liste.map((q, k) => ({
+      ...q,
+      _rangSource: (typeof q._rangSource === 'number') ? q._rangSource : k,
+      _reglagesSource: q._reglagesSource || source._reglages
+        || { niveau: (typeof source.niveau === 'number') ? source.niveau : 1 }
+    }));
+    ex.questions = [...marquer(A, A.ex.questions), ...marquer(B, B.ex.questions)];
     atelierReetiqueter(ex.questions);
   } else {
     ex.statements = [...A.ex.statements, ...B.ex.statements].map(st => ({ ...st }));
   }
   CLES_AFFICHAGE_EXERCICE.forEach(k => { if (A.ex[k] || B.ex[k]) ex[k] = true; });
-  if (!introA && introB) ex.intro = B.ex.intro;
+  if (introFusion) ex.intro = introFusion;
+  else if (!introA && introB) ex.intro = B.ex.intro;
   at.items.splice(i, 2, {
     sub: A.sub,
     ex,
@@ -17590,6 +19327,13 @@ function poserBoutonsQuestion(racine) {
     // Ni questions ni énoncés (appariements, sélections, clics sur figure) :
     // seul le bouton de l'exercice les concerne.
     if (!qs.length && !sts.length) return;
+    // Exercices d'un seul tenant : les « questions » n'y sont que les cases
+    // d'un même tableau, dont le corps vit dans `intro`. Les commandes par
+    // question n'y ont aucun sens et faisaient du dégât — mesuré sur
+    // « Poser une proportion et la résoudre » : le ↻ restait sans effet, et
+    // décocher une case retirait la question du corrigé tout en laissant le
+    // champ dans le tableau. Seul le bouton de l'exercice s'y applique.
+    if (it.ex._sansOutilsQuestion) return;
     // Deux flèches empilées pour déplacer l'élément d'un cran.
     const fleches = (peutMonter, peutDescendre, bouge) => {
       const w = document.createElement('span');
@@ -17749,16 +19493,27 @@ function poserBoutonsQuestion(racine) {
 const atelierSelection = {};        // { numéroDeDomaine : Set(idSousDomaine) }
 
 function atelierMenuHtml() {
-  return DOMAINS.map(d => {
+  // Deux gestes DISTINCTS, et non plus un seul dont l'effet dépend du nombre de
+  // cases cochées : le bouton « Épreuve du domaine » d'un côté, les cases de
+  // l'autre. La case du domaine ne fait plus que cocher tous ses sous-domaines.
+  const aide = `<p class="atelier-menu-aide">
+      <strong>Série du domaine</strong> — une sélection resserrée qui couvre toutes les
+      notions du domaine.<br>
+      <strong>Cases à cocher</strong> — l'exercice complet de chaque notion, mis bout à bout ;
+      on peut piocher dans plusieurs domaines.
+    </p>`;
+  return aide + DOMAINS.map(d => {
     const subs = atelierSousDomaines(d.num);
     if (!subs.length) return '';
     const choisis = atelierSelection[d.num] || new Set();
     return `<div class="eval-dom${choisis.size ? ' ouvert' : ''}" id="atelier-dom-${d.num}">
       <div class="eval-dom-head" onclick="atelierBasculerOuverture(${d.num}, event)">
-        <input type="checkbox" id="atelier-chk-${d.num}"
+        <input type="checkbox" id="atelier-chk-${d.num}" title="Cocher toutes les notions de ce domaine"
                onclick="event.stopPropagation(); atelierCocherDomaine(${d.num}, this.checked)">
         <span class="domain-chip ${d.color || ''}">${d.icon || d.num}</span>
         <span class="eval-dom-titre">${d.title}</span>
+        <button class="btn-action eval-dom-epreuve" title="Composer l'épreuve synthétique de ce domaine"
+                onclick="event.stopPropagation(); atelierEpreuveDomaine(${d.num})">Série du domaine</button>
         <span class="eval-dom-fleche">›</span>
       </div>
       <div class="eval-subs">
@@ -17820,9 +19575,11 @@ function atelierRafraichirMenu() {
   }
   const etiq = document.getElementById('atelier-menu-resume');
   if (etiq) {
-    etiq.textContent = !nbSub ? 'Choisir des domaines ou des sous-domaines…'
-      : (nbDom === 1 && complets === 1) ? `${dernierTitre} (domaine entier)`
-      : `${nbDom} domaine${nbDom > 1 ? 's' : ''} · ${nbSub} sous-domaine${nbSub > 1 ? 's' : ''}`;
+    // Plus de mention « domaine entier » : cocher toutes les cases d'un domaine
+    // ne change plus la nature de la composition.
+    etiq.textContent = !nbSub ? 'Choisir des notions…'
+      : `${nbSub} notion${nbSub > 1 ? 's' : ''} cochée${nbSub > 1 ? 's' : ''}`
+        + (nbDom > 1 ? ` dans ${nbDom} domaines` : (dernierTitre ? ` – ${dernierTitre}` : ''));
   }
 }
 
@@ -17841,13 +19598,16 @@ function ouvrirVueEnseignant(vue) {
   renderMain();
 }
 
-function enteteEnseignant(titre, retourAccueil) {
+// `aide` : bouton facultatif posé dans la ligne de titre, pour laisser la barre
+// d'outils tenir sur une seule ligne.
+function enteteEnseignant(titre, retourAccueil, aide) {
   return `
     <div class="content-header">
       <div class="content-header-row">
         <h2 class="content-header-h2-inline">${titre}</h2>
         <span class="atelier-nom" id="atelier-nom"></span>
         <div class="content-header-actions">
+          ${aide ? '<button class="btn-action" onclick="ouvrirAideAtelier()" title="Tout ce que l\'on peut faire ici">Mode d\'emploi</button>' : ''}
           ${retourAccueil ? '<button class="btn-action" onclick="ouvrirVueEnseignant(\'accueil\')">← Espace enseignant·e</button>' : ''}
           <button class="btn-action" onclick="quitterEspaceEnseignant()">Quitter</button>
         </div>
@@ -17857,7 +19617,7 @@ function enteteEnseignant(titre, retourAccueil) {
 
 const VUES_ENSEIGNANT = [
   { id: 'atelier', titre: "Créer une série d'exercices à la carte",
-    texte: "Composer une série à partir des domaines et sous-domaines, renouveler les questions une à une, en écarter, réordonner, puis générer le PDF.",
+    texte: "Composer une série à partir des domaines et sous-domaines, renouveler les questions une à une, en écarter, réordonner, puis générer un PDF ou une série interactive.",
     pret: true },
   { id: 'test', titre: "Créer un test sur mesure",
     texte: "Choisir les exercices et les questions d'un test, comme pour une série, et l'enregistrer pour le proposer aux élèves.",
@@ -17996,7 +19756,7 @@ function renderAtelierPage() {
   const main = document.getElementById('main');
   const tbDom = document.getElementById('topbar-domain');
   if (tbDom) tbDom.textContent = 'Espace enseignant·e';
-  main.innerHTML = enteteEnseignant("Créer une série d'exercices à la carte", true) + `
+  main.innerHTML = enteteEnseignant("Créer une série d'exercices à la carte", true, true) + `
     <div class="atelier-barre">
       <div class="atelier-menu" id="atelier-menu">
         <button class="atelier-menu-btn" onclick="atelierBasculerMenu()">
@@ -18008,28 +19768,30 @@ function renderAtelierPage() {
       <button class="btn-action btn-primary" id="atelier-bouton-composer" onclick="atelierComposerOuAjouter()">Composer</button>
       <button class="btn-action" id="atelier-bouton-vider" onclick="atelierVider()" title="Vider la composition">Vider</button>
       <button class="btn-action btn-icon" onclick="atelierGenererPdf()" title="Générer le PDF"><img class="btn-icon-img" src="" alt="PDF"></button>
-      <span class="atelier-sep"></span>
-      <select class="variant-select" id="atelier-enregistrees" onchange="atelierCharger()"></select>
-      <button class="btn-action" onclick="atelierEnregistrer()" title="Garder cette composition dans le navigateur, sous un nom">Enregistrer</button>
-      <button class="btn-action" onclick="atelierSupprimerEnregistree()" title="Supprimer la composition choisie">✕</button>
-      <button class="btn-action" onclick="atelierExporter()" title="Enregistrer dans un fichier .json">Exporter</button>
-      <label class="btn-action" title="Relire un fichier .json">Importer
-        <input type="file" accept=".json,application/json" style="display:none" onchange="atelierImporter(this)">
-      </label>
+      <button class="btn-action" id="atelier-bouton-ecran" onclick="atelierTravailEcran()" title="Voir et faire cette série à l'écran, chaque exercice avec son bouton Valider">Aperçu écran</button>
+      <span class="atelier-barre-droite">
+        <select class="variant-select" id="atelier-enregistrees" onchange="atelierCharger()" title="Rouvrir une composition gardée"></select>
+        <button class="btn-action" id="atelier-bouton-suppr-compo" onclick="atelierSupprimerEnregistree()" title="Supprimer la composition choisie">✕</button>
+        <button class="btn-action" onclick="atelierEnregistrer()" title="Garder cette composition dans le navigateur, sous un nom">Enregistrer</button>
+        <button class="btn-action" onclick="atelierExporter()" title="Enregistrer dans un fichier .json">Exporter</button>
+        <label class="btn-action" title="Relire un fichier .json">Importer
+          <input type="file" accept=".json,application/json" style="display:none" onchange="atelierImporter(this)">
+        </label>
+      </span>
     </div>
-    <p class="atelier-aide">Cocher un domaine entier reprend sa structure habituelle ; cocher quelques
-      sous-domaines les met bout à bout, et l'on peut piocher dans plusieurs domaines. Une fois la
-      composition faite, le bouton devient <strong>Ajouter</strong> : les exercices cochés viennent
-      s'insérer à leur place, sans rien changer au reste.</p>
-    <p class="atelier-aide">Chaque question porte une case (la garder dans le PDF) et un bouton ↻
-      (en tirer une autre à la même place). L'en-tête d'un exercice permet de le renouveler
-      entièrement, d'en ajouter un du même type, de le déplacer ou de le retirer.</p>
     <div id="atelier-zone"><div class="placeholder"><strong>Aucune composition</strong>Choisis un domaine, puis « Composer ».</div></div>`;
   atelierRafraichirMenu();
   atelierMajBoutonComposer();
   const imgPdf = document.querySelector('#main .atelier-barre .btn-icon-img');
   if (imgPdf) imgPdf.src = ICONE_PDF;
   majListeCompositions();
+  // La page se rebâtit avec sa zone VIDE. Tant qu'on n'y arrivait que par le
+  // menu, cela n'avait pas d'importance ; en revenant de l'aperçu écran, la
+  // composition était toujours en mémoire mais ne s'affichait plus. On la
+  // redessine si elle existe.
+  if (state.atelier && Array.isArray(state.atelier.items) && state.atelier.items.length) {
+    renderAtelier();
+  }
   // Un clic hors du menu le referme.
   document.addEventListener('click', (ev) => {
     const menu = document.getElementById('atelier-menu');
@@ -18080,6 +19842,12 @@ function renderMain() {
   // enchaîne sur une seule page avec un bandeau en tête.
   if (state.test && Array.isArray(state.test.items) && state.test.items.length) {
     renderTest();
+    return;
+  }
+  // Série travaillée à l'écran : elle passe AVANT l'espace enseignant, pour
+  // qu'on y retombe en quittant.
+  if (state.serie && Array.isArray(state.serie.items) && state.serie.items.length) {
+    renderSerie();
     return;
   }
   if (state.espaceEnseignant) {
@@ -18817,6 +20585,9 @@ function renderWelcome() {
       <div class="home-grid">${cardsHtml}</div>
       <div class="home-refresh-wrap">
         <button class="home-refresh-btn" onclick="refreshWelcome()">${ICONE_RECHARGER}Autres exercices</button>
+        <label class="home-refresh-btn" title="Ouvrir une série d'exercices reçue dans un fichier">Ouvrir une série…
+          <input type="file" accept=".json,application/json" style="display:none" onchange="ouvrirSerieDepuisFichier(this)">
+        </label>
       </div>
     </div>
   `;
@@ -19038,6 +20809,7 @@ function attachSidebarOutsideClick() {
 
 // Retour à la page d'accueil : réinitialise le sous-domaine actif.
 function goHome() {
+  if (serieVerrouille()) return;
   // Snapshot des saisies pour qu'on les retrouve si on revient au sous-domaine
   snapshotCurrentInputs();
   state.espaceEnseignant = false;
@@ -19199,7 +20971,12 @@ function renderSelect(ex, exIdx) {
   if (ex.rows) {
     h += `<div class="sel-grid sel-rows" id="sel-${exIdx}">`;
     ex.rows.forEach(row => {
-      h += `<div class="sel-row"><div class="sel-name">${row.label}</div>`
+      // À gauche : un libellé texte (droites du triangle) OU le solide lui-même
+      // (fusion de plusieurs « Entoure les développements de… »).
+      const tete = row.solid
+        ? `<div class="sel-solid">${row.solid}</div>`
+        : `<div class="sel-name">${row.label || ''}</div>`;
+      h += `<div class="sel-row">${tete}`
         + `<div class="sel-row-figs">${row.options.map(cell).join('')}</div></div>`;
     });
     h += `</div>`;
@@ -19838,7 +21615,7 @@ function renderExercise(ex, num, exIdx) {
     }
     content += `</div>`;
   } else if (ex.multi) {
-    if (!ex.svg && ex.intro && !ex.introInTitle) content += `<div>${ex.intro}</div>`;
+    if (!ex.svg && ex.intro && !ex.introInTitle) content += `<div class="exo-consigne">${ex.intro}</div>`;
     // Si certaines questions sont des choix multiples ou des "eq+val" (qui
     // prennent beaucoup de largeur), on force 1 colonne.
     const hasChoice = ex.questions.some(q => q.answerType === 'choice');
@@ -20510,7 +22287,8 @@ function selectTrueFalse(btn, exIdx, qIdx, choice) {
 // est vrai ; les inputs de l'élève restent intacts.
 // ========================================
 function toggleSolutions() {
-  if (!state.activeSubId) return;
+  // La vue « série » n'a pas de sous-domaine actif, mais son œil doit marcher.
+  if (!state.activeSubId && !state.serie) return;
   state.showSolutions = !state.showSolutions;
   // Préserver les saisies de l'élève à travers le re-render
   const snap = snapshotInputs();
@@ -22223,6 +24001,7 @@ function buildExerciseLine(label, calcHtml) {
 // MODALE & EXPORT PDF D'UN DOMAINE
 // ====================================================
 function openDomainPdfModal() {
+  if (serieVerrouille()) return;
   // Remplit la liste des domaines à chaque ouverture
   const list = document.getElementById('modal-domain-list');
   list.innerHTML = '';
@@ -22494,6 +24273,7 @@ function evalSubsDisponibles(d) {
 }
 
 function openEvalModal() {
+  if (serieVerrouille()) return;
   if (state.test) return;          // un test est en cours : sélection verrouillée
   const list = document.getElementById('eval-domain-list');
   list.innerHTML = '';
@@ -24009,6 +25789,16 @@ async function exporterTest() {
   }
 }
 
+function ouvrirAideAtelier() {
+  const m = document.getElementById('aide-atelier-modal');
+  if (m) m.style.display = 'flex';
+}
+function fermerAideAtelier(ev) {
+  if (ev && ev.currentTarget !== ev.target) return;
+  const m = document.getElementById('aide-atelier-modal');
+  if (m) m.style.display = 'none';
+}
+
 function closeDomainPdfModal(ev) {
   if (ev && ev.currentTarget !== ev.target) return;
   document.getElementById('domain-pdf-modal').style.display = 'none';
@@ -24271,10 +26061,16 @@ function espaceCorrigeInner(ex, opts) {
       // Cas spécial : sélection (niveau 2) → reproduire chaque développement en
       // petit, entouré de vert (correct) ou rouge (incorrect) avec ✓ / ✗.
       if (ex.select) {
-        // PDF « domaine » : solide à gauche + développements sur UNE seule ligne
-        // (même présentation que l'exercice).
-        if (opts.sideBySide && !ex.rows && Array.isArray(ex.options)) {
+        // Solide à gauche + développements sur UNE SEULE ligne. C'était réservé
+        // au PDF de domaine (`sideBySide`) ; le PDF de sous-domaine et les
+        // séries à la carte empilaient le solide au-dessus d'une rangée qui
+        // repassait à la ligne. Les trois chaînes rendent désormais la même
+        // chose. `rows` (plusieurs solides à la suite) garde sa présentation.
+        if (!ex.rows && Array.isArray(ex.options)) {
           let o = `<div style="padding-left:16px; display:flex; align-items:center; gap:14px; flex-wrap:nowrap;">`;
+          if (ex.leftLabel) {
+            o += `<div style="flex:0 0 auto; font-weight:800; font-size:15px; color:#1F2937;">${ex.leftLabel}</div>`;
+          }
           if (typeof ex.solid === 'string' && ex.solid) {
             o += `<div style="flex:0 0 72px; width:72px; height:72px;">${ex.solid}</div>`;
           }
@@ -24296,7 +26092,9 @@ function espaceCorrigeInner(ex, opts) {
         if (ex.rows) {
           ex.rows.forEach(row => {
             out += `<div style="display:flex; align-items:center; gap:14px; margin-bottom:10px;">`;
-            out += `<div style="flex:0 0 110px; font-weight:800; font-size:15px; color:#1F2937;">${row.label}</div>`;
+            out += row.solid
+              ? `<div style="flex:0 0 72px; width:72px;">${row.solid}</div>`
+              : `<div style="flex:0 0 110px; font-weight:800; font-size:15px; color:#1F2937;">${row.label || ''}</div>`;
             out += `<div style="display:flex; flex-wrap:wrap; gap:8px;">`;
             row.options.forEach(o => {
               const col = o.valid ? '#16A34A' : '#DC2626', mark = o.valid ? '✓' : '✗';
@@ -24329,7 +26127,12 @@ function espaceCorrigeInner(ex, opts) {
     const cols = ex.singleColumn ? 2 : 4;
     let html = `<div style="display:grid; grid-template-columns:repeat(${cols}, 1fr); gap:14px 18px; padding-left:8px;">`;
     ex.questions.forEach(q => {
-      const rep = (q.answer != null) ? q.answer : (q.answerV != null ? q.answerV : '');
+      // Périmètre + aire : la réponse vit dans DEUX champs (`answerP` /
+      // `answerA`) et non dans `answer` — la case verte restait vide.
+      const rep = (q.dualPA && (q.answerP != null || q.answerA != null))
+        ? [q.answerP != null ? `P = ${q.answerP}` : null,
+           q.answerA != null ? `A = ${q.answerA}` : null].filter(Boolean).join(' ; ')
+        : ((q.answer != null) ? q.answer : (q.answerV != null ? q.answerV : ''));
       html += `<div style="text-align:center;">`
         + `<div style="font-weight:800; font-size:14px; text-align:left;">${q.label || ''}</div>`
         + (figureDe(q) || '')
@@ -24352,10 +26155,14 @@ function replaceAngHatsForPdf(root) {
     const name = sp.getAttribute('data-ang');
     if (!name) return;
     const rep = document.createElement('span');
-    rep.style.cssText = 'font-style:italic; position:relative; display:inline-block; padding-top:0.34em; line-height:1;';
+    rep.style.cssText = 'font-style:italic; display:inline-block; line-height:1; text-align:center;';
     // Chapeau = petit SVG (chevron plat) couvrant toute la largeur des lettres,
     // comme le \widehat de KaTeX – les SVG se rasterisent bien dans le PDF.
-    rep.innerHTML = `<svg viewBox="0 0 100 26" preserveAspectRatio="none" style="position:absolute; top:-0.12em; left:0; width:100%; height:0.30em; display:block; overflow:visible;"><polyline points="3,23 50,8 97,23" fill="none" stroke="currentColor" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/></svg>${name}`;
+    // Il était posé en absolu AU-DESSUS de la boîte (top négatif) : à la
+    // rasterisation, la pointe passait hors du cadre et sortait rabotée. Il est
+    // maintenant DANS le flux, au-dessus des lettres, et la pointe est placée
+    // franchement à l'intérieur du viewBox.
+    rep.innerHTML = `<svg viewBox="0 0 100 30" preserveAspectRatio="none" style="display:block; width:100%; height:0.30em; margin-bottom:0.06em;"><polyline points="4,25 50,7 96,25" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg>${name}`;
     sp.parentNode.replaceChild(rep, sp);
   });
 }
@@ -25179,7 +26986,10 @@ async function downloadDomainPdf(domainNum, compoImposee) {
         c.style.width = '36px';
       });
       // Remplace les inputs (cases vides) par un trait fin centré
+      // Pythagore : case vide sans trait (voir la chaîne sous-domaine).
+      const estPyth = tbl.classList.contains('pyth-table');
       tbl.querySelectorAll('input.answer-input-cell').forEach(inp => {
+        if (estPyth) { inp.remove(); return; }
         const span = document.createElement('span');
         span.style.cssText = 'display: inline-block; border-bottom: 1px dotted #9CA3AF; width: 40px; height: 14px; vertical-align: middle;';
         inp.parentNode.replaceChild(span, inp);
@@ -25366,6 +27176,8 @@ async function downloadDomainPdf(domainNum, compoImposee) {
       else el.remove();
     });
     exoDiv.querySelectorAll('.feedback, .inline-solution, .exo-tip, .frac-sol-detail').forEach(el => el.remove());
+    // Unité d'aide à la saisie : écran seulement (voir la chaîne sous-domaine).
+    exoDiv.querySelectorAll('.answer-unite').forEach(el => el.remove());
     exoDiv.querySelectorAll('input.answer-input, input.answer-input-cell, input.answer-input-inline').forEach(inp => {
       replaceInputBlank(inp, inp.classList.contains('answer-input-inline'));
     });
@@ -25696,7 +27508,8 @@ async function downloadDomainPdf(domainNum, compoImposee) {
         tbl.style.cssText = 'border-collapse: collapse; font-size: 13px;';
         const headerStyle = 'border: 0.75px solid #555; padding: 5px 14px; background:#F3F4F6; font-weight: 700; text-align: center;';
         const cellStyle = 'border: 0.75px solid #555; padding: 5px 14px; text-align: center;';
-        const ansStyle = cellStyle + 'background: #D1FAE5; color: #065F46; font-weight: 700;';
+        // Réponse en vert, sans fond coloré (voir la chaîne sous-domaine).
+        const ansStyle = cellStyle + 'color: #059669; font-weight: 700;';
         tbl.innerHTML = `<thead><tr>
           <th style="${headerStyle}"></th>
           <th style="${headerStyle}">A (cm)</th>
@@ -25767,7 +27580,9 @@ async function downloadDomainPdf(domainNum, compoImposee) {
           sep.style.cssText = 'grid-column: 1 / -1; margin: 6px 0 2px 0; padding-top: 6px; border-top: 1px solid #E5E7EB;';
           listWrap.appendChild(sep);
         }
-        let ans = isLong ? extractFinalResult(q.answer) : (q.answer || '');
+        // `attenduExport` : réponse admettant DEUX écritures (10⁻⁴ vaut aussi
+        // bien 1/10'000 que 0,0001). Le corrigé les donne toutes les deux.
+        let ans = q.attenduExport || (isLong ? extractFinalResult(q.answer) : (q.answer || ''));
         // Cas spécial dualPA (perim-aire : P + A) : afficher les deux réponses
         if (q.dualPA && q.answerP !== undefined && q.answerA !== undefined) {
           ans = `P = ${q.answerP} ; A = ${q.answerA}`;
@@ -26228,10 +28043,13 @@ async function downloadPdf(opts) {
 
     // En-tête (sans Nom/Date)
     const headerExo = document.createElement('div');
-    headerExo.style.cssText = 'border-bottom: 2px solid #1F2937; padding-bottom: 12px; margin-bottom: 0; flex-shrink: 0;';
+    // Titre allégé (demande du 22.08) : 18px au lieu de 22, trait de 1px au lieu
+    // de 2. Ces deux valeurs gouvernent aussi la hauteur de l'en-tête, donc
+    // l'espace qui reste aux exercices en dessous.
+    headerExo.style.cssText = 'border-bottom: 1px solid #1F2937; padding-bottom: 8px; margin-bottom: 0; flex-shrink: 0;';
     headerExo.innerHTML = `
       <div style="font-size: 13px; color: #6B7280; font-weight: 600; margin-bottom: 4px;">${found.domain.title}${mentionSansCalc(found.domain.num)}</div>
-      <div style="font-size: 22px; font-weight: 800;">${title}${niveauSuffix}</div>
+      <div style="font-size: 18px; font-weight: 800;">${title}${niveauSuffix}</div>
     `;
     // Instruments : l'en-tête des énoncés et celui du corrigé sont forcés à la
     // même hauteur, sinon tout ce qui suit est décalé d'une page à l'autre.
@@ -26435,6 +28253,42 @@ async function downloadPdf(opts) {
       } finally {
         state.niveau = savedNiveau;
       }
+    } else if (found.sub.id === 'decimaux') {
+      // Deux exercices, selon le niveau affiché à l'écran :
+      //   · sur le niveau 1 → Exercice 1 en niveau 1, Exercice 2 en niveau 2 ;
+      //   · sur le niveau 2 → les deux exercices en niveau 2.
+      // L'Exercice 1 reprend celui qui est À L'ÉCRAN (via le cache) ; le second
+      // est tiré à neuf. AUCUN CALCUL ne doit se répéter d'un exercice à
+      // l'autre : on retire jusqu'à trouver un tirage sans recoupement.
+      const variantKey = (Array.isArray(found.sub.variants) && found.sub.variants.length > 0)
+        ? (state.variantParSubId[state.activeSubId] || found.sub.variants[0].key) : '_';
+      const vDef = (Array.isArray(found.sub.variants) && found.sub.variants.length > 0)
+        ? (found.sub.variants.find(v => v.key === variantKey) || found.sub.variants[0]) : null;
+      const genV = (vDef && typeof vDef.gen === 'function') ? vDef.gen : found.sub.gen;
+      const savedNiveau = state.niveau;
+      const nivEcran = (state.niveau === 2) ? 2 : 1;
+      try {
+        const ck = `decimaux|${variantKey}|${nivEcran}`;
+        state.niveau = nivEcran;
+        let ex1 = (state.exercisesCache[ck] && state.exercisesCache[ck][0]) || genV();
+        state.niveau = 2;
+        const dejaVus = new Set((ex1.questions || []).map(q => q.text));
+        let ex2 = null;
+        for (let essai = 0; essai < 40; essai++) {
+          const cand = genV();
+          if (!cand || !Array.isArray(cand.questions)) continue;
+          if (cand.questions.some(q => dejaVus.has(q.text))) continue;
+          ex2 = cand;
+          break;
+        }
+        if (!ex2) ex2 = genV();          // filet : mieux vaut un doublon qu'un trou
+        exercisesForPdf = [
+          { ...ex1, _realNiveau: nivEcran },
+          { ...ex2, _realNiveau: 2 }
+        ];
+      } finally {
+        state.niveau = savedNiveau;
+      }
     } else if (found.sub.hasNiveau2 && found.sub.id !== 'vocab' && typeof found.sub.gen === 'function') {
       // Le PDF reprend l'exercice AFFICHÉ À L'ÉCRAN pour chaque niveau : on lit le
       // cache (subId|variante|niveau) ; on garde 1 exercice par niveau, donc la
@@ -26444,13 +28298,20 @@ async function downloadPdf(opts) {
       const nbNiveaux = Array.isArray(found.sub.niveauLabels) ? found.sub.niveauLabels.length : 2;
       const variantKey = (Array.isArray(found.sub.variants) && found.sub.variants.length > 0)
         ? (state.variantParSubId[state.activeSubId] || found.sub.variants[0].key) : '_';
+      // Un niveau jamais ouvert est généré à la volée : il faut le générateur
+      // de la VARIANTE choisie, sinon le PDF mêlerait une page « Divisions »
+      // et une page « Mélange ».
+      const vDef = (Array.isArray(found.sub.variants) && found.sub.variants.length > 0)
+        ? (found.sub.variants.find(v => v.key === variantKey) || found.sub.variants[0])
+        : null;
+      const genPourPdf = (vDef && typeof vDef.gen === 'function') ? vDef.gen : found.sub.gen;
       const savedNiveau = state.niveau;
       try {
         exercisesForPdf = [];
         for (let niv = 1; niv <= nbNiveaux; niv++) {
           const ck = `${state.activeSubId}|${variantKey}|${niv}`;
           let src = (state.exercisesCache[ck] && state.exercisesCache[ck][0]) || null;
-          if (!src) { state.niveau = niv; src = found.sub.gen(); }
+          if (!src) { state.niveau = niv; src = genPourPdf(); }
           if (src) exercisesForPdf.push({ ...src }); // clone superficiel (protège l'objet de l'écran)
         }
       } finally {
@@ -26498,6 +28359,43 @@ async function downloadPdf(opts) {
     }
     exercisesForPdf.forEach(ex => unifierPrenoms(ex));
     if (opts.composerSeulement) return exercisesForPdf;
+    // ====== Découpe d'un exercice trop long ======
+    // Les conteneurs de page sont à HAUTEUR FIXE avec débordement masqué : un
+    // exercice qui ne tient pas n'est pas reporté, il est PERDU. C'est ce qui
+    // arrivait à un exercice de décimaux fusionné (8 questions) : e) f) g) h)
+    // disparaissaient du PDF sans erreur. On le coupe donc en tranches de la
+    // taille d'une page, chacune gardant le numéro et les libellés d'origine ;
+    // les suivantes portent la mention « suite ».
+    // Le CORRIGÉ, lui, continue de travailler sur `exercisesForPdf` : les
+    // réponses a) à h) restent groupées sous un seul « Exercice 2 ».
+    const Q_PAR_PAGE = { decimaux: 6 };
+    // Hauteur d'une rangée de décimaux : trois rangées remplissent la zone
+    // d'exercices d'une page (≈ 850 px sous l'en-tête, le titre et la consigne).
+    const RANGEE_DECIMAUX = 283;
+    const maxParPage = Q_PAR_PAGE[found.sub.id] || 0;
+    let exercicesEnonce = exercisesForPdf;
+    if (maxParPage) {
+      exercicesEnonce = [];
+      exercisesForPdf.forEach((ex, i) => {
+        const qs = Array.isArray(ex.questions) ? ex.questions : null;
+        if (!qs || qs.length <= maxParPage || ex.subgroups) {
+          exercicesEnonce.push({ ...ex, _numeroPdf: i + 1 });
+          return;
+        }
+        for (let d = 0; d < qs.length; d += maxParPage) {
+          exercicesEnonce.push({
+            ...ex,
+            questions: qs.slice(d, d + maxParPage),
+            _numeroPdf: i + 1,
+            _suitePdf: d > 0,
+            // Marque une tranche : sa mise en page donne à chaque RANGÉE la
+            // même hauteur, pour que la page 2 (2 questions) laisse le même
+            // blanc sous sa rangée que les trois rangées de la page 1.
+            _trancheDe: qs.length
+          });
+        }
+      });
+    }
     // Maintenant qu'on connait le nombre d'exercices, on divise l'espace
     // disponible en N tranches égales – SAUF pour la proportion, où l'on empile
     // ex 1 et ex 2 avec un espace réduit (évite le grand blanc entre les deux).
@@ -26529,7 +28427,7 @@ async function downloadPdf(opts) {
       exoWrapper.style.alignContent = 'start';
       exoWrapper.style.rowGap = STACK_ROWGAP[state.activeSubId];
     } else {
-      exoWrapper.style.gridTemplateRows = `repeat(${exercisesForPdf.length}, 1fr)`;
+      exoWrapper.style.gridTemplateRows = `repeat(${exercicesEnonce.length}, 1fr)`;
     }
 
     // Helpers pour le nettoyage d'un clone d'exercice.
@@ -26635,7 +28533,12 @@ async function downloadPdf(opts) {
         tbl.querySelectorAll('th.prop-th').forEach(c => {
           c.style.width = '36px';
         });
+        // Tableau de Pythagore : la case vide se passe de trait — l'élève y
+        // écrit une mesure, pas sur une ligne. Le pointillé reste pour le
+        // tableau de proportionnalité, où il marque la case à compléter.
+        const estPyth = tbl.classList.contains('pyth-table');
         tbl.querySelectorAll('input.answer-input-cell').forEach(inp => {
+          if (estPyth) { inp.remove(); return; }
           const span = document.createElement('span');
           span.style.cssText = 'display: inline-block; border-bottom: 1px dotted #9CA3AF; width: 40px; height: 14px; vertical-align: middle;';
           inp.parentNode.replaceChild(span, inp);
@@ -26865,6 +28768,10 @@ async function downloadPdf(opts) {
         }
       });
       exoDiv.querySelectorAll('.feedback, .inline-solution, .exo-tip, .frac-sol-detail').forEach(el => el.remove());
+      // L'unité affichée à droite du champ (« CHF », « g », « m² ») guide la
+      // SAISIE à l'écran ; sur papier elle souffle la réponse et n'a pas lieu
+      // d'être.
+      exoDiv.querySelectorAll('.answer-unite').forEach(el => el.remove());
       // Inputs restants (non no-print) : remplacer aussi
       exoDiv.querySelectorAll('input.answer-input, input.answer-input-cell, input.answer-input-inline').forEach(inp => {
         replaceInputBlank(inp, inp.classList.contains('answer-input-inline'));
@@ -26905,7 +28812,20 @@ async function downloadPdf(opts) {
           } else {
             // Décimaux : a)/b) en haut, c)/d) au milieu de la page – le blanc
             // entre les deux rangées sert à poser les opérations en colonne.
-            if (state.activeSubId === 'decimaux') grid.style.gap = '400px 32px';
+            if (state.activeSubId === 'decimaux') {
+              if (ex._trancheDe || opts.rendreBlocs) {
+                // Exercice découpé (fusion N1+N2, 8 questions) OU bloc destiné
+                // à une série en flux : chaque rangée reçoit la MÊME hauteur —
+                // 3 rangées remplissent la page, et la dernière rangée garde le
+                // même blanc en dessous (en flux, rien ne le lui donnait : le
+                // bloc s'arrêtait net sous c)/d)).
+                const nbRangees = Math.ceil((ex.questions || []).length / 2);
+                grid.style.gridTemplateRows = `repeat(${nbRangees}, ${RANGEE_DECIMAUX}px)`;
+                grid.style.alignContent = 'start';
+                grid.style.alignItems = 'start';
+                grid.style.gap = '0 32px';
+              } else grid.style.gap = '400px 32px';
+            }
             // Relatifs : une ligne blanche supplémentaire entre la rangée a)/b)
             // et la rangée c)/d) ; l'exercice 2 (niveau 2, calculs plus longs)
             // en reçoit une de plus.
@@ -26959,7 +28879,7 @@ async function downloadPdf(opts) {
       return exoDiv;
     };
 
-    exercisesForPdf.forEach((ex, idx) => {
+    exercicesEnonce.forEach((ex, idx) => {
       const dom = buildExerciseDom(ex, idx);
       if (!dom) return;
       // Pour les sous-domaines à 2 niveaux, badge "– Niveau N" dans le titre
@@ -27007,18 +28927,29 @@ async function downloadPdf(opts) {
       } else if (found.sub.hasNiveau2 && found.sub.id !== 'developpements' && found.sub.id !== 'vocab') {
         const numDiv = dom.querySelector('.exercise-num');
         if (numDiv) {
-          if (ex._noNiveauTag) {
-            // « Niveau 1 / 2 » n'a pas de sens ici : on affiche le nom de la
-            // sous-rubrique de l'exercice (« Déduction d'angle », « Arc -
-            // secteur »), pris sur l'exercice et non sur l'écran courant.
-            const rub = Array.isArray(found.sub.niveauLabels)
-              ? found.sub.niveauLabels[(ex._realNiveau || (idx + 1)) - 1] : null;
+          // « Niveau 1 / 2 » ne dit rien quand les niveaux ont un NOM
+          // (« Déduction d'angle », « Arc - secteur ») : on affiche celui de
+          // l'exercice, pris sur `_realNiveau` et non sur sa position — dans
+          // une série il est seul de son groupe. Le drapeau `_noNiveauTag`,
+          // posé par la composition du PDF de sous-domaine, ne voyageait pas
+          // jusqu'ici : la série retombait sur « Niveau 1 ».
+          const rub = (Array.isArray(found.sub.niveauLabels) && !SANS_RUBRIQUE.has(found.sub.id))
+            ? found.sub.niveauLabels[(ex._realNiveau || (idx + 1)) - 1] : null;
+          if (ex._noNiveauTag || rub) {
             numDiv.innerHTML = rub
               ? `Exercice ${idx + 1}. <span style="color:#6B7280; font-weight:600; font-size:14px; text-transform:none;">– ${rub}</span>`
               : `Exercice ${idx + 1}.`;
           } else {
-            const niveau = ex._realNiveau || (idx + 1);  // niveau réel (et non la position)
-            numDiv.innerHTML = `Exercice ${idx + 1}. <span style="color:#6B7280; font-weight:600; font-size:14px;">– Niveau ${niveau}</span>`;
+            // Niveau réel, et non la position : avec un exercice coupé, la
+            // position ne correspond plus au rang de l'exercice.
+            const niveau = ex._realNiveau || ex._numeroPdf || (idx + 1);
+            // Un exercice coupé garde SON numéro sur chaque page ; les tranches
+            // suivantes sont annoncées comme une suite.
+            const num = ex._numeroPdf || (idx + 1);
+            const suite = ex._suitePdf ? ' <span style="color:#9CA3AF; font-weight:600; font-size:13px; text-transform:none;">(suite)</span>' : '';
+            // La suite d'un exercice découpé ne reprend pas sa consigne.
+            if (ex._suitePdf) exoDiv.querySelectorAll('.exo-consigne').forEach(el => el.remove());
+            numDiv.innerHTML = `Exercice ${num}.${suite} <span style="color:#6B7280; font-weight:600; font-size:14px;">– Niveau ${niveau}</span>`;
           }
         }
       } else if (Array.isArray(found.sub.variants) && found.sub.variants.length > 0) {
@@ -27087,9 +29018,16 @@ async function downloadPdf(opts) {
     exercisesForPdf.forEach((ex, exIdx) => {
       const exDiv = document.createElement('div');
       exDiv.style.cssText = 'margin-bottom: 18px;';
+      // Même règle qu'à l'énoncé : le NOM de la sous-rubrique quand il existe,
+      // « Niveau N » sinon, et rien du tout pour les sous-domaines qui n'en
+      // veulent pas.
+      const rubCor = (Array.isArray(found.sub.niveauLabels) && !SANS_RUBRIQUE.has(found.sub.id))
+        ? found.sub.niveauLabels[(ex._realNiveau || (exIdx + 1)) - 1] : null;
       const niveauTag = (found.sub.id === 'prop-concret')
         ? ` <span style="color:#6B7280; font-weight:600; font-size:13px;">– ${(['proportionnalité', 'fractions', '% - rabais'][(ex._propNiveau || (exIdx + 1)) - 1] || '')}</span>`
-        : (found.sub.hasNiveau2 && found.sub.id !== 'developpements' && found.sub.id !== 'vocab' && !ex._noNiveauTag)
+        : (rubCor && found.sub.id !== 'developpements' && found.sub.id !== 'vocab')
+        ? ` <span style="color:#6B7280; font-weight:600; font-size:13px; text-transform:none;">– ${rubCor}</span>`
+        : (found.sub.hasNiveau2 && found.sub.id !== 'developpements' && found.sub.id !== 'vocab' && found.sub.id !== 'perim-aire' && !ex._noNiveauTag)
         ? ` <span style="color:#6B7280; font-weight:600; font-size:13px;">– Niveau ${ex._realNiveau || (exIdx + 1)}</span>`
         : '';
       let inner = `<div style="font-weight: 800; color: #1F2937; margin-bottom: 6px;">Exercice ${exIdx + 1}.${niveauTag}</div>`;
@@ -27097,8 +29035,16 @@ async function downloadPdf(opts) {
       // juste le résultat numérique final. Sinon, on garde l'HTML brut (fractions,
       // racines, etc.) tel quel.
       const isLong = (typeof LONG_ANSWER_SUBDOMAINS !== 'undefined') && LONG_ANSWER_SUBDOMAINS.has(state.activeSubId);
+      // perim-aire niveau 3 (« Problèmes ») : espaceCorrigeInner capte tout
+      // exercice `multi` dont une question porte `figureSvg` et en fait une
+      // grille figure-par-figure. Or ici deux énoncés sur cinq seulement sont
+      // illustrés : la grille laissait des cases vides et, avec les dessins,
+      // débordait du conteneur à hauteur fixe – la fin du corrigé était coupée
+      // sans erreur. Ce niveau reprend donc la liste de réponses du niveau 2.
+      const _nivCor = ex._realNiveau || (exIdx + 1);
+      const _sansGrilleFigures = (found.sub.id === 'perim-aire' && _nivCor === 3);
       // Cas spécial : phrases à compléter → réponses en vert dans chaque phrase.
-      { const _esp = espaceCorrigeInner(ex);
+      { const _esp = _sansGrilleFigures ? null : espaceCorrigeInner(ex);
         if (_esp !== null && _esp !== undefined) {
           inner += _esp;
           exDiv.innerHTML = inner;
@@ -27145,7 +29091,9 @@ async function downloadPdf(opts) {
         </tr></thead><tbody>`;
         ex.questions.forEach(q => {
           const cellStyle = 'border: 0.75px solid #555; padding: 6px 14px; text-align: center;';
-          const ansStyle = cellStyle + 'background: #D1FAE5; color: #065F46; font-weight: 700;';
+          // Réponse : le VERT du texte suffit à la désigner, la cellule reste
+          // blanche (demande du 23.08).
+          const ansStyle = cellStyle + 'color: #059669; font-weight: 700;';
           const cellA = q.unknown === 'A' ? `<td style="${ansStyle}">${q.answerNum}</td>` : `<td style="${cellStyle}">${q.A}</td>`;
           const cellB = q.unknown === 'B' ? `<td style="${ansStyle}">${q.answerNum}</td>` : `<td style="${cellStyle}">${q.B}</td>`;
           const cellC = q.unknown === 'C' ? `<td style="${ansStyle}">${q.answerNum}</td>` : `<td style="${cellStyle}">${q.C}</td>`;
@@ -27262,7 +29210,9 @@ async function downloadPdf(opts) {
           if (isTransformGrid && ex.splitAt && qIdx === ex.splitAt) {
             inner += `<div style="grid-column: 1 / -1; margin: 6px 0 2px 0; padding-top: 6px; border-top: 1px solid #E5E7EB;"></div>`;
           }
-          let ans = isLong ? extractFinalResult(q.answer) : (q.answer || '');
+          // `attenduExport` : réponse admettant DEUX écritures (10⁻⁴ vaut aussi
+        // bien 1/10'000 que 0,0001). Le corrigé les donne toutes les deux.
+        let ans = q.attenduExport || (isLong ? extractFinalResult(q.answer) : (q.answer || ''));
           // Résoudre une équation : réponse sous la forme « x = valeur » ; si la
           // valeur est une fraction, on l'affiche en fraction verticale.
           if (state.activeSubId === 'resoudre-eq') {
@@ -27315,8 +29265,11 @@ async function downloadPdf(opts) {
               const valStr = (q.outputs && q.outputs[0] && q.outputs[0].valueStr) || '';
               ans = `${q.text} = ${valStr} <strong>${q.expectedUnit}</strong>`;
             } else if (Array.isArray(q.expected) && Array.isArray(q.outputs)) {
-              const right = q.expected.map((v, i) => `${fmt(v)} ${q.outputs[i].unit}`).join(' ');
-              ans = `${q.text} = <strong>${right}</strong>`;
+              // La réponse attendue est la VALEUR : l'unité était donnée dans
+              // l'énoncé, elle n'a pas à être mise en évidence avec elle.
+              const right = q.expected
+                .map((v, i) => `<strong>${fmt(v)}</strong> ${q.outputs[i].unit}`).join(' ');
+              ans = `${q.text} = ${right}`;
             }
           }
           // Étape intermédiaire (Vol-Cap) : affichée en plus petit sous la réponse.
@@ -27344,10 +29297,91 @@ async function downloadPdf(opts) {
     // Figures : rogner le blanc au-dessus du dessin (viewBox à hauteur fixe).
     recadrerFiguresHaut(cExo);
     recadrerFiguresHaut(cCor);
+    figerTailleSvg(cExo);
+    figerTailleSvg(cCor);
+
+    // ============ Série « à la carte » : on rend les BLOCS, pas le document ==
+    // Ici, toute la mise en page du sous-domaine est appliquée mais rien n'est
+    // encore paginé. L'appelant récupère l'en-tête, les exercices et le
+    // corrigé, et les enchaîne en flux avec ceux des autres sous-domaines :
+    // sans cela chaque sous-domaine occupait une page entière, même pour un
+    // seul exercice.
+    if (opts.rendreBlocs) {
+      // KaTeX n'était rendu que plus bas, dans l'assemblage : les blocs rendus
+      // ici partaient donc avec des <span data-tex> VIDES — les racines de
+      // l'exercice « Calculer des racines » disparaissaient de l'énoncé comme
+      // du corrigé, sans erreur. On les rend avant de sortir.
+      if (typeof renderKatex === 'function') renderKatex();
+      // Le conteneur étire ses exercices sur la hauteur d'une page (grille en
+      // `1fr`) : en flux, chacun doit reprendre sa hauteur naturelle.
+      exoWrapper.style.gridTemplateRows = 'auto';
+      exoWrapper.style.alignContent = 'start';
+      exoWrapper.style.flex = '';
+      cExo.style.height = 'auto';
+      cExo.style.minHeight = '0';
+      // Le blanc à écrire SOUS la dernière rangée d'un exercice vient du
+      // `rowGap` du conteneur, qui ne s'applique qu'ENTRE deux enfants : en
+      // flux, le dernier (souvent le seul) n'en recevait aucun et l'exercice
+      // suivant venait se coller à ses réponses. On le repose en PADDING et non
+      // en marge : le padding agrandit la boîte, donc la photographie du bloc
+      // englobe ce qui déborde de la dernière ligne — une fraction KaTeX
+      // (« √90 / 3 ») dépasse son interligne et se retrouvait rognée par le
+      // bas du bloc.
+      const basSousExercice = STACK_ROWGAP[state.activeSubId];
+      Array.from(exoWrapper.children).forEach(ch => {
+        let bas = basSousExercice;
+        if (!bas) {
+          // Les grilles qui RÉPARTISSENT leurs questions sur une hauteur imposée
+          // (perim-aire, volumes : space-between sur 780 ou 900 px) collent la
+          // dernière au bas du bloc. Dans le PDF de sous-domaine il restait le
+          // bas de page pour écrire ; en flux, l'exercice suivant venait s'y
+          // coller. On rend à la dernière question le MÊME intervalle qu'entre
+          // deux questions, mesuré sur la mise en page réelle.
+          const items = ch.querySelectorAll('.multi-item');
+          if (items.length >= 2) {
+            const r0 = items[0].getBoundingClientRect();
+            // Blanc DÉJÀ présent sous la dernière question : les mises en page
+            // qui laissent volontairement de la place (volumes ex 3 : rowGap de
+            // 230 px sur une grille alignée en haut) n'ont besoin de rien, et
+            // leur ajouter un intervalle de plus doublait la hauteur du bloc.
+            const dejaBas = ch.getBoundingClientRect().bottom
+                          - items[items.length - 1].getBoundingClientRect().bottom;
+            for (let i = 1; i < items.length; i++) {
+              const ri = items[i].getBoundingClientRect();
+              if (ri.top > r0.bottom - 1) {
+                const voulu = Math.min(ri.top - r0.bottom, 150);
+                if (voulu > 12 && dejaBas < voulu - 4) bas = Math.round(voulu - dejaBas) + 'px';
+                break;
+              }
+            }
+          }
+        }
+        ch.style.paddingBottom = bas || '10px';
+      });
+      opts.blocs = {
+        entete: headerExo,
+        exercices: Array.from(exoWrapper.children),
+        corrige: cCor,
+        conteneurs: [cExo, cCor]
+      };
+      if (btn) { btn.innerHTML = origLabel; btn.disabled = false; }
+      return;
+    }
 
     // ============ Assemblage PDF ============
     const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
+    // Document PARTAGÉ : une série « à la carte » enchaîne plusieurs
+    // sous-domaines, chacun rendu par CETTE fonction pour retrouver exactement
+    // sa mise en page. Chaque passage écrit dans le même document et ne le
+    // sauvegarde pas ; l'appelant numérote et enregistre à la fin. Sans ces
+    // options, le comportement est celui d'avant, à l'identique.
+    const pdf = opts.pdfPartage || new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
+    const partage = !!opts.pdfPartage;
+    // Un document partagé porte déjà des pages : ce groupe ne commence donc pas
+    // sur la première page mais sur une page neuve.
+    const debutNeuf = (premier) => partage ? false : premier;
+    const sauver = (nom) => { if (!partage) pdf.save(nom); };
+    const numeroter = (dep) => { if (!partage) addPageNumbers(pdf, dep); else opts.pageCorrige = dep; };
     const pageWidthMm = 210;
     const pageHeightMm = 297;
 
@@ -27370,6 +29404,15 @@ async function downloadPdf(opts) {
       const imgData = canvas.toDataURL('image/jpeg', 0.92);
       if (!isFirst) pdf.addPage();
       pdf.addImage(imgData, 'JPEG', 0, 0, imgWidthMm, Math.min(imgHeightMm, pageHeightMm));
+    };
+
+    // Dans une série « à la carte », les corrigés de tous les sous-domaines
+    // sont reportés à la FIN du document : sans cela ils s'intercaleraient
+    // entre les énoncés, un par groupe, et la feuille de l'élève porterait les
+    // réponses. On met le conteneur de côté ; l'appelant le paginera.
+    const poserCorrige = async (cont, isFirst) => {
+      if (Array.isArray(opts.corrigesDifferes)) { opts.corrigesDifferes.push(cont); return; }
+      await addContainerPages(cont, isFirst);
     };
 
     // Force le rendu KaTeX sur tous les <span data-tex> qui pourraient être
@@ -27401,10 +29444,10 @@ async function downloadPdf(opts) {
 
       // En-tête (domaine + titre) en premier bloc
       const headerWrap = document.createElement('div');
-      headerWrap.style.cssText = 'width: 770px; background:#fff; font-family: Nunito, sans-serif; color:#1F2937; padding-bottom: 8px; border-bottom: 2px solid #1F2937;';
+      headerWrap.style.cssText = 'width: 770px; background:#fff; font-family: Nunito, sans-serif; color:#1F2937; padding-bottom: 8px; border-bottom: 1px solid #1F2937;';
       headerWrap.innerHTML = `
         <div style="font-size: 13px; color: #6B7280; font-weight: 600; margin-bottom: 4px;">${found.domain.title}${mentionSansCalc(found.domain.num)}</div>
-        <div style="font-size: 22px; font-weight: 800;">${title}</div>`;
+        <div style="font-size: 18px; font-weight: 800;">${title}</div>`;
       blocks.push(headerWrap);
 
       // Chaque exercice (niveau) : titre selon le NIVEAU réel (et non la position).
@@ -27493,6 +29536,9 @@ async function downloadPdf(opts) {
       }
 
       // --- Placement définitif ---
+      // Document partagé : ce groupe démarre sur une page neuve, la précédente
+      // appartenant au sous-domaine d'avant.
+      if (partage) { pdf.addPage(); cursorY = marginTopMm; }
       for (let i = 0; i < measures.length; i++) {
         const m = measures[i];
         const forced = breaks.has(i) && cursorY > marginTopMm;
@@ -27503,21 +29549,14 @@ async function downloadPdf(opts) {
       }
 
       // Page corrigé (réutilise cCor déjà construit)
-      pdf.addPage();
-      const corrigeStartPage = pdf.internal.getNumberOfPages();
-      const corrCanvas = await html2canvas(cCor, {
-        scale: 2, useCORS: true, backgroundColor: '#FFFFFF',
-        width: 794, height: 1123, windowWidth: 794, windowHeight: 1123
-      });
-      const corrWmm = pageWidthMm;
-      const corrHmm = (corrCanvas.height * corrWmm) / corrCanvas.width;
-      pdf.addImage(corrCanvas.toDataURL('image/jpeg', 0.92), 'JPEG', 0, 0, corrWmm, Math.min(corrHmm, pageHeightMm));
+      const corrigeStartPage = pdf.internal.getNumberOfPages() + 1;
+      await poserCorrige(cCor, false);
 
       // Numérotation (énoncés / corrigé indépendants)
-      addPageNumbers(pdf, corrigeStartPage);
+      numeroter(corrigeStartPage);
 
       const safeName = title.replace(/[^\w\sÀ-ÿ-]/g, '').replace(/\s+/g, '_').slice(0, 60);
-      pdf.save(`${safeName}.pdf`);
+      sauver(`${safeName}.pdf`);
       // Nettoyage des conteneurs et sortie anticipée
       if (cExo.parentNode) document.body.removeChild(cExo);
       if (cCor.parentNode) document.body.removeChild(cCor);
@@ -27577,13 +29616,13 @@ async function downloadPdf(opts) {
         const enonceContainers = buildContainers(exoChildren, headerExo);
         const corrContainers = buildContainers(corChildren, headerCor);
 
-        for (let i = 0; i < enonceContainers.length; i++) await addContainerPages(enonceContainers[i], i === 0);
+        for (let i = 0; i < enonceContainers.length; i++) await addContainerPages(enonceContainers[i], debutNeuf(i === 0));
         const corrigeStartPageV = pdf.internal.getNumberOfPages() + 1;
-        for (let i = 0; i < corrContainers.length; i++) await addContainerPages(corrContainers[i], false);
+        for (let i = 0; i < corrContainers.length; i++) await poserCorrige(corrContainers[i], false);
 
-        addPageNumbers(pdf, corrigeStartPageV);
+        numeroter(corrigeStartPageV);
         const safeNameV = title.replace(/[^\w\sÀ-ÿ-]/g, '').replace(/\s+/g, '_').slice(0, 60);
-        pdf.save(`${safeNameV}.pdf`);
+        sauver(`${safeNameV}.pdf`);
 
         if (cExo.parentNode) document.body.removeChild(cExo);
         if (cCor.parentNode) document.body.removeChild(cCor);
@@ -27623,13 +29662,13 @@ async function downloadPdf(opts) {
         cExo2.appendChild(wrap2);
         document.body.appendChild(cExo2);
 
-        await addContainerPages(cExo, true);      // page 1 : a)–d)
+        await addContainerPages(cExo, debutNeuf(true));      // page 1 : a)–d)
         await addContainerPages(cExo2, false);    // page 2 : e)–f)
         const corrigeStartPageQ = pdf.internal.getNumberOfPages() + 1;
-        await addContainerPages(cCor, false);     // dernière page : corrigé
-        addPageNumbers(pdf, corrigeStartPageQ);
+        await poserCorrige(cCor, false);     // dernière page : corrigé
+        numeroter(corrigeStartPageQ);
         const safeNameQ = title.replace(/[^\w\sÀ-ÿ-]/g, '').replace(/\s+/g, '_').slice(0, 60);
-        pdf.save(`${safeNameQ}.pdf`);
+        sauver(`${safeNameQ}.pdf`);
 
         if (cExo.parentNode) document.body.removeChild(cExo);
         if (cExo2.parentNode) document.body.removeChild(cExo2);
@@ -27649,8 +29688,9 @@ async function downloadPdf(opts) {
     if (found.sub.id === 'instruments' && exercisesForPdf.length === 5) {
       // Parallèle + perpendiculaire | angles (2 figures) | médiatrice + bissectrice
       pageGroups = [[0, 1], [2], [3, 4]];
-    } else if ((found.sub.id === 'perim-aire' || found.sub.id === 'volumes' || found.sub.id === 'decimaux' || found.sub.id === 'prop-figures') && exercisesForPdf.length >= 2) {
-      pageGroups = exercisesForPdf.map((_, i) => [i]);
+    } else if ((found.sub.id === 'perim-aire' || found.sub.id === 'volumes' || found.sub.id === 'decimaux' || found.sub.id === 'prop-figures') && exercicesEnonce.length >= 2) {
+      // Une page par TRANCHE d'énoncé (un exercice coupé en occupe plusieurs).
+      pageGroups = exercicesEnonce.map((_, i) => [i]);
     } else if (found.sub.id === 'unites' && exercisesForPdf.length >= 3) {
       // Deux tableaux d'unités remplissent une page : on passe à la suivante
       // tous les 2 exercices (le conteneur est à hauteur fixe, le surplus
@@ -27665,7 +29705,7 @@ async function downloadPdf(opts) {
     }
     if (pageGroups) {
       const exoChildren = Array.from(exoWrapper.children);
-      if (exoChildren.length === exercisesForPdf.length) {
+      if (exoChildren.length === exercicesEnonce.length) {
         const empile = !!STACK_ROWGAP[state.activeSubId];
         // Page 1 : on ne garde que les exercices du 1er groupe.
         exoChildren.forEach((ch, i) => {
@@ -27725,23 +29765,23 @@ async function downloadPdf(opts) {
           }
         }
 
-        await addContainerPages(cExo, true);                  // page 1 : N1
+        await addContainerPages(cExo, debutNeuf(true));                  // page 1 : N1
         for (const c of extraContainers) {
           await addContainerPages(c, false);                  // pages suivantes : N2, N3...
         }
         const corrigeStartPagePA = pdf.internal.getNumberOfPages() + 1;
-        await addContainerPages(cCor, false);                 // corrigé
+        await poserCorrige(cCor, false);                 // corrigé
         for (const c of extraCorr) {
-          await addContainerPages(c, false);
+          await poserCorrige(c, false);
         }
 
-        addPageNumbers(pdf, corrigeStartPagePA);
+        numeroter(corrigeStartPagePA);
         const safeNamePA = title.replace(/[^\w\sÀ-ÿ-]/g, '').replace(/\s+/g, '_').slice(0, 60);
         // developper (variantes) et unites (unités) ne sont pas des niveaux.
         const suffix = (found.sub.id === 'developper' || found.sub.id === 'unites')
           ? ''
           : (exercisesForPdf.length === 2 ? '_N1-N2' : '_N1-N2-N3');
-        pdf.save(`${safeNamePA}${suffix}.pdf`);
+        sauver(`${safeNamePA}${suffix}.pdf`);
 
         if (cExo.parentNode) document.body.removeChild(cExo);
         extraContainers.forEach(c => { if (c.parentNode) document.body.removeChild(c); });
@@ -27752,17 +29792,17 @@ async function downloadPdf(opts) {
       }
     }
 
-    await addContainerPages(cExo, true);   // énoncés (commence page 1)
+    await addContainerPages(cExo, debutNeuf(true));   // énoncés (commence page 1)
     const corrigeStartPageStd = pdf.internal.getNumberOfPages() + 1;
-    await addContainerPages(cCor, false);  // corrigé (nouvelle page)
+    await poserCorrige(cCor, false);  // corrigé (nouvelle page)
 
     // Numérotation (énoncés / corrigé indépendants)
-    addPageNumbers(pdf, corrigeStartPageStd);
+    numeroter(corrigeStartPageStd);
 
     // Nom de fichier
     const safeName = title.replace(/[^\w\sÀ-ÿ-]/g, '').replace(/\s+/g, '_').slice(0, 60);
     const fileSuffix = (found.sub.hasNiveau2) ? `_N1-N2` : '';
-    pdf.save(`${safeName}${fileSuffix}.pdf`);
+    sauver(`${safeName}${fileSuffix}.pdf`);
 
     // Nettoyage des conteneurs hors-écran
     document.body.removeChild(cExo);
