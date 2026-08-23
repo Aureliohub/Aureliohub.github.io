@@ -8,6 +8,34 @@ générant des exercices de mathématiques pour adultes (programme PAI, Suisse).
 Product owner : Aurelio (Onex/Genève). Répondre en FRANÇAIS.
 
 ───────────────────────────────────────────────────────────────────────────────
+0. OÙ ON EN EST (v456, 23.08.2026) — à lire en premier
+───────────────────────────────────────────────────────────────────────────────
+L'application est en ligne : https://aureliohub.github.io/eva_maths.html
+Les fichiers de série et de test (.json) sont déposés à côté d'elle, et s'ouvrent
+par l'adresse : `…/eva_maths.html?serie=mix-test.json`.
+
+L'ATELIER (« Créer une série d'exercices à la carte ») est le cœur du travail
+récent. Une composition, TROIS sorties : PDF · Aperçu écran · Test. Il n'y a
+volontairement PAS d'espace « Créer un test » séparé.
+
+CE QUI ATTEND UNE ACTION D'AURELIO
+· Tableur Google : il doit créer la feuille, y coller le script Apps Script
+  (à lui fournir) et publier, puis transmettre l'adresse obtenue. C'est le
+  canal de RETOUR DES RÉSULTATS des tests. Le point de branchement est unique :
+  la fin de `validerTest`, quand `state.test.eleve` existe.
+
+À NE PAS OUBLIER AVANT DE DONNER L'APPLICATION AUX ÉLÈVES
+· `REMPLISSAGE_AUTO = true` → repasser à false : le bouton « ⚡ Remplir » du
+  pied de test est visible de tous.
+· `MDP_ENSEIGNANT_ACTIF = false` → à décider (voir §8.5).
+
+PISTES ÉVOQUÉES, NON ENGAGÉES
+· Espaces de composition séparés par enseignant (clé de rangement par nom sur un
+  poste partagé ; rien ne suit d'un poste à l'autre sans le tableur).
+· Réintégrer les constructions règle/compas dans le test le jour où il aura une
+  version PDF.
+
+───────────────────────────────────────────────────────────────────────────────
 1. CONVENTIONS DE TRAVAIL
 ───────────────────────────────────────────────────────────────────────────────
 - Virgule décimale, apostrophe des milliers, CHF (formats suisses).
@@ -385,6 +413,42 @@ PDF de domaine :
 ───────────────────────────────────────────────────────────────────────────────
 Cette section décrit l'ÉTAT, non l'historique. Les numéros de version ne sont
 cités que lorsqu'ils aident à retrouver un choix dans le fichier.
+
+v457 — Ajout du §0 « Où on en est », pour qu'une nouvelle conversation reparte
+sans relire tout l'historique.
+
+v456 — Message de sortie raccourci (« Le document a été enregistré sous « … ».
+Le test et son score ne sont pas conservés. »), et NOM DE FICHIER accentué : les
+accents tombaient dans `[^\w]` et devenaient des tirets — « Test Algèbre » sortait
+en « Test-Alg-bre ». Ils sont maintenant ramenés à leur lettre de base
+(normalize NFD) avant le nettoyage. Vaut pour le prénom comme pour le titre.
+
+v455 — FENÊTRE DE SORTIE : ne pas reproposer un export déjà fait. Après avoir
+exporté, l'élève cliquait « Quitter » et se voyait offrir d'exporter de nouveau
+— de quoi croire que le premier export avait échoué.
+ · `exporterTest` pose `state.test.exporte = { nom, quand }` juste après
+   `pdf.save`. Le drapeau porte le NOM du fichier, pour pouvoir le rappeler.
+ · `majFenetreSortie()`, appelée par `quitterEvaluation` avant d'ouvrir la
+   fenêtre, réécrit le texte (« Le document a été enregistré sous … »), retire
+   le bouton d'export et rend « Quitter sans conserver » → « Quitter »,
+   en bouton principal.
+
+v454 — TEST COMPOSÉ À LA CARTE : il ignorait ses domaines.
+ · `it.domainTitle` n'était pas posé par `demarrerTestFichier` (seul
+   `domainNum` l'était). Or ce champ gouverne TROIS choses, toutes déjà
+   écrites et fonctionnelles pour le test par domaine : la ligne de séparation
+   entre domaines, la mention « sans calculatrice » AVEC les numéros
+   d'exercices concernés, et le regroupement du récapitulatif de l'export —
+   qui rangeait donc tout sous le premier domaine. Une ligne à ajouter.
+   MÉLANGER LES DOMAINES RESTE PERMIS : le test les groupe et les annonce,
+   comme le PDF de domaine.
+ · La mention « (sans calculatrice) » ajoutée aux sous-titres en v452 est
+   RETIRÉE : elle faisait doublon avec la ligne de séparation, plus précise.
+ · ⚡ Remplir et `prop-table` : les QUATRE cases du tableau sont à remplir par
+   l'élève (trois se recopient de l'énoncé, une se calcule). Le remplissage
+   automatique ne posait que la case inconnue, laissant l'exercice faux à 75 %.
+ · Modale du test : plus de paragraphe explicatif, titre ramené à « Test ».
+ · Accueil : « Ouvrir une série ou un test… ».
 
 v453 — MENUS DE RÉGLAGE ABSENTS SUR LES EXERCICES AJOUTÉS À UNE SÉRIE DE
 DOMAINE. Les menus « niveau » et « variante » étaient conditionnés par
@@ -4104,11 +4168,9 @@ ainsi (une remarque prise pour une consigne, une sélection ambiguë).
 <div class="modal-overlay" id="test-reglages-modal" style="display:none;" onclick="fermerReglagesTest(event)">
   <div class="modal" onclick="event.stopPropagation()">
     <div class="modal-head">
-      <h3>Livrer en test</h3>
+      <h3>Test</h3>
       <button class="modal-close" onclick="fermerReglagesTest()" title="Fermer">×</button>
     </div>
-    <p class="modal-intro">La composition ne change pas. Ce qui change, c'est la façon dont l'élève
-      la reçoit : une seule validation à la fin, un score, et pas de solutions.</p>
 
     <div class="modal-row">
       <label class="modal-label" for="test-nom">Nom du test</label>
@@ -16287,7 +16349,7 @@ const ICONE_ENSEIGNANT = '<svg viewBox="0 0 24 24" width="21" height="21" fill="
 const ICONE_PDF = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJkAAACUCAMAAAC3HHtWAAAAk1BMVEXi5ef////xVkKwt73K0dji6OrxW0jyUDnG2eHlzczmgnrV2t/x8/T19vbxUTzwTDX4u7Xnvr28wsf+8/L84N3yYlD1jID1hXf1kYb4q6L4t7D96ujwQib1mY7++Pf70c3zcWHxSC/zeGn3pJv6ysX72dXy2Nbj1dXtgnfyaFf3sKj6w73UubvV4ebco6HkioPitLFLhhsqAAAElUlEQVR4nO3ca5eaOhQG4ICOtHUa7AAqIgiIbdVezv//dUcS7tlAXIYkq4v308xCzeNOCAEVZAzmKxKWj8Xi4324tVbQyGahsqdow7J3wbLFgp82LHsTLuOv2rBMIKyQ8dMGZQLHfyXjpsmX8dIUyDhpKmR8NCUyLpoa2eLjq64yjqqpko1XTZlstGrqZGM0hbIRmkrZME2pbJCmVjZEUywboKmW9dOUy3qnXPWyvqppIOupmg4yuGpayMCq6SGDqiZPthySAVWTJ1sPytiqyZMNdydbNYmykaJ1aRJlY0Xr0GTKnqNJlY3sn22aXBlaL4fr1qBJlpEsB/KmVDZEUywboKmW9dOUy3pp6mV9NA1kPTQdZDBNCxlI00MG0TSRATRdZCxNGxlD00fWpWkkQ/rKkL4ypK8M6StD+sqQvjKkrwzpK0P6ypC+MqSvDOkrQ/rKkL6ytbYyVF+tnWWiZW8T5jlZ4Lby/fN0+YFAGyxzw9hbyUoc/oBooOxi2tiUFmybEA2SRaklz5XH/slZs5PEgtGsPrNFg2R3W7YMf+OTbWbZLJtls2yWzbJWrORYJklaaxFs2WUsiznm1htpoIPySzK8PQVl3Oyc1gQrDX3/nMc/h/t0lbTb3vqthDGwkHlFhneO0YyTXYtHWdvWFsc9xA3b6m504nhs1V6R2QemhT192OrS3WJs4rLx7hvKcz8KlVkbpoWI9ovnMlsMN4ULSnJIJpA5gUNStL+qZRFN+RLBDvfJgpXY3qSy2zXOs/MpIbRLWeT/3OYJb0UFL7R9KnMOdXzRewCV+TYmsa8BKdqxku3oFsvGu4C+SFLL3MakwU4rgmTlv/u8ak5emEJWVcKOadmuuJYBmKlkmHpiQGZaMenrg61EZppknso9jMw8khnG9fSTWWletCjF9TizHnmMwsdInFqG6S4A9mY5keR7LpUFYRX4JFugLPHzf6OK0ZatTuWDmfnM2UO012XnI931zTMZ5KfGrNFsEGdkF0igmdaJgQ59XZaFZE1xO9GZlrx/QGYS2Q2UGdtJZO3c6+NmZ5yRg/wZ6k3j4rEvLlrm0h2NlRW7R17R4uh0qnIA1kCCZVF2pW2wMjvMH+BcG7MGmTbywBfmBMqcU2gWbQDzGSnZhfwpa6Y9nWn2qVm9d0ZGZxQyzOTJzkfaJc0+6cjwMSQ7bmRLrZkPbClkCSZoHG+iumQayIzs9lgV3g73YqYzsuJp6mWdXK7N1baMccYpy7xi2EmQ2ed8C3Q4Zs/qorA6CcFpLhu9WP7a1YNNFB3AdULqRjXKcU/bY+P5OHQiN51UhnG6gz/AsLxdndSz2s+249119IOPF68F9axHyZY6TzxNmGzCzLJZNstm2TSyTPpnwh7nZ8KBbBiOGVfPdw9u7DXeSWHHX785ZVGYJNV52ORJ8J/lmlP2WOv54b6VL5Pl73/LT0/Iunn/NF3yLzXyjjNAxvzkQWy0lQEwPWTAKOOXrScM5PoXvrM3y2bZLJtls+zfk3He90Do3TnFykTe0ZQr9Q8XRmTSi9a4zcyITOQNap+Djckk92fzbin/A8PQxx30Ei25AAAAAElFTkSuQmCC';
 
 // Numéro de version, affiché en pied de menu.
-const APP_VERSION = '453';
+const APP_VERSION = '457';
 
 const DOMAINS = [
   {
@@ -17548,6 +17610,11 @@ function demarrerTestFichier() {
     const d = (findSubdomain(it.sub.id) || {}).domain;
     if (d) {
       it.domainNum = d.num;
+      // `domainTitle` gouverne TROIS choses : la séparation entre domaines, la
+      // mention « sans calculatrice » avec ses numéros d'exercices, et le
+      // regroupement du récapitulatif. Sans lui, tout se retrouvait rangé sous
+      // le premier domaine.
+      it.domainTitle = d.title;
       if (!domaines.includes(d.title)) domaines.push(d.title);
     }
     if (it.ex) it.ex._subId = it.sub.id;
@@ -17639,11 +17706,9 @@ function renderTest() {
     const rub = (Array.isArray(it.sub.niveauLabels) && typeof it.niveau === 'number'
                  && !SANS_RUBRIQUE.has(it.sub.id))
       ? it.sub.niveauLabels[Math.min(it.niveau, it.sub.niveauLabels.length) - 1] : null;
-    // La mention « (sans calculatrice) » suit le domaine, pas le sous-domaine :
-    // elle manquait ici alors que le PDF la porte.
-    const sansCalc = mentionSansCalc(it.domainNum);
-    const sousTitre = it.sub.title + (rub ? ` – ${rub}` : '')
-      + (sansCalc ? ` <span style="text-transform:none; font-weight:700;">${sansCalc.trim()}</span>` : '');
+    // La mention « sans calculatrice » n'est PAS répétée ici : elle vit sur la
+    // ligne de séparation de domaine, avec les numéros d'exercices concernés.
+    const sousTitre = it.sub.title + (rub ? ` – ${rub}` : '');
     const consigne = UNITE_EXIGEE.has(it.sub.id)
       ? ` <span style="text-transform:none; font-weight:700; color:#B45309;">– donne le résultat avec son unité</span>` : '';
     html += `<div class="exercise-sub-title" style="font-weight:800; font-size:13px; color:#6B7280; text-transform:uppercase; letter-spacing:0.02em; margin:18px 0 6px 2px;">${sousTitre}${consigne}</div>`;
@@ -21033,7 +21098,7 @@ function renderWelcome() {
       <div class="home-grid">${cardsHtml}</div>
       <div class="home-refresh-wrap">
         <button class="home-refresh-btn" onclick="refreshWelcome()">${ICONE_RECHARGER}Autres exercices</button>
-        <label class="home-refresh-btn" title="Ouvrir une série d'exercices reçue dans un fichier">Ouvrir une série…
+        <label class="home-refresh-btn" title="Ouvrir une série d'exercices ou un test reçu dans un fichier">Ouvrir une série ou un test…
           <input type="file" accept=".json,application/json" style="display:none" onchange="ouvrirSerieDepuisFichier(this)">
         </label>
       </div>
@@ -25042,7 +25107,13 @@ function _autoActions() {
         case 'sqrt-prefix':
           val(`${base}-pre`, q.prefix); val(`${base}-rad`, q.radicand); break;
         case 'prop-table':
-          ['r1a', 'r1b', 'r2a', 'r2b'].forEach(k => { if (q[k] === null) val(`${base}-${k}`, q.answerCell); });
+          // Les quatre cases sont à remplir par l'élève, pas seulement celle
+          // qu'il doit calculer : les trois autres se recopient de l'énoncé.
+          // Ne remplir que la case inconnue laissait le tableau aux trois
+          // quarts vide, donc l'exercice faux.
+          ['r1a', 'r1b', 'r2a', 'r2b'].forEach(k => {
+            val(`${base}-${k}`, (q[k] === null || q[k] === undefined) ? q.answerCell : q[k]);
+          });
           val(base, q.answer); break;
         case 'transform-row':
           (q.expected || []).forEach((v, k) => val(`${base}-out${k}`, v)); break;
@@ -25535,12 +25606,35 @@ function restituerSaisiesTest(saisies) {
 function quitterEvaluation() {
   if (!state.test) return;
   if (state.test.valide) {
+    majFenetreSortie();
     document.getElementById('quit-modal').style.display = 'flex';
     return;
   }
   const saisi = [...document.querySelectorAll('#main input')].some(i => (i.value || '').trim() !== '');
   if (saisi && !confirm("Le test n'est pas validé : les réponses saisies seront perdues.\n\nQuitter quand même ?")) return;
   fermerTest();
+}
+
+// La fenêtre de sortie ne propose l'export que s'il n'a PAS déjà eu lieu :
+// sinon elle invite à refaire ce qui vient d'être fait, et laisse croire que le
+// premier export a échoué.
+function majFenetreSortie() {
+  const t = state.test;
+  const deja = !!(t && t.exporte);
+  const intro = document.querySelector('#quit-modal .modal-intro');
+  const btnExport = document.getElementById('btn-export');
+  const btnQuitter = document.querySelector('#quit-modal .modal-foot .btn-action:nth-child(2)');
+  if (intro) {
+    intro.innerHTML = deja
+      ? `Le document a été enregistré sous « <strong>${String(t.exporte.nom).replace(/</g, '&lt;')}</strong> ».`
+        + ` Le test et son score ne sont pas conservés.`
+      : "Les résultats ne sont pas conservés : en quittant, le test et son score seront perdus.";
+  }
+  if (btnExport) btnExport.style.display = deja ? 'none' : '';
+  if (btnQuitter) {
+    btnQuitter.textContent = deja ? 'Quitter' : 'Quitter sans conserver';
+    btnQuitter.classList.toggle('btn-primary', deja);
+  }
 }
 
 // Un test ouvert par un élève ne laisse rien d'autre accessible.
@@ -26340,10 +26434,18 @@ async function exporterTest(opts) {
       pdf.setTextColor(150, 150, 150);
       pdf.text(`${p} / ${pages}`, 210 - MG, 291, { align: 'right' });
     }
-    const nom = (t.eleve ? `${t.eleve.replace(/[^\w]+/g, '-')}_` : '')
-      + `${titreTest.replace(/[^\w]+/g, '-').slice(0, 40)}`
+    // Les accents tombaient dans `[^\w]` et devenaient des tirets : « Algèbre »
+    // s'écrivait « Alg-bre ». On les remplace par leur lettre de base avant de
+    // nettoyer le reste.
+    const sansAccent = (txt) => String(txt)
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^\w]+/g, '-').replace(/^-+|-+$/g, '');
+    const nom = (t.eleve ? `${sansAccent(t.eleve)}_` : '')
+      + `${sansAccent(titreTest).slice(0, 40)}`
       + (sansPoints ? '' : `_${pct}pct`) + '.pdf';
     pdf.save(nom);
+    // Le document est parti : la fenêtre de sortie ne le reproposera pas.
+    t.exporte = { nom, quand: Date.now() };
   } catch (e) {
     console.error('Export du test :', e);
     alert("L'export n'a pas pu être créé : " + (e.message || e));
