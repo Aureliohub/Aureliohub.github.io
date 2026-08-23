@@ -1,0 +1,570 @@
+{
+ "mode": "domaine",
+ "domainNum": 1,
+ "items": [
+  {
+   "subId": "probleme",
+   "niveau": 1,
+   "ex": {
+    "multi": true,
+    "intro": "",
+    "questions": [
+     {
+      "label": "",
+      "text": "Six amis mangent ensemble au restaurant et partagent l'addition équitablement. Maria paie 90 CHF pour elle et son compagnon. Quel est le montant total de l'addition ?",
+      "answer": "Part par personne : 90÷2 = 45 CHF. Addition totale : 45×6 = 270 CHF.",
+      "solutionDetail": "Part par personne : 90÷2 = 45 CHF. Addition totale : 45×6 = 270 CHF.",
+      "_modele": "probleme-3",
+      "uniteApres": "CHF"
+     }
+    ],
+    "stackedStatements": true
+   },
+   "epreuve": true
+  },
+  {
+   "subId": "decimaux",
+   "niveau": "mixed",
+   "ex": {
+    "multi": true,
+    "intro": "Pose les opérations en colonne (pour les divisions, quotient à deux décimales au minimum)",
+    "questions": [
+     {
+      "label": "a)",
+      "text": "589,2 + 857,9 = ",
+      "answer": "1447,1"
+     },
+     {
+      "label": "b)",
+      "text": "85305 − 301,6 = ",
+      "answer": "85003,4"
+     },
+     {
+      "label": "c)",
+      "text": "394,1 × 8,77 = ",
+      "answer": "3456,257"
+     },
+     {
+      "label": "d)",
+      "text": "8,152 ÷ 0,8 = ",
+      "answer": "10,19",
+      "acceptAlt": [
+       "10,19"
+      ]
+     }
+    ]
+   },
+   "epreuve": true
+  },
+  {
+   "subId": "relatifs",
+   "niveau": "mixed",
+   "ex": {
+    "multi": true,
+    "intro": "Effectue les calculs suivants :",
+    "questions": [
+     {
+      "label": "a)",
+      "text": "(+10) + (+16) = ",
+      "answer": "26"
+     },
+     {
+      "label": "b)",
+      "text": "(+14) − (-3) = ",
+      "answer": "17"
+     },
+     {
+      "label": "c)",
+      "text": "(-16) − (-10) + (-4) − (-2) − 17 = ",
+      "answer": "-25"
+     },
+     {
+      "label": "d)",
+      "text": "(+7) × (-3) × (-5) = ",
+      "answer": "105"
+     }
+    ]
+   },
+   "epreuve": true
+  },
+  {
+   "subId": "rationnels",
+   "niveau": "mixed",
+   "ex": {
+    "multi": true,
+    "intro": "Calcule et donne le résultat sous forme de fraction irréductible :",
+    "questions": [
+     {
+      "label": "a)",
+      "text": "<span style=\"display:inline-flex; flex-direction:column; align-items:stretch; vertical-align:middle; margin:0 2px; line-height:1.05;\">\n    <span style=\"padding:0 6px; text-align:center;\">4</span>\n    <span style=\"border-top:1.2px solid currentColor; padding:0 6px; text-align:center;\">8</span>\n  </span> − <span style=\"display:inline-flex; flex-direction:column; align-items:stretch; vertical-align:middle; margin:0 2px; line-height:1.05;\">\n    <span style=\"padding:0 6px; text-align:center;\">2</span>\n    <span style=\"border-top:1.2px solid currentColor; padding:0 6px; text-align:center;\">8</span>\n  </span> = ",
+      "answer": "<span style=\"display:inline-flex; flex-direction:column; align-items:center; vertical-align:middle; margin:0 2px; line-height:1.05;\">\n    <span style=\"padding:0 4px;\">1</span>\n    <span style=\"border-top:1.2px solid currentColor; padding:0 4px; min-width:14px; text-align:center;\">4</span>\n  </span>"
+     },
+     {
+      "label": "b)",
+      "text": "<span style=\"display:inline-flex; flex-direction:column; align-items:stretch; vertical-align:middle; margin:0 2px; line-height:1.05;\">\n    <span style=\"padding:0 6px; text-align:center;\">1</span>\n    <span style=\"border-top:1.2px solid currentColor; padding:0 6px; text-align:center;\">3</span>\n  </span> + <span style=\"display:inline-flex; flex-direction:column; align-items:stretch; vertical-align:middle; margin:0 2px; line-height:1.05;\">\n    <span style=\"padding:0 6px; text-align:center;\">11</span>\n    <span style=\"border-top:1.2px solid currentColor; padding:0 6px; text-align:center;\">8</span>\n  </span> = ",
+      "answer": "<span style=\"display:inline-flex; flex-direction:column; align-items:center; vertical-align:middle; margin:0 2px; line-height:1.05;\">\n    <span style=\"padding:0 4px;\">41</span>\n    <span style=\"border-top:1.2px solid currentColor; padding:0 4px; min-width:14px; text-align:center;\">24</span>\n  </span>"
+     },
+     {
+      "label": "c)",
+      "text": "<span style=\"display:inline-flex; flex-direction:column; align-items:stretch; vertical-align:middle; margin:0 2px; line-height:1.05;\">\n    <span style=\"padding:0 6px; text-align:center;\">9</span>\n    <span style=\"border-top:1.2px solid currentColor; padding:0 6px; text-align:center;\">8</span>\n  </span> × <span style=\"display:inline-flex; flex-direction:column; align-items:stretch; vertical-align:middle; margin:0 2px; line-height:1.05;\">\n    <span style=\"padding:0 6px; text-align:center;\">4</span>\n    <span style=\"border-top:1.2px solid currentColor; padding:0 6px; text-align:center;\">10</span>\n  </span> × <span style=\"display:inline-flex; flex-direction:column; align-items:stretch; vertical-align:middle; margin:0 2px; line-height:1.05;\">\n    <span style=\"padding:0 6px; text-align:center;\">4</span>\n    <span style=\"border-top:1.2px solid currentColor; padding:0 6px; text-align:center;\">9</span>\n  </span> = ",
+      "answer": "<span style=\"display:inline-flex; flex-direction:column; align-items:center; vertical-align:middle; margin:0 2px; line-height:1.05;\">\n    <span style=\"padding:0 4px;\">1</span>\n    <span style=\"border-top:1.2px solid currentColor; padding:0 4px; min-width:14px; text-align:center;\">5</span>\n  </span>"
+     },
+     {
+      "label": "d)",
+      "text": "<span style=\"display:inline-flex; flex-direction:column; align-items:center; vertical-align:middle; margin:0 4px; line-height:1.05;\">\n      <span style=\"padding:4px 8px;\"><span style=\"display:inline-flex; flex-direction:column; align-items:stretch; vertical-align:middle; margin:0 2px; line-height:1.05;\">\n    <span style=\"padding:0 6px; text-align:center;\">2</span>\n    <span style=\"border-top:1.2px solid currentColor; padding:0 6px; text-align:center;\">5</span>\n  </span></span>\n      <span style=\"border-top:1.6px solid currentColor; padding:4px 8px; min-width:30px; text-align:center;\"><span style=\"display:inline-flex; flex-direction:column; align-items:stretch; vertical-align:middle; margin:0 2px; line-height:1.05;\">\n    <span style=\"padding:0 6px; text-align:center;\">4</span>\n    <span style=\"border-top:1.2px solid currentColor; padding:0 6px; text-align:center;\">6</span>\n  </span></span>\n    </span> = ",
+      "answer": "<span style=\"display:inline-flex; flex-direction:column; align-items:center; vertical-align:middle; margin:0 2px; line-height:1.05;\">\n    <span style=\"padding:0 4px;\">3</span>\n    <span style=\"border-top:1.2px solid currentColor; padding:0 4px; min-width:14px; text-align:center;\">5</span>\n  </span>"
+     }
+    ]
+   },
+   "epreuve": true
+  },
+  {
+   "subId": "puissances",
+   "niveau": 1,
+   "ex": {
+    "multi": true,
+    "intro": "Calcule les puissances suivantes :",
+    "questions": [
+     {
+      "label": "a)",
+      "text": "<span data-math-type=\"pow\" data-base=\"3\" data-exp=\"3\">3<sup style=\"font-size:0.72em; vertical-align:baseline; position:relative; top:-0.4em; line-height:0;\">3</sup></span> = ",
+      "answer": "27"
+     },
+     {
+      "label": "b)",
+      "text": "<span data-math-type=\"pow\" data-base=\"(−10)\" data-exp=\"4\">(−10)<sup style=\"font-size:0.72em; vertical-align:baseline; position:relative; top:-0.4em; line-height:0;\">4</sup></span> = ",
+      "answer": "10000"
+     },
+     {
+      "label": "c)",
+      "text": "−<span data-math-type=\"pow\" data-base=\"4\" data-exp=\"3\">4<sup style=\"font-size:0.72em; vertical-align:baseline; position:relative; top:-0.4em; line-height:0;\">3</sup></span> = ",
+      "answer": "-64"
+     },
+     {
+      "label": "d)",
+      "text": "<span data-math-type=\"pow\" data-base=\"10\" data-exp=\"−5\">10<sup style=\"font-size:0.72em; vertical-align:baseline; position:relative; top:-0.4em; line-height:0;\">−5</sup></span> = ",
+      "answer": "0,00001",
+      "acceptAlt": [
+       "1/100000"
+      ],
+      "attenduExport": "1/100000 ou 0,00001"
+     },
+     {
+      "label": "e)",
+      "text": "<span data-math-type=\"pow\" data-base=\"2\" data-exp=\"3\">2<sup style=\"font-size:0.72em; vertical-align:baseline; position:relative; top:-0.4em; line-height:0;\">3</sup></span> × <span data-math-type=\"pow\" data-base=\"2\" data-exp=\"3\">2<sup style=\"font-size:0.72em; vertical-align:baseline; position:relative; top:-0.4em; line-height:0;\">3</sup></span> = ",
+      "answer": "<span data-math-type=\"pow\" data-base=\"2\" data-exp=\"6\">2<sup style=\"font-size:0.72em; vertical-align:baseline; position:relative; top:-0.4em; line-height:0;\">6</sup></span>",
+      "answerType": "power",
+      "expectedBase": 2,
+      "expectedExp": 6
+     },
+     {
+      "label": "f)",
+      "text": "<span data-math-type=\"pow\" data-base=\"6\" data-exp=\"9\">6<sup style=\"font-size:0.72em; vertical-align:baseline; position:relative; top:-0.4em; line-height:0;\">9</sup></span> ÷ <span data-math-type=\"pow\" data-base=\"6\" data-exp=\"2\">6<sup style=\"font-size:0.72em; vertical-align:baseline; position:relative; top:-0.4em; line-height:0;\">2</sup></span> = ",
+      "answer": "<span data-math-type=\"pow\" data-base=\"6\" data-exp=\"7\">6<sup style=\"font-size:0.72em; vertical-align:baseline; position:relative; top:-0.4em; line-height:0;\">7</sup></span>",
+      "answerType": "power",
+      "expectedBase": 6,
+      "expectedExp": 7
+     },
+     {
+      "label": "g)",
+      "text": "<span data-math-type=\"pow\" data-base=\"(&lt;span data-math-type=&quot;pow&quot; data-base=&quot;4&quot; data-exp=&quot;4&quot;&gt;4&lt;sup style=&quot;font-size:0.72em; vertical-align:baseline; position:relative; top:-0.4em; line-height:0;&quot;&gt;4&lt;/sup&gt;&lt;/span&gt;)\" data-exp=\"2\">(<span data-math-type=\"pow\" data-base=\"4\" data-exp=\"4\">4<sup style=\"font-size:0.72em; vertical-align:baseline; position:relative; top:-0.4em; line-height:0;\">4</sup></span>)<sup style=\"font-size:0.72em; vertical-align:baseline; position:relative; top:-0.4em; line-height:0;\">2</sup></span> = ",
+      "answer": "<span data-math-type=\"pow\" data-base=\"4\" data-exp=\"8\">4<sup style=\"font-size:0.72em; vertical-align:baseline; position:relative; top:-0.4em; line-height:0;\">8</sup></span>",
+      "answerType": "power",
+      "expectedBase": 4,
+      "expectedExp": 8
+     }
+    ]
+   },
+   "epreuve": true
+  },
+  {
+   "subId": "racines",
+   "niveau": 1,
+   "ex": {
+    "multi": true,
+    "intro": "Calcule les racines suivantes. Pour les réponses du type <em>3√5</em>, remplis les champs à côté du symbole √. Pour les autres, tape juste le résultat.",
+    "introPdf": "Calcule les racines suivantes.",
+    "questions": [
+     {
+      "label": "a)",
+      "text": "<span class=\"math-katex\" data-tex=\"\\sqrt[3]{8}\"></span> = ",
+      "answer": "2"
+     },
+     {
+      "label": "b)",
+      "text": "<span class=\"math-katex\" data-tex=\"\\dfrac{15}{\\sqrt{25}}\"></span> = ",
+      "answer": "3"
+     },
+     {
+      "label": "c)",
+      "text": "<span class=\"math-katex\" data-tex=\"\\sqrt{\\dfrac{36}{4}}\"></span> = ",
+      "answer": "<span class=\"math-katex\" data-tex=\"\\dfrac{6}{2}\"></span>"
+     },
+     {
+      "label": "d)",
+      "text": "<span class=\"math-katex\" data-tex=\"\\sqrt{27}\"></span> = ",
+      "answer": "3<span class=\"math-katex\" data-tex=\"\\sqrt{3}\"></span>",
+      "answerType": "sqrt-prefix",
+      "prefix": 3,
+      "radicand": 3
+     },
+     {
+      "label": "e)",
+      "text": "<span class=\"math-katex\" data-tex=\"\\sqrt{6}\"></span> × <span class=\"math-katex\" data-tex=\"\\sqrt{6}\"></span> = ",
+      "answer": "6"
+     },
+     {
+      "label": "f)",
+      "text": "<span class=\"math-katex\" data-tex=\"\\sqrt{144}\"></span> = ",
+      "answer": "12"
+     },
+     {
+      "label": "g)",
+      "text": "<span class=\"math-katex\" data-tex=\"\\sqrt{36 \\times 9}\"></span> = ",
+      "answer": "18"
+     },
+     {
+      "label": "h)",
+      "text": "<span class=\"math-katex\" data-tex=\"\\sqrt{112}\"></span> = ",
+      "answer": "4<span class=\"math-katex\" data-tex=\"\\sqrt{7}\"></span>",
+      "answerType": "sqrt-prefix",
+      "prefix": 4,
+      "radicand": 7
+     }
+    ]
+   },
+   "epreuve": true
+  },
+  {
+   "subId": "hierarchie",
+   "niveau": 1,
+   "ex": {
+    "multi": true,
+    "intro": "Calcule en appliquant la hiérarchie des opérations :",
+    "questions": [
+     {
+      "label": "a)",
+      "text": "<span data-math-type=\"pow\" data-base=\"7\" data-exp=\"2\">7<sup style=\"font-size:0.72em; vertical-align:baseline; position:relative; top:-0.4em; line-height:0;\">2</sup></span> + 5 × 6 = ",
+      "answer": "79"
+     },
+     {
+      "label": "b)",
+      "text": "29 + 8 × 5 = ",
+      "answer": "69"
+     },
+     {
+      "label": "c)",
+      "text": "<span data-math-type=\"pow\" data-base=\"(14 − 2)\" data-exp=\"2\">(14 − 2)<sup style=\"font-size:0.72em; vertical-align:baseline; position:relative; top:-0.4em; line-height:0;\">2</sup></span> ÷ 3 = ",
+      "answer": "48"
+     },
+     {
+      "label": "d)",
+      "text": "(13 + 8) × 6 − 19 = ",
+      "answer": "107"
+     },
+     {
+      "label": "e)",
+      "text": "[20 − (6 + 4)] × 4 = ",
+      "answer": "40"
+     },
+     {
+      "label": "f)",
+      "text": "23 − 4 × 3 + 9 = ",
+      "answer": "20"
+     }
+    ]
+   },
+   "epreuve": true
+  },
+  {
+   "subId": "droite",
+   "niveau": 2,
+   "ex": {
+    "svg": "<svg id=\"droite-8amx9rw\" viewBox=\"0 0 600 95\" xmlns=\"http://www.w3.org/2000/svg\" data-start=\"2\" data-end=\"2.5\" data-padx=\"30\" data-w=\"600\" data-basey=\"60\" data-snap=\"0.005\"><line x1=\"15\" y1=\"60\" x2=\"585\" y2=\"60\" stroke=\"#222\" stroke-width=\"2\"/><polygon points=\"585,60 578,55 578,65\" fill=\"#222\"/><line x1=\"30\" y1=\"53\" x2=\"30\" y2=\"67\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"30\" y=\"82\" text-anchor=\"middle\" font-size=\"12\" fill=\"#222\">2</text><line x1=\"138.0000000000001\" y1=\"53\" x2=\"138.0000000000001\" y2=\"67\" stroke=\"#222\" stroke-width=\"1.5\"/><line x1=\"246.0000000000002\" y1=\"53\" x2=\"246.0000000000002\" y2=\"67\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"246.0000000000002\" y=\"82\" text-anchor=\"middle\" font-size=\"12\" fill=\"#222\">2,2</text><line x1=\"354.0000000000003\" y1=\"53\" x2=\"354.0000000000003\" y2=\"67\" stroke=\"#222\" stroke-width=\"1.5\"/><line x1=\"462.0000000000004\" y1=\"53\" x2=\"462.0000000000004\" y2=\"67\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"462.0000000000004\" y=\"82\" text-anchor=\"middle\" font-size=\"12\" fill=\"#222\">2,4</text><line x1=\"570.0000000000005\" y1=\"53\" x2=\"570.0000000000005\" y2=\"67\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"570.0000000000005\" y=\"82\" text-anchor=\"middle\" font-size=\"12\" fill=\"#222\">2,5</text><line x1=\"40.79999999999977\" y1=\"57\" x2=\"40.79999999999977\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"51.59999999999954\" y1=\"57\" x2=\"51.59999999999954\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"62.39999999999931\" y1=\"57\" x2=\"62.39999999999931\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"73.19999999999908\" y1=\"57\" x2=\"73.19999999999908\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"83.99999999999885\" y1=\"55\" x2=\"83.99999999999885\" y2=\"65\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"94.79999999999862\" y1=\"57\" x2=\"94.79999999999862\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"105.59999999999839\" y1=\"57\" x2=\"105.59999999999839\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"116.39999999999816\" y1=\"57\" x2=\"116.39999999999816\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"127.19999999999793\" y1=\"57\" x2=\"127.19999999999793\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"148.79999999999745\" y1=\"57\" x2=\"148.79999999999745\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"159.59999999999724\" y1=\"57\" x2=\"159.59999999999724\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"170.39999999999702\" y1=\"57\" x2=\"170.39999999999702\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"181.19999999999678\" y1=\"57\" x2=\"181.19999999999678\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"191.99999999999653\" y1=\"55\" x2=\"191.99999999999653\" y2=\"65\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"202.79999999999632\" y1=\"57\" x2=\"202.79999999999632\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"213.5999999999961\" y1=\"57\" x2=\"213.5999999999961\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"224.39999999999586\" y1=\"57\" x2=\"224.39999999999586\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"235.1999999999956\" y1=\"57\" x2=\"235.1999999999956\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"256.7999999999952\" y1=\"57\" x2=\"256.7999999999952\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"267.5999999999949\" y1=\"57\" x2=\"267.5999999999949\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"278.3999999999947\" y1=\"57\" x2=\"278.3999999999947\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"289.1999999999945\" y1=\"57\" x2=\"289.1999999999945\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"299.99999999999426\" y1=\"55\" x2=\"299.99999999999426\" y2=\"65\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"310.79999999999404\" y1=\"57\" x2=\"310.79999999999404\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"321.59999999999377\" y1=\"57\" x2=\"321.59999999999377\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"332.39999999999355\" y1=\"57\" x2=\"332.39999999999355\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"343.19999999999334\" y1=\"57\" x2=\"343.19999999999334\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"364.79999999999285\" y1=\"57\" x2=\"364.79999999999285\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"375.59999999999263\" y1=\"57\" x2=\"375.59999999999263\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"386.3999999999924\" y1=\"57\" x2=\"386.3999999999924\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"397.1999999999922\" y1=\"57\" x2=\"397.1999999999922\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"407.9999999999919\" y1=\"55\" x2=\"407.9999999999919\" y2=\"65\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"418.7999999999917\" y1=\"57\" x2=\"418.7999999999917\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"429.5999999999915\" y1=\"57\" x2=\"429.5999999999915\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"440.3999999999912\" y1=\"57\" x2=\"440.3999999999912\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"451.199999999991\" y1=\"57\" x2=\"451.199999999991\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"472.7999999999906\" y1=\"57\" x2=\"472.7999999999906\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"483.59999999999036\" y1=\"57\" x2=\"483.59999999999036\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"494.3999999999901\" y1=\"57\" x2=\"494.3999999999901\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"505.19999999998987\" y1=\"57\" x2=\"505.19999999998987\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"515.9999999999897\" y1=\"55\" x2=\"515.9999999999897\" y2=\"65\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"526.7999999999894\" y1=\"57\" x2=\"526.7999999999894\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"537.5999999999892\" y1=\"57\" x2=\"537.5999999999892\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"548.399999999989\" y1=\"57\" x2=\"548.399999999989\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"559.1999999999887\" y1=\"57\" x2=\"559.1999999999887\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><polygon points=\"111.0000000000002,58 107.0000000000002,50 115.0000000000002,50\" fill=\"#dc2626\"/><line x1=\"111.0000000000002\" y1=\"50\" x2=\"111.0000000000002\" y2=\"44\" stroke=\"#dc2626\" stroke-width=\"1.5\"/><text x=\"111.0000000000002\" y=\"40\" text-anchor=\"middle\" font-size=\"14\" font-weight=\"bold\" fill=\"#dc2626\">A</text><polygon points=\"246.0000000000002,58 242.0000000000002,50 250.0000000000002,50\" fill=\"#dc2626\"/><line x1=\"246.0000000000002\" y1=\"50\" x2=\"246.0000000000002\" y2=\"44\" stroke=\"#dc2626\" stroke-width=\"1.5\"/><text x=\"246.0000000000002\" y=\"40\" text-anchor=\"middle\" font-size=\"14\" font-weight=\"bold\" fill=\"#dc2626\">B</text><polygon points=\"418.79999999999984,58 414.79999999999984,50 422.79999999999984,50\" fill=\"#dc2626\"/><line x1=\"418.79999999999984\" y1=\"50\" x2=\"418.79999999999984\" y2=\"44\" stroke=\"#dc2626\" stroke-width=\"1.5\"/><text x=\"418.79999999999984\" y=\"40\" text-anchor=\"middle\" font-size=\"14\" font-weight=\"bold\" fill=\"#dc2626\">C</text><polygon points=\"537.6000000000001,58 533.6000000000001,50 541.6000000000001,50\" fill=\"#dc2626\"/><line x1=\"537.6000000000001\" y1=\"50\" x2=\"537.6000000000001\" y2=\"44\" stroke=\"#dc2626\" stroke-width=\"1.5\"/><text x=\"537.6000000000001\" y=\"40\" text-anchor=\"middle\" font-size=\"14\" font-weight=\"bold\" fill=\"#dc2626\">D</text><rect class=\"droite-clickarea no-print\" x=\"20\" y=\"36\" width=\"560\" height=\"48\" fill=\"transparent\" style=\"cursor: crosshair;\" onclick=\"placePointOnDroite(event, 'droite-8amx9rw')\"/></svg>",
+    "svgCorrige": "<svg id=\"droite-8amx9rw\" viewBox=\"0 0 600 95\" xmlns=\"http://www.w3.org/2000/svg\" data-start=\"2\" data-end=\"2.5\" data-padx=\"30\" data-w=\"600\" data-basey=\"60\" data-snap=\"0.005\"><line x1=\"15\" y1=\"60\" x2=\"585\" y2=\"60\" stroke=\"#222\" stroke-width=\"2\"/><polygon points=\"585,60 578,55 578,65\" fill=\"#222\"/><line x1=\"30\" y1=\"53\" x2=\"30\" y2=\"67\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"30\" y=\"82\" text-anchor=\"middle\" font-size=\"12\" fill=\"#222\">2</text><line x1=\"138.0000000000001\" y1=\"53\" x2=\"138.0000000000001\" y2=\"67\" stroke=\"#222\" stroke-width=\"1.5\"/><line x1=\"246.0000000000002\" y1=\"53\" x2=\"246.0000000000002\" y2=\"67\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"246.0000000000002\" y=\"82\" text-anchor=\"middle\" font-size=\"12\" fill=\"#222\">2,2</text><line x1=\"354.0000000000003\" y1=\"53\" x2=\"354.0000000000003\" y2=\"67\" stroke=\"#222\" stroke-width=\"1.5\"/><line x1=\"462.0000000000004\" y1=\"53\" x2=\"462.0000000000004\" y2=\"67\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"462.0000000000004\" y=\"82\" text-anchor=\"middle\" font-size=\"12\" fill=\"#222\">2,4</text><line x1=\"570.0000000000005\" y1=\"53\" x2=\"570.0000000000005\" y2=\"67\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"570.0000000000005\" y=\"82\" text-anchor=\"middle\" font-size=\"12\" fill=\"#222\">2,5</text><line x1=\"40.79999999999977\" y1=\"57\" x2=\"40.79999999999977\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"51.59999999999954\" y1=\"57\" x2=\"51.59999999999954\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"62.39999999999931\" y1=\"57\" x2=\"62.39999999999931\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"73.19999999999908\" y1=\"57\" x2=\"73.19999999999908\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"83.99999999999885\" y1=\"55\" x2=\"83.99999999999885\" y2=\"65\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"94.79999999999862\" y1=\"57\" x2=\"94.79999999999862\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"105.59999999999839\" y1=\"57\" x2=\"105.59999999999839\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"116.39999999999816\" y1=\"57\" x2=\"116.39999999999816\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"127.19999999999793\" y1=\"57\" x2=\"127.19999999999793\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"148.79999999999745\" y1=\"57\" x2=\"148.79999999999745\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"159.59999999999724\" y1=\"57\" x2=\"159.59999999999724\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"170.39999999999702\" y1=\"57\" x2=\"170.39999999999702\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"181.19999999999678\" y1=\"57\" x2=\"181.19999999999678\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"191.99999999999653\" y1=\"55\" x2=\"191.99999999999653\" y2=\"65\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"202.79999999999632\" y1=\"57\" x2=\"202.79999999999632\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"213.5999999999961\" y1=\"57\" x2=\"213.5999999999961\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"224.39999999999586\" y1=\"57\" x2=\"224.39999999999586\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"235.1999999999956\" y1=\"57\" x2=\"235.1999999999956\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"256.7999999999952\" y1=\"57\" x2=\"256.7999999999952\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"267.5999999999949\" y1=\"57\" x2=\"267.5999999999949\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"278.3999999999947\" y1=\"57\" x2=\"278.3999999999947\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"289.1999999999945\" y1=\"57\" x2=\"289.1999999999945\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"299.99999999999426\" y1=\"55\" x2=\"299.99999999999426\" y2=\"65\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"310.79999999999404\" y1=\"57\" x2=\"310.79999999999404\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"321.59999999999377\" y1=\"57\" x2=\"321.59999999999377\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"332.39999999999355\" y1=\"57\" x2=\"332.39999999999355\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"343.19999999999334\" y1=\"57\" x2=\"343.19999999999334\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"364.79999999999285\" y1=\"57\" x2=\"364.79999999999285\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"375.59999999999263\" y1=\"57\" x2=\"375.59999999999263\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"386.3999999999924\" y1=\"57\" x2=\"386.3999999999924\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"397.1999999999922\" y1=\"57\" x2=\"397.1999999999922\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"407.9999999999919\" y1=\"55\" x2=\"407.9999999999919\" y2=\"65\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"418.7999999999917\" y1=\"57\" x2=\"418.7999999999917\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"429.5999999999915\" y1=\"57\" x2=\"429.5999999999915\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"440.3999999999912\" y1=\"57\" x2=\"440.3999999999912\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"451.199999999991\" y1=\"57\" x2=\"451.199999999991\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"472.7999999999906\" y1=\"57\" x2=\"472.7999999999906\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"483.59999999999036\" y1=\"57\" x2=\"483.59999999999036\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"494.3999999999901\" y1=\"57\" x2=\"494.3999999999901\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"505.19999999998987\" y1=\"57\" x2=\"505.19999999998987\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"515.9999999999897\" y1=\"55\" x2=\"515.9999999999897\" y2=\"65\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"526.7999999999894\" y1=\"57\" x2=\"526.7999999999894\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"537.5999999999892\" y1=\"57\" x2=\"537.5999999999892\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"548.399999999989\" y1=\"57\" x2=\"548.399999999989\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"559.1999999999887\" y1=\"57\" x2=\"559.1999999999887\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><polygon points=\"111.0000000000002,58 107.0000000000002,50 115.0000000000002,50\" fill=\"#dc2626\"/><line x1=\"111.0000000000002\" y1=\"50\" x2=\"111.0000000000002\" y2=\"44\" stroke=\"#dc2626\" stroke-width=\"1.5\"/><text x=\"111.0000000000002\" y=\"40\" text-anchor=\"middle\" font-size=\"14\" font-weight=\"bold\" fill=\"#dc2626\">A</text><polygon points=\"246.0000000000002,58 242.0000000000002,50 250.0000000000002,50\" fill=\"#dc2626\"/><line x1=\"246.0000000000002\" y1=\"50\" x2=\"246.0000000000002\" y2=\"44\" stroke=\"#dc2626\" stroke-width=\"1.5\"/><text x=\"246.0000000000002\" y=\"40\" text-anchor=\"middle\" font-size=\"14\" font-weight=\"bold\" fill=\"#dc2626\">B</text><polygon points=\"418.79999999999984,58 414.79999999999984,50 422.79999999999984,50\" fill=\"#dc2626\"/><line x1=\"418.79999999999984\" y1=\"50\" x2=\"418.79999999999984\" y2=\"44\" stroke=\"#dc2626\" stroke-width=\"1.5\"/><text x=\"418.79999999999984\" y=\"40\" text-anchor=\"middle\" font-size=\"14\" font-weight=\"bold\" fill=\"#dc2626\">C</text><polygon points=\"537.6000000000001,58 533.6000000000001,50 541.6000000000001,50\" fill=\"#dc2626\"/><line x1=\"537.6000000000001\" y1=\"50\" x2=\"537.6000000000001\" y2=\"44\" stroke=\"#dc2626\" stroke-width=\"1.5\"/><text x=\"537.6000000000001\" y=\"40\" text-anchor=\"middle\" font-size=\"14\" font-weight=\"bold\" fill=\"#dc2626\">D</text><circle cx=\"348.5999999999999\" cy=\"60\" r=\"4\" fill=\"#16A34A\" stroke=\"#FFFFFF\" stroke-width=\"1.5\"/><text x=\"348.5999999999999\" y=\"90\" text-anchor=\"middle\" font-size=\"14\" font-weight=\"800\" fill=\"#16A34A\">E</text><circle cx=\"35.399999999999885\" cy=\"60\" r=\"4\" fill=\"#16A34A\" stroke=\"#FFFFFF\" stroke-width=\"1.5\"/><text x=\"35.399999999999885\" y=\"90\" text-anchor=\"middle\" font-size=\"14\" font-weight=\"800\" fill=\"#16A34A\">F</text></svg>",
+    "intro": "Lis la valeur de chaque flèche rouge, puis place les points verts sur la droite :",
+    "multi": true,
+    "questions": [
+     {
+      "label": "a)",
+      "text": "<strong style=\"color:#dc2626\">A</strong> = ",
+      "answer": "2,075"
+     },
+     {
+      "label": "b)",
+      "text": "<strong style=\"color:#dc2626\">B</strong> = ",
+      "answer": "2,2"
+     },
+     {
+      "label": "c)",
+      "text": "<strong style=\"color:#dc2626\">C</strong> = ",
+      "answer": "2,36"
+     },
+     {
+      "label": "d)",
+      "text": "<strong style=\"color:#dc2626\">D</strong> = ",
+      "answer": "2,47"
+     },
+     {
+      "label": "e)",
+      "text": "Place <strong style=\"color:#16A34A\">E</strong> = 2,295",
+      "answer": "2,295",
+      "answerType": "place",
+      "oneD": true,
+      "pointLabel": "E",
+      "expectedX": 2.295,
+      "expectedY": 0,
+      "svgId": "droite-8amx9rw"
+     },
+     {
+      "label": "f)",
+      "text": "Place <strong style=\"color:#16A34A\">F</strong> = 2,005",
+      "answer": "2,005",
+      "answerType": "place",
+      "oneD": true,
+      "pointLabel": "F",
+      "expectedX": 2.005,
+      "expectedY": 0,
+      "svgId": "droite-8amx9rw"
+     }
+    ],
+    "threeColsByColumn": true,
+    "svgId": "droite-8amx9rw",
+    "placePoints": [
+     {
+      "label": "E",
+      "value": 2.295
+     },
+     {
+      "label": "F",
+      "value": 2.005
+     }
+    ]
+   },
+   "epreuve": true
+  },
+  {
+   "subId": "estimer",
+   "niveau": 1,
+   "ex": {
+    "multi": true,
+    "intro": "Estime le résultat (sans calculer précisément) et sélectionne la réponse la plus proche :",
+    "questions": [
+     {
+      "label": "a)",
+      "text": "1'000'000 − 1'000 × 927 + 27 : 6 = ",
+      "answerType": "choice",
+      "choices": [
+       "70'000",
+       "2'800'000",
+       "3",
+       "505"
+      ],
+      "correctIdx": 0,
+      "answer": "70'000"
+     }
+    ]
+   },
+   "epreuve": true
+  },
+  {
+   "subId": "frac-pct",
+   "niveau": 1,
+   "ex": {
+    "multi": true,
+    "intro": "Calcule :",
+    "questions": [
+     {
+      "label": "a)",
+      "text": "25 % de 7'000 = ",
+      "answer": "1'750"
+     },
+     {
+      "label": "b)",
+      "text": "10 % de 3'000 = ",
+      "answer": "300"
+     },
+     {
+      "label": "c)",
+      "text": "<span style=\"display:inline-flex; flex-direction:column; align-items:stretch; vertical-align:middle; margin:0 2px; line-height:1.05;\">\n    <span style=\"padding:0 6px; text-align:center;\">3</span>\n    <span style=\"border-top:1.2px solid currentColor; padding:0 6px; text-align:center;\">6</span>\n  </span> de 360 = ",
+      "answer": "180"
+     },
+     {
+      "label": "d)",
+      "text": "<span style=\"display:inline-flex; flex-direction:column; align-items:stretch; vertical-align:middle; margin:0 2px; line-height:1.05;\">\n    <span style=\"padding:0 6px; text-align:center;\">3</span>\n    <span style=\"border-top:1.2px solid currentColor; padding:0 6px; text-align:center;\">4</span>\n  </span> de 32 = ",
+      "answer": "24"
+     }
+    ],
+    "_realNiveau": 1
+   }
+  },
+  {
+   "subId": "pct-inverse",
+   "niveau": 1,
+   "ex": {
+    "multi": true,
+    "intro": "Calcule la valeur manquante :",
+    "questions": [
+     {
+      "label": "a)",
+      "text": "2'500 = 50 % de ",
+      "answer": "5000",
+      "inlineInput": false
+     },
+     {
+      "label": "b)",
+      "text": "30 = __INPUT__ % de 100",
+      "answer": "30",
+      "inlineInput": true
+     },
+     {
+      "label": "c)",
+      "text": "90 = 30 % de ",
+      "answer": "300",
+      "inlineInput": false
+     },
+     {
+      "label": "d)",
+      "text": "300 = 50 % de ",
+      "answer": "600",
+      "inlineInput": false
+     }
+    ],
+    "_realNiveau": 1
+   }
+  },
+  {
+   "subId": "proportion",
+   "niveau": 2,
+   "ex": {
+    "multi": true,
+    "intro": "",
+    "questions": [
+     {
+      "label": "a)",
+      "text": "Pour peindre 75 m² de mur, il faut 5 litres de peinture. Combien de litres faut-il pour peindre 60 m² au même rythme ?",
+      "answerType": "prop-table",
+      "colA": "m²",
+      "colB": "litres",
+      "r1a": "75",
+      "r1b": "5",
+      "r2a": "60",
+      "r2b": null,
+      "answer": "4 litres",
+      "answerCell": "4"
+     },
+     {
+      "label": "b)",
+      "text": "200 photocopies coûtent 20 CHF. Combien de photocopies peut-on faire avec 50 CHF au même tarif ?",
+      "answerType": "prop-table",
+      "colA": "photocopies",
+      "colB": "CHF",
+      "r1a": "200",
+      "r1b": "20",
+      "r2a": null,
+      "r2b": "50",
+      "answer": "500 photocopies",
+      "answerCell": "500"
+     }
+    ],
+    "_realNiveau": 2
+   },
+   "reglages": {
+    "niveau": 2
+   }
+  },
+  {
+   "subId": "prop-concret",
+   "niveau": 2,
+   "ex": {
+    "multi": true,
+    "intro": "",
+    "questions": [
+     {
+      "label": "a)",
+      "text": "Les 3/4 d'un nombre valent 156. Quel est ce nombre ?",
+      "answer": "208",
+      "solutionDetail": "3/4 → 156, donc 1/4 → 52. Le nombre (4/4) : 52 × 4 = 208."
+     },
+     {
+      "label": "b)",
+      "text": "Dans un cinéma, 2/3 des spectateurs sont abonnés. Parmi ces abonnés, 1/3 viennent en train. Quelle fraction de l'ensemble des spectateurs cela représente-t-il ?",
+      "answer": "2/9",
+      "solutionDetail": "2/3 × 1/3 = 2/9 = 2/9."
+     },
+     {
+      "label": "c)",
+      "text": "On a vidé 1/2 du contenu d'un réservoir de 60 litres. Plus tard, on a vidé 2/3 de ce qui restait. Quelle quantité d'eau a-t-on vidé en tout ?",
+      "answer": "50 litres",
+      "solutionDetail": "1/2 de 60 = 30 litres. Reste : 30 litres. Puis 2/3 de 30 = 20 litres. Total : 30 + 20 = 50 litres.",
+      "uniteApres": "litres"
+     },
+     {
+      "label": "d)",
+      "text": "Dans un refuge de 36 animaux, 1/6 sont des chats. Combien y a-t-il d'autres animaux ?",
+      "answer": "30 autres animaux",
+      "solutionDetail": "Part comptée : 1/6 × 36 = 6. Réponse : 36 − 6 = 30 (soit 5/6 × 36)."
+     }
+    ],
+    "stackedStatements": true,
+    "_propNiveau": 2,
+    "_realNiveau": 2
+   },
+   "reglages": {
+    "niveau": 2
+   }
+  },
+  {
+   "subId": "prop-concret",
+   "niveau": 3,
+   "ex": {
+    "multi": true,
+    "intro": "",
+    "questions": [
+     {
+      "label": "a)",
+      "text": "Nicky a profité des soldes pour acheter une bouilloire. Elle l'a payée 80 CHF grâce à une réduction de 20%. Quel était le prix affiché avant la réduction ?",
+      "answer": "80 CHF représente (100 − 20) = 80 % du prix affiché. Prix affiché : 80 ÷ 80 × 100 = 100 CHF.",
+      "uniteApres": "CHF"
+     },
+     {
+      "label": "b)",
+      "text": "Vous avez 4,5 kg d'oignons non épluchés. Calculez le poids des oignons épluchés si vous avez 8% de pertes à l'épluchage.",
+      "answer": "Avec 8% de pertes, il reste (100 − 8) = 92 % du poids. Poids net : 4,5 kg × 92 ÷ 100 = 4,14 kg.",
+      "uniteApres": "kg"
+     },
+     {
+      "label": "c)",
+      "text": "Daniel a payé un casque audio 140 CHF. Calcule la réduction en %, sachant que cet article coûtait au départ 200 CHF.",
+      "answer": "Réduction en CHF : 200 − 140 = 60 CHF. Réduction en % : (60 ÷ 200) × 100 = 30 %.",
+      "uniteApres": "%"
+     },
+     {
+      "label": "d)",
+      "text": "Pendant les soldes, Belal économise 172 CHF sur une tablette grâce à une réduction de 40%. Calcule le prix initial.",
+      "answer": "172 CHF correspond à 40 % du prix initial. Prix initial : 172 ÷ 40 × 100 = 430 CHF.",
+      "uniteApres": "CHF"
+     },
+     {
+      "label": "e)",
+      "text": "Ayse achète aux soldes un casque audio qu'elle paie 90 CHF. Calcule le prix qu'elle aurait payé si elle n'avait pas eu une réduction de 40%.",
+      "answer": "90 CHF représente (100 − 40) = 60 % du prix initial. Prix initial : 90 ÷ 60 × 100 = 150 CHF.",
+      "uniteApres": "CHF"
+     }
+    ],
+    "stackedStatements": true,
+    "_propNiveau": 3,
+    "_realNiveau": 3
+   },
+   "reglages": {
+    "niveau": 3
+   }
+  }
+ ],
+ "sortie": "test",
+ "test": {
+  "nom": "Test nbop_prop",
+  "tentativeUnique": true,
+  "chrono": true
+ }
+}
