@@ -1,0 +1,365 @@
+{
+ "mode": "domaine",
+ "domainNum": 1,
+ "items": [
+  {
+   "subId": "probleme",
+   "niveau": 1,
+   "ex": {
+    "multi": true,
+    "intro": "",
+    "questions": [
+     {
+      "label": "",
+      "text": "Huit amis mangent ensemble au restaurant et partagent l'addition équitablement. Nicky paie 70 CHF pour elle et son compagnon. Quel est le montant total de l'addition ?",
+      "answer": "Part par personne : 70÷2 = 35 CHF. Addition totale : 35×8 = 280 CHF.",
+      "solutionDetail": "Part par personne : 70÷2 = 35 CHF. Addition totale : 35×8 = 280 CHF.",
+      "_modele": "probleme-3",
+      "uniteApres": "CHF"
+     }
+    ],
+    "stackedStatements": true
+   }
+  },
+  {
+   "subId": "decimaux",
+   "niveau": "mixed",
+   "ex": {
+    "multi": true,
+    "intro": "Pose les opérations en colonne (pour les divisions, quotient à deux décimales au minimum)",
+    "questions": [
+     {
+      "label": "a)",
+      "text": "113,1 + 682,6 = ",
+      "answer": "795,7"
+     },
+     {
+      "label": "b)",
+      "text": "4076,5 − 85,502 = ",
+      "answer": "3990,998"
+     },
+     {
+      "label": "c)",
+      "text": "157,8 × 7,29 = ",
+      "answer": "1150,362"
+     },
+     {
+      "label": "d)",
+      "text": "23,8872 ÷ 0,12 = ",
+      "answer": "199,06",
+      "acceptAlt": [
+       "199,06"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "subId": "relatifs",
+   "niveau": "mixed",
+   "ex": {
+    "multi": true,
+    "intro": "Effectue les calculs suivants :",
+    "questions": [
+     {
+      "label": "a)",
+      "text": "(+10) + (+7) = ",
+      "answer": "17"
+     },
+     {
+      "label": "b)",
+      "text": "(+6) − (+18) = ",
+      "answer": "-12"
+     },
+     {
+      "label": "c)",
+      "text": "13 + 3 − (-13) + 6 = ",
+      "answer": "35"
+     },
+     {
+      "label": "d)",
+      "text": "(+12) ÷ (-2) ÷ (+2) = ",
+      "answer": "-3"
+     }
+    ]
+   }
+  },
+  {
+   "subId": "rationnels",
+   "niveau": "mixed",
+   "ex": {
+    "multi": true,
+    "intro": "Calcule et donne le résultat sous forme de fraction irréductible :",
+    "questions": [
+     {
+      "label": "a)",
+      "text": "<span style=\"display:inline-flex; flex-direction:column; align-items:stretch; vertical-align:middle; margin:0 2px; line-height:1.05;\">\n    <span style=\"padding:0 6px; text-align:center;\">6</span>\n    <span style=\"border-top:1.2px solid currentColor; padding:0 6px; text-align:center;\">12</span>\n  </span> − <span style=\"display:inline-flex; flex-direction:column; align-items:stretch; vertical-align:middle; margin:0 2px; line-height:1.05;\">\n    <span style=\"padding:0 6px; text-align:center;\">2</span>\n    <span style=\"border-top:1.2px solid currentColor; padding:0 6px; text-align:center;\">12</span>\n  </span> = ",
+      "answer": "<span style=\"display:inline-flex; flex-direction:column; align-items:center; vertical-align:middle; margin:0 2px; line-height:1.05;\">\n    <span style=\"padding:0 4px;\">1</span>\n    <span style=\"border-top:1.2px solid currentColor; padding:0 4px; min-width:14px; text-align:center;\">3</span>\n  </span>"
+     },
+     {
+      "label": "b)",
+      "text": "<span style=\"display:inline-flex; flex-direction:column; align-items:stretch; vertical-align:middle; margin:0 2px; line-height:1.05;\">\n    <span style=\"padding:0 6px; text-align:center;\">3</span>\n    <span style=\"border-top:1.2px solid currentColor; padding:0 6px; text-align:center;\">4</span>\n  </span> − <span style=\"display:inline-flex; flex-direction:column; align-items:stretch; vertical-align:middle; margin:0 2px; line-height:1.05;\">\n    <span style=\"padding:0 6px; text-align:center;\">1</span>\n    <span style=\"border-top:1.2px solid currentColor; padding:0 6px; text-align:center;\">2</span>\n  </span> = ",
+      "answer": "<span style=\"display:inline-flex; flex-direction:column; align-items:center; vertical-align:middle; margin:0 2px; line-height:1.05;\">\n    <span style=\"padding:0 4px;\">1</span>\n    <span style=\"border-top:1.2px solid currentColor; padding:0 4px; min-width:14px; text-align:center;\">4</span>\n  </span>"
+     },
+     {
+      "label": "c)",
+      "text": "<span style=\"display:inline-flex; flex-direction:column; align-items:stretch; vertical-align:middle; margin:0 2px; line-height:1.05;\">\n    <span style=\"padding:0 6px; text-align:center;\">6</span>\n    <span style=\"border-top:1.2px solid currentColor; padding:0 6px; text-align:center;\">7</span>\n  </span> × <span style=\"display:inline-flex; flex-direction:column; align-items:stretch; vertical-align:middle; margin:0 2px; line-height:1.05;\">\n    <span style=\"padding:0 6px; text-align:center;\">3</span>\n    <span style=\"border-top:1.2px solid currentColor; padding:0 6px; text-align:center;\">6</span>\n  </span> × <span style=\"display:inline-flex; flex-direction:column; align-items:stretch; vertical-align:middle; margin:0 2px; line-height:1.05;\">\n    <span style=\"padding:0 6px; text-align:center;\">9</span>\n    <span style=\"border-top:1.2px solid currentColor; padding:0 6px; text-align:center;\">2</span>\n  </span> = ",
+      "answer": "<span style=\"display:inline-flex; flex-direction:column; align-items:center; vertical-align:middle; margin:0 2px; line-height:1.05;\">\n    <span style=\"padding:0 4px;\">27</span>\n    <span style=\"border-top:1.2px solid currentColor; padding:0 4px; min-width:14px; text-align:center;\">14</span>\n  </span>"
+     },
+     {
+      "label": "d)",
+      "text": "<span style=\"display:inline-flex; flex-direction:column; align-items:center; vertical-align:middle; margin:0 4px; line-height:1.05;\">\n      <span style=\"padding:4px 8px;\"><span style=\"display:inline-flex; flex-direction:column; align-items:stretch; vertical-align:middle; margin:0 2px; line-height:1.05;\">\n    <span style=\"padding:0 6px; text-align:center;\">1</span>\n    <span style=\"border-top:1.2px solid currentColor; padding:0 6px; text-align:center;\">7</span>\n  </span></span>\n      <span style=\"border-top:1.6px solid currentColor; padding:4px 8px; min-width:30px; text-align:center;\"><span style=\"display:inline-flex; flex-direction:column; align-items:stretch; vertical-align:middle; margin:0 2px; line-height:1.05;\">\n    <span style=\"padding:0 6px; text-align:center;\">8</span>\n    <span style=\"border-top:1.2px solid currentColor; padding:0 6px; text-align:center;\">3</span>\n  </span></span>\n    </span> = ",
+      "answer": "<span style=\"display:inline-flex; flex-direction:column; align-items:center; vertical-align:middle; margin:0 2px; line-height:1.05;\">\n    <span style=\"padding:0 4px;\">3</span>\n    <span style=\"border-top:1.2px solid currentColor; padding:0 4px; min-width:14px; text-align:center;\">56</span>\n  </span>"
+     }
+    ]
+   }
+  },
+  {
+   "subId": "puissances",
+   "niveau": 1,
+   "ex": {
+    "multi": true,
+    "intro": "Calcule les puissances suivantes :",
+    "questions": [
+     {
+      "label": "a)",
+      "text": "<span data-math-type=\"pow\" data-base=\"6\" data-exp=\"3\">6<sup style=\"font-size:0.72em; vertical-align:baseline; position:relative; top:-0.4em; line-height:0;\">3</sup></span> = ",
+      "answer": "216"
+     },
+     {
+      "label": "b)",
+      "text": "<span data-math-type=\"pow\" data-base=\"(−10)\" data-exp=\"4\">(−10)<sup style=\"font-size:0.72em; vertical-align:baseline; position:relative; top:-0.4em; line-height:0;\">4</sup></span> = ",
+      "answer": "10000"
+     },
+     {
+      "label": "c)",
+      "text": "−<span data-math-type=\"pow\" data-base=\"8\" data-exp=\"2\">8<sup style=\"font-size:0.72em; vertical-align:baseline; position:relative; top:-0.4em; line-height:0;\">2</sup></span> = ",
+      "answer": "-64"
+     },
+     {
+      "label": "d)",
+      "text": "<span data-math-type=\"pow\" data-base=\"10\" data-exp=\"−3\">10<sup style=\"font-size:0.72em; vertical-align:baseline; position:relative; top:-0.4em; line-height:0;\">−3</sup></span> = ",
+      "answer": "0,001",
+      "acceptAlt": [
+       "1/1000"
+      ],
+      "attenduExport": "1/1000 ou 0,001"
+     },
+     {
+      "label": "e)",
+      "text": "<span data-math-type=\"pow\" data-base=\"6\" data-exp=\"5\">6<sup style=\"font-size:0.72em; vertical-align:baseline; position:relative; top:-0.4em; line-height:0;\">5</sup></span> × <span data-math-type=\"pow\" data-base=\"6\" data-exp=\"2\">6<sup style=\"font-size:0.72em; vertical-align:baseline; position:relative; top:-0.4em; line-height:0;\">2</sup></span> = ",
+      "answer": "<span data-math-type=\"pow\" data-base=\"6\" data-exp=\"7\">6<sup style=\"font-size:0.72em; vertical-align:baseline; position:relative; top:-0.4em; line-height:0;\">7</sup></span>",
+      "answerType": "power",
+      "expectedBase": 6,
+      "expectedExp": 7
+     },
+     {
+      "label": "f)",
+      "text": "<span data-math-type=\"pow\" data-base=\"5\" data-exp=\"5\">5<sup style=\"font-size:0.72em; vertical-align:baseline; position:relative; top:-0.4em; line-height:0;\">5</sup></span> ÷ <span data-math-type=\"pow\" data-base=\"5\" data-exp=\"3\">5<sup style=\"font-size:0.72em; vertical-align:baseline; position:relative; top:-0.4em; line-height:0;\">3</sup></span> = ",
+      "answer": "<span data-math-type=\"pow\" data-base=\"5\" data-exp=\"2\">5<sup style=\"font-size:0.72em; vertical-align:baseline; position:relative; top:-0.4em; line-height:0;\">2</sup></span>",
+      "answerType": "power",
+      "expectedBase": 5,
+      "expectedExp": 2
+     },
+     {
+      "label": "g)",
+      "text": "<span data-math-type=\"pow\" data-base=\"(&lt;span data-math-type=&quot;pow&quot; data-base=&quot;5&quot; data-exp=&quot;2&quot;&gt;5&lt;sup style=&quot;font-size:0.72em; vertical-align:baseline; position:relative; top:-0.4em; line-height:0;&quot;&gt;2&lt;/sup&gt;&lt;/span&gt;)\" data-exp=\"3\">(<span data-math-type=\"pow\" data-base=\"5\" data-exp=\"2\">5<sup style=\"font-size:0.72em; vertical-align:baseline; position:relative; top:-0.4em; line-height:0;\">2</sup></span>)<sup style=\"font-size:0.72em; vertical-align:baseline; position:relative; top:-0.4em; line-height:0;\">3</sup></span> = ",
+      "answer": "<span data-math-type=\"pow\" data-base=\"5\" data-exp=\"6\">5<sup style=\"font-size:0.72em; vertical-align:baseline; position:relative; top:-0.4em; line-height:0;\">6</sup></span>",
+      "answerType": "power",
+      "expectedBase": 5,
+      "expectedExp": 6
+     }
+    ]
+   }
+  },
+  {
+   "subId": "racines",
+   "niveau": 1,
+   "ex": {
+    "multi": true,
+    "intro": "Calcule les racines suivantes. Pour les réponses du type <em>3√5</em>, remplis les champs à côté du symbole √. Pour les autres, tape juste le résultat.",
+    "introPdf": "Calcule les racines suivantes.",
+    "questions": [
+     {
+      "label": "a)",
+      "text": "<span class=\"math-katex\" data-tex=\"\\sqrt{0{,}81}\"></span> = ",
+      "answer": "0,9"
+     },
+     {
+      "label": "b)",
+      "text": "<span class=\"math-katex\" data-tex=\"\\sqrt[3]{0{,}064}\"></span> = ",
+      "answer": "0,4"
+     },
+     {
+      "label": "c)",
+      "text": "<span class=\"math-katex\" data-tex=\"\\sqrt{\\dfrac{64}{9}}\"></span> = ",
+      "answer": "<span class=\"math-katex\" data-tex=\"\\dfrac{8}{3}\"></span>"
+     },
+     {
+      "label": "d)",
+      "text": "<span class=\"math-katex\" data-tex=\"\\sqrt{12}\"></span> = ",
+      "answer": "2<span class=\"math-katex\" data-tex=\"\\sqrt{3}\"></span>",
+      "answerType": "sqrt-prefix",
+      "prefix": 2,
+      "radicand": 3
+     },
+     {
+      "label": "e)",
+      "text": "<span class=\"math-katex\" data-tex=\"\\sqrt{8}\"></span> × <span class=\"math-katex\" data-tex=\"\\sqrt{8}\"></span> = ",
+      "answer": "8"
+     },
+     {
+      "label": "f)",
+      "text": "<span class=\"math-katex\" data-tex=\"\\sqrt{4 \\times 36}\"></span> = ",
+      "answer": "12"
+     },
+     {
+      "label": "g)",
+      "text": "<span class=\"math-katex\" data-tex=\"\\dfrac{6}{\\sqrt{4}}\"></span> = ",
+      "answer": "3"
+     },
+     {
+      "label": "h)",
+      "text": "<span class=\"math-katex\" data-tex=\"\\sqrt{196}\"></span> = ",
+      "answer": "14"
+     }
+    ]
+   }
+  },
+  {
+   "subId": "hierarchie",
+   "niveau": 1,
+   "ex": {
+    "multi": true,
+    "intro": "Calcule en appliquant la hiérarchie des opérations :",
+    "questions": [
+     {
+      "label": "a)",
+      "text": "(12 + 10) × 3 − 13 = ",
+      "answer": "53"
+     },
+     {
+      "label": "b)",
+      "text": "19 − 6 × 2 + 6 = ",
+      "answer": "13"
+     },
+     {
+      "label": "c)",
+      "text": "25 + 6 × 2 = ",
+      "answer": "37"
+     },
+     {
+      "label": "d)",
+      "text": "<span data-math-type=\"pow\" data-base=\"(9 − 3)\" data-exp=\"2\">(9 − 3)<sup style=\"font-size:0.72em; vertical-align:baseline; position:relative; top:-0.4em; line-height:0;\">2</sup></span> ÷ 2 = ",
+      "answer": "18"
+     },
+     {
+      "label": "e)",
+      "text": "[30 − (8 + 7)] × 4 = ",
+      "answer": "60"
+     },
+     {
+      "label": "f)",
+      "text": "<span data-math-type=\"pow\" data-base=\"5\" data-exp=\"2\">5<sup style=\"font-size:0.72em; vertical-align:baseline; position:relative; top:-0.4em; line-height:0;\">2</sup></span> + 8 × 5 = ",
+      "answer": "65"
+     }
+    ]
+   }
+  },
+  {
+   "subId": "droite",
+   "niveau": 2,
+   "ex": {
+    "svg": "<svg id=\"droite-pcjwtl8\" viewBox=\"0 0 600 95\" xmlns=\"http://www.w3.org/2000/svg\" data-start=\"1.3\" data-end=\"1.7\" data-padx=\"30\" data-w=\"600\" data-basey=\"60\" data-snap=\"0.005\"><line x1=\"15\" y1=\"60\" x2=\"585\" y2=\"60\" stroke=\"#222\" stroke-width=\"2\"/><polygon points=\"585,60 578,55 578,65\" fill=\"#222\"/><line x1=\"30\" y1=\"53\" x2=\"30\" y2=\"67\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"30\" y=\"82\" text-anchor=\"middle\" font-size=\"12\" fill=\"#222\">1,3</text><line x1=\"165.00000000000014\" y1=\"53\" x2=\"165.00000000000014\" y2=\"67\" stroke=\"#222\" stroke-width=\"1.5\"/><line x1=\"300.0000000000003\" y1=\"53\" x2=\"300.0000000000003\" y2=\"67\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"300.0000000000003\" y=\"82\" text-anchor=\"middle\" font-size=\"12\" fill=\"#222\">1,5</text><line x1=\"435.00000000000045\" y1=\"53\" x2=\"435.00000000000045\" y2=\"67\" stroke=\"#222\" stroke-width=\"1.5\"/><line x1=\"570.0000000000006\" y1=\"53\" x2=\"570.0000000000006\" y2=\"67\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"570.0000000000006\" y=\"82\" text-anchor=\"middle\" font-size=\"12\" fill=\"#222\">1,7</text><line x1=\"43.500000000000014\" y1=\"57\" x2=\"43.500000000000014\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"57.00000000000003\" y1=\"57\" x2=\"57.00000000000003\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"70.50000000000004\" y1=\"57\" x2=\"70.50000000000004\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"84.00000000000006\" y1=\"57\" x2=\"84.00000000000006\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"97.50000000000007\" y1=\"55\" x2=\"97.50000000000007\" y2=\"65\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"111.00000000000009\" y1=\"57\" x2=\"111.00000000000009\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"124.5000000000001\" y1=\"57\" x2=\"124.5000000000001\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"138.0000000000001\" y1=\"57\" x2=\"138.0000000000001\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"151.50000000000014\" y1=\"57\" x2=\"151.50000000000014\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"178.50000000000017\" y1=\"57\" x2=\"178.50000000000017\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"192.00000000000017\" y1=\"57\" x2=\"192.00000000000017\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"205.5000000000002\" y1=\"57\" x2=\"205.5000000000002\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"219.0000000000002\" y1=\"57\" x2=\"219.0000000000002\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"232.50000000000023\" y1=\"55\" x2=\"232.50000000000023\" y2=\"65\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"246.00000000000026\" y1=\"57\" x2=\"246.00000000000026\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"259.5000000000002\" y1=\"57\" x2=\"259.5000000000002\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"273.0000000000003\" y1=\"57\" x2=\"273.0000000000003\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"286.5000000000003\" y1=\"57\" x2=\"286.5000000000003\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"313.5000000000003\" y1=\"57\" x2=\"313.5000000000003\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"327.00000000000034\" y1=\"57\" x2=\"327.00000000000034\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"340.50000000000034\" y1=\"57\" x2=\"340.50000000000034\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"354.00000000000034\" y1=\"57\" x2=\"354.00000000000034\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"367.50000000000034\" y1=\"55\" x2=\"367.50000000000034\" y2=\"65\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"381.0000000000004\" y1=\"57\" x2=\"381.0000000000004\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"394.5000000000004\" y1=\"57\" x2=\"394.5000000000004\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"408.0000000000004\" y1=\"57\" x2=\"408.0000000000004\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"421.5000000000004\" y1=\"57\" x2=\"421.5000000000004\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"448.5000000000005\" y1=\"57\" x2=\"448.5000000000005\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"462.0000000000005\" y1=\"57\" x2=\"462.0000000000005\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"475.5000000000005\" y1=\"57\" x2=\"475.5000000000005\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"489.0000000000005\" y1=\"57\" x2=\"489.0000000000005\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"502.5000000000005\" y1=\"55\" x2=\"502.5000000000005\" y2=\"65\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"516.0000000000006\" y1=\"57\" x2=\"516.0000000000006\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"529.5000000000006\" y1=\"57\" x2=\"529.5000000000006\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"543.0000000000006\" y1=\"57\" x2=\"543.0000000000006\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"556.5000000000006\" y1=\"57\" x2=\"556.5000000000006\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><polygon points=\"43.500000000000014,58 39.500000000000014,50 47.500000000000014,50\" fill=\"#dc2626\"/><line x1=\"43.500000000000014\" y1=\"50\" x2=\"43.500000000000014\" y2=\"44\" stroke=\"#dc2626\" stroke-width=\"1.5\"/><text x=\"43.500000000000014\" y=\"40\" text-anchor=\"middle\" font-size=\"14\" font-weight=\"bold\" fill=\"#dc2626\">A</text><polygon points=\"198.75000000000003,58 194.75000000000003,50 202.75000000000003,50\" fill=\"#dc2626\"/><line x1=\"198.75000000000003\" y1=\"50\" x2=\"198.75000000000003\" y2=\"44\" stroke=\"#dc2626\" stroke-width=\"1.5\"/><text x=\"198.75000000000003\" y=\"40\" text-anchor=\"middle\" font-size=\"14\" font-weight=\"bold\" fill=\"#dc2626\">B</text><polygon points=\"313.5,58 309.5,50 317.5,50\" fill=\"#dc2626\"/><line x1=\"313.5\" y1=\"50\" x2=\"313.5\" y2=\"44\" stroke=\"#dc2626\" stroke-width=\"1.5\"/><text x=\"313.5\" y=\"40\" text-anchor=\"middle\" font-size=\"14\" font-weight=\"bold\" fill=\"#dc2626\">C</text><polygon points=\"462.0000000000002,58 458.0000000000002,50 466.0000000000002,50\" fill=\"#dc2626\"/><line x1=\"462.0000000000002\" y1=\"50\" x2=\"462.0000000000002\" y2=\"44\" stroke=\"#dc2626\" stroke-width=\"1.5\"/><text x=\"462.0000000000002\" y=\"40\" text-anchor=\"middle\" font-size=\"14\" font-weight=\"bold\" fill=\"#dc2626\">D</text><rect class=\"droite-clickarea no-print\" x=\"20\" y=\"36\" width=\"560\" height=\"48\" fill=\"transparent\" style=\"cursor: crosshair;\" onclick=\"placePointOnDroite(event, 'droite-pcjwtl8')\"/></svg>",
+    "svgCorrige": "<svg id=\"droite-pcjwtl8\" viewBox=\"0 0 600 95\" xmlns=\"http://www.w3.org/2000/svg\" data-start=\"1.3\" data-end=\"1.7\" data-padx=\"30\" data-w=\"600\" data-basey=\"60\" data-snap=\"0.005\"><line x1=\"15\" y1=\"60\" x2=\"585\" y2=\"60\" stroke=\"#222\" stroke-width=\"2\"/><polygon points=\"585,60 578,55 578,65\" fill=\"#222\"/><line x1=\"30\" y1=\"53\" x2=\"30\" y2=\"67\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"30\" y=\"82\" text-anchor=\"middle\" font-size=\"12\" fill=\"#222\">1,3</text><line x1=\"165.00000000000014\" y1=\"53\" x2=\"165.00000000000014\" y2=\"67\" stroke=\"#222\" stroke-width=\"1.5\"/><line x1=\"300.0000000000003\" y1=\"53\" x2=\"300.0000000000003\" y2=\"67\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"300.0000000000003\" y=\"82\" text-anchor=\"middle\" font-size=\"12\" fill=\"#222\">1,5</text><line x1=\"435.00000000000045\" y1=\"53\" x2=\"435.00000000000045\" y2=\"67\" stroke=\"#222\" stroke-width=\"1.5\"/><line x1=\"570.0000000000006\" y1=\"53\" x2=\"570.0000000000006\" y2=\"67\" stroke=\"#222\" stroke-width=\"1.5\"/><text x=\"570.0000000000006\" y=\"82\" text-anchor=\"middle\" font-size=\"12\" fill=\"#222\">1,7</text><line x1=\"43.500000000000014\" y1=\"57\" x2=\"43.500000000000014\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"57.00000000000003\" y1=\"57\" x2=\"57.00000000000003\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"70.50000000000004\" y1=\"57\" x2=\"70.50000000000004\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"84.00000000000006\" y1=\"57\" x2=\"84.00000000000006\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"97.50000000000007\" y1=\"55\" x2=\"97.50000000000007\" y2=\"65\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"111.00000000000009\" y1=\"57\" x2=\"111.00000000000009\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"124.5000000000001\" y1=\"57\" x2=\"124.5000000000001\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"138.0000000000001\" y1=\"57\" x2=\"138.0000000000001\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"151.50000000000014\" y1=\"57\" x2=\"151.50000000000014\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"178.50000000000017\" y1=\"57\" x2=\"178.50000000000017\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"192.00000000000017\" y1=\"57\" x2=\"192.00000000000017\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"205.5000000000002\" y1=\"57\" x2=\"205.5000000000002\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"219.0000000000002\" y1=\"57\" x2=\"219.0000000000002\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"232.50000000000023\" y1=\"55\" x2=\"232.50000000000023\" y2=\"65\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"246.00000000000026\" y1=\"57\" x2=\"246.00000000000026\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"259.5000000000002\" y1=\"57\" x2=\"259.5000000000002\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"273.0000000000003\" y1=\"57\" x2=\"273.0000000000003\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"286.5000000000003\" y1=\"57\" x2=\"286.5000000000003\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"313.5000000000003\" y1=\"57\" x2=\"313.5000000000003\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"327.00000000000034\" y1=\"57\" x2=\"327.00000000000034\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"340.50000000000034\" y1=\"57\" x2=\"340.50000000000034\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"354.00000000000034\" y1=\"57\" x2=\"354.00000000000034\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"367.50000000000034\" y1=\"55\" x2=\"367.50000000000034\" y2=\"65\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"381.0000000000004\" y1=\"57\" x2=\"381.0000000000004\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"394.5000000000004\" y1=\"57\" x2=\"394.5000000000004\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"408.0000000000004\" y1=\"57\" x2=\"408.0000000000004\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"421.5000000000004\" y1=\"57\" x2=\"421.5000000000004\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"448.5000000000005\" y1=\"57\" x2=\"448.5000000000005\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"462.0000000000005\" y1=\"57\" x2=\"462.0000000000005\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"475.5000000000005\" y1=\"57\" x2=\"475.5000000000005\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"489.0000000000005\" y1=\"57\" x2=\"489.0000000000005\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"502.5000000000005\" y1=\"55\" x2=\"502.5000000000005\" y2=\"65\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"516.0000000000006\" y1=\"57\" x2=\"516.0000000000006\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"529.5000000000006\" y1=\"57\" x2=\"529.5000000000006\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"543.0000000000006\" y1=\"57\" x2=\"543.0000000000006\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><line x1=\"556.5000000000006\" y1=\"57\" x2=\"556.5000000000006\" y2=\"63\" stroke=\"#666\" stroke-width=\"1\"/><polygon points=\"43.500000000000014,58 39.500000000000014,50 47.500000000000014,50\" fill=\"#dc2626\"/><line x1=\"43.500000000000014\" y1=\"50\" x2=\"43.500000000000014\" y2=\"44\" stroke=\"#dc2626\" stroke-width=\"1.5\"/><text x=\"43.500000000000014\" y=\"40\" text-anchor=\"middle\" font-size=\"14\" font-weight=\"bold\" fill=\"#dc2626\">A</text><polygon points=\"198.75000000000003,58 194.75000000000003,50 202.75000000000003,50\" fill=\"#dc2626\"/><line x1=\"198.75000000000003\" y1=\"50\" x2=\"198.75000000000003\" y2=\"44\" stroke=\"#dc2626\" stroke-width=\"1.5\"/><text x=\"198.75000000000003\" y=\"40\" text-anchor=\"middle\" font-size=\"14\" font-weight=\"bold\" fill=\"#dc2626\">B</text><polygon points=\"313.5,58 309.5,50 317.5,50\" fill=\"#dc2626\"/><line x1=\"313.5\" y1=\"50\" x2=\"313.5\" y2=\"44\" stroke=\"#dc2626\" stroke-width=\"1.5\"/><text x=\"313.5\" y=\"40\" text-anchor=\"middle\" font-size=\"14\" font-weight=\"bold\" fill=\"#dc2626\">C</text><polygon points=\"462.0000000000002,58 458.0000000000002,50 466.0000000000002,50\" fill=\"#dc2626\"/><line x1=\"462.0000000000002\" y1=\"50\" x2=\"462.0000000000002\" y2=\"44\" stroke=\"#dc2626\" stroke-width=\"1.5\"/><text x=\"462.0000000000002\" y=\"40\" text-anchor=\"middle\" font-size=\"14\" font-weight=\"bold\" fill=\"#dc2626\">D</text><circle cx=\"259.5\" cy=\"60\" r=\"4\" fill=\"#16A34A\" stroke=\"#FFFFFF\" stroke-width=\"1.5\"/><text x=\"259.5\" y=\"90\" text-anchor=\"middle\" font-size=\"14\" font-weight=\"800\" fill=\"#16A34A\">E</text><circle cx=\"394.50000000000006\" cy=\"60\" r=\"4\" fill=\"#16A34A\" stroke=\"#FFFFFF\" stroke-width=\"1.5\"/><text x=\"394.50000000000006\" y=\"90\" text-anchor=\"middle\" font-size=\"14\" font-weight=\"800\" fill=\"#16A34A\">F</text></svg>",
+    "intro": "Lis la valeur de chaque flèche rouge, puis place les points verts sur la droite :",
+    "multi": true,
+    "questions": [
+     {
+      "label": "a)",
+      "text": "<strong style=\"color:#dc2626\">A</strong> = ",
+      "answer": "1,31"
+     },
+     {
+      "label": "b)",
+      "text": "<strong style=\"color:#dc2626\">B</strong> = ",
+      "answer": "1,425"
+     },
+     {
+      "label": "c)",
+      "text": "<strong style=\"color:#dc2626\">C</strong> = ",
+      "answer": "1,51"
+     },
+     {
+      "label": "d)",
+      "text": "<strong style=\"color:#dc2626\">D</strong> = ",
+      "answer": "1,62"
+     },
+     {
+      "label": "e)",
+      "text": "Place <strong style=\"color:#16A34A\">E</strong> = 1,47",
+      "answer": "1,47",
+      "answerType": "place",
+      "oneD": true,
+      "pointLabel": "E",
+      "expectedX": 1.47,
+      "expectedY": 0,
+      "svgId": "droite-pcjwtl8"
+     },
+     {
+      "label": "f)",
+      "text": "Place <strong style=\"color:#16A34A\">F</strong> = 1,57",
+      "answer": "1,57",
+      "answerType": "place",
+      "oneD": true,
+      "pointLabel": "F",
+      "expectedX": 1.57,
+      "expectedY": 0,
+      "svgId": "droite-pcjwtl8"
+     }
+    ],
+    "threeColsByColumn": true,
+    "svgId": "droite-pcjwtl8",
+    "placePoints": [
+     {
+      "label": "E",
+      "value": 1.47
+     },
+     {
+      "label": "F",
+      "value": 1.57
+     }
+    ]
+   }
+  },
+  {
+   "subId": "estimer",
+   "niveau": 1,
+   "ex": {
+    "multi": true,
+    "intro": "Estime le résultat (sans calculer précisément) et sélectionne la réponse la plus proche :",
+    "questions": [
+     {
+      "label": "a)",
+      "text": "1'000'000 − 1'000 × 899 + 15 : 7 = ",
+      "answerType": "choice",
+      "choices": [
+       "4'000'000",
+       "3",
+       "100'000",
+       "502"
+      ],
+      "correctIdx": 2,
+      "answer": "100'000"
+     }
+    ]
+   }
+  }
+ ],
+ "sortie": "test",
+ "test": {
+  "nom": "Test - Nombres et operations",
+  "tentativeUnique": true,
+  "chrono": true
+ }
+}
