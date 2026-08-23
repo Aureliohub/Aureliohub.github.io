@@ -386,6 +386,17 @@ PDF de domaine :
 Cette section décrit l'ÉTAT, non l'historique. Les numéros de version ne sont
 cités que lorsqu'ils aident à retrouver un choix dans le fichier.
 
+v450 — AUCUN EFFET VISUEL À L'OUVERTURE D'UNE SÉRIE PAR L'ADRESSE. En v449 je
+DÉFAISAIS l'animation d'accueil une fois la série chargée : le menu s'ouvrait
+donc bel et bien, puis se refermait d'un coup — l'éclair désagréable. La bonne
+correction est de ne pas la LANCER : `SERIE_URL` est lu tout en haut de l'init,
+avant `openAllSidebarDomains()`, et quand il est présent on saute l'ouverture du
+menu, la minuterie de repli ET le rendu de l'accueil (remplacé par « Ouverture
+de la série… »), qui n'aurait servi qu'à être écrasé. `body.mode-serie` est posé
+dès la première image. Mesuré image par image : la largeur du menu reste à 64 px
+du début à la fin, contre 320 → 78 → 64 sur un accueil normal, inchangé.
+Si le chargement échoue, on retire `mode-serie` et on rend l'accueil.
+
 v449 — SÉRIE OUVERTE PAR UN ÉLÈVE : quatre ajustements.
  · Pas de bouton SOLUTIONS quand la série ne vient pas de l'atelier
    (`s.origine === 'atelier'` le conserve dans l'aperçu de l'enseignant).
@@ -16150,7 +16161,7 @@ const ICONE_ENSEIGNANT = '<svg viewBox="0 0 24 24" width="21" height="21" fill="
 const ICONE_PDF = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJkAAACUCAMAAAC3HHtWAAAAk1BMVEXi5ef////xVkKwt73K0dji6OrxW0jyUDnG2eHlzczmgnrV2t/x8/T19vbxUTzwTDX4u7Xnvr28wsf+8/L84N3yYlD1jID1hXf1kYb4q6L4t7D96ujwQib1mY7++Pf70c3zcWHxSC/zeGn3pJv6ysX72dXy2Nbj1dXtgnfyaFf3sKj6w73UubvV4ebco6HkioPitLFLhhsqAAAElUlEQVR4nO3ca5eaOhQG4ICOtHUa7AAqIgiIbdVezv//dUcS7tlAXIYkq4v308xCzeNOCAEVZAzmKxKWj8Xi4324tVbQyGahsqdow7J3wbLFgp82LHsTLuOv2rBMIKyQ8dMGZQLHfyXjpsmX8dIUyDhpKmR8NCUyLpoa2eLjq64yjqqpko1XTZlstGrqZGM0hbIRmkrZME2pbJCmVjZEUywboKmW9dOUy3qnXPWyvqppIOupmg4yuGpayMCq6SGDqiZPthySAVWTJ1sPytiqyZMNdydbNYmykaJ1aRJlY0Xr0GTKnqNJlY3sn22aXBlaL4fr1qBJlpEsB/KmVDZEUywboKmW9dOUy3pp6mV9NA1kPTQdZDBNCxlI00MG0TSRATRdZCxNGxlD00fWpWkkQ/rKkL4ypK8M6StD+sqQvjKkrwzpK0P6ypC+MqSvDOkrQ/rKkL6ytbYyVF+tnWWiZW8T5jlZ4Lby/fN0+YFAGyxzw9hbyUoc/oBooOxi2tiUFmybEA2SRaklz5XH/slZs5PEgtGsPrNFg2R3W7YMf+OTbWbZLJtls2yWzbJWrORYJklaaxFs2WUsiznm1htpoIPySzK8PQVl3Oyc1gQrDX3/nMc/h/t0lbTb3vqthDGwkHlFhneO0YyTXYtHWdvWFsc9xA3b6m504nhs1V6R2QemhT192OrS3WJs4rLx7hvKcz8KlVkbpoWI9ovnMlsMN4ULSnJIJpA5gUNStL+qZRFN+RLBDvfJgpXY3qSy2zXOs/MpIbRLWeT/3OYJb0UFL7R9KnMOdXzRewCV+TYmsa8BKdqxku3oFsvGu4C+SFLL3MakwU4rgmTlv/u8ak5emEJWVcKOadmuuJYBmKlkmHpiQGZaMenrg61EZppknso9jMw8khnG9fSTWWletCjF9TizHnmMwsdInFqG6S4A9mY5keR7LpUFYRX4JFugLPHzf6OK0ZatTuWDmfnM2UO012XnI931zTMZ5KfGrNFsEGdkF0igmdaJgQ59XZaFZE1xO9GZlrx/QGYS2Q2UGdtJZO3c6+NmZ5yRg/wZ6k3j4rEvLlrm0h2NlRW7R17R4uh0qnIA1kCCZVF2pW2wMjvMH+BcG7MGmTbywBfmBMqcU2gWbQDzGSnZhfwpa6Y9nWn2qVm9d0ZGZxQyzOTJzkfaJc0+6cjwMSQ7bmRLrZkPbClkCSZoHG+iumQayIzs9lgV3g73YqYzsuJp6mWdXK7N1baMccYpy7xi2EmQ2ed8C3Q4Zs/qorA6CcFpLhu9WP7a1YNNFB3AdULqRjXKcU/bY+P5OHQiN51UhnG6gz/AsLxdndSz2s+249119IOPF68F9axHyZY6TzxNmGzCzLJZNstm2TSyTPpnwh7nZ8KBbBiOGVfPdw9u7DXeSWHHX785ZVGYJNV52ORJ8J/lmlP2WOv54b6VL5Pl73/LT0/Iunn/NF3yLzXyjjNAxvzkQWy0lQEwPWTAKOOXrScM5PoXvrM3y2bZLJtls+zfk3He90Do3TnFykTe0ZQr9Q8XRmTSi9a4zcyITOQNap+Djckk92fzbin/A8PQxx30Ei25AAAAAElFTkSuQmCC';
 
 // Numéro de version, affiché en pied de menu.
-const APP_VERSION = '449';
+const APP_VERSION = '450';
 
 const DOMAINS = [
   {
@@ -30201,10 +30212,25 @@ document.addEventListener('input', (evt) => {
 // vue d'ensemble, puis on lance un compte à rebours de 5s qui les referme.
 // Annulé si l'utilisateur survole la sidebar (= il la consulte) ou clique
 // sur une carte d'aperçu.
-openAllSidebarDomains();
+// Série demandée par l'adresse (?serie=…) : l'application ne joue AUCUNE
+// animation d'accueil. Le menu ne s'ouvre pas — donc il n'a pas à se refermer,
+// et le repli éclair qu'on voyait juste après le chargement disparaît. La page
+// n'affiche pas non plus l'accueil pour le remplacer aussitôt : elle attend la
+// série sur un écran neutre.
+const SERIE_URL = (() => {
+  try { return new URLSearchParams(window.location.search).get('serie'); }
+  catch (e) { return null; }
+})();
+if (SERIE_URL) document.body.classList.add('mode-serie');
+if (!SERIE_URL) openAllSidebarDomains();
 renderSidebar();
-renderMain();
-scheduleSidebarAutoClose(5000);
+if (SERIE_URL) {
+  const m = document.getElementById('main');
+  if (m) m.innerHTML = '<div class="placeholder"><strong>Ouverture de la série…</strong></div>';
+} else {
+  renderMain();
+  scheduleSidebarAutoClose(5000);
+}
 attachSidebarOutsideClick();
 // État initial de l'historique (accueil) : permet de revenir ici avec la flèche
 // « reculer » du navigateur après avoir ouvert un premier exercice.
@@ -30231,8 +30257,7 @@ if (typeof pushHistoryState === 'function') pushHistoryState(true);
 // refuse de lire un fichier voisin.
 // ----------------------------------------------------------------------------
 (() => {
-  let nom = null;
-  try { nom = new URLSearchParams(window.location.search).get('serie'); } catch (e) { nom = null; }
+  let nom = SERIE_URL;
   if (!nom) return;
   if (!/\.json$/i.test(nom)) nom += '.json';
   const urlSerie = new URL(nom, window.location.href).href;
@@ -30255,6 +30280,9 @@ if (typeof pushHistoryState === 'function') pushHistoryState(true);
         : (location.protocol === 'file:')
         ? "La page est ouverte depuis le disque ; le navigateur refuse alors de lire un fichier voisin. Il faut passer par l'adresse web."
         : "Le fichier a été trouvé mais son contenu n'est pas une série lisible (" + String(err && err.message) + ").";
+      // L'écran d'attente ne doit pas rester : on retombe sur l'accueil.
+      document.body.classList.remove('mode-serie');
+      renderMain();
       alert("La série « " + nom + " » n'a pas pu être ouverte.\n\n" + raison);
     });
 })();
