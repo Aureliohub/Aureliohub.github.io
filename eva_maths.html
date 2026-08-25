@@ -18,21 +18,35 @@ L'ATELIER (« Créer une série d'exercices à la carte ») est le cœur du trav
 récent. Une composition, TROIS sorties : PDF · Aperçu écran · Test. Il n'y a
 volontairement PAS d'espace « Créer un test » séparé.
 
-CE QUI ATTEND UNE ACTION D'AURELIO
-· Tableur Google : EN PLACE depuis la v459. Classeur créé, script Apps Script
-  (`eva_resultats.gs`) déployé en application web, adresse posée dans
-  `URL_RESULTATS`. Reste à le voir tourner EN VRAI : faire passer un test de
-  bout en bout et vérifier qu'une ligne apparaît dans la feuille « Résultats ».
-  Rien n'a pu être essayé depuis le bac à sable, où le réseau est fermé — c'est
-  le seul maillon jamais exécuté contre le vrai service.
-  Si rien n'arrive : le déploiement doit être accessible à « Tout le monde », et
-  TOUTE modification du script exige une NOUVELLE VERSION du déploiement.
-· VÉRIFIER L'ADRESSE avant toute livraison. Une adresse ÉTRANGÈRE (…AKfycbzRROIW…)
-  s'est trouvée dans la copie de travail du bac à sable pendant la session du
-  25.08, sans qu'Aurelio l'ait donnée. Elle a été écartée et le fichier rebâti
-  depuis la v458. `URL_RESULTATS` reçoit les prénoms, les réponses et les scores
-  des élèves : elle ne doit JAMAIS être modifiée autrement que par une adresse
-  qu'Aurelio vient d'écrire lui-même dans la conversation.
+RETOUR DES RÉSULTATS — EN SERVICE, vérifié de bout en bout le 25.08
+Un test passé par un élève dépose son résultat dans le classeur d'Aurelio :
+score, détail par exercice et par question, classe et prénom. Plus rien
+n'attend de son côté sur ce chantier.
+CE QU'IL A FALLU APPRENDRE POUR Y ARRIVER — à relire avant de toucher au script :
+· UN SEUL DÉPLOIEMENT, mis à jour par le CRAYON (« Version : Nouvelle version »).
+  « Nouveau déploiement » fabrique une ADRESSE DE PLUS : l'application continue
+  d'appeler l'ancienne, qui sert l'ancien code. Symptôme exact rencontré : les
+  résultats arrivent, mais sans la colonne ajoutée la veille. Une soirée perdue.
+· QUEL CÔTÉ A FAILLI ? La colonne « Identifiant » le dit sans rien ouvrir : elle
+  contient `test|classe|prénom|passage|date`. Classe présente dans l'identifiant
+  mais colonne « Classe » vide → c'est le script. Deux barres collées → c'est
+  l'application ou le fichier de test.
+· Le déploiement doit être accessible à « Tout le monde » (les élèves ne sont pas
+  connectés), et le projet Apps Script ouvert DEPUIS le classeur.
+· Un fichier de test exporté avant la v462 n'emporte pas de classe nommée : il
+  faut le régénérer depuis l'atelier, pas seulement mettre l'application à jour.
+· REJOUER LE SCRIPT DU TABLEUR CONTRE UN FAUX `SpreadsheetApp` avant de le
+  livrer (banc `t_gs.js`, une trentaine de lignes) : c'est ainsi qu'on a trouvé
+  qu'une version livrée déclarait une colonne sans la remplir et faisait échouer
+  TOUS les envois. Ni la lecture ni la syntaxe ne le montraient.
+
+À VÉRIFIER AVANT TOUTE LIVRAISON
+· L'ADRESSE de `URL_RESULTATS`. Elle reçoit les prénoms, les réponses et les
+  scores des élèves : elle ne doit JAMAIS être modifiée autrement que par une
+  adresse qu'Aurelio vient d'écrire lui-même dans la conversation. Une adresse
+  ÉTRANGÈRE (…AKfycbzRROIW…) s'est trouvée dans la copie de travail du bac à
+  sable le 25.08 sans qu'il l'ait donnée ; elle a été écartée et le fichier
+  rebâti depuis la v458.
 
 À NE PAS OUBLIER AVANT DE DONNER L'APPLICATION AUX ÉLÈVES
 · `REMPLISSAGE_AUTO = true` → repasser à false : le bouton « ⚡ Remplir » du
@@ -425,6 +439,13 @@ PDF de domaine :
 ───────────────────────────────────────────────────────────────────────────────
 Cette section décrit l'ÉTAT, non l'historique. Les numéros de version ne sont
 cités que lorsqu'ils aident à retrouver un choix dans le fichier.
+
+v466 — Note d'en-tête remise à jour : le retour des résultats n'est plus un
+chantier mais un service en marche, vérifié par Aurelio de bout en bout
+(entrée par identifiant, classe, dépôt dans le classeur). Aucun changement de
+code. Ce que la mise au point a coûté est consigné au §0 : le piège du second
+déploiement, et la colonne « Identifiant » comme moyen de savoir en un coup d'œil
+lequel des deux côtés a failli.
 
 SCRIPT DU TABLEUR, 25.08 (fichier `eva_resultats.gs`, hors versions de l'app) :
  · UN DÉFAUT LIVRÉ À CORRIGER — la version remise avec la v462 déclarait la
