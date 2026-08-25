@@ -426,6 +426,26 @@ PDF de domaine :
 Cette section décrit l'ÉTAT, non l'historique. Les numéros de version ne sont
 cités que lorsqu'ils aident à retrouver un choix dans le fichier.
 
+v464 — EXPOSANTS AUTOMATIQUES DANS LES CHAMPS QUI N'EN VEULENT PAS. Signalé par
+Aurelio : « Daniel_Atelier03 » s'affichait « Daniel_Atelier⁰³ » et l'identifiant
+n'était plus reconnu ; le mot de passe « 4t7p » devenait « 4t⁷p », donc jamais
+juste.
+ CAUSE : le gestionnaire 'input' GLOBAL (fin de fichier) convertit
+ « lettre + chiffres » en exposant Unicode sur TOUT champ portant la classe
+ `.answer-input` — l'astuce de saisie de l'algèbre. Or l'identifiant, le mot de
+ passe, le prénom libre, le nom d'un test et le menu des classes empruntent
+ cette classe pour son ASPECT, sans contenir la moindre mathématique.
+ REMÈDE : attribut `data-brut` sur ces champs, et sortie immédiate du
+ gestionnaire. Ne pas retirer la classe `.answer-input` (elle porte tout leur
+ style), ne pas restreindre le gestionnaire à `#main` (les champs d'exercice
+ d'une série ou d'un test n'y sont pas tous).
+ À RETENIR : tout nouveau champ de saisie NON mathématique qui reprend
+ `.answer-input` doit porter `data-brut`.
+ Vérifié au vrai navigateur, en FRAPPANT caractère par caractère (le défaut ne
+ se voit pas quand on pose la valeur par script) : identifiant et mot de passe
+ intacts, entrée acceptée, et « x2 » toujours converti en x² dans un champ
+ d'exercice.
+
 v463 — IDENTIFIANT « prénom_classe » à la place des menus déroulants, et liste
 de classe en lignes dépliables. Rectificatif demandé par Aurelio ; les menus de
 la v462 (« Ta classe », « Ton prénom ») sont SUPPRIMÉS côté élève — ne pas les
@@ -4413,12 +4433,12 @@ ainsi (une remarque prise pour une consigne, une sélection ambiguë).
 
     <div class="modal-row">
       <label class="modal-label" for="test-nom">Nom du test</label>
-      <input type="text" id="test-nom" class="answer-input" style="width:100%;" placeholder="Test de calcul – février">
+      <input type="text" id="test-nom" class="answer-input" data-brut="1" style="width:100%;" placeholder="Test de calcul – février">
     </div>
 
     <div class="modal-row" id="test-classe-row" style="display:none;">
       <label class="modal-label" for="test-classe">Classe</label>
-      <select id="test-classe" class="answer-input" style="width:100%;"></select>
+      <select id="test-classe" class="answer-input" data-brut="1" style="width:100%;"></select>
     </div>
 
     <div class="modal-checks">
@@ -17883,8 +17903,8 @@ function renderTestAccueil() {
       ${dejaFait ? `<p class="test-accueil-alerte">Ce test a déjà été passé sur cet ordinateur${dejaFait.prenom ? ' par ' + dejaFait.prenom : ''}. Un nouveau passage sera signalé comme tel.</p>` : ''}
       ${classesDuTest.length ? `
         <label class="test-accueil-label" for="test-identifiant">Ton identifiant</label>
-        <input type="text" id="test-identifiant" class="answer-input" autocomplete="off"
-               autocapitalize="off" autocorrect="off" spellcheck="false"
+        <input type="text" id="test-identifiant" class="answer-input" data-brut="1"
+               autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"
                placeholder="prénom_classe"
                onkeydown="if(event.key==='Enter') demarrerTestFichier()">
         <label class="test-accueil-label" for="test-mdp">Ton mot de passe</label>
@@ -17895,7 +17915,7 @@ function renderTestAccueil() {
         </div>
       ` : `
         <label class="test-accueil-label" for="test-prenom">Ton prénom</label>
-        <input type="text" id="test-prenom" class="answer-input" autocomplete="off"
+        <input type="text" id="test-prenom" class="answer-input" data-brut="1" autocomplete="off"
                onkeydown="if(event.key==='Enter') demarrerTestFichier()">
       `}
       <p class="test-accueil-alerte" id="test-entree-erreur" style="display:none;"></p>
@@ -17965,7 +17985,7 @@ function masquageCssDisponible() {
 }
 
 function champMotDePasse() {
-  const commun = `id="test-mdp" autocomplete="off" autocapitalize="off"`
+  const commun = `id="test-mdp" data-brut="1" autocomplete="off" autocapitalize="off"`
     + ` autocorrect="off" spellcheck="false" data-lpignore="true" data-form-type="other"`
     + ` onkeydown="if(event.key==='Enter') demarrerTestFichier()"`;
   // ATTENTION : un seul attribut `class` par balise — le navigateur garde le
@@ -31685,6 +31705,12 @@ function convertSupToCaret(s) {
 document.addEventListener('input', (evt) => {
   const inp = evt.target;
   if (!inp || !inp.classList || !inp.classList.contains('answer-input')) return;
+  // CHAMPS HORS EXERCICE : identifiant, mot de passe, prénom, nom d'un test.
+  // Ils empruntent l'aspect des champs de réponse mais ne contiennent pas de
+  // mathématiques : « Daniel_Atelier03 » devenait « Daniel_Atelier⁰³ » et le mot
+  // de passe « 4t7p » devenait « 4t⁷p » — l'identifiant n'était alors plus
+  // reconnu, et le mot de passe jamais juste. Ils portent `data-brut`.
+  if (inp.hasAttribute('data-brut')) return;
   const before = inp.value;
   // Mémoriser la position du curseur depuis la fin (stable même si la
   // longueur de la chaîne change après conversion)
