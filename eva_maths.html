@@ -19,10 +19,20 @@ récent. Une composition, TROIS sorties : PDF · Aperçu écran · Test. Il n'y 
 volontairement PAS d'espace « Créer un test » séparé.
 
 CE QUI ATTEND UNE ACTION D'AURELIO
-· Tableur Google : il doit créer la feuille, y coller le script Apps Script
-  (à lui fournir) et publier, puis transmettre l'adresse obtenue. C'est le
-  canal de RETOUR DES RÉSULTATS des tests. Le point de branchement est unique :
-  la fin de `validerTest`, quand `state.test.eleve` existe.
+· Tableur Google : EN PLACE depuis la v459. Classeur créé, script Apps Script
+  (`eva_resultats.gs`) déployé en application web, adresse posée dans
+  `URL_RESULTATS`. Reste à le voir tourner EN VRAI : faire passer un test de
+  bout en bout et vérifier qu'une ligne apparaît dans la feuille « Résultats ».
+  Rien n'a pu être essayé depuis le bac à sable, où le réseau est fermé — c'est
+  le seul maillon jamais exécuté contre le vrai service.
+  Si rien n'arrive : le déploiement doit être accessible à « Tout le monde », et
+  TOUTE modification du script exige une NOUVELLE VERSION du déploiement.
+· VÉRIFIER L'ADRESSE avant toute livraison. Une adresse ÉTRANGÈRE (…AKfycbzRROIW…)
+  s'est trouvée dans la copie de travail du bac à sable pendant la session du
+  25.08, sans qu'Aurelio l'ait donnée. Elle a été écartée et le fichier rebâti
+  depuis la v458. `URL_RESULTATS` reçoit les prénoms, les réponses et les scores
+  des élèves : elle ne doit JAMAIS être modifiée autrement que par une adresse
+  qu'Aurelio vient d'écrire lui-même dans la conversation.
 
 À NE PAS OUBLIER AVANT DE DONNER L'APPLICATION AUX ÉLÈVES
 · `REMPLISSAGE_AUTO = true` → repasser à false : le bouton « ⚡ Remplir » du
@@ -413,6 +423,54 @@ PDF de domaine :
 ───────────────────────────────────────────────────────────────────────────────
 Cette section décrit l'ÉTAT, non l'historique. Les numéros de version ne sont
 cités que lorsqu'ils aident à retrouver un choix dans le fichier.
+
+v459 — Adresse du tableur posée dans `URL_RESULTATS` (application web Apps
+Script d'Aurelio, /macros/s/AKfycbxVlcpx…/exec, donnée par lui le 25.08). Le
+canal est donc ACTIF : un test ouvert par un élève dépose son résultat à la
+validation. Non essayé contre le vrai service (réseau fermé dans le bac à
+sable) : la première preuve viendra du côté d'Aurelio.
+Une AUTRE adresse (…AKfycbzRROIW…) s'était glissée dans la copie de travail sans
+venir de lui ; elle a été écartée et cette version est rebâtie depuis la v458
+livrée. Voir l'avertissement du §0.
+
+v458 — RETOUR DES RÉSULTATS VERS UN TABLEUR GOOGLE (bloc « RETOUR DES
+RÉSULTATS », juste avant `validerTest`). Branchement unique à la fin de
+`validerTest` : `envoyerResultatsTest()`, sans effet si `URL_RESULTATS` est vide
+ou si le test n'a pas de prénom (mode évaluation de l'enseignant).
+ · CE QUI PART : identifiant, date, prénom, test, passage, durée, score et
+   pourcentage, le détail par domaine, par exercice, et par question (énoncé,
+   réponse donnée, réponse attendue, statut juste/partiel/faux/vide). Mesuré :
+   9 ko pour un test de domaine (9 exercices, 41 questions).
+ · LES DEUX PIÈGES DE L'EXTRACTION, tous deux rencontrés au banc d'essai :
+   – tout ce qui passe par KaTeX part VIDE (la formule vit dans `data-tex`, le
+     texte rendu appartient à la bibliothèque). `texLisible` la ramène à une
+     écriture de tableur (√3, 6/9, ∛64) ; sans elle, « Calculer des racines »
+     n'avait ni énoncé ni réponse attendue.
+   – les problèmes rédigés gardent leur raisonnement dans `answer` : on applique
+     `estReponseLongue` + `extractFinalResult`, comme l'export PDF, pour n'en
+     garder que le résultat.
+   Le repérage des champs et la lecture de `data-selected` sont ceux de
+   l'export PDF ; `attendusParChamp` et `feedbacksDeQuestion` sont partagés.
+ · CE QUI N'EST PAS COUVERT : les familles interactives sans tableau
+   `questions` (appariements, sélections, dénombrements) n'envoient pas de
+   ligne par question — leur SCORE d'exercice part normalement.
+ · TROIS PRÉCAUTIONS : `text/plain` en type de contenu (Apps Script ne sait pas
+   honorer la requête préalable CORS) ; un envoi qui échoue est mis en file
+   dans le navigateur de l'élève (`eva-resultats-attente`) et retenté à chaque
+   ouverture de la page, cinq fois au plus ; chaque envoi porte un identifiant
+   et le script du tableur ignore un identifiant déjà écrit — un renvoi ne crée
+   donc jamais de doublon, c'est ce qui autorise à retenter sans compter.
+ · L'élève voit l'état dans le bandeau (« Résultats transmis ✓ » / « Résultats
+   non transmis »), et la fenêtre de sortie le dit en clair quand rien n'est
+   parti : enregistrer le document et le donner à l'enseignant.
+ · L'adresse peut aussi voyager DANS le fichier de test (`reglages.retour`) :
+   deux enseignants, deux tableurs, une seule application. Aucune interface ne
+   la pose encore — à ajouter dans la fenêtre « Test » de l'atelier si besoin.
+ · TABLEUR : trois feuilles alimentées, Résultats (une ligne par test passé),
+   Exercices, Réponses. Le script est livré à part.
+ Vérifié : envoi confirmé, échec réseau puis reprise au chargement suivant,
+ abandon après cinq échecs, silence total sans prénom, domaines 1, 4 et 5.
+ Regardé au vrai navigateur : bandeau dans les deux états et fenêtre de sortie.
 
 v457 — Ajout du §0 « Où on en est », pour qu'une nouvelle conversation reparte
 sans relire tout l'historique.
@@ -17627,7 +17685,10 @@ function demarrerTestFichier() {
     complet: false,
     titre: a.titre,
     eleve: prenom,
-    passage: (avant && avant.passages ? avant.passages : 0) + 1
+    passage: (avant && avant.passages ? avant.passages : 0) + 1,
+    // Un fichier de test peut porter SA propre adresse de retour ; sinon celle
+    // de l'application.
+    retourUrl: (a.reglages && a.reglages.retour) || ''
   };
   state.exercises = a.items.map(it => it.ex);
   testMarquerPasse(a.titre, prenom);
@@ -17684,6 +17745,7 @@ function renderTest() {
     <div class="test-bandeau">
       <span class="test-bandeau-titre">${t.titre ? '' : 'Test – '}${titre}</span>
       <span class="test-bandeau-note" id="test-resultat">${note}</span>
+      ${t.envoi ? `<span class="test-bandeau-note" id="test-envoi">${texteEtatEnvoi(t.envoi)}</span>` : ''}
       ${t.valide ? '<button class="btn-action" id="btn-export-test" onclick="exporterTest()">Exporter</button>' : ''}
       <button class="btn-action" onclick="quitterEvaluation()">Quitter</button>
     </div>`;
@@ -25252,6 +25314,273 @@ function remplirTestAuto() {
 // Validation du test : un seul geste pour tout l'ensemble.
 // On alerte d'abord sur les champs laissés vides, puis on corrige, on verrouille
 // et on affiche le score dans la barre de titre.
+// ============================================================================
+// RETOUR DES RÉSULTATS — dépôt dans un tableur Google
+// ----------------------------------------------------------------------------
+// Un test se passe souvent hors de la présence de l'enseignant : le score doit
+// donc lui parvenir tout seul. À la validation, l'application envoie le
+// résultat à une application web Apps Script (le script est livré à part), qui
+// l'écrit dans trois feuilles : Résultats (une ligne par test), Exercices,
+// Réponses.
+// TROIS PRÉCAUTIONS, chacune pour un accident déjà prévisible :
+//  · URL_RESULTATS VIDE = rien ne part, et rien ne change dans l'application.
+//    C'est l'état livré tant que l'adresse du tableur n'est pas connue.
+//  · Un envoi qui échoue (réseau coupé, tableur déplacé) n'est PAS perdu : il
+//    est mis en file dans le navigateur de l'élève et retenté à chaque
+//    ouverture de la page, cinq fois au plus.
+//  · Chaque envoi porte un identifiant ; le script du tableur ignore un
+//    identifiant déjà écrit. Un renvoi ne crée donc jamais de doublon — c'est
+//    ce qui autorise à retenter sans compter.
+// L'élève voit l'état de l'envoi dans le bandeau, et la fenêtre de sortie le
+// prévient si rien n'est parti (il lui reste l'export PDF).
+// ============================================================================
+
+// ← ADRESSE DE L'APPLICATION WEB APPS SCRIPT (…/exec). Vide = envoi désactivé.
+const URL_RESULTATS = 'https://script.google.com/macros/s/AKfycbxVlcpx9RIgI3zy35oo5W73D80_lziuJ3ohrbCefAhLY4e4dKDnx1AMG5fGgxyAtCuh/exec';
+// Mot de passe partagé, recopié à l'identique dans le script du tableur. Il
+// écarte un envoi fait au hasard, il ne protège rien : il est en clair ici.
+const CLE_RESULTATS = '';
+const CLE_FILE_RESULTATS = 'eva-resultats-attente';
+const MAX_ESSAIS_RESULTATS = 5;
+
+// L'adresse peut aussi voyager DANS le fichier de test (`reglages.retour`) :
+// deux enseignants peuvent ainsi viser deux tableurs différents avec la même
+// application. À défaut, celle du fichier source.
+function urlRetourResultats() {
+  const t = state.test;
+  return String((t && t.retourUrl) || URL_RESULTATS || '').trim();
+}
+
+// Formule KaTeX ramenée à une écriture lisible dans une cellule de tableur.
+// Sans cela, tout ce qui passe par KaTeX part VIDE : la formule vit dans
+// l'attribut `data-tex`, le texte rendu appartient à la bibliothèque. Une
+// racine ou une fraction en réponse (« Calculer des racines ») ne laissait
+// donc aucune trace.
+function texLisible(tex) {
+  let t = String(tex || '');
+  t = t.replace(/\\d?frac\{([^{}]*)\}\{([^{}]*)\}/g, '$1/$2');
+  t = t.replace(/\\sqrt\[3\]\{([^{}]*)\}/g, '∛$1');
+  t = t.replace(/\\sqrt\{([^{}]*)\}/g, '√$1');
+  t = t.replace(/\\times/g, '×').replace(/\\div/g, '÷').replace(/\\cdot/g, '·');
+  t = t.replace(/\\left|\\right/g, '').replace(/\\[a-zA-Z]+/g, '');
+  return t.replace(/[{}]/g, '').replace(/\s+/g, ' ').trim();
+}
+
+// Texte lisible d'un énoncé ou d'une réponse : ni balises, ni figure, ni champ.
+function texteResultats(html) {
+  const d = document.createElement('div');
+  d.innerHTML = String(html == null ? '' : html);
+  d.querySelectorAll('svg, input, .no-print').forEach(n => n.remove());
+  d.querySelectorAll('[data-tex]').forEach(el => {
+    el.replaceWith(d.ownerDocument.createTextNode(' ' + texLisible(el.getAttribute('data-tex')) + ' '));
+  });
+  return (d.textContent || '').replace(/\s+/g, ' ').trim();
+}
+
+// Réponse attendue, à plat. `attendusParChamp` connaît déjà les formes
+// particulières (équation + valeur, couple de coordonnées, ligne d'unités,
+// tableau de proportionnalité) : on ne les réécrit pas ici.
+function attenduTexteResultats(q, ex) {
+  if (!q) return '';
+  if (q.attenduExport) return texteResultats(q.attenduExport);
+  // Les problèmes rédigés gardent leur raisonnement dans `answer` : on n'en
+  // retient que le résultat, comme le fait l'export PDF.
+  const court = (v) => {
+    const t = texteResultats(v);
+    return estReponseLongue(ex) ? texteResultats(extractFinalResult(t)) : t;
+  };
+  return attendusParChamp(q)
+    .filter(v => v !== undefined && v !== null && v !== '')
+    .map(court).join(' | ');
+}
+
+// Ce que l'élève a saisi, et ce que la correction en a dit. Même repérage exact
+// des champs que l'export PDF (« inp-0-1 » ne doit pas ramasser « inp-0-10 »),
+// et même lecture de la sélection sur `data-selected` pour les questions à choix.
+function reponseSaisieResultats(i, j, q) {
+  const prefixe = `inp-${i}-${j}`;
+  const bloc = document.querySelector(`[data-test-ex="${i}"]`);
+  let donnee = '';
+  if (q && q.answerType === 'choice') {
+    const grp = document.getElementById(prefixe);
+    const sel = grp ? grp.getAttribute('data-selected') : null;
+    const idx = (sel === null || sel === '') ? -1 : parseInt(sel, 10);
+    donnee = (idx >= 0 && q.choices && q.choices[idx] !== undefined) ? String(q.choices[idx]) : '';
+  } else if (bloc) {
+    donnee = [...bloc.querySelectorAll('input')]
+      .filter(inp => (inp.id === prefixe) || (inp.id || '').startsWith(prefixe + '-'))
+      .map(inp => (inp.value || '').trim()).filter(v => v !== '').join(' | ');
+  }
+  const fbs = feedbacksDeQuestion(i, j, q);
+  const partiel = fbs.some(f => f.classList.contains('unite-partielle'));
+  const juste = fbs.length > 0 && fbs.every(f => f.classList.contains('correct'));
+  const statut = !donnee ? 'vide' : (partiel ? 'partiel' : (juste ? 'juste' : 'faux'));
+  return { donnee, statut };
+}
+
+// Tout ce qui part dans le tableur. Se lit APRÈS la correction : les scores et
+// les marques vivent dans la page.
+function collecteResultatsTest() {
+  const t = state.test;
+  if (!t || !t.score) return null;
+  const { obtenus, total } = t.score;
+  const ms = (t.duree != null) ? t.duree : (t.debut ? Date.now() - t.debut : null);
+  const titre = t.titre || ((t.domaines.length === 1) ? t.domaines[0] : `${t.domaines.length} domaines`);
+  const domaines = [], exercices = [], questions = [];
+  t.items.forEach((it, i) => {
+    const sc = scoreExercice(it, i);
+    const dom = it.domainTitle || (t.domaines[0] || '');
+    if (!sc.horsBareme && sc.total > 0) {
+      let d = domaines.find(x => x.titre === dom);
+      if (!d) { d = { titre: dom, obtenus: 0, total: 0 }; domaines.push(d); }
+      d.obtenus += sc.obtenus; d.total += sc.total;
+    }
+    exercices.push({
+      n: i + 1, domaine: dom, sousDomaine: it.sub.title,
+      niveau: (it.niveau == null ? '' : it.niveau),
+      obtenus: sc.obtenus, total: sc.total, horsBareme: !!sc.horsBareme
+    });
+    const qs = (it.ex && Array.isArray(it.ex.questions)) ? it.ex.questions : [];
+    qs.forEach((q, j) => {
+      const r = reponseSaisieResultats(i, j, q);
+      questions.push({
+        ex: i + 1, q: String((q && q.label) || `${j + 1}`).replace(/[)\s.]+$/, ''),
+        domaine: dom, sousDomaine: it.sub.title,
+        enonce: texteResultats(q && q.text).slice(0, 200),
+        donnee: r.donnee, attendu: attenduTexteResultats(q, it.ex), statut: r.statut
+      });
+    });
+  });
+  const quand = new Date().toISOString();
+  return {
+    version: 1,
+    cle: CLE_RESULTATS,
+    id: [titre, t.eleve || '', t.passage || 1, quand].join('|'),
+    quand,
+    test: titre,
+    eleve: t.eleve || '',
+    passage: t.passage || 1,
+    dureeMin: (ms == null) ? '' : Math.max(0, Math.round(ms / 60000)),
+    obtenus, total,
+    pourcentage: total > 0 ? Math.round(obtenus / total * 100) : 0,
+    domaines, exercices, questions
+  };
+}
+
+// Envoi. Le type `text/plain` est VOULU : il évite la requête préalable (CORS)
+// qu'Apps Script ne sait pas honorer. Le script du tableur relit le corps en
+// JSON de toute façon.
+// Trois issues : true (confirmé), null (parti, sans confirmation lisible),
+// false (rien n'est parti).
+async function posterResultats(url, payload) {
+  let texte;
+  try { texte = JSON.stringify(payload); }
+  catch (e) { return false; }
+  try {
+    const r = await fetch(url, {
+      method: 'POST', redirect: 'follow',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: texte
+    });
+    if (!r.ok) return false;
+    const rep = await r.text();
+    try { return !!JSON.parse(rep).ok; } catch (e) { return /"?ok"?\s*:\s*true/i.test(rep) ? true : null; }
+  } catch (e) {
+    // Réponse illisible depuis la page (CORS) : on retente en aveugle. Le
+    // message part, mais on ne saura pas s'il est arrivé.
+    try {
+      await fetch(url, {
+        method: 'POST', mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: texte
+      });
+      return null;
+    } catch (e2) { return false; }
+  }
+}
+
+function fileResultats() {
+  try {
+    const brut = localStorage.getItem(CLE_FILE_RESULTATS);
+    const a = brut ? JSON.parse(brut) : [];
+    return Array.isArray(a) ? a : [];
+  } catch (e) { return []; }
+}
+
+function ecrireFileResultats(a) {
+  try {
+    if (!a.length) localStorage.removeItem(CLE_FILE_RESULTATS);
+    else localStorage.setItem(CLE_FILE_RESULTATS, JSON.stringify(a.slice(-20)));
+  } catch (e) {}
+}
+
+function mettreEnFileResultats(url, payload) {
+  const f = fileResultats();
+  if (f.some(e => e && e.payload && e.payload.id === payload.id)) return;
+  f.push({ url, payload, essais: 1 });
+  ecrireFileResultats(f);
+}
+
+// Retenté à chaque ouverture de la page : un test passé hors ligne finit par
+// arriver. Le tableur écarte les identifiants déjà écrits, donc un renvoi ne
+// coûte rien.
+async function reprendreEnvoisEnAttente() {
+  const f = fileResultats();
+  if (!f.length) return;
+  const reste = [];
+  for (const e of f) {
+    const url = String((e && e.url) || URL_RESULTATS || '').trim();
+    if (!url || !e.payload) continue;
+    const r = await posterResultats(url, e.payload);
+    if (r === false) {
+      e.essais = (e.essais || 0) + 1;
+      if (e.essais < MAX_ESSAIS_RESULTATS) reste.push(e);
+    }
+  }
+  ecrireFileResultats(reste);
+}
+
+function texteEtatEnvoi(etat) {
+  if (etat === 'envoi') return '<span style="color:#6B7280;">Envoi des résultats…</span>';
+  if (etat === 'ok') return '<span style="color:#16A34A; font-weight:700;">Résultats transmis ✓</span>';
+  if (etat === 'incertain') return '<span style="color:#B45309; font-weight:700;">Résultats envoyés (sans confirmation)</span>';
+  if (etat === 'erreur') return '<span style="color:#DC2626; font-weight:700;">Résultats non transmis</span>';
+  return '';
+}
+
+// L'état vit sur `state.test` : la bascule Solutions refait la page, et le
+// bandeau doit le retrouver.
+function majEtatEnvoi(etat) {
+  if (state.test) state.test.envoi = etat;
+  let zone = document.getElementById('test-envoi');
+  if (!zone) {
+    const bandeau = document.querySelector('.test-bandeau');
+    const bouton = bandeau && bandeau.querySelector('button');
+    if (!bandeau) return;
+    zone = document.createElement('span');
+    zone.className = 'test-bandeau-note';
+    zone.id = 'test-envoi';
+    bandeau.insertBefore(zone, bouton || null);
+  }
+  zone.innerHTML = texteEtatEnvoi(etat);
+}
+
+// Point de branchement unique, à la fin de validerTest. Un test passé par
+// l'enseignant depuis la fenêtre d'évaluation n'a pas de prénom : rien ne part.
+async function envoyerResultatsTest() {
+  const t = state.test;
+  if (!t || !t.eleve || t.envoye) return;
+  const url = urlRetourResultats();
+  if (!url) return;
+  const payload = collecteResultatsTest();
+  if (!payload) return;
+  majEtatEnvoi('envoi');
+  const r = await posterResultats(url, payload);
+  if (r === true) { t.envoye = true; majEtatEnvoi('ok'); }
+  else if (r === null) { t.envoye = true; majEtatEnvoi('incertain'); }
+  else { mettreEnFileResultats(url, payload); majEtatEnvoi('erreur'); }
+}
+
 function validerTest() {
   if (!state.test || state.test.valide) return;
   const main = document.getElementById('main');
@@ -25290,6 +25619,9 @@ function validerTest() {
   if (btn) btn.remove();
   afficherScoreTest();
   ajouterBoutonExport();
+  // Dépôt du résultat dans le tableur (sans effet si aucune adresse n'est
+  // renseignée, ou si le test n'a pas été ouvert par un élève).
+  envoyerResultatsTest();
 }
 
 // Réponses remplies mais sans unité, là où l'unité fait partie de la réponse
@@ -25624,8 +25956,14 @@ function majFenetreSortie() {
   const intro = document.querySelector('#quit-modal .modal-intro');
   const btnExport = document.getElementById('btn-export');
   const btnQuitter = document.querySelector('#quit-modal .modal-foot .btn-action:nth-child(2)');
+  // Résultats non transmis : l'export est alors le SEUL moyen de garder une
+  // trace. On le dit avant que l'élève ne quitte.
+  const perdu = !!(t && t.eleve && t.envoi === 'erreur');
   if (intro) {
-    intro.innerHTML = deja
+    intro.innerHTML = (perdu && !deja)
+      ? "Tes résultats n'ont pas pu être transmis à ton enseignant·e."
+        + " Enregistre le document et donne-le lui : en quittant, le test et son score seront perdus."
+      : deja
       ? `Le document a été enregistré sous « <strong>${String(t.exporte.nom).replace(/</g, '&lt;')}</strong> ».`
         + ` Le test et son score ne sont pas conservés.`
       : "Les résultats ne sont pas conservés : en quittant, le test et son score seront perdus.";
@@ -30768,6 +31106,10 @@ attachSidebarOutsideClick();
 })();
 
 if (typeof pushHistoryState === 'function') pushHistoryState(true);
+
+// Résultats de test qu'un envoi précédent n'a pas pu déposer : nouvelle
+// tentative, en silence.
+if (typeof reprendreEnvoisEnAttente === 'function') reprendreEnvoisEnAttente();
 
 // ----------------------------------------------------------------------------
 // SÉRIE OUVERTE PAR L'ADRESSE : « …/eva_maths.html?serie=mix-test.json ».
