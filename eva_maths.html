@@ -40,6 +40,8 @@ CE QUI ATTEND UNE ACTION D'AURELIO
 · `MDP_ENSEIGNANT_ACTIF = false` → à décider (voir §8.5).
 
 PISTES ÉVOQUÉES, NON ENGAGÉES
+· Liste de classe : elle vit dans le navigateur de l'enseignant. À verser au
+  tableur si elle doit suivre d'un poste à l'autre.
 · Espaces de composition séparés par enseignant (clé de rangement par nom sur un
   poste partagé ; rien ne suit d'un poste à l'autre sans le tableur).
 · Réintégrer les constructions règle/compas dans le test le jour où il aura une
@@ -423,6 +425,50 @@ PDF de domaine :
 ───────────────────────────────────────────────────────────────────────────────
 Cette section décrit l'ÉTAT, non l'historique. Les numéros de version ne sont
 cités que lorsqu'ils aident à retrouver un choix dans le fichier.
+
+v460 — ENTRÉE DANS UN TEST : MENU DÉROULANT + MOT DE PASSE, et contrôle réel du
+second passage. Trois pièces qui se tiennent.
+ · LISTE DE CLASSE (nouvelle entrée de l'espace enseignant, `renderClasse`) :
+   une ligne par élève, « Prénom mot-de-passe ». Même parti pris que l'éditeur
+   des prénoms — une zone de texte où l'on colle une liste d'un coup. Bouton
+   « Attribuer les mots de passe manquants » (4 caractères, sans 0/O ni 1/l/I).
+   Rangée dans `CLASSE` + localStorage `eva-classe`.
+   ATTENTION : c'est une liste distincte de PRENOMS_M / PRENOMS_F, qui nomment
+   les personnages des énoncés. Ne pas les confondre ni les fusionner.
+ · CE QUI VOYAGE dans le fichier de test (`reglages.classe`) : les prénoms et
+   l'EMPREINTE des mots de passe (`empreinteMdp`, FNV-1a), jamais le mot de
+   passe. Le .json déposé en ligne est public : on ne peut pas y LIRE le mot de
+   passe d'un camarade, on pourrait le retrouver par essais. C'est le niveau
+   voulu, pas un oubli — l'éditeur le dit à l'enseignant.
+ · ÉCRAN D'ENTRÉE : menu déroulant des prénoms + champ mot de passe quand le
+   test porte une liste ; SANS liste, le champ libre d'avant, inchangé.
+   Les refus s'affichent dans la page (`messageEntreeTest`), pas en alerte.
+ · SECOND PASSAGE : la marque locale (`eva-test-fait:<titre>:<prénom>`, désormais
+   par ÉLÈVE — sinon le premier qui rend sur un poste partagé ferme la porte aux
+   suivants) ne voit QU'UN poste. Le tableur les voit tous : `passagesDejaRendus`
+   lui demande, avant de commencer, combien de fois cet élève a rendu ce test
+   (POST `action:'verifier'`, même canal que le dépôt). Avec « tentative
+   unique », un second passage est REFUSÉ ; sinon il est confirmé et numéroté.
+   Le tableur muet (hors ligne, adresse absente) NE BLOQUE PAS : on retombe sur
+   la marque locale et l'élève passe. Un contretemps de réseau ne doit pas
+   coûter un test.
+ · CÔTÉ TABLEUR : `eva_resultats.gs` gagne l'action 'verifier' et
+   `compterPassages`. TOUTE modification du script exige une NOUVELLE VERSION du
+   déploiement, sinon l'ancienne continue de répondre.
+ · CSS : `.test-accueil select` à 100 % (laissé libre, le menu se réduisait au
+   texte le plus court et coupait « — choisis ton prénom — ») ; et
+   `.test-accueil p` l'emportait par sa spécificité sur `.test-accueil-alerte`,
+   si bien que l'avertissement « déjà passé » s'affichait EN GRIS depuis le
+   début — corrigé en `p.test-accueil-alerte`.
+ Vérifié (jsdom) : menu peuplé, refus sans choix, refus sur mauvais mot de
+ passe, entrée correcte, élève sans mot de passe, blocage sur « déjà rendu »,
+ passage laissé libre quand le tableur ne répond pas, comportement d'avant sans
+ liste, marque locale indépendante d'un élève à l'autre, empreintes stables.
+ Regardé au vrai navigateur : éditeur, écran d'entrée, mot de passe refusé,
+ test déjà rendu.
+ RESTE OUVERT : la liste de classe ne suit pas d'un poste à l'autre (localStorage).
+ Elle voyage dans les tests exportés, mais un enseignant qui change de poste la
+ ressaisit. À verser au tableur le jour où ça gênera.
 
 v459 — Adresse du tableur posée dans `URL_RESULTATS` (application web Apps
 Script d'Aurelio, /macros/s/AKfycbxVlcpx…/exec, donnée par lui le 25.08). Le
@@ -1651,6 +1697,15 @@ ainsi (une remarque prise pour une consigne, une sélection ambiguë).
   .test-accueil-alerte { color: #B45309; font-weight: 600; }
   .test-accueil-label { display: block; font-weight: 700; margin: 16px 0 6px; }
   .test-accueil input { width: 100%; margin-bottom: 18px; }
+  /* Le menu des prénoms doit avoir la même largeur que le champ du mot de
+     passe : laissé à sa taille naturelle, il se réduisait au texte le plus
+     court et coupait « — choisis ton prénom — ». */
+  .test-accueil select { width: 100%; margin-bottom: 18px; }
+  /* `.test-accueil p` fixe la couleur grise et l'emporte, par sa spécificité,
+     sur la classe d'alerte seule : le rappel « déjà passé » s'affichait donc en
+     gris depuis le début. Les deux règles ci-dessous le corrigent. */
+  .test-accueil p.test-accueil-alerte { color: #B45309; font-weight: 600; }
+  .test-accueil p#test-entree-erreur { color: #DC2626; font-weight: 700; margin: -8px 0 12px; }
   /* Barre d'attente de l'export : un mouvement continu, sans prétendre mesurer
      une progression qu'on ne connaît pas d'avance. */
   .export-barre {
@@ -4581,6 +4636,43 @@ function unifierPrenoms(ex) {
     });
   });
   return ex;
+}
+
+// ============================================================================
+// LISTE DE CLASSE — prénoms et mots de passe des élèves
+// ----------------------------------------------------------------------------
+// Sert à l'ENTRÉE dans un test : l'élève choisit son prénom dans un menu
+// déroulant et donne son mot de passe. Deux effets : plus de prénom mal
+// orthographié dans le tableur, et un élève ne peut pas rendre sous le nom d'un
+// autre.
+// CE QUI VOYAGE : le fichier de test emporte les prénoms et l'EMPREINTE des
+// mots de passe (`empreinteMdp`), jamais le mot de passe lui-même. L'empreinte
+// n'est pas un chiffrement — un mot de passe court se retrouve par essais —
+// mais elle empêche de lire celui d'un camarade en ouvrant le fichier .json,
+// qui est public.
+// ============================================================================
+const CLE_CLASSE = 'eva-classe';
+let CLASSE = [];        // [{ prenom, mdp }]
+
+function chargerClasse() {
+  try {
+    const brut = window.localStorage.getItem(CLE_CLASSE);
+    const a = brut ? JSON.parse(brut) : [];
+    CLASSE = Array.isArray(a) ? a.filter(e => e && e.prenom) : [];
+  } catch (e) { CLASSE = []; }
+}
+
+// Empreinte courte et stable (FNV-1a). Deux mots de passe différents peuvent en
+// théorie donner la même : sans conséquence ici, il ne s'agit que d'écarter une
+// erreur de frappe et un emprunt d'identité entre camarades.
+function empreinteMdp(txt) {
+  let h = 0x811c9dc5;
+  const t = String(txt == null ? '' : txt).trim().toLowerCase();
+  for (let i = 0; i < t.length; i++) {
+    h ^= t.charCodeAt(i);
+    h = (h + ((h << 1) + (h << 4) + (h << 7) + (h << 8) + (h << 24))) >>> 0;
+  }
+  return h.toString(36);
 }
 
 function chargerPrenomsEnregistres() {
@@ -17612,54 +17704,148 @@ function renderTestAccueil() {
   const nbQ = a.items.reduce((n, it) => n + ((it.ex.questions || []).length || 1), 0);
   // Déjà passé ? On le dit, sans interdire : sans compte élève, on ne peut pas
   // faire mieux, et le second passage sera signalé dans les résultats.
-  const dejaFait = testDejaPasse(a.titre);
+  // Le test emporte sa liste de classe quand l'enseignant en a renseigné une ;
+  // sinon on retombe sur le prénom écrit à la main.
+  const classeDuTest = (a.reglages && Array.isArray(a.reglages.classe)) ? a.reglages.classe : [];
+  // Avec une liste de classe, on ne sait pas encore QUI se présente : le
+  // contrôle du second passage attend le choix du prénom.
+  const dejaFait = classeDuTest.length ? null : testDejaPasse(a.titre);
   main.innerHTML = `
     <div class="test-accueil">
       <h2>${a.titre}</h2>
       <p>${a.items.length} exercice${a.items.length > 1 ? 's' : ''}, ${nbQ} question${nbQ > 1 ? 's' : ''}.</p>
       <p>Réponds à toutes les questions puis valide une fois terminé.</p>
       ${dejaFait ? `<p class="test-accueil-alerte">Ce test a déjà été passé sur cet ordinateur${dejaFait.prenom ? ' par ' + dejaFait.prenom : ''}. Un nouveau passage sera signalé comme tel.</p>` : ''}
-      <label class="test-accueil-label" for="test-prenom">Ton prénom</label>
-      <input type="text" id="test-prenom" class="answer-input" autocomplete="off"
-             onkeydown="if(event.key==='Enter') demarrerTestFichier()">
-      <div><button class="btn-action btn-primary" onclick="demarrerTestFichier()">Commencer</button></div>
+      ${classeDuTest.length ? `
+        <label class="test-accueil-label" for="test-prenom-select">Ton prénom</label>
+        <select id="test-prenom-select" class="answer-input">
+          <option value="">— choisis ton prénom —</option>
+          ${classeDuTest.map((e, k) => `<option value="${k}">${String(e.p).replace(/</g, '&lt;')}</option>`).join('')}
+        </select>
+        <label class="test-accueil-label" for="test-mdp">Ton mot de passe</label>
+        <input type="password" id="test-mdp" class="answer-input" autocomplete="off"
+               onkeydown="if(event.key==='Enter') demarrerTestFichier()">
+      ` : `
+        <label class="test-accueil-label" for="test-prenom">Ton prénom</label>
+        <input type="text" id="test-prenom" class="answer-input" autocomplete="off"
+               onkeydown="if(event.key==='Enter') demarrerTestFichier()">
+      `}
+      <p class="test-accueil-alerte" id="test-entree-erreur" style="display:none;"></p>
+      <div><button class="btn-action btn-primary" id="test-commencer" onclick="demarrerTestFichier()">Commencer</button></div>
     </div>`;
-  const champ = document.getElementById('test-prenom');
+  const champ = document.getElementById(classeDuTest.length ? 'test-prenom-select' : 'test-prenom');
   if (champ) champ.focus();
 }
 
-function testCleTentative(titre) { return 'eva-test-fait:' + String(titre || ''); }
+function messageEntreeTest(txt) {
+  const el = document.getElementById('test-entree-erreur');
+  if (!el) { if (txt) alert(txt); return; }
+  el.textContent = txt || '';
+  el.style.display = txt ? '' : 'none';
+}
 
-function testDejaPasse(titre) {
+// La marque de passage est propre à l'ÉLÈVE dès qu'un test porte une liste de
+// classe : sans cela, le premier qui rend sur un poste partagé fermait la porte
+// aux suivants.
+function testCleTentative(titre, prenom) {
+  return 'eva-test-fait:' + String(titre || '') + (prenom ? ':' + String(prenom).toLowerCase() : '');
+}
+
+function testDejaPasse(titre, prenom) {
   try {
-    const brut = localStorage.getItem(testCleTentative(titre));
+    const brut = localStorage.getItem(testCleTentative(titre, prenom));
     return brut ? JSON.parse(brut) : null;
   } catch (e) { return null; }
 }
 
-function testMarquerPasse(titre, prenom) {
+function testMarquerPasse(titre, prenom, passages) {
   try {
-    const avant = testDejaPasse(titre);
-    localStorage.setItem(testCleTentative(titre), JSON.stringify({
-      prenom, quand: Date.now(), passages: (avant && avant.passages ? avant.passages : 0) + 1
+    const avant = testDejaPasse(titre, prenom);
+    localStorage.setItem(testCleTentative(titre, prenom), JSON.stringify({
+      prenom, quand: Date.now(),
+      passages: (passages != null) ? passages : ((avant && avant.passages ? avant.passages : 0) + 1)
     }));
   } catch (e) {}
 }
 
-function demarrerTestFichier() {
+// ----------------------------------------------------------------------------
+// A-T-IL DÉJÀ RENDU ? La marque locale ne voit qu'UN poste : elle ne dit rien
+// d'un élève qui recommence ailleurs, ou dans une fenêtre privée. Le tableur,
+// lui, voit tous les postes — c'est la seule autorité possible. On l'interroge
+// donc avant de commencer, par le même canal que le dépôt des résultats.
+// Sans réponse (hors ligne, adresse absente), on retombe sur la marque locale :
+// un contretemps de réseau ne doit pas empêcher un élève de passer son test.
+// ----------------------------------------------------------------------------
+async function passagesDejaRendus(titre, eleve) {
+  const url = String((state.testEnAttente && state.testEnAttente.reglages
+    && state.testEnAttente.reglages.retour) || URL_RESULTATS || '').trim();
+  if (!url || !eleve) return null;
+  try {
+    const r = await fetch(url, {
+      method: 'POST', redirect: 'follow',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action: 'verifier', cle: CLE_RESULTATS, test: titre, eleve })
+    });
+    if (!r.ok) return null;
+    const o = JSON.parse(await r.text());
+    return (o && o.ok && typeof o.passages === 'number') ? o.passages : null;
+  } catch (e) { return null; }
+}
+
+async function demarrerTestFichier() {
   const a = state.testEnAttente;
   if (!a) return;
-  const champ = document.getElementById('test-prenom');
-  const prenom = ((champ && champ.value) || '').trim();
-  if (!prenom) {
-    alert('Écris ton prénom avant de commencer.');
-    if (champ) champ.focus();
-    return;
-  }
-  const avant = testDejaPasse(a.titre);
-  if (a.reglages.tentativeUnique && avant
-      && !confirm("Ce test a déjà été passé sur cet ordinateur.\n\nLe recommencer quand même ?")) return;
+  const classeDuTest = (a.reglages && Array.isArray(a.reglages.classe)) ? a.reglages.classe : [];
+  let prenom = '';
 
+  if (classeDuTest.length) {
+    // Entrée par la liste de classe : prénom choisi, mot de passe vérifié.
+    const sel = document.getElementById('test-prenom-select');
+    const champMdp = document.getElementById('test-mdp');
+    const k = sel ? parseInt(sel.value, 10) : NaN;
+    if (isNaN(k) || !classeDuTest[k]) {
+      messageEntreeTest('Choisis ton prénom dans la liste.');
+      if (sel) sel.focus();
+      return;
+    }
+    const eleve = classeDuTest[k];
+    const saisi = ((champMdp && champMdp.value) || '').trim();
+    // Un élève sans mot de passe dans la liste entre sans rien taper : c'est le
+    // choix de l'enseignant, l'éditeur l'en avertit.
+    if (eleve.h && empreinteMdp(saisi) !== eleve.h) {
+      messageEntreeTest('Mot de passe incorrect.');
+      if (champMdp) { champMdp.value = ''; champMdp.focus(); }
+      return;
+    }
+    prenom = eleve.p;
+  } else {
+    const champ = document.getElementById('test-prenom');
+    prenom = ((champ && champ.value) || '').trim();
+    if (!prenom) {
+      messageEntreeTest('Écris ton prénom avant de commencer.');
+      if (champ) champ.focus();
+      return;
+    }
+  }
+  messageEntreeTest('');
+
+  // Le tableur est la seule autorité sur « a-t-il déjà rendu ? » : lui seul voit
+  // les autres postes. L'attente est courte, mais elle existe — le bouton le dit.
+  const btn = document.getElementById('test-commencer');
+  if (btn) { btn.disabled = true; btn.textContent = 'Vérification…'; }
+  const rendus = await passagesDejaRendus(a.titre, prenom);
+  if (btn) { btn.disabled = false; btn.textContent = 'Commencer'; }
+  const local = testDejaPasse(a.titre, prenom);
+  const faits = (rendus != null) ? rendus : ((local && local.passages) || 0);
+
+  if (faits > 0) {
+    if (a.reglages.tentativeUnique) {
+      messageEntreeTest(`${prenom}, ce test a déjà été rendu sous ton prénom.`
+        + ' Il ne peut être passé qu\'une fois — préviens ton enseignant·e si c\'est une erreur.');
+      return;
+    }
+    if (!confirm(`Ce test a déjà été rendu sous le prénom ${prenom}.\n\nLe recommencer quand même ?`)) return;
+  }
   matchState = {}; selectState = {}; countState = {}; fillState = {}; clicState = {};
   state.showSolutions = false;
   state.activeSubId = null;
@@ -17685,13 +17871,13 @@ function demarrerTestFichier() {
     complet: false,
     titre: a.titre,
     eleve: prenom,
-    passage: (avant && avant.passages ? avant.passages : 0) + 1,
+    passage: faits + 1,
     // Un fichier de test peut porter SA propre adresse de retour ; sinon celle
     // de l'application.
     retourUrl: (a.reglages && a.reglages.retour) || ''
   };
   state.exercises = a.items.map(it => it.ex);
-  testMarquerPasse(a.titre, prenom);
+  testMarquerPasse(a.titre, prenom, faits + 1);
   state.testEnAttente = null;
   renderSidebar();
   renderMain();
@@ -20164,6 +20350,7 @@ function renderEspaceEnseignant() {
   const vue = state.enseignantVue || 'accueil';
   if (vue === 'atelier') return renderAtelierPage();
   if (vue === 'prenoms') return renderPrenoms();
+  if (vue === 'classe') return renderClasse();
   if (vue === 'test') return renderEnseignantAVenir(vue);
   return renderAccueilEnseignant();
 }
@@ -20196,6 +20383,9 @@ const VUES_ENSEIGNANT = [
     pret: true },
   { id: 'prenoms', titre: "Modifier les prénoms dans les problèmes",
     texte: "Adapter la liste des prénoms qui apparaissent dans les énoncés, pour qu'ils parlent à la classe.",
+    pret: true },
+  { id: 'classe', titre: "Liste de classe et mots de passe",
+    texte: "Renseigner les élèves qui passeront les tests. Leur prénom devient un menu déroulant à l'ouverture du test, et le mot de passe empêche de rendre sous le nom d'un autre.",
     pret: true }
 ];
 
@@ -20313,6 +20503,114 @@ function renderPrenoms() {
     </div>
     <p class="atelier-aide" id="prenoms-info"></p>`;
   prenomsMajCompte();
+}
+
+// ----------------------------------------------------------------------------
+// Éditeur de la liste de classe : une ligne par élève, « Prénom mot de passe ».
+// Même parti pris que l'éditeur des prénoms : une zone de texte où l'on colle
+// une liste d'un coup, plutôt qu'une suite de petits champs.
+// ----------------------------------------------------------------------------
+function classeLire() {
+  const z = document.getElementById('classe-liste');
+  if (!z) return [];
+  const vus = new Set();
+  return z.value.split(/\n+/).map(l => l.trim()).filter(Boolean).map(l => {
+    const bouts = l.split(/[\s,;\t]+/).filter(Boolean);
+    return { prenom: bouts[0] || '', mdp: bouts.slice(1).join('') };
+  }).filter(e => {
+    const cle = e.prenom.toLowerCase();
+    if (!e.prenom || vus.has(cle)) return false;
+    vus.add(cle);
+    return true;
+  });
+}
+
+function classeMajCompte() {
+  const l = classeLire();
+  const sans = l.filter(e => !e.mdp).length;
+  const el = document.getElementById('classe-compte');
+  if (el) el.textContent = `${l.length} élève${l.length > 1 ? 's' : ''}`
+    + (sans ? ` — ${sans} sans mot de passe` : '');
+}
+
+// Mots de passe attribués d'office : quatre caractères, sans ceux qui se
+// confondent à la lecture (0/O, 1/l/I).
+function classeAttribuerMdp() {
+  const chars = 'abcdefghjkmnpqrstuvwxyz23456789';
+  const l = classeLire();
+  if (!l.length) { alert("Écris d'abord les prénoms, un par ligne."); return; }
+  l.forEach(e => {
+    if (e.mdp) return;
+    let m = '';
+    for (let i = 0; i < 4; i++) m += chars[Math.floor(Math.random() * chars.length)];
+    e.mdp = m;
+  });
+  const z = document.getElementById('classe-liste');
+  if (z) z.value = l.map(e => `${e.prenom} ${e.mdp}`).join('\n');
+  classeMajCompte();
+}
+
+function classeEnregistrer() {
+  const l = classeLire();
+  const sans = l.filter(e => !e.mdp);
+  if (sans.length && !confirm(`${sans.length} élève${sans.length > 1 ? 's n\'ont' : ' n\'a'} pas de mot de passe.`
+      + " Ils pourront entrer sans rien taper.\n\nEnregistrer quand même ?")) return;
+  CLASSE = l;
+  const z = document.getElementById('classe-liste');
+  if (z) z.value = l.map(e => `${e.prenom}${e.mdp ? ' ' + e.mdp : ''}`).join('\n');
+  let stocke = false;
+  try { window.localStorage.setItem(CLE_CLASSE, JSON.stringify(l)); stocke = true; }
+  catch (e) { stocke = false; }
+  const info = document.getElementById('classe-info');
+  if (info) {
+    info.textContent = stocke
+      ? "Enregistré. Les tests créés à partir de maintenant emporteront cette liste."
+      : "Gardé pour cette séance seulement : ce navigateur refuse le stockage local sur un fichier ouvert depuis le disque.";
+    info.className = 'atelier-aide ' + (stocke ? 'prenoms-ok' : 'prenoms-attention');
+  }
+  classeMajCompte();
+}
+
+function classeVider() {
+  if (!confirm("Effacer toute la liste de classe ?")) return;
+  CLASSE = [];
+  const z = document.getElementById('classe-liste');
+  if (z) z.value = '';
+  try { window.localStorage.removeItem(CLE_CLASSE); } catch (e) {}
+  const info = document.getElementById('classe-info');
+  if (info) { info.textContent = "Liste effacée. Les tests redemanderont le prénom en toutes lettres."; info.className = 'atelier-aide prenoms-ok'; }
+  classeMajCompte();
+}
+
+function renderClasse() {
+  const main = document.getElementById('main');
+  const tbDom = document.getElementById('topbar-domain');
+  if (tbDom) tbDom.textContent = 'Espace enseignant·e';
+  main.innerHTML = enteteEnseignant('Liste de classe et mots de passe', true) + `
+    <p class="atelier-aide">Une ligne par élève : le <strong>prénom</strong>, une espace, puis son
+      <strong>mot de passe</strong>. À l'ouverture d'un test, l'élève choisira son prénom dans un menu
+      déroulant et tapera ce mot de passe — il ne peut donc plus rendre sous le nom d'un autre, ni
+      écrire son prénom de trois façons différentes dans le tableur.</p>
+    <p class="atelier-aide">Tant que cette liste est vide, les tests continuent de demander le prénom
+      en toutes lettres, comme avant.</p>
+    <p class="atelier-aide prenoms-attention">Le fichier de test déposé en ligne est public. Il
+      n'emporte pas les mots de passe eux-mêmes, mais une empreinte : on ne peut pas les y lire,
+      on pourrait les retrouver par essais. Ce sont des mots de passe de classe, pas des secrets —
+      n'y mets rien que l'élève utilise ailleurs.</p>
+    <div class="prenoms-cols">
+      <div class="prenoms-col" style="flex:1;">
+        <label class="prenoms-titre" for="classe-liste">Élèves — un par ligne</label>
+        <textarea id="classe-liste" oninput="classeMajCompte()" placeholder="Kenza  4t7p&#10;Malik  b2xq">${CLASSE.map(e => `${e.prenom}${e.mdp ? ' ' + e.mdp : ''}`).join('\n')}</textarea>
+      </div>
+    </div>
+    <div class="atelier-barre">
+      <button class="btn-action btn-primary" onclick="classeEnregistrer()">Enregistrer</button>
+      <button class="btn-action" onclick="classeAttribuerMdp()">Attribuer les mots de passe manquants</button>
+      <button class="btn-action" onclick="classeVider()">Vider la liste</button>
+      <span class="atelier-nom" id="classe-compte"></span>
+    </div>
+    <p class="atelier-aide" id="classe-info"></p>`;
+  classeMajCompte();
 }
 
 function renderEnseignantAVenir(vue) {
@@ -26838,11 +27136,18 @@ function atelierItemsPourTest() {
 function testReglagesSaisis() {
   const val = (id) => { const e = document.getElementById(id); return e ? e.value : ''; };
   const coche = (id) => { const e = document.getElementById(id); return !!(e && e.checked); };
-  return {
+  const r = {
     nom: (val('test-nom') || '').trim() || "Test",
     tentativeUnique: coche('test-tentative-unique'),
     chrono: coche('test-chrono')
   };
+  // La liste de classe part AVEC le test : le menu déroulant doit exister sur
+  // l'ordinateur de l'élève, où rien n'a été enregistré. Les mots de passe n'y
+  // figurent que par leur empreinte.
+  if (CLASSE.length) {
+    r.classe = CLASSE.map(e => ({ p: e.prenom, h: e.mdp ? empreinteMdp(e.mdp) : '' }));
+  }
+  return r;
 }
 
 function testFichier() {
@@ -31101,6 +31406,7 @@ attachSidebarOutsideClick();
   const imgTest = document.querySelector('#btn-eval .btn-icon-img');
   if (imgTest) imgTest.src = ICONE_TEST;
   chargerPrenomsEnregistres();
+  chargerClasse();
   const bEns = document.getElementById('btn-enseignant');
   if (bEns) bEns.innerHTML = ICONE_ENSEIGNANT;
 })();
