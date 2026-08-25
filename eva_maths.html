@@ -426,6 +426,26 @@ PDF de domaine :
 Cette section décrit l'ÉTAT, non l'historique. Les numéros de version ne sont
 cités que lorsqu'ils aident à retrouver un choix dans le fichier.
 
+SCRIPT DU TABLEUR, 25.08 (fichier `eva_resultats.gs`, hors versions de l'app) :
+ · UN DÉFAUT LIVRÉ À CORRIGER — la version remise avec la v462 déclarait la
+   colonne « Classe » dans l'en-tête de la feuille Réponses mais ne la
+   remplissait pas : 10 valeurs pour 11 colonnes, `setValues` refuse, et TOUT
+   l'envoi échouait pour un test comportant des questions. Trouvé en rejouant le
+   script contre un faux classeur ; ni la syntaxe ni la lecture ne le montraient.
+ · ÉCRITURE PAR NOM DE COLONNE : chaque ligne est un objet
+   { titre: valeur }, placé d'après la LIGNE DE TITRES réelle de la feuille.
+   Aurelio peut donc déplacer, réordonner ou masquer les colonnes à la main sans
+   que les envois suivants aillent de travers — ce qui était impossible tant que
+   l'écriture se faisait par position.
+ · « Classe » se place juste après « Date » dans une feuille NEUVE. Une feuille
+   déjà en service GARDE l'ordre de ses titres : `feuille()` n'ajoute que les
+   titres manquants, à la fin. Réécrire la ligne entière déplacerait les noms
+   au-dessus de données qui, elles, ne bougeraient pas.
+ · `dejaEcrit` et `compterPassages` retrouvent aussi leurs colonnes par leur nom.
+ Banc d'essai `t_gs.js` (faux SpreadsheetApp, à recréer) : classeur neuf,
+ classeur existant sans la colonne, colonnes réordonnées à la main, doublon
+ écarté, passages comptés par classe.
+
 v464 — EXPOSANTS AUTOMATIQUES DANS LES CHAMPS QUI N'EN VEULENT PAS. Signalé par
 Aurelio : « Daniel_Atelier03 » s'affichait « Daniel_Atelier⁰³ » et l'identifiant
 n'était plus reconnu ; le mot de passe « 4t7p » devenait « 4t⁷p », donc jamais
