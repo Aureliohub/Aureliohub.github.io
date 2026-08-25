@@ -26,6 +26,7 @@
   --vert:#2fa14a;
   --violet:#5b34c8;
   --olive:#8a8a20;
+  --sarcelle:#0f7d8f;
 }
 *{box-sizing:border-box}
 html,body{margin:0}
@@ -53,16 +54,16 @@ body{
 /* ---------- scène ---------- */
 .scene{flex:1;min-height:0;display:flex;justify-content:center;align-items:flex-start}
 .boite{position:relative}
-.plateau{position:absolute;left:0;top:0;width:1200px;height:740px;transform-origin:top left}
+.plateau{position:absolute;left:0;top:0;width:1020px;height:725px;transform-origin:top left}
 .figure{
-  position:absolute;left:0;top:0;width:990px;height:740px;
+  position:absolute;left:0;top:0;width:810px;height:725px;
   background:
     linear-gradient(rgba(21,26,46,.045) 1px,transparent 1px) 0 0/24px 24px,
     linear-gradient(90deg,rgba(21,26,46,.045) 1px,transparent 1px) 0 0/24px 24px,
     #fdfdfb;
   border:1px solid var(--trait);border-radius:12px;
 }
-.figure svg{position:absolute;inset:0;width:990px;height:740px}
+.figure svg{position:absolute;inset:0;width:810px;height:725px}
 
 /* ---------- cadres de dépôt ---------- */
 .zone{
@@ -105,7 +106,7 @@ body{
   color:var(--gris);font-weight:700;margin:0 0 10px;
 }
 .reserve{
-  position:absolute;left:1000px;top:0;width:200px;
+  position:absolute;left:820px;top:0;width:200px;
   display:flex;flex-direction:column;gap:8px;align-items:stretch;
   overflow:visible;
   padding:10px;border:1px solid var(--trait);border-radius:12px;
@@ -118,7 +119,7 @@ body{
 }
 
 /* ---------- barre d'actions ---------- */
-.actions{position:absolute;left:1000px;top:320px;width:200px;display:flex;flex-direction:column;gap:8px;align-items:stretch}
+.actions{position:absolute;left:820px;top:320px;width:200px;display:flex;flex-direction:column;gap:8px;align-items:stretch}
 button{
   font:inherit;font-weight:700;font-size:14.5px;
   padding:9px 14px;border-radius:9px;cursor:pointer;
@@ -149,25 +150,27 @@ button:focus-visible{outline:2px solid var(--bleu-fonce);outline-offset:2px}
    <div class="boite" id="boite">
     <div class="plateau" id="stage">
      <div class="figure">
-      <svg viewBox="0 0 990 740" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <svg viewBox="0 0 810 725" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
         <g font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="17" fill="#151a2e">
 
           <!-- point A -->
+          <g transform="translate(-73,-22)">
           <g stroke="#151a2e" stroke-width="2.6" stroke-linecap="round">
             <line x1="141" y1="104" x2="155" y2="118"/>
             <line x1="155" y1="104" x2="141" y2="118"/>
           </g>
           <text x="170" y="98" text-anchor="middle">A</text>
+          </g>
 
           <!-- droite d -->
-          <g transform="translate(102,10)">
+          <g transform="translate(11,-43)">
           <line x1="61" y1="218" x2="656" y2="127" stroke="#1f2340" stroke-width="3" stroke-linecap="round"/>
           <text x="574" y="113">d</text>
 
           </g>
 
           <!-- segment BC -->
-          <g transform="translate(-72,-6)">
+          <g transform="translate(-104,-47)">
           <line x1="170" y1="337" x2="390" y2="331" stroke="#e8452c" stroke-width="3"/>
           <line x1="170" y1="328" x2="170" y2="347" stroke="#e8452c" stroke-width="3" stroke-linecap="round"/>
           <line x1="390" y1="322" x2="390" y2="341" stroke="#e8452c" stroke-width="3" stroke-linecap="round"/>
@@ -177,7 +180,7 @@ button:focus-visible{outline:2px solid var(--bleu-fonce);outline-offset:2px}
           </g>
 
           <!-- demi-droite d'origine D -->
-          <g transform="translate(50,68)">
+          <g transform="translate(-65,-37)">
           <line x1="517" y1="257" x2="852" y2="320" stroke="#2fa14a" stroke-width="3" stroke-linecap="round"/>
           <line x1="519" y1="246.2" x2="515" y2="267.8" stroke="#2fa14a" stroke-width="3" stroke-linecap="round"/>
           <text x="516" y="239" text-anchor="middle">D</text>
@@ -190,7 +193,7 @@ button:focus-visible{outline:2px solid var(--bleu-fonce);outline-offset:2px}
           </g>
 
           <!-- droite passant par F et G -->
-          <g transform="translate(312,58)">
+          <g transform="translate(243,-9)">
           <line x1="39" y1="404" x2="524" y2="457" stroke="#5b34c8" stroke-width="3" stroke-linecap="round"/>
           <g stroke="#5b34c8" stroke-width="2.6" stroke-linecap="round">
             <line x1="134" y1="408" x2="148" y2="422"/>
@@ -204,22 +207,37 @@ button:focus-visible{outline:2px solid var(--bleu-fonce);outline-offset:2px}
           </g>
 
           <!-- droites sécantes d2 et d3 -->
-          <g transform="translate(6,53)">
+          <g transform="translate(-5,58)">
           <line x1="94" y1="461" x2="435" y2="651" stroke="#8a8a20" stroke-width="3" stroke-linecap="round"/>
           <line x1="27" y1="588" x2="456" y2="538" stroke="#8a8a20" stroke-width="3" stroke-linecap="round"/>
           <text x="160" y="479">d₂</text>
           <text x="404" y="527">d₃</text>
           <text x="271" y="548" text-anchor="middle">O</text>
           </g>
+
+          <!-- angle HIJ -->
+          <g transform="translate(-38,-28)">
+            <line x1="800" y1="660" x2="647.5" y2="572" stroke="#0f7d8f" stroke-width="3" stroke-linecap="round"/>
+            <line x1="800" y1="660" x2="625.2" y2="706.8" stroke="#0f7d8f" stroke-width="3" stroke-linecap="round"/>
+            <path d="M758.4 636 A48 48 0 0 0 753.6 672.4" fill="none" stroke="#0f7d8f" stroke-width="2.2"/>
+            <g stroke="#151a2e" stroke-width="2.6" stroke-linecap="round">
+              <line x1="663" y1="578" x2="677" y2="592"/><line x1="677" y1="578" x2="663" y2="592"/>
+              <line x1="643" y1="693" x2="657" y2="707"/><line x1="657" y1="693" x2="643" y2="707"/>
+            </g>
+            <text x="681" y="568" text-anchor="middle">H</text>
+            <text x="822" y="666" text-anchor="middle">I</text>
+            <text x="652" y="723" text-anchor="middle">J</text>
+          </g>
         </g>
       </svg>
 
-      <div class="zone" data-reponse="point"       style="left:198px;top:51px;--c:var(--noir)"    role="button" tabindex="0" aria-label="Cadre du point A"><span class="verdict"></span></div>
-      <div class="zone" data-reponse="droite_d"    style="left:713px;top:73px;--c:var(--noir)"    role="button" tabindex="0" aria-label="Cadre de la ligne d"><span class="verdict"></span></div>
-      <div class="zone" data-reponse="demidroite"  style="left:646px;top:267px;--c:var(--vert)"   role="button" tabindex="0" aria-label="Cadre de la ligne verte d'origine D"><span class="verdict"></span></div>
-      <div class="zone" data-reponse="segment"     style="left:164px;top:363px;--c:var(--rouge)"  role="button" tabindex="0" aria-label="Cadre de la ligne rouge B C"><span class="verdict"></span></div>
-      <div class="zone" data-reponse="droite_fg"   style="left:707px;top:542px;--c:var(--violet)" role="button" tabindex="0" aria-label="Cadre de la ligne violette F G"><span class="verdict"></span></div>
-      <div class="zone" data-reponse="secantes"    style="left:411px;top:622px;--c:var(--olive)"  role="button" tabindex="0" aria-label="Cadre des lignes d2 et d3"><span class="verdict"></span></div>
+      <div class="zone" data-reponse="point"       style="left:133px;top:37px;--c:var(--noir)"    role="button" tabindex="0" aria-label="Cadre du point A"><span class="verdict"></span></div>
+      <div class="zone" data-reponse="droite_d"    style="left:503px;top:121px;--c:var(--noir)"    role="button" tabindex="0" aria-label="Cadre de la ligne d"><span class="verdict"></span></div>
+      <div class="zone" data-reponse="demidroite"  style="left:444px;top:272px;--c:var(--vert)"   role="button" tabindex="0" aria-label="Cadre de la ligne verte d'origine D"><span class="verdict"></span></div>
+      <div class="zone" data-reponse="segment"     style="left:80px;top:322px;--c:var(--rouge)"  role="button" tabindex="0" aria-label="Cadre de la ligne rouge B C"><span class="verdict"></span></div>
+      <div class="zone" data-reponse="droite_fg"   style="left:296px;top:428px;--c:var(--violet)" role="button" tabindex="0" aria-label="Cadre de la ligne violette F G"><span class="verdict"></span></div>
+      <div class="zone" data-reponse="angle"       style="left:505px;top:601px" role="button" tabindex="0" aria-label="Cadre de la figure verte-bleue H I J"><span class="verdict"></span></div>
+      <div class="zone" data-reponse="secantes"    style="left:103px;top:659px;--c:var(--olive)"  role="button" tabindex="0" aria-label="Cadre des lignes d2 et d3"><span class="verdict"></span></div>
 
      </div>
      <div class="reserve" id="reserve"></div>
@@ -242,6 +260,7 @@ button:focus-visible{outline:2px solid var(--bleu-fonce);outline-offset:2px}
     {cle:"droite_d",  texte:"La droite (d)"},
     {cle:"point",     texte:"Un point"},
     {cle:"demidroite",texte:"Une demi-droite"},
+    {cle:"angle",     texte:"Un angle"},
     {cle:"droite_fg", texte:"La droite (FG)"},
     {cle:"secantes",  texte:"Droites sécantes"}
   ];
@@ -259,10 +278,10 @@ button:focus-visible{outline:2px solid var(--bleu-fonce);outline-offset:2px}
   function ajuster(){
     const dw = scene.clientWidth, dh = scene.clientHeight;
     if(dw <= 0 || dh <= 0) return;
-    echelle = Math.min(1, dw / 1200, dh / 740);
+    echelle = Math.min(1, dw / 1020, dh / 725);
     stage.style.transform = "scale(" + echelle + ")";
-    boite.style.width  = Math.round(1200 * echelle) + "px";
-    boite.style.height = Math.round(740 * echelle) + "px";
+    boite.style.width  = Math.round(1020 * echelle) + "px";
+    boite.style.height = Math.round(725 * echelle) + "px";
   }
   window.addEventListener("resize", ajuster);
 
@@ -346,12 +365,21 @@ button:focus-visible{outline:2px solid var(--bleu-fonce);outline-offset:2px}
   }
 
   function cible(x,y){
-    const av = encours.style.pointerEvents;
-    encours.style.pointerEvents = "none";
-    const el = document.elementFromPoint(x,y);
-    encours.style.pointerEvents = av;
-    if(!el) return null;
-    return el.closest(".zone") || el.closest(".reserve");
+    // le cadre le plus recouvert par l'étiquette l'emporte ; une marge élargit sa zone sensible
+    const r = encours.getBoundingClientRect();
+    const marge = 26 * echelle;
+    let choix = null, aire = 0;
+    zones.forEach(function(z){
+      const q = z.getBoundingClientRect();
+      const lx = Math.min(r.right, q.right + marge) - Math.max(r.left, q.left - marge);
+      const ly = Math.min(r.bottom, q.bottom + marge) - Math.max(r.top, q.top - marge);
+      const a = Math.max(0, lx) * Math.max(0, ly);
+      if(a > aire){ aire = a; choix = z; }
+    });
+    if(choix) return choix;
+    const q = reserve.getBoundingClientRect();
+    if(r.right > q.left && r.left < q.right && r.bottom > q.top && r.top < q.bottom) return reserve;
+    return null;
   }
 
   function survol(x,y){
