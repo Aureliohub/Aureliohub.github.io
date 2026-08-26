@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Géométrie – perpendiculaire et parallèle (points A, B, C)</title>
+<style>
+:root{
+  --encre:#1a1a1a;
+  --navy:#1F3A5F;
+  --bleu:#2E75B6;
+  --magenta:#E6007E;
+  --filet:#c9c9c9;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:#e9e9e9;
+  color:var(--encre);
+  font-family:"Avenir Next","Avenir","Segoe UI","Trebuchet MS",Verdana,sans-serif;
+  font-size:0;
+  line-height:1.5;
+}
+
+/* ---------- barre d'outils (écran seulement) ---------- */
+.barre{
+  position:sticky;top:0;z-index:10;
+  display:flex;gap:10px;align-items:center;justify-content:center;
+  padding:8px;background:var(--navy);color:#fff;font-size:10pt;
+}
+.barre button{
+  font:inherit;font-weight:600;cursor:pointer;
+  background:#fff;color:var(--navy);border:none;border-radius:3px;padding:5px 12px;
+}
+.barre button:focus-visible{outline:2px solid var(--magenta);outline-offset:2px}
+.barre span{opacity:.8}
+
+/* ---------- page A4 ---------- */
+.page{
+  position:relative;
+  width:210mm;height:292mm;
+  margin:14px auto;padding:12mm 12mm 18mm 20mm;
+  background:#fff;
+  overflow:hidden;
+  font-size:11.5pt;
+}
+h1{font-size:15pt;font-weight:700;text-align:center;margin:0 0 1mm;letter-spacing:.1px}
+.sur-titre{text-align:center;font-size:11.5pt;margin:0 0 6mm}
+.etiquette-corrige{
+  display:none;position:absolute;top:13mm;right:12mm;margin:0;
+  color:var(--magenta);font-weight:700;font-size:11pt;letter-spacing:1px;
+}
+body.corrige .etiquette-corrige{display:block}
+p{margin:0 0 4mm}
+
+/* ---------- exercice ---------- */
+.exo-titre{display:flex;gap:3mm;align-items:flex-start;margin-bottom:3mm}
+.exo-titre .consigne{font-weight:700}
+.pastille{flex:0 0 auto;width:15px;height:15px;margin-top:2px}
+.item{margin:0 0 2mm 8mm}
+.question{margin:0 0 2mm 8mm}
+.rep{
+  display:block;margin:0 0 2.5mm 14mm;min-height:5.5mm;
+  border-bottom:1px dotted var(--encre);
+  color:var(--magenta);font-weight:700;font-size:10.5pt;
+}
+.rep i{font-style:normal;visibility:hidden}
+body.corrige .rep i{visibility:visible}
+
+/* ---------- figure ---------- */
+.fig{display:block;margin:3mm auto 0;width:170mm;height:auto}
+.sol{visibility:hidden}
+body.corrige .sol{visibility:visible}
+
+/* ---------- pied de page ---------- */
+.pied{
+  position:absolute;left:20mm;right:12mm;bottom:10mm;
+  padding-top:2.5mm;border-top:1px solid var(--filet);
+  display:flex;justify-content:space-between;font-size:9.5pt;color:#333;
+}
+
+/* ---------- impression ---------- */
+@page{size:A4;margin:0}
+@media print{
+  body{background:#fff}
+  .barre{display:none}
+  .page{margin:0;page-break-after:always}
+  .page:last-of-type{page-break-after:auto}
+}
+@media screen{ .page{box-shadow:0 1px 6px rgba(0,0,0,.18)} }
+
+/* ---------- corrigé : page additionnelle à l'impression ---------- */
+.page-corrige{display:none}
+@media print{
+  body.corrige .page:not(.page-corrige) .etiquette-corrige{display:none}
+  body.corrige .page:not(.page-corrige) .rep i{visibility:hidden}
+  body.corrige .page:not(.page-corrige) .sol{visibility:hidden}
+  .page-corrige{display:block}
+  .page-corrige .etiquette-corrige{display:block}
+  .page-corrige .rep i{visibility:visible}
+  .page-corrige .sol{visibility:visible}
+}
+</style>
+</head>
+<body>
+
+<div class="barre">
+  <button id="btn" type="button">Afficher le corrigé</button>
+  <span>Impression : Ctrl + P (A4, marges « aucune », échelle 100 %)</span>
+</div>
+
+<section class="page" data-corrige>
+  <h1>Géométrie</h1>
+  <p class="sur-titre">perpendiculaire (⊥) – parallèle (//)</p>
+  <p class="etiquette-corrige">CORRIGÉ</p>
+
+  <div class="exo-titre">
+    <svg class="pastille" viewBox="0 0 16 16" aria-hidden="true"><rect width="16" height="16" rx="2" fill="#1F3A5F"/><text x="8" y="12" text-anchor="middle" fill="#fff" font-size="11" font-weight="700" font-family="Verdana,sans-serif">1</text></svg>
+    <span class="consigne">Sur la figure ci-dessous&nbsp;:</span>
+  </div>
+
+  <p class="item">a) tracer la droite (BC) ;</p>
+  <p class="item">b) tracer en rouge la perpendiculaire à (BC) passant par le point C ;</p>
+  <p class="item">c) tracer en rouge la perpendiculaire à (BC) passant par le point A.</p>
+
+  <p class="question">Que peut-on dire de ces droites rouges ?</p>
+  <span class="rep"><i>Elles sont parallèles entre elles.</i></span>
+  <p class="question">Pourquoi ?</p>
+  <span class="rep"><i>Si deux droites sont perpendiculaires à une même droite, alors elles sont parallèles entre elles.</i></span>
+
+  <p class="item">d) tracer en bleu la parallèle à (BC) passant par le point A.</p>
+
+  <p class="question">Que peut-on dire de la droite bleue ?</p>
+  <span class="rep"><i>Elle est perpendiculaire aux deux droites rouges : elle les coupe à angle droit.</i></span>
+  <p class="question">Pourquoi ?</p>
+  <span class="rep"><i>Si deux droites sont parallèles, toute perpendiculaire à l’une est perpendiculaire à l’autre.</i></span>
+
+  <svg class="fig" viewBox="0 0 170 125" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="points A, B et C">
+    <!-- énoncé : les trois points -->
+    <g stroke="#1a1a1a" stroke-width="0.5" fill="none">
+      <path d="M75.8 27.8 L80.2 32.2 M80.2 27.8 L75.8 32.2"/>
+      <path d="M136.2 41.7 L140.6 46.1 M140.6 41.7 L136.2 46.1"/>
+      <path d="M42.1 67.2 L46.5 71.6 M46.5 67.2 L42.1 71.6"/>
+    </g>
+    <g font-family="Georgia,serif" font-style="italic" font-size="5.5" fill="#1a1a1a">
+      <text x="76" y="24">B</text>
+      <text x="141" y="40">C</text>
+      <text x="36" y="66">A</text>
+    </g>
+
+    <!-- solution -->
+    <g class="sol" fill="none">
+      <line x1="17.6" y1="16.1" x2="187.1" y2="55.1" stroke="#1a1a1a" stroke-width="0.5"/>
+      <line x1="143.3" y1="22.5" x2="120.9" y2="119.9" stroke="#E2001A" stroke-width="0.6"/>
+      <line x1="59.5" y1="3.2" x2="37.1" y2="100.6" stroke="#E2001A" stroke-width="0.6"/>
+      <line x1="17" y1="63.1" x2="137.8" y2="91" stroke="#2E75B6" stroke-width="0.6"/>
+      <g stroke="#E2001A" stroke-width="0.45">
+        <path d="M142.3 44.8 L141.4 48.7 L137.5 47.8"/>
+        <path d="M58.5 25.5 L57.6 29.4 L53.7 28.5"/>
+      </g>
+      <g font-family="Georgia,serif" font-style="italic" font-size="5">
+        <text x="150" y="55" fill="#1a1a1a">(BC)</text>
+        <text x="144" y="20" fill="#E2001A">(d₁)</text>
+        <text x="60" y="8" fill="#E2001A">(d₂)</text>
+        <text x="140" y="95" fill="#2E75B6">(p)</text>
+      </g>
+    </g>
+  </svg>
+
+  <div class="pied"><span>Niveau 1 — UOG 2026 / AM</span><span>1</span></div>
+</section>
+
+<script>
+document.querySelectorAll('.page[data-corrige]').forEach(p => {
+  const c = p.cloneNode(true);          /* le corrigé garde le numéro de la page d'origine */
+  c.removeAttribute('data-corrige');
+  c.classList.add('page-corrige');
+  document.body.appendChild(c);
+});
+
+const btn = document.getElementById('btn');
+btn.addEventListener('click', () => {
+  const on = document.body.classList.toggle('corrige');
+  btn.textContent = on ? 'Masquer le corrigé' : 'Afficher le corrigé';
+});
+</script>
+</body>
+</html>
