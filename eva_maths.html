@@ -8,7 +8,7 @@ générant des exercices de mathématiques pour adultes (programme PAI, Suisse).
 Product owner : Aurelio (Onex/Genève). Répondre en FRANÇAIS.
 
 ───────────────────────────────────────────────────────────────────────────────
-0. OÙ ON EN EST (v471, 26.08.2026) — à lire en premier
+0. OÙ ON EN EST (v475, 26.08.2026) — à lire en premier
 ───────────────────────────────────────────────────────────────────────────────
 L'application est en ligne : https://aureliohub.github.io/eva_maths.html
 Les fichiers de série et de test (.json) sont déposés à côté d'elle, et s'ouvrent
@@ -56,13 +56,16 @@ CE QU'IL A FALLU APPRENDRE POUR Y ARRIVER — à relire avant de toucher au scri
   rebâti depuis la v458.
 
 À NE PAS OUBLIER AVANT DE DONNER L'APPLICATION AUX ÉLÈVES
-· `REMPLISSAGE_AUTO = true` → repasser à false : le bouton « ⚡ Remplir » du
-  pied de test est visible de tous.
-· `MDP_ENSEIGNANT_ACTIF = false` → à décider (voir §8.5).
+· `REMPLISSAGE_AUTO` : ÉTEINT depuis la v473. Ne le rallumer que le temps d'une
+  mise au point — le bouton « ⚡ Remplir » est visible de tous.
+· `MDP_ENSEIGNANT_ACTIF` : EN SERVICE depuis la v473. Le mot de passe est
+  'ClaudIA*', en clair dans ce fichier — il écarte un élève curieux, pas
+  quelqu'un qui ouvre le code source.
 
 PISTES ÉVOQUÉES, NON ENGAGÉES
-· Liste de classe : elle vit dans le navigateur de l'enseignant. À verser au
-  tableur si elle doit suivre d'un poste à l'autre.
+· Liste de classe : elle vit dans le navigateur de l'enseignant. Elle s'exporte
+  dans un fichier depuis la v472 ; à verser au tableur si elle doit suivre d'un
+  poste à l'autre.
 · Espaces de composition séparés par enseignant (clé de rangement par nom sur un
   poste partagé ; rien ne suit d'un poste à l'autre sans le tableur).
 · Réintégrer les constructions règle/compas dans le test le jour où il aura une
@@ -409,8 +412,8 @@ PDF de domaine :
   dans le HTML doit y être ajouté.
 - Une seule astuce de saisie par test, posée sous le bandeau ; celles des
   exercices sont retirées à l'affichage.
-- Bouton ⚡ Remplir (remplirTestAuto + _autoActions) : EN VEILLE depuis v379,
-  voir §8.5.
+- Bouton ⚡ Remplir (remplirTestAuto + _autoActions) : EN VEILLE (rallumé de la
+  v451 à la v472 pour la mise au point, éteint depuis). Voir §8.5.
 
 ───────────────────────────────────────────────────────────────────────────────
 6. UI
@@ -501,6 +504,88 @@ PDF de domaine :
 ───────────────────────────────────────────────────────────────────────────────
 Cette section décrit l'ÉTAT, non l'historique. Les numéros de version ne sont
 cités que lorsqu'ils aident à retrouver un choix dans le fichier.
+
+v475 — « avec 4 opérations » remis au sous-domaine « Résoudre un problème
+ « concret » », dans les deux fichiers. La v474 l'avait retiré en lisant le
+ libellé donné par Aurelio comme complet ; il ne l'était pas. Seuls les
+ guillemets changeaient.
+
+v474 — QUATRE LIBELLÉS ALIGNÉS SUR LES INTITULÉS OFFICIELS EVA, dans le
+ générateur ET dans index.html, qui divergeaient :
+  · « Résoudre un problème « concret » avec 4 opérations » — seuls les
+    guillemets droits de l'index passent en chevrons ; le suffixe « avec 4
+    opérations » RESTE (retiré un instant en v474, remis aussitôt sur demande
+    d'Aurelio). Ne pas le supprimer : il aligne ce sous-domaine sur ses voisins
+    « Calculer avec des décimaux (4 opérations) » et suivants.
+  · « Développer et réduire une expression algébrique » (le générateur disait
+    « Effectuer et réduire »). Le titre de la fenêtre PDF a suivi. En revanche
+    la VARIANTE nommée « Effectuer et réduire » garde son nom : elle désigne
+    l'une des trois formes d'exercice du sous-domaine (avec Distributivité et
+    Double distributivité), pas le sous-domaine lui-même.
+  · « …capacité et temps) » (le générateur écrivait « …capacité, temps) »).
+  · « Identifier les développements de solides » (le générateur disait
+    « Associer les solides à leurs développements »). Les libellés de niveau
+    « Associer » / « Sélectionner » sont inchangés.
+ Aucun code ne compare de titre : ils ne servent qu'à l'affichage et au nom des
+ fichiers PDF. Vérifié au navigateur — menu, en-tête d'écran des quatre
+ sous-domaines, fenêtre PDF de l'algèbre, et les trois PDF produits dont le nom
+ de fichier reprend le nouveau titre. Plus aucune trace des anciens libellés.
+ Il reste entre les deux fichiers huit intitulés de GROUPE propres à l'index
+ (« Pythagore », « Centre de symétrie »…) : ce sont des regroupements de l'index,
+ sans équivalent parmi les sous-domaines. Normal, ne pas chercher à les accorder.
+
+v473 — DEUX VERROUS REFERMÉS avant de donner l'application aux élèves.
+ · `MDP_ENSEIGNANT_ACTIF` repassé à true : l'espace enseignant redemande le mot
+   de passe ('ClaudIA*'). Il était suspendu depuis la v393 pour la mise au point
+   — sans lui, n'importe quel élève entrait d'un clic et lisait la liste de
+   classe, où les mots de passe sont EN CLAIR. Demandé une fois par session ;
+   un rechargement le redemande. Rappel : le mot de passe étant dans le fichier,
+   il écarte un curieux, pas quelqu'un qui ouvre le code source.
+ · `REMPLISSAGE_AUTO` repassé à false : le bouton « ⚡ Remplir » quitte le
+ pied du test. La mise au point pour laquelle il avait été rallumé (v451) est
+ terminée. Le code de `remplirTestAuto` et les `_autoActions` des exercices
+ RESTENT en place : ils ne coûtent rien et resservent à chaque mise au point —
+ c'est le drapeau qu'on bascule, pas le code qu'on supprime.
+ Vérifié au navigateur : pied de test réduit à « Quitter » et « ✓ Valider le
+ test », espace enseignant refusé sur un mot de passe faux et sur une annulation,
+ ouvert sur le bon, et non redemandé aux allers-retours suivants.
+
+v472 — SAUVEGARDE DES CLASSES DANS UN FICHIER (`classesExporter` /
+ `classesImporter`, écran « Liste de classe et mots de passe »).
+ POURQUOI : les classes ne vivaient QUE dans le localStorage du poste. Vider les
+ « cookies et autres données de sites » les efface — et les mots de passe sont
+ alors IRRÉCUPÉRABLES, puisque les tests déjà publiés n'en portent que
+ l'empreinte. Il n'existait aucun moyen d'en faire une copie.
+ CE QUE C'EST : un fichier `classes-eva-<date>.json` qui reste LOCAL. Il porte
+ les mots de passe EN CLAIR — c'est tout son intérêt comme sauvegarde, et
+ précisément pourquoi il ne doit PAS être déposé en ligne à côté de
+ l'application. Un avertissement le dit sur l'écran et après chaque export.
+ CE QUE CE N'EST PAS : un fichier « téléchargeable seulement depuis la page
+ enseignant ». Aurelio l'a demandé, c'est IMPOSSIBLE : GitHub Pages sert des
+ fichiers statiques à quiconque connaît l'adresse, et `MDP_ENSEIGNANT` est en
+ clair dans la page. Tout secret placé dans une page publique est public. Le
+ jour où la liste devra suivre d'un poste à l'autre, ce sera un fichier CHIFFRÉ
+ (AES-GCM via WebCrypto) avec une phrase de passe TAPÉE par l'enseignant, jamais
+ écrite dans le fichier. Ne pas retomber dans le faux verrou.
+ CHOIX DE CONCEPTION :
+  · l'export enregistre d'abord la ligne dépliée (`classeEnregistrer(true)`),
+    comme le fait déjà `classeBasculer` : sans ça on exportait l'état d'AVANT ce
+    qu'on venait de taper.
+  · l'import FUSIONNE PAR NOM, jamais n'écrase en bloc — le fichier est
+    peut-être plus ancien que ce qui est sur le poste, et les classes qu'il
+    ignore doivent rester. Une classe de même nom n'est remplacée qu'après
+    confirmation ; un refus ne touche à RIEN, pas même aux classes nouvelles.
+  · relecture tolérante (`classesLireFichier`) : un tableau nu de classes passe
+    aussi bien que le paquet complet, et un fichier abîmé ne peut pas écraser
+    une liste valide.
+  · les messages vont dans `#classes-info`, TOUJOURS présent — `#classe-info`
+    n'existe que lorsqu'une classe est dépliée, et les messages d'import
+    seraient tombés dans le vide.
+ Vérifié au navigateur, téléchargements captés sur disque : contenu du fichier,
+ saisie non enregistrée bien présente dans l'export, effacement total puis
+ réimport à l'identique, fusion avec une classe supplémentaire sur le poste,
+ refus de confirmation sans effet, JSON invalide et classe sans nom sans effet,
+ tableau nu accepté.
 
 v471 — Fenêtre du test : la case « Tout sélectionner » s'aligne sur les cases
  des domaines (13px de retrait = bordure de `.eval-dom` + rembourrage de
@@ -773,7 +858,8 @@ second passage. Trois pièces qui se tiennent.
  test déjà rendu.
  RESTE OUVERT : la liste de classe ne suit pas d'un poste à l'autre (localStorage).
  Elle voyage dans les tests exportés, mais un enseignant qui change de poste la
- ressaisit. À verser au tableur le jour où ça gênera.
+ ressaisit. Depuis la v472 elle s'exporte au moins dans un fichier, ce qui la
+ met à l'abri d'un effacement — le partage entre postes, lui, reste à faire.
 
 v459 — Adresse du tableur posée dans `URL_RESULTATS` (application web Apps
 Script d'Aurelio, /macros/s/AKfycbxVlcpx…/exec, donnée par lui le 25.08). Le
@@ -1486,10 +1572,11 @@ e) ESPACE ENSEIGNANT — bouton clé de la barre de titre, accueil à QUATRE
    Les textes des vignettes sont ceux d'Aurelio, mot pour mot : ne pas les
    « compléter ». « Gérer les accès aux tests. » a remplacé en v469 une
    explication de trois lignes.
-   Mot de passe (MDP_ENSEIGNANT = 'ClaudIA*') SUSPENDU par
-   `MDP_ENSEIGNANT_ACTIF = false` le temps de la mise au point. Il est EN CLAIR
-   dans le fichier : il écarte un élève curieux, pas quelqu'un qui ouvre le code
-   source ; ne rien y mettre de sensible.
+   Mot de passe (MDP_ENSEIGNANT = 'ClaudIA*') EN SERVICE depuis la v473, après
+   avoir été suspendu de la v393 à la v472 le temps de la mise au point. Il est
+   EN CLAIR dans le fichier : il écarte un élève curieux, pas quelqu'un qui ouvre
+   le code source ; ne rien y mettre de sensible. Demandé UNE FOIS par session
+   (`state.enseignantDeverrouille`) ; un rechargement le redemande.
    Le menu des domaines est ÉTEINT dans cet espace depuis la v467 (§6). La
    composition en cours survit à un aller-retour, elle vit dans `state.atelier`.
 
@@ -1819,7 +1906,6 @@ point, pas de code mort.
 · Bouton de la barre de titre qui ouvre l'espace enseignant : une ligne dans la
   topbar, une dans le bloc d'initialisation. (Retiré en v379, RÉTABLI en v384 à
   la demande d'Aurelio, l'atelier étant en chantier.)
-· `MDP_ENSEIGNANT_ACTIF` à repasser à true si le mot de passe doit revenir.
 · MIS EN VEILLE depuis v379, à ne PAS supprimer — servira dans la partie
   enseignant : les boutons ⚡ Remplir, Solutions et 🧩 Composition ont quitté le
   bandeau du test, et `poserCasesComposition` n'est plus appelée en fin de
@@ -4824,7 +4910,7 @@ ainsi (une remarque prise pour une consigne, une sélection ambiguë).
 <div class="modal-overlay" id="dev-pdf-modal" style="display:none;" onclick="closeDevelopperPdfModal(event)">
   <div class="modal" onclick="event.stopPropagation()">
     <div class="modal-head">
-      <h3>📄 PDF – Effectuer et réduire</h3>
+      <h3>📄 PDF – Développer et réduire</h3>
       <button class="modal-close" onclick="closeDevelopperPdfModal()" title="Fermer">×</button>
     </div>
     <p class="modal-intro">Choisis les niveaux à inclure. Un seul niveau → 2 exercices ; deux ou trois niveaux → un exercice par niveau.</p>
@@ -16916,7 +17002,7 @@ const ICONE_ENSEIGNANT = '<svg viewBox="0 0 24 24" width="21" height="21" fill="
 const ICONE_PDF = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJkAAACUCAMAAAC3HHtWAAAAk1BMVEXi5ef////xVkKwt73K0dji6OrxW0jyUDnG2eHlzczmgnrV2t/x8/T19vbxUTzwTDX4u7Xnvr28wsf+8/L84N3yYlD1jID1hXf1kYb4q6L4t7D96ujwQib1mY7++Pf70c3zcWHxSC/zeGn3pJv6ysX72dXy2Nbj1dXtgnfyaFf3sKj6w73UubvV4ebco6HkioPitLFLhhsqAAAElUlEQVR4nO3ca5eaOhQG4ICOtHUa7AAqIgiIbdVezv//dUcS7tlAXIYkq4v308xCzeNOCAEVZAzmKxKWj8Xi4324tVbQyGahsqdow7J3wbLFgp82LHsTLuOv2rBMIKyQ8dMGZQLHfyXjpsmX8dIUyDhpKmR8NCUyLpoa2eLjq64yjqqpko1XTZlstGrqZGM0hbIRmkrZME2pbJCmVjZEUywboKmW9dOUy3qnXPWyvqppIOupmg4yuGpayMCq6SGDqiZPthySAVWTJ1sPytiqyZMNdydbNYmykaJ1aRJlY0Xr0GTKnqNJlY3sn22aXBlaL4fr1qBJlpEsB/KmVDZEUywboKmW9dOUy3pp6mV9NA1kPTQdZDBNCxlI00MG0TSRATRdZCxNGxlD00fWpWkkQ/rKkL4ypK8M6StD+sqQvjKkrwzpK0P6ypC+MqSvDOkrQ/rKkL6ytbYyVF+tnWWiZW8T5jlZ4Lby/fN0+YFAGyxzw9hbyUoc/oBooOxi2tiUFmybEA2SRaklz5XH/slZs5PEgtGsPrNFg2R3W7YMf+OTbWbZLJtls2yWzbJWrORYJklaaxFs2WUsiznm1htpoIPySzK8PQVl3Oyc1gQrDX3/nMc/h/t0lbTb3vqthDGwkHlFhneO0YyTXYtHWdvWFsc9xA3b6m504nhs1V6R2QemhT192OrS3WJs4rLx7hvKcz8KlVkbpoWI9ovnMlsMN4ULSnJIJpA5gUNStL+qZRFN+RLBDvfJgpXY3qSy2zXOs/MpIbRLWeT/3OYJb0UFL7R9KnMOdXzRewCV+TYmsa8BKdqxku3oFsvGu4C+SFLL3MakwU4rgmTlv/u8ak5emEJWVcKOadmuuJYBmKlkmHpiQGZaMenrg61EZppknso9jMw8khnG9fSTWWletCjF9TizHnmMwsdInFqG6S4A9mY5keR7LpUFYRX4JFugLPHzf6OK0ZatTuWDmfnM2UO012XnI931zTMZ5KfGrNFsEGdkF0igmdaJgQ59XZaFZE1xO9GZlrx/QGYS2Q2UGdtJZO3c6+NmZ5yRg/wZ6k3j4rEvLlrm0h2NlRW7R17R4uh0qnIA1kCCZVF2pW2wMjvMH+BcG7MGmTbywBfmBMqcU2gWbQDzGSnZhfwpa6Y9nWn2qVm9d0ZGZxQyzOTJzkfaJc0+6cjwMSQ7bmRLrZkPbClkCSZoHG+iumQayIzs9lgV3g73YqYzsuJp6mWdXK7N1baMccYpy7xi2EmQ2ed8C3Q4Zs/qorA6CcFpLhu9WP7a1YNNFB3AdULqRjXKcU/bY+P5OHQiN51UhnG6gz/AsLxdndSz2s+249119IOPF68F9axHyZY6TzxNmGzCzLJZNstm2TSyTPpnwh7nZ8KBbBiOGVfPdw9u7DXeSWHHX785ZVGYJNV52ORJ8J/lmlP2WOv54b6VL5Pl73/LT0/Iunn/NF3yLzXyjjNAxvzkQWy0lQEwPWTAKOOXrScM5PoXvrM3y2bZLJtls+zfk3He90Do3TnFykTe0ZQr9Q8XRmTSi9a4zcyITOQNap+Djckk92fzbin/A8PQxx30Ei25AAAAAElFTkSuQmCC';
 
 // Numéro de version, affiché en pied de menu.
-const APP_VERSION = '471';
+const APP_VERSION = '475';
 
 const DOMAINS = [
   {
@@ -16965,7 +17051,7 @@ const DOMAINS = [
     color: "chip-jaune",
     subdomains: [
       { id: 'verif-eq',         title: "Vérifier si un nombre est solution d'une équation", gen: genVerifEquation, patrons: () => [genVerifEquation] },
-      { id: 'developper',       title: "Effectuer et réduire une expression algébrique",   gen: genDevelopper, patrons: () => [genDevelopper],
+      { id: 'developper',       title: "Développer et réduire une expression algébrique",   gen: genDevelopper, patrons: () => [genDevelopper],
         variants: [
           { key: 'reduire',  label: 'Effectuer et réduire', gen: genDevelopper },
           { key: 'distrib',  label: 'Distributivité',       gen: genDistributivite },
@@ -16986,7 +17072,7 @@ const DOMAINS = [
     subdomains: [
       { id: 'perim-aire',       title: "Utiliser les formules de calcul de périmètres et d'aires", gen: genPerimAire, hasNiveau2: true, niveauLabels: ['Figures', 'Énoncés', 'Problèmes'], patrons: () => [genPerimAire] },
       { id: 'volumes',          title: "Utiliser les formules de calcul de volumes",        gen: genVolumes, hasNiveau2: true, niveauLabels: ['Solides', 'Énoncés', 'Bases composées'], patrons: () => [genVolumes] },
-      { id: 'unites',           title: "Transformer les unités (longueur, aire, volume, capacité, temps)", gen: genUnites, patrons: () => [genUnites],
+      { id: 'unites',           title: "Transformer les unités (longueur, aire, volume, capacité et temps)", gen: genUnites, patrons: () => [genUnites],
         variants: [
           { key: 'longueur',       label: 'Longueur',      gen: genUnitesLongueur },
           { key: 'capacite',       label: 'Capacité',      gen: genUnitesCapacite },
@@ -17025,7 +17111,7 @@ const DOMAINS = [
         ] : null },
       { id: 'prop-figures',     title: "Appliquer les propriétés des figures planes (triangles, cercles)",   gen: genPropFigures, hasNiveau2: true, niveauLabels: ["Déduction d'angle", 'Arc - secteur'], patrons: () => [genPropFigures] },
       { id: 'instruments',      title: "Connaître l'utilisation des instruments de géométrie",               gen: null, embed: true },
-      { id: 'developpements',   title: "Associer les solides à leurs développements",                            gen: genDeveloppements, hasNiveau2: true, niveauLabels: ['Associer', 'Sélectionner'], patrons: () => state.niveau === 2 ? [genDevSelectPave, genDevSelectCube, genDevSelectPrismeTri] : [genDeveloppements],
+      { id: 'developpements',   title: "Identifier les développements de solides",                            gen: genDeveloppements, hasNiveau2: true, niveauLabels: ['Associer', 'Sélectionner'], patrons: () => state.niveau === 2 ? [genDevSelectPave, genDevSelectCube, genDevSelectPrismeTri] : [genDeveloppements],
         // L'écran du niveau 2 montre les TROIS solides à la suite ; l'atelier,
         // lui, ne retient qu'un exercice par sous-domaine et prenait toujours
         // le premier (le pavé). `atelierVariants` lui donne le choix, sans
@@ -19042,13 +19128,17 @@ function separateurDomaine(it, premier, plusieurs, mention) {
 // à chaque aller-retour.
 // ============================================================================
 const MDP_ENSEIGNANT = 'ClaudIA*';
-const MDP_ENSEIGNANT_ACTIF = false;
+// REMIS EN SERVICE le 26.08 (v473). Il avait été suspendu en v393 le temps de la
+// mise au point de l'espace enseignant : sans lui, n'importe quel élève y entre
+// d'un clic, et lit la liste de classe où les mots de passe sont EN CLAIR.
+const MDP_ENSEIGNANT_ACTIF = true;
 
 // Aide à la MISE AU POINT : le bouton « ⚡ Remplir » du pied de test remplit les
 // réponses pour un score de 70 à 80 %, ce qui évite de saisir douze réponses à
-// la main à chaque essai. À REPASSER À false avant de donner l'application aux
-// élèves — le bouton est visible de tous.
-const REMPLISSAGE_AUTO = true;   // ← true pour redemander le mot de passe
+// la main à chaque essai. Le bouton est visible de TOUS : il ne doit être
+// rallumé que le temps d'une mise au point, jamais dans la version donnée aux
+// élèves. Éteint le 26.08 (v473), la mise au point étant terminée.
+const REMPLISSAGE_AUTO = false;
 
 function ouvrirEspaceEnseignant() {
   if (serieVerrouille()) return;
@@ -19056,8 +19146,9 @@ function ouvrirEspaceEnseignant() {
     alert("Termine ou quitte le test en cours avant d'ouvrir l'espace enseignant·e.");
     return;
   }
-  // Mot de passe SUSPENDU pendant la mise au point de l'espace enseignant
-  // (v393). Pour le remettre : passer MDP_ENSEIGNANT_ACTIF à true.
+  // Demandé une seule fois par session : `state.enseignantDeverrouille` retient
+  // le déverrouillage, sinon on le retaperait à chaque aller-retour. Un
+  // rechargement de la page le redemande.
   if (MDP_ENSEIGNANT_ACTIF && !state.enseignantDeverrouille) {
     const saisi = prompt("Espace enseignant·e — mot de passe :");
     if (saisi === null) return;                       // annulé
@@ -21322,6 +21413,112 @@ function classeSupprimer() {
   renderClasse();
 }
 
+// ---------------------------------------------------------------------------
+// SAUVEGARDE DES CLASSES DANS UN FICHIER (v472)
+// Les classes ne vivent que dans le localStorage du poste. Vider les « cookies
+// et autres données de sites » les efface — et les mots de passe sont alors
+// IRRÉCUPÉRABLES : les tests déjà publiés n'en portent que l'empreinte, jamais
+// le mot de passe. D'où ce couple exporter / importer.
+// Le fichier reste LOCAL. Il contient les mots de passe EN CLAIR, c'est tout
+// son intérêt comme sauvegarde — mais il ne doit donc pas être déposé en ligne
+// à côté de l'application, où il serait lisible par n'importe qui. Le jour où
+// la liste devra suivre d'un poste à l'autre, ce sera un fichier CHIFFRÉ, avec
+// une phrase de passe tapée par l'enseignant : un secret écrit dans une page
+// publique n'en est pas un.
+// ---------------------------------------------------------------------------
+const FORMAT_CLASSES = 'eva-classes';
+
+function classesExporter() {
+  // Déplier une autre ligne enregistre celle qu'on quitte ; exporter fait de
+  // même, sinon on sauvegarderait l'état d'AVANT ce qu'on vient de taper.
+  if (classeOuverte >= 0) classeEnregistrer(true);
+  if (!CLASSES.length) { alert("Aucune classe à enregistrer."); return; }
+  const paquet = {
+    format: FORMAT_CLASSES,
+    version: 1,
+    date: new Date().toISOString().slice(0, 10),
+    classes: CLASSES.map(c => ({
+      nom: c.nom,
+      eleves: (c.eleves || []).map(e => ({ prenom: e.prenom, mdp: e.mdp || '' }))
+    }))
+  };
+  let texte;
+  try { texte = JSON.stringify(paquet, null, 1); }
+  catch (e) { alert("Ces classes n'ont pas pu être enregistrées."); return; }
+  const blob = new Blob([texte], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `classes-eva-${paquet.date}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  const info = document.getElementById('classes-info');
+  if (info) {
+    const n = CLASSES.length;
+    info.textContent = `${n} classe${n > 1 ? 's' : ''} enregistrée${n > 1 ? 's' : ''}`
+      + ` dans ${a.download}. Ce fichier contient les mots de passe en clair :`
+      + ` à garder pour toi, pas à mettre en ligne.`;
+    info.className = 'atelier-aide prenoms-ok';
+  }
+}
+
+// Relecture tolérante : on accepte le paquet complet comme un simple tableau de
+// classes, et on ne garde que ce qui a la bonne forme. Un fichier abîmé ne doit
+// pas pouvoir écraser une liste valide.
+function classesLireFichier(txt) {
+  let d = null;
+  try { d = JSON.parse(txt); } catch (e) { return null; }
+  const liste = Array.isArray(d) ? d : (d && Array.isArray(d.classes) ? d.classes : null);
+  if (!liste) return null;
+  const propre = liste
+    .filter(c => c && typeof c.nom === 'string' && c.nom.trim())
+    .map(c => ({
+      nom: String(c.nom).trim(),
+      eleves: (Array.isArray(c.eleves) ? c.eleves : [])
+        .filter(e => e && typeof e.prenom === 'string' && e.prenom.trim())
+        .map(e => ({ prenom: String(e.prenom).trim(), mdp: e.mdp ? String(e.mdp).trim() : '' }))
+    }));
+  return propre.length ? propre : null;
+}
+
+function classesImporter(input) {
+  const f = input && input.files && input.files[0];
+  if (input) input.value = '';   // pour pouvoir relire deux fois le même fichier
+  if (!f) return;
+  const lecteur = new FileReader();
+  lecteur.onload = () => {
+    const venant = classesLireFichier(lecteur.result);
+    if (!venant) { alert("Ce fichier n'est pas une liste de classes lisible."); return; }
+    // FUSION PAR NOM, jamais un écrasement en bloc : le fichier est peut-être
+    // plus ancien que ce qui est ici, et les classes qu'il ignore doivent
+    // rester. Une classe de même nom n'est remplacée qu'après confirmation.
+    const heurts = venant.filter(c => CLASSES.some(x => x.nom === c.nom));
+    if (heurts.length && !confirm(
+        `${heurts.length > 1 ? 'Les classes' : 'La classe'} « ${heurts.map(c => c.nom).join(' », « ')} »`
+        + ` ${heurts.length > 1 ? 'existent' : 'existe'} déjà sur ce poste.\n\n`
+        + `Remplacer par la version du fichier ?`)) return;
+    if (classeOuverte >= 0) classeEnregistrer(true);
+    let ajoutees = 0;
+    venant.forEach(c => {
+      const i = CLASSES.findIndex(x => x.nom === c.nom);
+      if (i >= 0) CLASSES[i] = c; else { CLASSES.push(c); ajoutees++; }
+    });
+    const stocke = enregistrerClasses();
+    classeOuverte = -1;
+    classeCourante = 0;
+    renderClasse();
+    const info = document.getElementById('classes-info');
+    if (info) {
+      info.textContent = (ajoutees ? `${ajoutees} classe${ajoutees > 1 ? 's ajoutées' : ' ajoutée'}` : '')
+        + (ajoutees && heurts.length ? ', ' : '')
+        + (heurts.length ? `${heurts.length} remplacée${heurts.length > 1 ? 's' : ''}` : '')
+        + (stocke ? '.' : " — gardé pour cette séance seulement : ce navigateur refuse le stockage local.");
+      info.className = 'atelier-aide ' + (stocke ? 'prenoms-ok' : 'prenoms-attention');
+    }
+  };
+  lecteur.readAsText(f);
+}
+
 function renderClasse() {
   const main = document.getElementById('main');
   const tbDom = document.getElementById('topbar-domain');
@@ -21330,7 +21527,14 @@ function renderClasse() {
   main.innerHTML = enteteEnseignant('Liste de classe et mots de passe', true) + `
     <div class="atelier-barre">
       <button class="btn-action btn-primary" onclick="classeNouvelle()">Nouvelle classe</button>
+      <span class="atelier-barre-droite">
+        <button class="btn-action" onclick="classesExporter()" title="Enregistrer toutes les classes dans un fichier .json, sur ce poste">Exporter</button>
+        <label class="btn-action" title="Relire un fichier .json de classes">Importer
+          <input type="file" accept=".json,application/json" style="display:none" onchange="classesImporter(this)">
+        </label>
+      </span>
     </div>
+    <p class="atelier-aide" id="classes-info">Ces listes ne vivent que dans ce navigateur : vider les données de navigation les efface, et les mots de passe sont alors perdus. Pense à les exporter.</p>
     ${CLASSES.length ? CLASSES.map((c, k) => {
       const ouverte = (k === classeOuverte);
       const n = (c.eleves || []).length;
