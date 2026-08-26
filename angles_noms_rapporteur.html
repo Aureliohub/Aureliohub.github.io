@@ -1,0 +1,365 @@
+<!doctype html>
+<!--
+  Note pour Claude : activité « les noms des angles » (fichier autonome, aucune dépendance).
+  Repère de la figure : 820 x 660. Sommet A fixe. État = {dirC, mesure, lB, lC} + rapporteur {x,y,rot}.
+  mesure = ouverture de [AC vers [AB dans le sens trigonométrique, 0..360, aimants sur 0/90/180/270/360.
+  Le rapporteur est semi-transparent : les segments restent visibles dessous ; les poignées B et C
+  sont dessinées AU-DESSUS du rapporteur pour rester saisissables.
+-->
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Les noms des angles</title>
+<style>
+:root{
+  --papier:#f5f5f1;--encre:#151a2e;--gris:#6d7382;--trait:#d9dbe1;
+  --bleu:#93c0f4;--bleu-fonce:#1f4fa8;--secteur:#bcd9f7;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  background:var(--papier);color:var(--encre);
+  font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;font-size:16px;
+  padding:14px 18px;height:100vh;overflow:hidden;
+}
+.page{max-width:1320px;margin:0 auto;height:100%;display:flex;flex-direction:column}
+.entete{display:flex;align-items:baseline;justify-content:center;gap:10px;flex-wrap:wrap;text-align:center}
+.eyebrow,.consigne{margin:0;font-size:13.5px;font-weight:700;letter-spacing:.16em;color:var(--gris)}
+.eyebrow{text-transform:uppercase}
+.rule{height:1px;background:var(--trait);margin:10px 0;flex:none}
+
+.scene{flex:1;min-height:0;display:flex;justify-content:center;align-items:flex-start}
+.boite{position:relative}
+.plateau{position:absolute;left:0;top:0;width:820px;height:660px;transform-origin:top left}
+.figure{
+  position:absolute;left:0;top:0;width:820px;height:660px;
+  background:#fdfdfb;
+  border:1px solid var(--trait);border-radius:12px;overflow:hidden;
+}
+#svg{position:absolute;inset:0;width:820px;height:660px;touch-action:none;user-select:none}
+
+/* --- rapporteur --- */
+.rap-corps{fill:rgba(214,216,228,.62);stroke:#aeb2c4;stroke-width:1.4;cursor:grab}
+.rap-trait{stroke:#3a3f55;fill:none;pointer-events:none}
+.rap-txt{fill:#20263c;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;pointer-events:none}
+.rap-poignee{fill:#fff;stroke:var(--bleu-fonce);stroke-width:2;cursor:grab}
+.rap-poignee-txt{fill:var(--bleu-fonce);font-size:15px;font-weight:700;pointer-events:none;text-anchor:middle}
+
+/* --- angle --- */
+.cote{stroke:#151a2e;stroke-width:1.8;stroke-linecap:round}
+.secteur{fill:var(--secteur);opacity:.85}
+.point{fill:#151a2e}
+.poignee{fill:#151a2e;stroke:#fff;stroke-width:2.5;cursor:grab}
+.poignee:hover{stroke:var(--bleu-fonce)}
+.etiq{fill:#151a2e;font-size:18px;font-weight:700;pointer-events:none;text-anchor:middle}
+.val-angle{fill:#2f6fc4;font-size:16px;font-weight:800;pointer-events:none;text-anchor:middle}
+
+/* --- panneau --- */
+.bandeau{position:absolute;left:26px;top:20px;pointer-events:none}
+.bandeau .ligne{display:flex;align-items:baseline;gap:10px}
+.bandeau b{font-size:31px;font-weight:800;letter-spacing:-.02em;color:#2f6fc4}
+.bandeau .borne{font-size:15px;font-weight:700;color:var(--gris)}
+.bandeau .alias{display:block;margin-top:1px;font-size:15px;font-weight:600;color:#7fa8dd}
+.bandeau .val{display:block;margin-top:4px;font-size:22px;font-weight:800;color:#2f6fc4}
+.outils{position:absolute;left:26px;bottom:20px;display:flex;gap:10px}
+.outils button{width:44px;height:44px;padding:0;display:flex;align-items:center;justify-content:center;background:#fff}
+.outils button svg{width:28px;height:28px}
+.outils button.eteint{opacity:.45}
+button{
+  font:inherit;font-weight:700;font-size:14px;padding:9px 12px;border-radius:9px;cursor:pointer;
+  border:1px solid #b9bec9;background:transparent;color:var(--encre);
+}
+button.principal{background:var(--encre);border-color:var(--encre);color:#fff}
+button:focus-visible{outline:2px solid var(--bleu-fonce);outline-offset:2px}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="entete">
+    <p class="eyebrow">Géométrie · les noms des angles</p>
+  </div>
+  <div class="rule"></div>
+
+  <div class="scene" id="scene">
+    <div class="boite" id="boite">
+      <div class="plateau" id="stage">
+        <div class="figure" id="figure">
+          <div class="bandeau">
+            <div class="ligne"><b id="nom">Angle aigu</b><span class="borne" id="borne">&lt; 90°</span></div>
+            <span class="alias" id="alias"></span>
+          </div>
+          <svg id="svg" viewBox="0 0 820 660" xmlns="http://www.w3.org/2000/svg">
+            <path id="secteur" class="secteur" d=""/>
+            <path id="equerre" class="rap-trait" stroke="#151a2e" stroke-width="2" d=""/>
+            <line id="cote-c" class="cote" x1="0" y1="0" x2="0" y2="0"/>
+            <line id="cote-b" class="cote" x1="0" y1="0" x2="0" y2="0"/>
+            <g id="rapporteur"></g>
+            <circle id="pt-a" class="point" r="7"/>
+            <circle id="poignee-c" class="poignee" r="9" data-drag="C"/>
+            <circle id="poignee-b" class="poignee" r="9" data-drag="B"/>
+            <text id="valeur" class="val-angle"></text>
+            <text id="lab-a" class="etiq">A</text>
+            <text id="lab-b" class="etiq">B</text>
+            <text id="lab-c" class="etiq">C</text>
+          </svg>
+          <div class="outils">
+            <button id="btn-rap" title="Afficher ou masquer le rapporteur" aria-label="Rapporteur">
+              <svg viewBox="8 12 264 154" fill="none" stroke="#151a2e" stroke-width="10" stroke-linecap="butt" stroke-linejoin="round">
+                <path d="M17.5 119A126.7 126.7 0 0 1 264.5 119C266.8 126 268 133 268 140C268 151 263 158.5 252 158.5L31 158.5C20 158.5 15.5 151 15.5 140C15.5 132 16 125 17.5 119"/>
+                <path d="M61 119A86.7 86.7 0 0 1 222 119"/>
+                <line x1="61" y1="119" x2="222" y2="119"/>
+                <path d="M30.5 89.5L42.5 94.5M49 59L60.5 67.5M78.5 37L84.5 49M108 23.5L111 36M141 19L141 32.5M174 23.5L171 36M203.5 37L197.5 49M233 59L221.5 67.5M251.5 89.5L239.5 94.5"/>
+                <path d="M78.5 119v16M109.5 119v16M140.5 119v13M171.5 119v16M202.5 119v16"/>
+                <circle cx="140.5" cy="138.5" r="6" fill="#fdfdfb"/>
+              </svg>
+            </button>
+            <button id="btn-reset" title="Réinitialiser la figure" aria-label="Réinitialiser">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#151a2e" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20 4v4.6h-4.6"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  const scene  = document.getElementById("scene");
+  const boite  = document.getElementById("boite");
+  const stage  = document.getElementById("stage");
+  const figure = document.getElementById("figure");
+  const svg    = document.getElementById("svg");
+
+  const A = {x:400, y:340};
+  const R = 210;                       // rayon du rapporteur
+  const DEP = {dirC:0, mesure:50, lB:270, lC:290};
+  let dirC, mesure, lB, lC;            // degrés (sens trigo) et longueurs
+  let rap;                             // {x, y, rot} du rapporteur
+  const BORNES = {aigu:"< 90°", droit:"90°", obtus:"90° – 180°", plat:"180°", rentrant:"> 180°", plein:"360°"};
+
+  function reset(){
+    dirC = DEP.dirC; mesure = DEP.mesure; lB = DEP.lB; lC = DEP.lC;
+    replacerRapporteur();
+  }
+  function replacerRapporteur(){ rap = {x:A.x, y:A.y, rot:-dirC}; }
+
+  /* ---------- géométrie ---------- */
+  const rad = d => d * Math.PI / 180;
+  function pt(dir, len){ return {x:A.x + len*Math.cos(rad(dir)), y:A.y - len*Math.sin(rad(dir))}; }
+  function norm180(a){ a = (a + 180) % 360; if(a < 0) a += 360; return a - 180; }
+  function borne(v,a,b){ return Math.max(a, Math.min(b, v)); }
+  function circ(m){ m = m % 360; if(m < 0) m += 360; return m; }
+  function aimanter(m){
+    if(m > 357) return 360;      // le point B revient sur [AC après un tour complet
+    for(const s of [90, 180, 270]){ if(Math.abs(m - s) < 3) return s; }
+    return m;
+  }
+
+  function aimanterRot(r){
+    // les deux zéros du rapporteur (extrémité droite et extrémité gauche) se calent sur [AC ou sur [AB
+    for(const cote of [dirC, dirC + mesure]){
+      for(const demi of [0, 180]){
+        const cible = -cote + demi;
+        if(Math.abs(norm180(r - cible)) < 4) return cible;
+      }
+    }
+    return r;
+  }
+
+  function nomAngle(m){
+    if(m < 90)    return ["aigu","Angle aigu"];
+    if(m === 90)  return ["droit","Angle droit"];
+    if(m < 180)   return ["obtus","Angle obtus"];
+    if(m === 180) return ["plat","Angle plat"];
+    if(m < 360)   return ["rentrant","Angle rentrant"];
+    return ["plein","Angle plein"];
+  }
+
+  /* ---------- rapporteur (construit une fois) ---------- */
+  function construireRapporteur(){
+    const g = document.getElementById("rapporteur");
+    const NS = "http://www.w3.org/2000/svg";
+    const el = (n,at) => { const e = document.createElementNS(NS,n); for(const k in at) e.setAttribute(k,at[k]); return e; };
+    const P = (a,r) => [ (r*Math.cos(rad(a))).toFixed(1), (-r*Math.sin(rad(a))).toFixed(1) ];
+
+    const socle = el("path",{class:"rap-corps","data-drag":"RAP",
+      d:"M "+(-R-8)+" 12 L "+(-R-8)+" 0 L "+(-R)+" 0 A "+R+" "+R+" 0 0 1 "+R+" 0 L "+(R+8)+" 0 L "+(R+8)+" 12 Z"});
+    g.appendChild(socle);
+
+    for(let i = 0; i <= 180; i++){
+      const long = (i % 10 === 0) ? 18 : (i % 5 === 0) ? 12 : 7;
+      const a = P(i, R-4), b = P(i, R-4-long);
+      g.appendChild(el("line",{class:"rap-trait", x1:a[0], y1:a[1], x2:b[0], y2:b[1],
+                               "stroke-width": (i % 10 === 0) ? 1.4 : (i % 5 === 0) ? 1.1 : .7}));
+      if(i % 10 === 0){
+        const c = P(i, 20), d = P(i, R-26);
+        g.appendChild(el("line",{class:"rap-trait", x1:c[0], y1:c[1], x2:d[0], y2:d[1], "stroke-width":.7}));
+        const g1 = P(i, R-40), g2 = P(i, R-59);
+        const t1 = el("text",{class:"rap-txt", x:g1[0], y:g1[1], "text-anchor":"middle",
+                              "dominant-baseline":"middle","font-size":i===90?18:13,
+                              "font-weight":i===90?800:600,
+                              transform:"rotate("+(90-i)+","+g1[0]+","+g1[1]+")"});
+        t1.textContent = i;
+        const t2 = el("text",{class:"rap-txt", x:g2[0], y:g2[1], "text-anchor":"middle",
+                              "dominant-baseline":"middle","font-size":9.5,
+                              transform:"rotate("+(90-i)+","+g2[0]+","+g2[1]+")"});
+        t2.textContent = 180 - i;
+        g.appendChild(t1); g.appendChild(t2);
+      }
+    }
+    g.appendChild(el("circle",{cx:0, cy:0, r:9, fill:"#fdfdfb", stroke:"#8d92a6","stroke-width":1.4,"pointer-events":"none"}));
+    g.appendChild(el("circle",{cx:0, cy:0, r:2.4, fill:"#3a3f55","pointer-events":"none"}));
+
+    // poignée de rotation, au sommet du rapporteur
+    const p = P(90, R+24), pa = P(90, R), pb2 = P(90, R+9);
+    g.appendChild(el("line",{class:"rap-trait", x1:pa[0], y1:pa[1], x2:pb2[0], y2:pb2[1], "stroke-width":1.4}));
+    g.appendChild(el("circle",{class:"rap-poignee","data-drag":"ROT", cx:p[0], cy:p[1], r:15}));
+    const tr = el("text",{class:"rap-poignee-txt", x:p[0], y:(+p[1]+5)});
+    tr.textContent = "⟳";
+    g.appendChild(tr);
+  }
+
+  /* ---------- rendu ---------- */
+  function dessiner(){
+    const C = pt(dirC, lC), B = pt(dirC + mesure, lB);
+    document.getElementById("cote-c").setAttribute("x1", A.x);
+    document.getElementById("cote-c").setAttribute("y1", A.y);
+    document.getElementById("cote-c").setAttribute("x2", C.x);
+    document.getElementById("cote-c").setAttribute("y2", C.y);
+    document.getElementById("cote-b").setAttribute("x1", A.x);
+    document.getElementById("cote-b").setAttribute("y1", A.y);
+    document.getElementById("cote-b").setAttribute("x2", B.x);
+    document.getElementById("cote-b").setAttribute("y2", B.y);
+
+    document.getElementById("pt-a").setAttribute("cx", A.x);
+    document.getElementById("pt-a").setAttribute("cy", A.y);
+    const pb = document.getElementById("poignee-b"), pc = document.getElementById("poignee-c");
+    pb.setAttribute("cx", B.x); pb.setAttribute("cy", B.y);
+    pc.setAttribute("cx", C.x); pc.setAttribute("cy", C.y);
+
+    const lb = pt(dirC + mesure, lB + 26), lc = pt(dirC, lC + 26);
+    const la = {x:A.x - 24, y:A.y + 24};
+    const put = (id,p) => { const t = document.getElementById(id); t.setAttribute("x", p.x.toFixed(1)); t.setAttribute("y", (p.y + 6).toFixed(1)); };
+    put("lab-b", lb); put("lab-c", lc); put("lab-a", la);
+
+    // secteur
+    const r = 62, s = document.getElementById("secteur");
+    if(mesure === 0){ s.setAttribute("d",""); }
+    else if(mesure >= 360){
+      s.setAttribute("d","M "+(A.x-r)+" "+A.y+" a "+r+" "+r+" 0 1 0 "+(2*r)+" 0 a "+r+" "+r+" 0 1 0 "+(-2*r)+" 0");
+    }else{
+      const p1 = pt(dirC, r), p2 = pt(dirC + mesure, r);
+      s.setAttribute("d","M "+A.x+" "+A.y+" L "+p1.x.toFixed(1)+" "+p1.y.toFixed(1)+
+        " A "+r+" "+r+" 0 "+(mesure > 180 ? 1 : 0)+" 0 "+p2.x.toFixed(1)+" "+p2.y.toFixed(1)+" Z");
+    }
+    // marque de l'angle droit
+    const eq = document.getElementById("equerre");
+    if(mesure === 90){
+      const u = pt(dirC, 26), v = pt(dirC + 90, 26);
+      const w = {x:u.x + v.x - A.x, y:u.y + v.y - A.y};
+      eq.setAttribute("d","M "+u.x.toFixed(1)+" "+u.y.toFixed(1)+" L "+w.x.toFixed(1)+" "+w.y.toFixed(1)+
+                          " L "+v.x.toFixed(1)+" "+v.y.toFixed(1));
+    } else eq.setAttribute("d","");
+
+    document.getElementById("rapporteur")
+            .setAttribute("transform","translate("+rap.x+","+rap.y+") rotate("+rap.rot+")");
+
+    // panneau
+    const [cle, nom] = nomAngle(mesure);
+    document.getElementById("nom").textContent = nom;
+    document.getElementById("borne").textContent = BORNES[cle];
+    document.getElementById("alias").textContent = (cle === "rentrant") ? "(ou non convexe)" : "";
+    const v = document.getElementById("valeur");
+    const rv = (mesure < 34 || mesure > 326) ? 88 : 40;
+    const pv = pt(dirC + mesure/2, rv);
+    v.setAttribute("x", pv.x.toFixed(1)); v.setAttribute("y", (pv.y + 6).toFixed(1));
+    v.textContent = Math.round(mesure) + "°";
+  }
+
+  /* ---------- déplacements ---------- */
+  let echelle = 1;
+  function ajuster(){
+    const dw = scene.clientWidth, dh = scene.clientHeight;
+    if(dw <= 0 || dh <= 0) return;
+    echelle = Math.min(1, dw / 820, dh / 660);
+    stage.style.transform = "scale(" + echelle + ")";
+    boite.style.width  = Math.round(820 * echelle) + "px";
+    boite.style.height = Math.round(660 * echelle) + "px";
+  }
+  window.addEventListener("resize", ajuster);
+
+  function coord(e){
+    const r = figure.getBoundingClientRect();
+    return {x:(e.clientX - r.left) / echelle, y:(e.clientY - r.top) / echelle};
+  }
+  function dirVers(p, o){ return Math.atan2(-(p.y - o.y), p.x - o.x) * 180 / Math.PI; }
+
+  let prise = null, ecart = null;
+
+  svg.addEventListener("pointerdown", function(e){
+    const el = e.target.closest("[data-drag]");
+    if(!el) return;
+    prise = el.dataset.drag;
+    const p = coord(e);
+    if(prise === "RAP") ecart = {x:rap.x - p.x, y:rap.y - p.y};
+    if(prise === "ROT") ecart = rap.rot - (-dirVers(p, rap));
+    svg.setPointerCapture(e.pointerId);
+    e.preventDefault();
+  });
+
+  svg.addEventListener("pointermove", function(e){
+    if(!prise) return;
+    const p = coord(e);
+    if(prise === "B" || prise === "C"){
+      const d = dirVers(p, A);
+      const long = borne(Math.hypot(p.x - A.x, p.y - A.y), 120, 305);
+      if(prise === "B"){
+        mesure = aimanter(circ(mesure + norm180(d - (dirC + mesure))));
+        lB = long;
+      }else{
+        const delta = norm180(d - dirC);
+        dirC += delta; mesure = aimanter(circ(mesure - delta));
+        lC = long;
+      }
+    }else if(prise === "RAP"){
+      let cx = borne(p.x + ecart.x, 40, 780), cy = borne(p.y + ecart.y, 40, 620);
+      if(Math.hypot(cx - A.x, cy - A.y) < 22){ cx = A.x; cy = A.y; }   // aimant sur le sommet
+      rap.x = cx; rap.y = cy;
+    }else if(prise === "ROT"){
+      rap.rot = aimanterRot(-dirVers(p, rap) + ecart);
+    }
+    dessiner();
+  });
+
+  function relacher(){ prise = null; }
+  svg.addEventListener("pointerup", relacher);
+  svg.addEventListener("pointercancel", relacher);
+
+  /* ---------- boutons ---------- */
+  document.getElementById("btn-rap").addEventListener("click", function(){
+    const g = document.getElementById("rapporteur");
+    const cache = g.style.display === "none";
+    g.style.display = cache ? "" : "none";   // réapparaît là où il avait été laissé
+    this.classList.toggle("eteint", !cache);
+    dessiner();
+  });
+  document.getElementById("btn-reset").addEventListener("click", function(){
+    reset(); dessiner();
+  });
+
+  construireRapporteur();
+  reset();
+  dessiner();
+  ajuster();
+})();
+</script>
+</body>
+</html>
