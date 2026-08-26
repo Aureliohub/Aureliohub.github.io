@@ -8,7 +8,7 @@ générant des exercices de mathématiques pour adultes (programme PAI, Suisse).
 Product owner : Aurelio (Onex/Genève). Répondre en FRANÇAIS.
 
 ───────────────────────────────────────────────────────────────────────────────
-0. OÙ ON EN EST (v469, 26.08.2026) — à lire en premier
+0. OÙ ON EN EST (v471, 26.08.2026) — à lire en premier
 ───────────────────────────────────────────────────────────────────────────────
 L'application est en ligne : https://aureliohub.github.io/eva_maths.html
 Les fichiers de série et de test (.json) sont déposés à côté d'elle, et s'ouvrent
@@ -501,6 +501,29 @@ PDF de domaine :
 ───────────────────────────────────────────────────────────────────────────────
 Cette section décrit l'ÉTAT, non l'historique. Les numéros de version ne sont
 cités que lorsqu'ils aident à retrouver un choix dans le fichier.
+
+v471 — Fenêtre du test : la case « Tout sélectionner » s'aligne sur les cases
+ des domaines (13px de retrait = bordure de `.eval-dom` + rembourrage de
+ `.eval-dom-head`). Si l'une de ces deux valeurs change, le retrait doit suivre
+ — c'est écrit à côté de la règle. Mesuré : les six cases à 491px, à l'unité
+ près, case vide comme case cochée.
+
+v470 — COULEURS DES PASTILLES DE DOMAINE, permutées à la demande d'Aurelio :
+ Proportionnalité passe au ROSE (était vert), Grandeurs et mesures · Pythagore
+ au VERT (était violet), Espace au VIOLET (était rose). Nombres et opérations
+ reste bleu, Algèbre reste jaune.
+ Les classes CSS ont été renommées par leur COULEUR (.chip-bleu, .chip-rose,
+ .chip-jaune, .chip-vert, .chip-violet) et non plus par un numéro de domaine :
+ avec les anciennes `.c1`..`.c5`, le domaine 2 se serait retrouvé avec `.c5` et
+ le domaine 4 avec `.c2`, illisible à la relecture. Les teintes elles-mêmes sont
+ inchangées, seule l'affectation bouge.
+ UN SEUL ENDROIT À MODIFIER pour changer une couleur : le champ `color` de
+ l'entrée du domaine dans DOMAINS. Les cinq affichages (menu, vignettes
+ d'accueil, fenêtre du test, fenêtre « Choisir un domaine », atelier) lisent
+ tous `d.color` — aucun n'écrit de classe en dur.
+ Vérifié au navigateur : les cinq pastilles du menu, celles des vignettes
+ d'accueil et celles de la fenêtre du test portent la bonne classe et le bon
+ fond calculé.
 
 v469 — CINQ DEMANDES D'AURELIO (26.08, suite).
  · Icône ☰ agrandie : bouton 34 → 40px, trait 26 → 31px.
@@ -1955,6 +1978,10 @@ ainsi (une remarque prise pour une consigne, une sélection ambiguë).
     font-weight: 700;
     color: var(--text);
     cursor: pointer;
+    /* Sa case s'aligne sur celles des domaines, qui sont en retrait de la
+       bordure de `.eval-dom` (1px) plus le rembourrage de `.eval-dom-head`
+       (12px). Si l'un des deux change, cette valeur doit suivre. */
+    padding-left: 13px;
   }
   .eval-tout-case input { width: 16px; height: 16px; cursor: pointer; }
   /* ====== Atelier enseignant ====== */
@@ -2754,7 +2781,7 @@ ainsi (une remarque prise pour une consigne, une sélection ambiguë).
     color: var(--accent);
   }
 
-  /* Pastille colorée style référence (.c1..c5) */
+  /* Pastille colorée style référence (.chip-bleu … .chip-violet) */
   .domain-chip {
     width: 32px;
     height: 32px;
@@ -2806,11 +2833,15 @@ ainsi (une remarque prise pour une consigne, une sélection ambiguë).
     display: block;
     text-align: center;
   }
-  .c1 { background: #DBEAFE; color: #1D4ED8; }
-  .c2 { background: #DCFCE7; color: #166534; }
-  .c3 { background: #FEF3C7; color: #92400E; }
-  .c4 { background: #EDE9FE; color: #5B21B6; }
-  .c5 { background: #FFE4E6; color: #9F1239; }
+  /* Pastilles de domaine. Nommées par leur COULEUR et non par un numéro de
+     domaine : l'affectation a déjà changé une fois (26.08), et un `.c2` posé
+     sur le domaine 4 aurait été illisible. Le domaine choisit sa couleur dans
+     son entrée de DOMAINS (`color`), seul endroit à modifier. */
+  .chip-bleu   { background: #DBEAFE; color: #1D4ED8; }
+  .chip-vert   { background: #DCFCE7; color: #166534; }
+  .chip-jaune  { background: #FEF3C7; color: #92400E; }
+  .chip-violet { background: #EDE9FE; color: #5B21B6; }
+  .chip-rose   { background: #FFE4E6; color: #9F1239; }
 
   /* Liste des sous-domaines : repliée par défaut */
   .subdomain-list {
@@ -16885,14 +16916,14 @@ const ICONE_ENSEIGNANT = '<svg viewBox="0 0 24 24" width="21" height="21" fill="
 const ICONE_PDF = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJkAAACUCAMAAAC3HHtWAAAAk1BMVEXi5ef////xVkKwt73K0dji6OrxW0jyUDnG2eHlzczmgnrV2t/x8/T19vbxUTzwTDX4u7Xnvr28wsf+8/L84N3yYlD1jID1hXf1kYb4q6L4t7D96ujwQib1mY7++Pf70c3zcWHxSC/zeGn3pJv6ysX72dXy2Nbj1dXtgnfyaFf3sKj6w73UubvV4ebco6HkioPitLFLhhsqAAAElUlEQVR4nO3ca5eaOhQG4ICOtHUa7AAqIgiIbdVezv//dUcS7tlAXIYkq4v308xCzeNOCAEVZAzmKxKWj8Xi4324tVbQyGahsqdow7J3wbLFgp82LHsTLuOv2rBMIKyQ8dMGZQLHfyXjpsmX8dIUyDhpKmR8NCUyLpoa2eLjq64yjqqpko1XTZlstGrqZGM0hbIRmkrZME2pbJCmVjZEUywboKmW9dOUy3qnXPWyvqppIOupmg4yuGpayMCq6SGDqiZPthySAVWTJ1sPytiqyZMNdydbNYmykaJ1aRJlY0Xr0GTKnqNJlY3sn22aXBlaL4fr1qBJlpEsB/KmVDZEUywboKmW9dOUy3pp6mV9NA1kPTQdZDBNCxlI00MG0TSRATRdZCxNGxlD00fWpWkkQ/rKkL4ypK8M6StD+sqQvjKkrwzpK0P6ypC+MqSvDOkrQ/rKkL6ytbYyVF+tnWWiZW8T5jlZ4Lby/fN0+YFAGyxzw9hbyUoc/oBooOxi2tiUFmybEA2SRaklz5XH/slZs5PEgtGsPrNFg2R3W7YMf+OTbWbZLJtls2yWzbJWrORYJklaaxFs2WUsiznm1htpoIPySzK8PQVl3Oyc1gQrDX3/nMc/h/t0lbTb3vqthDGwkHlFhneO0YyTXYtHWdvWFsc9xA3b6m504nhs1V6R2QemhT192OrS3WJs4rLx7hvKcz8KlVkbpoWI9ovnMlsMN4ULSnJIJpA5gUNStL+qZRFN+RLBDvfJgpXY3qSy2zXOs/MpIbRLWeT/3OYJb0UFL7R9KnMOdXzRewCV+TYmsa8BKdqxku3oFsvGu4C+SFLL3MakwU4rgmTlv/u8ak5emEJWVcKOadmuuJYBmKlkmHpiQGZaMenrg61EZppknso9jMw8khnG9fSTWWletCjF9TizHnmMwsdInFqG6S4A9mY5keR7LpUFYRX4JFugLPHzf6OK0ZatTuWDmfnM2UO012XnI931zTMZ5KfGrNFsEGdkF0igmdaJgQ59XZaFZE1xO9GZlrx/QGYS2Q2UGdtJZO3c6+NmZ5yRg/wZ6k3j4rEvLlrm0h2NlRW7R17R4uh0qnIA1kCCZVF2pW2wMjvMH+BcG7MGmTbywBfmBMqcU2gWbQDzGSnZhfwpa6Y9nWn2qVm9d0ZGZxQyzOTJzkfaJc0+6cjwMSQ7bmRLrZkPbClkCSZoHG+iumQayIzs9lgV3g73YqYzsuJp6mWdXK7N1baMccYpy7xi2EmQ2ed8C3Q4Zs/qorA6CcFpLhu9WP7a1YNNFB3AdULqRjXKcU/bY+P5OHQiN51UhnG6gz/AsLxdndSz2s+249119IOPF68F9axHyZY6TzxNmGzCzLJZNstm2TSyTPpnwh7nZ8KBbBiOGVfPdw9u7DXeSWHHX785ZVGYJNV52ORJ8J/lmlP2WOv54b6VL5Pl73/LT0/Iunn/NF3yLzXyjjNAxvzkQWy0lQEwPWTAKOOXrScM5PoXvrM3y2bZLJtls+zfk3He90Do3TnFykTe0ZQr9Q8XRmTSi9a4zcyITOQNap+Djckk92fzbin/A8PQxx30Ei25AAAAAElFTkSuQmCC';
 
 // Numéro de version, affiché en pied de menu.
-const APP_VERSION = '469';
+const APP_VERSION = '471';
 
 const DOMAINS = [
   {
     num: 1,
     title: "Nombres et opérations",
     icon: "<span class=\"chip-ops\"><span>+</span><span>−</span><span>×</span><span>:</span></span>",
-    color: "c1",
+    color: "chip-bleu",
     subdomains: [
       { id: 'probleme',   title: "Résoudre un problème « concret » avec 4 opérations", gen: genProbleme, patrons: () => [genProbleme] },
       { id: 'decimaux',   title: "Calculer avec des décimaux (4 opérations)",          gen: genDecimal, hasNiveau2: true, patrons: () => [genDecimal, genDecimal],
@@ -16919,7 +16950,7 @@ const DOMAINS = [
     num: 2,
     title: "Proportionnalité",
     icon: "%",
-    color: "c2",
+    color: "chip-rose",
     subdomains: [
       { id: 'frac-pct',         title: "Calculer une fraction ou un pourcentage de …",    gen: genFracPct, patrons: () => [genFracPct] },
       { id: 'pct-inverse',      title: "Retrouver une grandeur dont on connaît un pourcentage", gen: genPctInverse, patrons: () => [genPctInverse] },
@@ -16931,7 +16962,7 @@ const DOMAINS = [
     num: 3,
     title: "Algèbre",
     icon: "<span class=\"chip-pow\">2x<sup>2</sup></span>",
-    color: "c3",
+    color: "chip-jaune",
     subdomains: [
       { id: 'verif-eq',         title: "Vérifier si un nombre est solution d'une équation", gen: genVerifEquation, patrons: () => [genVerifEquation] },
       { id: 'developper',       title: "Effectuer et réduire une expression algébrique",   gen: genDevelopper, patrons: () => [genDevelopper],
@@ -16951,7 +16982,7 @@ const DOMAINS = [
     num: 4,
     title: "Grandeurs et mesures · Pythagore",
     icon: "📏",
-    color: "c4",
+    color: "chip-vert",
     subdomains: [
       { id: 'perim-aire',       title: "Utiliser les formules de calcul de périmètres et d'aires", gen: genPerimAire, hasNiveau2: true, niveauLabels: ['Figures', 'Énoncés', 'Problèmes'], patrons: () => [genPerimAire] },
       { id: 'volumes',          title: "Utiliser les formules de calcul de volumes",        gen: genVolumes, hasNiveau2: true, niveauLabels: ['Solides', 'Énoncés', 'Bases composées'], patrons: () => [genVolumes] },
@@ -16980,7 +17011,7 @@ const DOMAINS = [
     num: 5,
     title: "Espace",
     icon: "△",
-    color: "c5",
+    color: "chip-violet",
     subdomains: [
       { id: 'vocab',            title: "Connaître le vocabulaire relatif aux figures planes et aux solides", gen: genVocab, hasNiveau2: true, niveauLabels: ['Figures planes', 'Solides', 'Compléter', 'Cercle', 'Droites du triangle'], patrons: () => (typeof state !== 'undefined' && state.niveau === 5) ? [genTriangleAssoc, genTriangleAssoc2] : [genVocab],
         // « Droites du triangle » compte DEUX exercices (un triangle dont on
