@@ -8,11 +8,18 @@ générant des exercices de mathématiques pour adultes (programme PAI, Suisse).
 Product owner : Aurelio (Onex/Genève). Répondre en FRANÇAIS.
 
 ───────────────────────────────────────────────────────────────────────────────
-0. OÙ ON EN EST (v456, 23.08.2026) — à lire en premier
+0. OÙ ON EN EST (v469, 26.08.2026) — à lire en premier
 ───────────────────────────────────────────────────────────────────────────────
 L'application est en ligne : https://aureliohub.github.io/eva_maths.html
 Les fichiers de série et de test (.json) sont déposés à côté d'elle, et s'ouvrent
 par l'adresse : `…/eva_maths.html?serie=mix-test.json`.
+
+TITRE GÉNÉRAL : « Entraînement au Test EVA - Mathématiques » (v467). L'ancien
+« Test EVA - Mathématiques » ne doit pas revenir : le nouveau dit que
+l'application ENTRAÎNE au test, elle n'est pas le test.
+
+MENU DES DOMAINES : plus de rail de 64px à gauche. Un bouton ☰ dans la barre de
+titre, à gauche du titre ; le menu se déroule de haut en bas au survol. Voir §6.
 
 L'ATELIER (« Créer une série d'exercices à la carte ») est le cœur du travail
 récent. Une composition, TROIS sorties : PDF · Aperçu écran · Test. Il n'y a
@@ -408,10 +415,65 @@ PDF de domaine :
 ───────────────────────────────────────────────────────────────────────────────
 6. UI
 ───────────────────────────────────────────────────────────────────────────────
+- MENU DES DOMAINES (v467) : le rail de 64px n'existe plus. Il ne reste qu'un
+  bouton ☰ (`#btn-menu`) dans `.topbar-left`, à GAUCHE du titre, gris #9AA3AF
+  qui fonce au survol. Le SVG reprend l'image d'Aurelio au trait près (3 barres
+  de 10px, écart 32px, bouts arrondis, viewBox 180).
+  · L'`<aside id="sidebar">` a quitté `.layout` : il vit DANS `.topbar`, en
+    position absolute top:100%. Il tombe donc toujours exactement sous la barre,
+    quelle que soit sa hauteur (elle passe à deux lignes sous ~950px). Le
+    contenu principal occupe désormais toute la largeur.
+  · DÉROULEMENT DE HAUT EN BAS : `max-height` animée, de 0 à la hauteur POSÉE EN
+    LIGNE par `majMenuDomaines()`. Une hauteur fixe en CSS donnerait un
+    déroulement qui s'arrête au milieu de sa course ; d'où la mesure de
+    `scrollHeight` à chaque ouverture (378px les 5 domaines repliés, 817px quand
+    un domaine est déplié), bornée à la place restante sous la barre.
+  · COLLÉ AU BORD GAUCHE (v468) : `left: 0`, pas de bordure gauche, coin
+    inférieur droit seul arrondi.
+  · PAS DE BARRE DE DÉFILEMENT (v468). `overflow: hidden` en permanence dans le
+    CSS ; c'est `majMenuDomaines()` qui pose `overflowY = 'auto'`, et SEULEMENT
+    quand le contenu dépasse vraiment la place disponible. Avec `overflow-y:
+    auto` posé dans la règle « ouvert », une barre apparaissait pendant TOUTE la
+    course du déroulement puis disparaissait — un clignotement à chaque
+    ouverture. Mesuré : scrollHeight 376 pour 252px affichés à mi-course.
+  · CLIC SUR UN DOMAINE (v468) : `toggleDomain` ne rend PLUS tout le menu. Un
+    `renderSidebar()` recrée `.sidebar-inner` par innerHTML — d'où l'effet de
+    recharge, et la perte de l'animation d'ouverture de la carte. On bascule la
+    seule classe `.open` du bloc concerné, et `suivreHauteurMenu()` fait suivre
+    la hauteur du panneau image par image pendant 450ms, TRANSITION COUPÉE
+    (sinon la hauteur du panneau court après celle de son contenu et le bas du
+    menu tressaute). `arreterSuiviHauteur()` lui rend sa transition et DOIT être
+    appelée avant toute fermeture : sans cela, quitter le menu pendant qu'une
+    carte s'ouvre le fait disparaître d'un coup au lieu de se réenrouler.
+  · AUCUN DÉPLOIEMENT AU RETOUR À L'ACCUEIL (v468) : `goHome` ne rappelle plus
+    `openAllSidebarDomains` ni `scheduleSidebarAutoClose` ; il referme les cartes
+    et le panneau. Le geste de bienvenue subsiste au SEUL premier chargement
+    (bloc d'init). Ne pas le remettre dans goHome.
+  · TROIS PIÈGES, tous rencontrés :
+    – `renderSidebar` recrée `.sidebar-inner` : la hauteur en ligne est perdue,
+      et replier un domaine faisait DISPARAÎTRE le menu. D'où l'appel à
+      `majMenuInerte()` + `majMenuDomaines()` en fin de renderSidebar.
+    – le REMBOURRAGE ne doit pas vivre sur `.sidebar-inner` : une boîte en
+      box-sizing: border-box ne descend jamais sous la hauteur de son padding,
+      si bien qu'un panneau replié gardait 29px de haut. Il est dans
+      `.sidebar-corps` ; `.sidebar-inner` n'a que sa bordure (1px replié).
+    – l'animer plutôt que le déplacer ne suffisait pas : `scrollHeight` était
+      lu avant que le padding soit appliqué, et 26px de contenu étaient coupés
+      en bas à l'ouverture.
+  · ÉTATS : `ouvert` (survol, fermeture différée de 260ms — sans ce délai il se
+    referme entre le bouton et le panneau), `forced-open` (épinglé au clic, et
+    geste de bienvenue de l'accueil), `slow-retract` (réenroulement lent),
+    `sidebar-inerte` (éteint).
+  · MENU ÉTEINT dans l'ESPACE ENSEIGNANT et pendant un TEST (`majMenuInerte`,
+    v467) : bouton grisé et `disabled`, panneau muet. L'état est RECALCULÉ à
+    chaque rendu du menu, jamais posé et retiré à la main aux quatre coins du
+    fichier. Le menu restait actif dans l'espace enseignant jusqu'à la v466 (on
+    en sortait en cliquant un sous-domaine) : ce n'est plus le cas.
+    Une SÉRIE ouverte passe, elle, par `body.mode-serie` (CSS) + `serieVerrouille()`.
 - Topbar : trois boutons à droite, dans l'ordre PDF · Test · enseignant·e
   (icône PDF en PNG base64, icône Test en SVG fournie par Aurelio et recadrée,
   clé SVG pour l'espace enseignant).
-  « Test EVA - Mathématiques » + nom du domaine (18px/800/majuscules),
+  « Entraînement au Test EVA - Mathématiques » + nom du domaine (18px/800/majuscules),
   suivi le cas échéant de « (sans calculatrice) » (span .topbar-domain-note, qui
   neutralise les majuscules). Titre du sous-domaine dans la ligne des boutons.
 - Boutons icône seule (.btn-action.btn-icon, carrés 36×36, padding 0 – le
@@ -439,6 +501,69 @@ PDF de domaine :
 ───────────────────────────────────────────────────────────────────────────────
 Cette section décrit l'ÉTAT, non l'historique. Les numéros de version ne sont
 cités que lorsqu'ils aident à retrouver un choix dans le fichier.
+
+v469 — CINQ DEMANDES D'AURELIO (26.08, suite).
+ · Icône ☰ agrandie : bouton 34 → 40px, trait 26 → 31px.
+ · « DROITES DU TRIANGLE » : l'atelier ne proposait que le PREMIER des deux
+   exercices (le triangle dont on nomme les droites) ; le second (quatre figures
+   à nommer, `genTriangleAssoc2`) était inatteignable. `atelierVariants` lui
+   donne un second menu, « Droite → nom » / « Figure → nom ».
+   Ce sous-domaine est le PREMIER à porter à la fois cinq sous-rubriques et une
+   variante d'atelier ; les deux menus cohabitent sans rien changer à l'écran.
+   NOUVEAUTÉ DANS LA MÉCANIQUE : une variante d'atelier peut désormais
+   reconnaître son exercice par un PRÉDICAT (`trouver`) et plus seulement par un
+   rang. Ici `ex.figure === 'triangle'` contre `'cards'` — plus sûr qu'un rang,
+   la composition du vocabulaire dépendant des rubriques cochées dans sa fenêtre
+   PDF. `rang` reste le repli, et developpements continue de s'en servir.
+   Vérifié : les deux variantes se composent, le menu les affiche, le ↻
+   « L'exercice » garde la variante, et le PDF de la série sort (2 pages).
+ · Textes des vignettes de l'espace enseignant : « Gérer les accès aux tests. »
+   pour la liste de classe ; « pour qu'ils parlent à la classe » retiré des
+   prénoms. Formulations d'Aurelio, à ne pas rallonger.
+ · Vignette « Outils pédagogiques » vers https://aureliohub.github.io/index.html,
+   nouvel onglet. Voir §8.1 e).
+
+v468 — QUATRE RETOURS D'AURELIO SUR LE MENU ☰, le jour même.
+ · La barre de défilement apparaissait à CHAQUE ouverture, pendant toute la
+   course du déroulement. Cause : `overflow-y: auto` dans la règle « ouvert »,
+   alors que le contenu (376px) dépassait la hauteur affichée (252px à
+   mi-course) tant que l'animation durait. Le défilement est désormais accordé
+   par `majMenuDomaines()` et seulement quand le contenu ne tient pas dans la
+   place restante.
+ · Retour à l'accueil : plus de déploiement (le geste reste au premier
+   chargement seulement).
+ · Clic sur un domaine : plus d'effet de recharge. `toggleDomain` bascule la
+   carte au lieu de reconstruire le menu. Vérifié : le nœud `.sidebar-inner` est
+   le MÊME avant et après le clic, et la hauteur du panneau suit l'accordéon
+   (596 → 817px en trois images).
+ · Panneau collé au bord gauche.
+ Regardé au vrai navigateur : ouverture, clic et re-clic sur un domaine, retour
+ à l'accueil (aucun mouvement à t+0,4s ni à t+3s), survol après retour, fenêtre
+ de 480px de haut (là, le contenu dépasse vraiment : la barre apparaît, comme il
+ se doit). Contrôle des chaînes PDF : un PDF de sous-domaine (décimaux, 3 pages)
+ et un PDF de domaine (domaine 4, 6 pages), un seul fichier chacun.
+
+v467 — TITRE GÉNÉRAL et MENU ☰ (trois demandes d'Aurelio du 26.08).
+ · Titre : « Entraînement au Test EVA - Mathématiques », dans la barre de titre
+   et dans l'onglet. Mesuré au navigateur : une seule ligne jusqu'à 1024px de
+   large ; sous ~950px la barre passe à deux lignes (les boutons de droite
+   descendent), comme elle le faisait déjà avant, un peu plus tôt.
+ · Menu des domaines : rail supprimé, bouton ☰ dans la barre de titre, panneau
+   qui se déroule de haut en bas. Tout le détail au §6 — y compris les trois
+   pièges (hauteur perdue au re-rendu, rembourrage qui empêche le repli, mesure
+   faussée par une transition).
+ · Espace enseignant : le menu y est éteint. Il y restait actif à dessein
+   (cliquer un sous-domaine en sortait) ; ce choix est ABANDONNÉ, ne pas le
+   rétablir. `selectSubdomain` garde sa remise à zéro de `state.espaceEnseignant`,
+   qui sert encore aux autres chemins d'entrée.
+ · APP_VERSION remise à jour au passage : elle était restée à 457.
+ Regardé au vrai navigateur (Chromium + Nunito en local, sans quoi les largeurs
+ de titre ne veulent rien dire) : accueil déployé puis replié, déroulement à
+ mi-course, panneau ouvert, domaine déplié, fenêtre de 520px de haut (panneau
+ borné à 437px et qui défile), espace enseignant, test en cours, série ouverte,
+ et cinq largeurs de 1440 à 900px.
+ RESTE À TRANCHER : rien. Le déploiement au retour à l'accueil a été retiré en
+ v468.
 
 v466 — Note d'en-tête remise à jour : le retour des résultats n'est plus un
 chantier mais un service en marche, vérifié par Aurelio de bout en bout
@@ -1321,19 +1446,29 @@ d) MODE ÉVALUATION (§5 bis) — composition, barème, validation, verrouillage
      reste jamais seule en pied de page (`placer(canvas, {sauterAvant,
      solidaireSuivant})`, tous les blocs photographiés AVANT d'être paginés).
 
-e) ESPACE ENSEIGNANT — bouton clé de la barre de titre, accueil à trois entrées
-   (`state.enseignantVue` aiguille renderEspaceEnseignant ; chaque page a un
-   retour vers l'accueil et un Quitter) :
+e) ESPACE ENSEIGNANT — bouton clé de la barre de titre, accueil à QUATRE
+   vignettes (`VUES_ENSEIGNANT` ; `state.enseignantVue` aiguille
+   renderEspaceEnseignant ; chaque page a un retour vers l'accueil et un
+   Quitter) :
    · « Créer une série d'exercices à la carte » → ATELIER, voir 8.2 ;
-   · « Créer un test sur mesure » → À VENIR, voir 8.4 ;
-   · « Modifier les prénoms dans les problèmes » → en place.
+   · « Modifier les prénoms dans les problèmes » ;
+   · « Liste de classe et mots de passe » ;
+   · « Outils pédagogiques » → VIGNETTE-LIEN vers
+     https://aureliohub.github.io/index.html, dans un NOUVEL onglet. Elle ne
+     mène pas à une vue de l'application : elle est rendue en `<a>` et non en
+     `<button>` (d'où `a.ens-carte { text-decoration: none; color: inherit }`,
+     sans quoi elle sort soulignée et bleue), et porte un ↗ en coin.
+     Pour en ajouter d'autres : une entrée avec `lien` suffit, `id` ne sert
+     alors à rien.
+   Les textes des vignettes sont ceux d'Aurelio, mot pour mot : ne pas les
+   « compléter ». « Gérer les accès aux tests. » a remplacé en v469 une
+   explication de trois lignes.
    Mot de passe (MDP_ENSEIGNANT = 'ClaudIA*') SUSPENDU par
    `MDP_ENSEIGNANT_ACTIF = false` le temps de la mise au point. Il est EN CLAIR
    dans le fichier : il écarte un élève curieux, pas quelqu'un qui ouvre le code
    source ; ne rien y mettre de sensible.
-   Le menu de gauche reste ACTIF : cliquer un sous-domaine sort de l'espace et
-   l'ouvre (`selectSubdomain` remet `state.espaceEnseignant` à false). La
-   composition en cours survit à l'aller-retour, elle vit dans `state.atelier`.
+   Le menu des domaines est ÉTEINT dans cet espace depuis la v467 (§6). La
+   composition en cours survit à un aller-retour, elle vit dans `state.atelier`.
 
 f) PRÉNOMS — PRENOMS_M (7) / PRENOMS_F (6), liste de la classe d'Aurelio, ne
    figurent NULLE PART ailleurs ; les 20 générateurs qui nomment quelqu'un
@@ -1691,7 +1826,7 @@ ainsi (une remarque prise pour une consigne, une sélection ambiguë).
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Test EVA – Mathématiques</title>
+<title>Entraînement au Test EVA – Mathématiques</title>
 <!-- Icône du fichier (barre des favoris, onglet) : coche blanche sur carré
      bleu arrondi, dans le bleu d'accent de l'application. Embarquée en data-URI :
      le fichier reste autonome, aucune image externe à transporter.
@@ -2020,6 +2155,14 @@ ainsi (une remarque prise pour une consigne, une sélection ambiguë).
     transition: all 0.15s;
   }
   .ens-carte:hover { border-color: var(--accent); transform: translateY(-2px); }
+  /* Vignette-lien (Outils pédagogiques) : c'est un <a>, il faut lui retirer le
+     soulignement et la couleur de lien pour qu'elle ne détonne pas. */
+  a.ens-carte { text-decoration: none; color: inherit; }
+  .ens-carte-lien {
+    position: absolute; top: 14px; right: 16px;
+    font-size: 15px; font-weight: 800; color: var(--muted);
+  }
+  a.ens-carte:hover .ens-carte-lien { color: var(--accent); }
   .ens-carte-titre { font-size: 16px; font-weight: 800; color: var(--text); }
   .ens-carte-texte { font-size: 13.5px; line-height: 1.45; color: var(--muted); }
   .ens-carte-etat {
@@ -2187,6 +2330,27 @@ ainsi (une remarque prise pour une consigne, une sélection ambiguë).
     min-width: 0;
     flex-wrap: wrap;
   }
+  /* Bouton ☰ : il remplace le rail du menu, en plus gris que le titre. */
+  .btn-menu {
+    align-self: center;
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    margin-right: 2px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    border-radius: 10px;
+    color: #9AA3AF;
+    cursor: pointer;
+    transition: color 0.15s, background 0.15s;
+  }
+  .btn-menu svg { width: 31px; height: 31px; display: block; }
+  .btn-menu:hover:not(:disabled) { color: var(--text); background: var(--surface-alt); }
+  .btn-menu:disabled { opacity: 0.35; cursor: default; }
   .topbar-domain {
     font-size: 18px;
     color: var(--muted);
@@ -2227,6 +2391,20 @@ ainsi (une remarque prise pour une consigne, une sélection ambiguë).
   }
   .topbar h1 span {
     color: var(--accent);
+  }
+  /* Le titre a gagné « Entraînement au » (≈200px) : sans ces paliers, la barre
+     passait à deux lignes dès 1190px de large, contre 940px auparavant.
+     Mesuré : avec eux, elle tient jusqu'à ~1000px. */
+  @media (max-width: 1250px) {
+    .topbar h1 { font-size: 22px; }
+    .topbar-domain { font-size: 16px; }
+  }
+  @media (max-width: 1080px) {
+    .topbar { padding: 12px 16px; }
+    .topbar h1 { font-size: 19px; }
+    .topbar-domain { font-size: 14px; }
+    .btn-menu { width: 30px; height: 30px; }
+    .btn-menu svg { width: 23px; height: 23px; }
   }
   .topbar-actions {
     display: flex;
@@ -2315,6 +2493,7 @@ ainsi (une remarque prise pour une consigne, une sélection ambiguë).
      trois boutons de la barre de titre sont éteints ; la seule sortie est le
      bouton de l'en-tête de la série. */
   body.mode-serie .sidebar,
+  body.mode-serie .btn-menu,
   body.mode-serie .topbar-actions {
     opacity: 0.4;
     pointer-events: none;
@@ -2460,98 +2639,72 @@ ainsi (une remarque prise pour une consigne, une sélection ambiguë).
   }
   @media (max-width: 880px) {
     .layout { flex-direction: column; }
-    .sidebar { border-right: none; border-bottom: 1px solid var(--border); max-height: 50vh; }
   }
 
-  /* ====== SIDEBAR (mode rail + expansion au survol) ====== */
-  /* La sidebar fait TOUJOURS 64px de large en flow. Au survol, son contenu
-     s'élargit en position absolute pour flotter par-dessus le main, sans
-     jamais le décaler. */
+  /* ====== MENU DES DOMAINES (bouton ☰ + panneau déroulant) ====== */
+  /* Le rail de 64px a disparu : le menu ne prend plus aucune place dans le
+     flow. L'aside est ancré dans la barre de titre (position: absolute, top
+     100%) et son contenu se déroule de haut en bas au survol du bouton ☰.
+     La hauteur du panneau est POSÉE EN LIGNE par majMenuDomaines() : elle
+     s'ajuste au contenu (5 domaines repliés ≈ 380px) et se borne à la place
+     disponible sous la barre. Une valeur fixe en CSS donnerait un déroulement
+     qui s'arrête au milieu de sa course. */
   .sidebar {
-    position: relative;          /* ancrage pour l'overlay enfant */
-    width: 64px;
-    flex-shrink: 0;
-    background: var(--bg);
-    border-right: 1px solid var(--border);
-    z-index: 50;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 0;
+    height: 0;
+    z-index: 120;
   }
   .sidebar-inner {
-    /* Toujours en position: absolute pour éviter tout reflow lors du hover.
-       Seule la largeur (+ ombre + padding) est animée. */
     position: absolute;
     top: 0;
     left: 0;
-    bottom: 0;
-    width: 64px;
-    padding: 14px 8px 24px;
+    width: 320px;
+    /* Le rembourrage vit dans .sidebar-corps, PAS ici : une boîte en
+       box-sizing: border-box ne descend jamais sous la hauteur de son padding,
+       si bien qu'un panneau « replié » gardait 29px de haut. */
+    padding: 0;
     background: var(--bg);
-    overflow-y: auto;
-    overflow-x: hidden;
-    transition: width 0.22s ease, box-shadow 0.22s ease, padding 0.22s ease;
-    border-right: 1px solid transparent;
-    z-index: 51;
+    border: 1px solid var(--border);
+    border-top: none;
+    border-left: none;
+    border-radius: 0 0 12px 0;
+    box-shadow: 0 10px 22px rgba(0,0,0,0.10);
+    max-height: 0;
+    opacity: 0;
+    /* overflow HIDDEN en permanence : c'est majMenuDomaines() qui autorise le
+       défilement, et seulement quand le contenu dépasse vraiment la place
+       disponible. Avec `overflow-y: auto` posé ici, une barre de défilement
+       apparaissait pendant TOUTE la course du déroulement, puis disparaissait
+       — un clignotement à chaque ouverture. */
+    overflow: hidden;
+    pointer-events: none;
+    transition: max-height 0.3s ease, opacity 0.16s ease;
+  }
+  .sidebar.ouvert .sidebar-inner,
+  .sidebar.forced-open .sidebar-inner {
+    opacity: 1;
+    pointer-events: auto;
   }
   /* Retrait lent : utilisé après l'ouverture initiale ou au clic sur une carte
-     d'aperçu (page d'accueil). Donne un effet de "glissement vers la gauche"
-     plutôt qu'une refermeture brusque. */
+     d'aperçu (page d'accueil). Le panneau se réenroule vers le haut au lieu de
+     disparaître d'un coup. */
   .sidebar.slow-retract .sidebar-inner {
-    transition: width 0.65s cubic-bezier(0.4, 0, 0.2, 1),
-                box-shadow 0.65s ease,
-                padding 0.65s ease;
+    transition: max-height 0.6s cubic-bezier(0.4, 0, 0.2, 1),
+                opacity 0.45s ease;
   }
-  .sidebar:hover .sidebar-inner,
-  .sidebar.forced-open .sidebar-inner {
-    /* État déployé : flotte par-dessus le main */
-    width: 320px;
-    padding: 14px 12px 24px;
-    box-shadow: 4px 0 16px rgba(0,0,0,0.08);
-    border-right: 1px solid var(--border);
+  .sidebar-corps {
+    padding: 12px 12px 16px;
   }
 
-  /* En mode rail : on garde le titre et le chevron dans le DOM (pour éviter
-     les flashs lors du changement de display), mais on les rend invisibles.
-     Ils passent en position: absolute pour ne pas occuper de place dans
-     le rail 64px. Au hover, ils retrouvent leur place dans le flow. */
   .domain-title {
     position: relative;
   }
   .domain-title-text,
   .domain-chev {
-    opacity: 0;
-    transition: opacity 0.18s ease 0.04s;
-    pointer-events: none;
-    white-space: nowrap;
-    position: absolute;
-    left: 54px;
-    top: 50%;
-    transform: translateY(-50%);
-  }
-  .domain-chev {
-    left: auto;
-    right: 6px;
-  }
-  .sidebar:hover .domain-title-text,
-  .sidebar:hover .domain-chev,
-  .sidebar.forced-open .domain-title-text,
-  .sidebar.forced-open .domain-chev {
-    opacity: 1;
-    pointer-events: auto;
-  }
-  /* La sous-liste reste cachée en rail (display: none ici est OK car elle
-     n'est jamais visible pendant le mouvement de la largeur) */
-  .sidebar:not(:hover):not(.forced-open) .subdomain-list {
-    display: none;
-  }
-  /* Cards en mode rail : fond transparent (mais on garde tous les espacements
-     intacts pour éviter tout décalage vertical entre rail et hover) */
-  .sidebar:not(:hover):not(.forced-open) .domain-block {
-    background: transparent;
-    border-color: transparent;
-    box-shadow: none;
-  }
-  .sidebar:not(:hover):not(.forced-open) .domain-title:hover .domain-chip {
-    transform: scale(1.08);
-    transition: transform 0.15s;
+    white-space: normal;
   }
 
   /* Carte d'un domaine (repliable) */
@@ -4439,7 +4592,12 @@ ainsi (une remarque prise pour une consigne, une sélection ambiguë).
 
 <div class="topbar">
   <div class="topbar-left">
-    <h1 class="topbar-title-clickable" onclick="goHome()" title="Retour à l'accueil">Test EVA - <span>Mathématiques</span></h1>
+    <!-- Menu des domaines : le rail de 64px a disparu. Il ne reste que ce
+         bouton, qui déploie le menu de haut en bas au survol (le clic l'épingle). -->
+    <button class="btn-menu" id="btn-menu" type="button" title="Menu des domaines" aria-label="Menu des domaines" onclick="basculerMenuDomaines(event)">
+      <svg viewBox="0 0 180 180" aria-hidden="true"><g stroke="currentColor" stroke-width="10" stroke-linecap="round"><line x1="47" y1="59.5" x2="132" y2="59.5"/><line x1="47" y1="91.5" x2="132" y2="91.5"/><line x1="47" y1="123.5" x2="132" y2="123.5"/></g></svg>
+    </button>
+    <h1 class="topbar-title-clickable" onclick="goHome()" title="Retour à l'accueil">Entraînement au Test EVA - <span>Mathématiques</span></h1>
     <span class="topbar-domain" id="topbar-domain"></span>
   </div>
   <div class="topbar-actions">
@@ -4447,6 +4605,9 @@ ainsi (une remarque prise pour une consigne, une sélection ambiguë).
     <button class="btn-action btn-icon" id="btn-eval" onclick="openEvalModal()" title="Évaluation"><img class="btn-icon-img" src="" alt="Test"></button>
     <button class="btn-action btn-icon" id="btn-enseignant" onclick="ouvrirEspaceEnseignant()" title="Espace enseignant·e"></button>
   </div>
+  <!-- Le panneau du menu est ancré DANS la barre de titre : il tombe donc
+       toujours exactement sous elle, quelle que soit sa hauteur. -->
+  <aside class="sidebar" id="sidebar"></aside>
 </div>
 
 <!-- Modale de sélection : PDF d'un domaine -->
@@ -4742,7 +4903,6 @@ ainsi (une remarque prise pour une consigne, une sélection ambiguë).
 </div>
 
 <div class="layout" id="layout">
-  <aside class="sidebar" id="sidebar"></aside>
   <main class="main" id="main"></main>
 </div>
 
@@ -16725,7 +16885,7 @@ const ICONE_ENSEIGNANT = '<svg viewBox="0 0 24 24" width="21" height="21" fill="
 const ICONE_PDF = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJkAAACUCAMAAAC3HHtWAAAAk1BMVEXi5ef////xVkKwt73K0dji6OrxW0jyUDnG2eHlzczmgnrV2t/x8/T19vbxUTzwTDX4u7Xnvr28wsf+8/L84N3yYlD1jID1hXf1kYb4q6L4t7D96ujwQib1mY7++Pf70c3zcWHxSC/zeGn3pJv6ysX72dXy2Nbj1dXtgnfyaFf3sKj6w73UubvV4ebco6HkioPitLFLhhsqAAAElUlEQVR4nO3ca5eaOhQG4ICOtHUa7AAqIgiIbdVezv//dUcS7tlAXIYkq4v308xCzeNOCAEVZAzmKxKWj8Xi4324tVbQyGahsqdow7J3wbLFgp82LHsTLuOv2rBMIKyQ8dMGZQLHfyXjpsmX8dIUyDhpKmR8NCUyLpoa2eLjq64yjqqpko1XTZlstGrqZGM0hbIRmkrZME2pbJCmVjZEUywboKmW9dOUy3qnXPWyvqppIOupmg4yuGpayMCq6SGDqiZPthySAVWTJ1sPytiqyZMNdydbNYmykaJ1aRJlY0Xr0GTKnqNJlY3sn22aXBlaL4fr1qBJlpEsB/KmVDZEUywboKmW9dOUy3pp6mV9NA1kPTQdZDBNCxlI00MG0TSRATRdZCxNGxlD00fWpWkkQ/rKkL4ypK8M6StD+sqQvjKkrwzpK0P6ypC+MqSvDOkrQ/rKkL6ytbYyVF+tnWWiZW8T5jlZ4Lby/fN0+YFAGyxzw9hbyUoc/oBooOxi2tiUFmybEA2SRaklz5XH/slZs5PEgtGsPrNFg2R3W7YMf+OTbWbZLJtls2yWzbJWrORYJklaaxFs2WUsiznm1htpoIPySzK8PQVl3Oyc1gQrDX3/nMc/h/t0lbTb3vqthDGwkHlFhneO0YyTXYtHWdvWFsc9xA3b6m504nhs1V6R2QemhT192OrS3WJs4rLx7hvKcz8KlVkbpoWI9ovnMlsMN4ULSnJIJpA5gUNStL+qZRFN+RLBDvfJgpXY3qSy2zXOs/MpIbRLWeT/3OYJb0UFL7R9KnMOdXzRewCV+TYmsa8BKdqxku3oFsvGu4C+SFLL3MakwU4rgmTlv/u8ak5emEJWVcKOadmuuJYBmKlkmHpiQGZaMenrg61EZppknso9jMw8khnG9fSTWWletCjF9TizHnmMwsdInFqG6S4A9mY5keR7LpUFYRX4JFugLPHzf6OK0ZatTuWDmfnM2UO012XnI931zTMZ5KfGrNFsEGdkF0igmdaJgQ59XZaFZE1xO9GZlrx/QGYS2Q2UGdtJZO3c6+NmZ5yRg/wZ6k3j4rEvLlrm0h2NlRW7R17R4uh0qnIA1kCCZVF2pW2wMjvMH+BcG7MGmTbywBfmBMqcU2gWbQDzGSnZhfwpa6Y9nWn2qVm9d0ZGZxQyzOTJzkfaJc0+6cjwMSQ7bmRLrZkPbClkCSZoHG+iumQayIzs9lgV3g73YqYzsuJp6mWdXK7N1baMccYpy7xi2EmQ2ed8C3Q4Zs/qorA6CcFpLhu9WP7a1YNNFB3AdULqRjXKcU/bY+P5OHQiN51UhnG6gz/AsLxdndSz2s+249119IOPF68F9axHyZY6TzxNmGzCzLJZNstm2TSyTPpnwh7nZ8KBbBiOGVfPdw9u7DXeSWHHX785ZVGYJNV52ORJ8J/lmlP2WOv54b6VL5Pl73/LT0/Iunn/NF3yLzXyjjNAxvzkQWy0lQEwPWTAKOOXrScM5PoXvrM3y2bZLJtls+zfk3He90Do3TnFykTe0ZQr9Q8XRmTSi9a4zcyITOQNap+Djckk92fzbin/A8PQxx30Ei25AAAAAElFTkSuQmCC';
 
 // Numéro de version, affiché en pied de menu.
-const APP_VERSION = '457';
+const APP_VERSION = '469';
 
 const DOMAINS = [
   {
@@ -16822,7 +16982,16 @@ const DOMAINS = [
     icon: "△",
     color: "c5",
     subdomains: [
-      { id: 'vocab',            title: "Connaître le vocabulaire relatif aux figures planes et aux solides", gen: genVocab, hasNiveau2: true, niveauLabels: ['Figures planes', 'Solides', 'Compléter', 'Cercle', 'Droites du triangle'], patrons: () => (typeof state !== 'undefined' && state.niveau === 5) ? [genTriangleAssoc, genTriangleAssoc2] : [genVocab] },
+      { id: 'vocab',            title: "Connaître le vocabulaire relatif aux figures planes et aux solides", gen: genVocab, hasNiveau2: true, niveauLabels: ['Figures planes', 'Solides', 'Compléter', 'Cercle', 'Droites du triangle'], patrons: () => (typeof state !== 'undefined' && state.niveau === 5) ? [genTriangleAssoc, genTriangleAssoc2] : [genVocab],
+        // « Droites du triangle » compte DEUX exercices (un triangle dont on
+        // nomme les droites, puis quatre figures à nommer). L'atelier ne retient
+        // qu'un exercice par sous-domaine et prenait toujours le premier.
+        // `trouver` les distingue par leur figure : plus sûr qu'un rang, la
+        // composition du vocabulaire dépendant des rubriques cochées.
+        atelierVariants: (niveau) => niveau === 5 ? [
+          { key: 'droites', label: 'Droite → nom', rang: 4, trouver: ex => ex && ex.figure === 'triangle' },
+          { key: 'figures', label: 'Figure → nom', rang: 5, trouver: ex => ex && ex.figure === 'cards' }
+        ] : null },
       { id: 'prop-figures',     title: "Appliquer les propriétés des figures planes (triangles, cercles)",   gen: genPropFigures, hasNiveau2: true, niveauLabels: ["Déduction d'angle", 'Arc - secteur'], patrons: () => [genPropFigures] },
       { id: 'instruments',      title: "Connaître l'utilisation des instruments de géométrie",               gen: null, embed: true },
       { id: 'developpements',   title: "Associer les solides à leurs développements",                            gen: genDeveloppements, hasNiveau2: true, niveauLabels: ['Associer', 'Sélectionner'], patrons: () => state.niveau === 2 ? [genDevSelectPave, genDevSelectCube, genDevSelectPrismeTri] : [genDeveloppements],
@@ -17066,7 +17235,149 @@ function renderSidebar() {
   // Le numéro de version n'apparaît plus dans le menu (demande du 19.08). Il
   // reste dans APP_VERSION et dans l'en-tête de ce fichier : c'est encore lui
   // qui dit quel fichier a produit un PDF donné.
-  sb.innerHTML = `<div class="sidebar-inner">${inner}</div>`;
+  sb.innerHTML = `<div class="sidebar-inner"><div class="sidebar-corps">${inner}</div></div>`;
+  // `innerHTML` recrée .sidebar-inner : la hauteur posée en ligne est perdue.
+  // Sans ces deux appels, replier un domaine pendant que le panneau est ouvert
+  // le faisait disparaître (max-height retombée à 0).
+  majMenuInerte();
+  majMenuDomaines();
+}
+
+// ----------------------------------------------------------------------------
+// MENU DES DOMAINES — bouton ☰ de la barre de titre
+// Le rail de 64px a disparu. Le panneau est ancré sous la barre de titre et se
+// déroule de haut en bas : au survol du bouton (ou du panneau lui-même), et
+// épinglé au clic. Sa hauteur est mesurée à l'ouverture — une hauteur fixe en
+// CSS donnerait un déroulement qui s'arrête au milieu de sa course.
+// ----------------------------------------------------------------------------
+let _menuFermetureTimer = null;
+
+// Le menu n'a rien à proposer pendant un test ni dans l'espace enseignant·e :
+// on l'éteint (bouton grisé, panneau muet) plutôt que de le laisser se déployer
+// pour rien. L'état est RECALCULÉ à chaque rendu du menu, jamais mémorisé.
+function majMenuInerte() {
+  const sb = document.getElementById('sidebar');
+  if (!sb) return;
+  const inerte = !!state.espaceEnseignant
+    || !!(state.test && Array.isArray(state.test.items) && state.test.items.length)
+    || !!state.testEnAttente;
+  sb.classList.toggle('sidebar-inerte', inerte);
+  if (inerte) {
+    sb.classList.remove('ouvert');
+    sb.classList.remove('forced-open');
+  }
+  const btn = document.getElementById('btn-menu');
+  if (btn) btn.disabled = inerte;
+}
+
+function menuDomainesDisponible() {
+  if (serieVerrouille()) return false;
+  const sb = document.getElementById('sidebar');
+  return !!sb && !sb.classList.contains('sidebar-inerte');
+}
+
+// Pose (ou retire) la hauteur du panneau selon l'état des classes.
+function majMenuDomaines() {
+  const sb = document.getElementById('sidebar');
+  const inner = sb && sb.querySelector('.sidebar-inner');
+  if (!inner) return;
+  const ouvert = sb.classList.contains('ouvert') || sb.classList.contains('forced-open');
+  if (!ouvert) { inner.style.maxHeight = ''; inner.style.overflowY = ''; return; }
+  const haut = sb.getBoundingClientRect().top;
+  const dispo = Math.max(200, (window.innerHeight || 800) - haut - 16);
+  const voulu = inner.scrollHeight + 2;
+  inner.style.maxHeight = Math.min(voulu, dispo) + 'px';
+  // La barre de défilement n'apparaît QUE si le contenu ne tient pas dans la
+  // place restante sous la barre de titre. Laisser `overflow-y: auto` en
+  // permanence la faisait clignoter pendant toute la course du déroulement.
+  inner.style.overflowY = (voulu > dispo) ? 'auto' : 'hidden';
+}
+
+// Fait suivre la hauteur du panneau pendant qu'une carte de domaine s'ouvre ou
+// se referme (l'accordéon dure 0,35s). On mesure image par image, transition
+// coupée : sinon la hauteur du panneau court après celle de son contenu et le
+// bas du menu tressaute.
+let _menuSuivi = null;
+
+// Rend sa transition au panneau. À appeler AVANT toute fermeture : sans cela,
+// quitter le menu pendant qu'une carte s'ouvre le faisait disparaître d'un coup
+// au lieu de se réenrouler.
+function arreterSuiviHauteur() {
+  if (!_menuSuivi) return;
+  _menuSuivi.inner.style.transition = _menuSuivi.avant;
+  _menuSuivi = null;
+}
+
+function suivreHauteurMenu(duree) {
+  const sb = document.getElementById('sidebar');
+  const inner = sb && sb.querySelector('.sidebar-inner');
+  if (!inner) return;
+  arreterSuiviHauteur();
+  _menuSuivi = { inner, avant: inner.style.transition };
+  inner.style.transition = 'none';
+  const fin = Date.now() + (duree || 450);
+  const pas = () => {
+    if (!_menuSuivi || _menuSuivi.inner !== inner) return;   // suivi interrompu
+    majMenuDomaines();
+    if (Date.now() < fin) requestAnimationFrame(pas);
+    else arreterSuiviHauteur();
+  };
+  requestAnimationFrame(pas);
+}
+
+function ouvrirMenuDomaines() {
+  if (_menuFermetureTimer) { clearTimeout(_menuFermetureTimer); _menuFermetureTimer = null; }
+  if (!menuDomainesDisponible()) return;
+  const sb = document.getElementById('sidebar');
+  sb.classList.remove('slow-retract');
+  sb.classList.add('ouvert');
+  majMenuDomaines();
+}
+
+// Fermeture différée : entre le bouton et le panneau, le pointeur sort une
+// fraction de seconde du menu. Sans ce délai, il se refermerait en chemin.
+function fermerMenuDomainesDiffere() {
+  if (_menuFermetureTimer) clearTimeout(_menuFermetureTimer);
+  _menuFermetureTimer = setTimeout(() => {
+    _menuFermetureTimer = null;
+    const sb = document.getElementById('sidebar');
+    if (!sb || sb.classList.contains('forced-open')) return;  // épinglé : il reste
+    arreterSuiviHauteur();
+    sb.classList.remove('ouvert');
+    majMenuDomaines();
+  }, 260);
+}
+
+// Clic sur le bouton : épingle le panneau (il ne se referme plus quand le
+// pointeur s'en va), ou le referme s'il l'était déjà.
+function basculerMenuDomaines(ev) {
+  if (ev) ev.stopPropagation();
+  if (!menuDomainesDisponible()) return;
+  const sb = document.getElementById('sidebar');
+  if (sb.classList.contains('forced-open')) {
+    retractSidebarSlowly();
+    return;
+  }
+  cancelSidebarAutoClose();
+  sb.classList.remove('slow-retract');
+  sb.classList.add('forced-open');
+  majMenuDomaines();
+}
+
+function attacherSurvolMenu() {
+  const btn = document.getElementById('btn-menu');
+  const sb = document.getElementById('sidebar');
+  if (btn) {
+    btn.addEventListener('mouseenter', ouvrirMenuDomaines);
+    btn.addEventListener('mouseleave', fermerMenuDomainesDiffere);
+  }
+  // Les écouteurs sont posés sur l'aside, pas sur .sidebar-inner : renderSidebar
+  // recrée le second à chaque rendu, jamais le premier.
+  if (sb) {
+    sb.addEventListener('mouseenter', ouvrirMenuDomaines);
+    sb.addEventListener('mouseleave', fermerMenuDomainesDiffere);
+  }
+  window.addEventListener('resize', () => majMenuDomaines());
 }
 
 // Ouvre/ferme la card d'un domaine. Plusieurs peuvent être ouvertes simultanément.
@@ -17080,12 +17391,16 @@ function serieVerrouille() {
 
 function toggleDomain(num) {
   if (serieVerrouille()) return;
-  if (state.openDomains.has(num)) {
-    state.openDomains.delete(num);
-  } else {
-    state.openDomains.add(num);
-  }
-  renderSidebar();
+  const ouvre = !state.openDomains.has(num);
+  if (ouvre) state.openDomains.add(num); else state.openDomains.delete(num);
+  // NE PAS appeler renderSidebar() ici : `innerHTML` recrée tout le panneau,
+  // d'où l'effet de recharge qu'on voyait au clic sur un domaine (et la perte
+  // de l'animation d'ouverture de la carte). On bascule la seule carte
+  // concernée, et la hauteur du panneau suit le mouvement.
+  const bloc = document.querySelector('.sidebar .domain-block[data-num="' + num + '"]');
+  if (!bloc) { renderSidebar(); return; }
+  bloc.classList.toggle('open', ouvre);
+  suivreHauteurMenu(450);
 }
 
 // ========================================
@@ -17863,7 +18178,8 @@ function ouvrirSerie(titre, items, origine) {
   // mouvement n'a plus aucun sens et attire l'œil au mauvais endroit.
   if (typeof cancelSidebarAutoClose === 'function') cancelSidebarAutoClose();
   const sb = document.getElementById('sidebar');
-  if (sb) sb.classList.remove('forced-open', 'slow-retract');
+  if (sb) sb.classList.remove('ouvert', 'forced-open', 'slow-retract');
+  if (typeof majMenuDomaines === 'function') majMenuDomaines();
   state.exercises = items.map(it => it.ex);
   renderSidebar();
   renderMain();
@@ -17917,7 +18233,8 @@ function ouvrirTestFichier(titre, items, reglages) {
   document.body.classList.add('mode-serie');
   if (typeof cancelSidebarAutoClose === 'function') cancelSidebarAutoClose();
   const sb = document.getElementById('sidebar');
-  if (sb) sb.classList.remove('forced-open', 'slow-retract');
+  if (sb) sb.classList.remove('ouvert', 'forced-open', 'slow-retract');
+  if (typeof majMenuDomaines === 'function') majMenuDomaines();
   renderTestAccueil();
 }
 
@@ -18250,8 +18567,8 @@ function renderTest() {
   // Le menu de gauche est neutralisé pendant le test : au survol il se
   // déployait, et un clic sur un sous-domaine effaçait les réponses en cours.
   // Seul le bouton « Quitter » met fin au test.
-  const sb = document.getElementById('sidebar');
-  if (sb) sb.classList.add('sidebar-inerte');
+  majMenuInerte();
+  majMenuDomaines();
   cancelSidebarAutoClose();
 
   let html = `
@@ -18797,7 +19114,10 @@ async function atelierComposerSousDomaine(subId, reglages) {
     let choisi;
     if (Array.isArray(varsAtelier) && varsAtelier.length) {
       const v = varsAtelier.find(x => x.key === r.variant) || varsAtelier[0];
-      choisi = exs[v.rang] || exs[nivVoulu - 1] || exs[0];
+      // `trouver` reconnaît l'exercice à sa forme ; `rang` reste le repli pour
+      // les sous-domaines dont la composition ne varie pas (developpements).
+      choisi = (typeof v.trouver === 'function' ? exs.find(v.trouver) : null)
+        || exs[v.rang] || exs[nivVoulu - 1] || exs[0];
     } else {
       choisi = exs.find(ex => ex && ex._realNiveau === nivVoulu)
         || exs[nivVoulu - 1] || exs[0];
@@ -20709,10 +21029,16 @@ const VUES_ENSEIGNANT = [
     texte: "Composer une série à partir des domaines et sous-domaines, renouveler les questions une à une, en écarter, réordonner, puis générer un PDF, une série interactive ou un test.",
     pret: true },
   { id: 'prenoms', titre: "Modifier les prénoms dans les problèmes",
-    texte: "Adapter la liste des prénoms qui apparaissent dans les énoncés, pour qu'ils parlent à la classe.",
+    texte: "Adapter la liste des prénoms qui apparaissent dans les énoncés.",
     pret: true },
   { id: 'classe', titre: "Liste de classe et mots de passe",
-    texte: "Renseigner les élèves qui passeront les tests. Leur prénom devient un menu déroulant à l'ouverture du test, et le mot de passe empêche de rendre sous le nom d'un autre.",
+    texte: "Gérer les accès aux tests.",
+    pret: true },
+  // Vignette-lien : elle ne mène pas à une vue de l'application mais à un autre
+  // site, dans un nouvel onglet. D'où le rendu en <a> plutôt qu'en <button>.
+  { id: 'outils', titre: "Outils pédagogiques",
+    texte: "Les autres ressources du site.",
+    lien: 'https://aureliohub.github.io/index.html',
     pret: true }
 ];
 
@@ -20722,12 +21048,17 @@ function renderAccueilEnseignant() {
   if (tbDom) tbDom.textContent = 'Espace enseignant·e';
   main.innerHTML = enteteEnseignant('Espace enseignant·e', false)
     + `<div class="ens-cartes">`
-    + VUES_ENSEIGNANT.map(v => `
-      <button class="ens-carte${v.pret ? '' : ' ens-carte-avenir'}" onclick="ouvrirVueEnseignant('${v.id}')">
+    + VUES_ENSEIGNANT.map(v => {
+        const dedans = `
         <span class="ens-carte-titre">${v.titre}</span>
         <span class="ens-carte-texte">${v.texte}</span>
-        ${v.pret ? '' : '<span class="ens-carte-etat">à venir</span>'}
-      </button>`).join('')
+        ${v.pret ? '' : '<span class="ens-carte-etat">à venir</span>'}`;
+        const cls = 'ens-carte' + (v.pret ? '' : ' ens-carte-avenir');
+        return v.lien
+          ? `<a class="${cls}" href="${v.lien}" target="_blank" rel="noopener noreferrer">${dedans}
+        <span class="ens-carte-lien" aria-hidden="true">↗</span></a>`
+          : `<button class="${cls}" onclick="ouvrirVueEnseignant('${v.id}')">${dedans}</button>`;
+      }).join('')
     + `</div>`;
 }
 
@@ -21950,10 +22281,14 @@ function openAllSidebarDomains() {
   // À l'ouverture, on ne déplie PAS les sous-domaines : l'utilisateur voit
   // les 5 chips + titres de domaines, et clique pour les ouvrir.
   state.openDomains.clear();
-  // Forcer le déploiement visuel de la sidebar (par défaut, elle est en mode
-  // rail 64px et ne s'élargit qu'au hover).
+  // Forcer le déploiement visuel du menu (par défaut il est replié et ne se
+  // déroule qu'au survol du bouton ☰).
+  majMenuInerte();
   const sb = document.getElementById('sidebar');
-  if (sb) sb.classList.add('forced-open');
+  if (!sb || sb.classList.contains('sidebar-inerte')) return;
+  sb.classList.remove('slow-retract');
+  sb.classList.add('forced-open');
+  majMenuDomaines();
 }
 
 // Retire la classe forced-open avec une animation lente de glissement vers la
@@ -21961,12 +22296,19 @@ function openAllSidebarDomains() {
 function retractSidebarSlowly() {
   const sb = document.getElementById('sidebar');
   if (!sb) return;
-  if (!sb.classList.contains('forced-open')) return;  // déjà replié
+  // Déjà replié : rien à faire. `ouvert` (survol) compte autant que `forced-open`
+  // (épinglé), sinon un menu ouvert au survol restait en place après un clic sur
+  // un sous-domaine.
+  if (!sb.classList.contains('forced-open') && !sb.classList.contains('ouvert')) return;
+  arreterSuiviHauteur();
   sb.classList.add('slow-retract');
   // Retirer forced-open sur un nouveau tick pour que le navigateur enregistre
   // d'abord l'ajout de slow-retract (sinon la transition utilise l'ancienne).
   requestAnimationFrame(() => {
     sb.classList.remove('forced-open');
+    sb.classList.remove('ouvert');
+    if (_menuFermetureTimer) { clearTimeout(_menuFermetureTimer); _menuFermetureTimer = null; }
+    majMenuDomaines();
     // Nettoyage de slow-retract après la fin de la transition pour ne pas
     // ralentir les hovers ultérieurs.
     if (_slowRetractCleanupTimer) clearTimeout(_slowRetractCleanupTimer);
@@ -22057,6 +22399,8 @@ function attachSidebarOutsideClick() {
     if (!sb || !sb.classList.contains('forced-open')) return;
     // Clic à l'intérieur de la sidebar → ne rien faire (l'utilisateur l'utilise).
     if (sb.contains(e.target)) return;
+    // Le bouton ☰ porte déjà sa propre bascule : ce n'est pas un clic « dehors ».
+    if (e.target && e.target.closest && e.target.closest('#btn-menu')) return;
     // Sinon : replier doucement.
     retractSidebarSlowly();
   });
@@ -22071,12 +22415,15 @@ function goHome() {
   state.activeSubId = null;
   state.exercises = [];
   state.showSolutions = false;
-  // À chaque retour à l'accueil, on rouvre toutes les cartes du menu et on
-  // relance le compte à rebours d'auto-fermeture.
-  openAllSidebarDomains();
+  // PLUS DE DÉPLOIEMENT AU RETOUR À L'ACCUEIL (demande du 26.08) : en panneau
+  // déroulant, le geste de bienvenue passait par-dessus les vignettes. On se
+  // contente de refermer les cartes et le panneau s'il était resté ouvert.
+  state.openDomains.clear();
+  cancelSidebarAutoClose();
+  const sbHome = document.getElementById('sidebar');
+  if (sbHome) sbHome.classList.remove('ouvert', 'forced-open', 'slow-retract');
   renderSidebar();
   renderMain();
-  scheduleSidebarAutoClose(5000);
 }
 
 // ========================================
@@ -31808,6 +32155,7 @@ if (SERIE_URL) {
   scheduleSidebarAutoClose(5000);
 }
 attachSidebarOutsideClick();
+attacherSurvolMenu();
 // État initial de l'historique (accueil) : permet de revenir ici avec la flèche
 // « reculer » du navigateur après avoir ouvert un premier exercice.
 // Le bouton « PDF d'un domaine » est écrit en HTML statique : sa source
