@@ -37,7 +37,7 @@ body{
 
 /* ---------- page A4 ---------- */
 .page{
-  position:relative;
+  position:relative;zoom:var(--z,1);
   width:210mm;height:292mm;
   margin:14px auto;padding:12mm 12mm 18mm 20mm;
   background:#fff;
@@ -78,11 +78,17 @@ body.corrige .sol{visibility:visible}
 }
 
 /* ---------- impression ---------- */
+
+/* ---------- affichage écran : zoom façon visionneuse PDF ---------- */
+.zoom-outils{display:flex;gap:6px;align-items:center}
+.zoom-outils button{min-width:30px}
+.zoom-taux{font-variant-numeric:tabular-nums;min-width:44px;text-align:center;opacity:.9}
+
 @page{size:A4;margin:0}
 @media print{
   body{background:#fff}
   .barre{display:none}
-  .page{margin:0;page-break-after:always}
+  .page{zoom:1;margin:0;page-break-after:always}
   .page:last-of-type{page-break-after:auto}
 }
 @media screen{ .page{box-shadow:0 1px 6px rgba(0,0,0,.18)} }
@@ -104,6 +110,13 @@ body.corrige .sol{visibility:visible}
 
 <div class="barre">
   <button id="btn" type="button">Afficher le corrigé</button>
+  <span class="zoom-outils">
+    <button id="zoom-moins" type="button" title="Réduire">−</button>
+    <span class="zoom-taux" id="zoom-taux">100 %</span>
+    <button id="zoom-plus" type="button" title="Agrandir">+</button>
+    <button id="zoom-page" type="button">Page entière</button>
+  </span>
+
   <span>Impression : Ctrl + P (A4, marges « aucune », échelle 100 %)</span>
 </div>
 
@@ -205,6 +218,33 @@ btn.addEventListener('click', () => {
   const on = document.body.classList.toggle('corrige');
   btn.textContent = on ? 'Masquer le corrigé' : 'Afficher le corrigé';
 });
+/* ---------- zoom écran (ignoré à l'impression) ---------- */
+(function(){
+  const racine = document.documentElement;
+  const barre = document.querySelector('.barre');
+  const taux = document.getElementById('zoom-taux');
+  let z = 1;
+  function applique(v){
+    z = Math.max(0.15, Math.min(v, 4));
+    racine.style.setProperty('--z', z);
+    if (taux) taux.textContent = Math.round(z * 100) + ' %';
+  }
+  function pageEntiere(){
+    racine.style.setProperty('--z', 1);
+    const p = document.querySelector('.page');
+    if (!p) return;
+    const r = p.getBoundingClientRect();
+    const hBarre = barre ? barre.getBoundingClientRect().height : 0;
+    applique(Math.min((window.innerWidth - 36) / r.width,
+                      (window.innerHeight - hBarre - 36) / r.height));
+  }
+  document.getElementById('zoom-moins').addEventListener('click', () => applique(z / 1.15));
+  document.getElementById('zoom-plus').addEventListener('click', () => applique(z * 1.15));
+  document.getElementById('zoom-page').addEventListener('click', pageEntiere);
+  let t; window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(pageEntiere, 150); });
+  pageEntiere();
+})();
+
 </script>
 </body>
 </html>
