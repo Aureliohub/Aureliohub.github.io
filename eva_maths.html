@@ -8,7 +8,7 @@ générant des exercices de mathématiques pour adultes (programme PAI, Suisse).
 Product owner : Aurelio (Onex/Genève). Répondre en FRANÇAIS.
 
 ───────────────────────────────────────────────────────────────────────────────
-0. OÙ ON EN EST (v475, 26.08.2026) — à lire en premier
+0. OÙ ON EN EST (v477, 28.08.2026) — à lire en premier
 ───────────────────────────────────────────────────────────────────────────────
 L'application est en ligne : https://aureliohub.github.io/eva_maths.html
 Les fichiers de série et de test (.json) sont déposés à côté d'elle, et s'ouvrent
@@ -95,7 +95,11 @@ PISTES ÉVOQUÉES, NON ENGAGÉES
 2. ARCHITECTURE
 ───────────────────────────────────────────────────────────────────────────────
 - 5 domaines (DOMAINS) : Nombres, Proportionnalité, Algèbre, Grandeurs, Espace.
-  Sous-domaine : { id, title, gen, hasNiveau2?, niveauLabels?, variants?, patrons }.
+  Sous-domaine : { id, title, gen, hasNiveau2?, niveauLabels?, niveauMenu?,
+                   titreParNiveau?, variants?, patrons }.
+  `niveauMenu` donne l'ORDRE D'AFFICHAGE des niveaux dans les menus, dissocié
+  de leur numéro (helper `niveauxMenu`) ; `titreParNiveau` donne à un niveau son
+  propre titre de sous-domaine (helper `titreDuSousDomaine`). Voir v476.
 - Écran : renderMain / renderExercise ; state.exercisesCache['<subId>|<variant>|<niveau>']
   garde l'exercice affiché – réutilisé comme 1er exercice des PDF.
 - Un exercice « multi » = { multi:true, intro, questions:[{label,text,answer,…}] }.
@@ -504,6 +508,70 @@ PDF de domaine :
 ───────────────────────────────────────────────────────────────────────────────
 Cette section décrit l'ÉTAT, non l'historique. Les numéros de version ne sont
 cités que lorsqu'ils aident à retrouver un choix dans le fichier.
+
+v477 — DIVISEURS DU NIVEAU « NOMBRES ENTIERS » limités à 6 · 7 · 8 · 9 · 11 · 12
+ (demande d'Aurelio). Ce sont les MÊMES CHIFFRES que les diviseurs des niveaux
+ décimaux (0,6 · 0,7 · 0,8 · 0,9 · 1,1 · 1,2) : le niveau préliminaire prépare
+ exactement les potences des suivants. Ils sont six, donc la variante
+ « Divisions » trouve toujours les quatre diviseurs différents qu'elle exige.
+ Mesuré sur 1000 exercices par variante : 0 division fausse, 0 quotient non
+ entier, 0 diviseur répété dans un exercice, les six diviseurs également tirés.
+ Ne pas y ajouter 10 ni un multiple de 10 : la potence se lirait d'un coup d'œil.
+
+v476 — DÉCIMAUX : NIVEAU PRÉLIMINAIRE « NOMBRES ENTIERS ».
+ · IL PORTE LE NUMÉRO 3, PAS LE NUMÉRO 1. Renuméroter aurait décalé les deux
+   niveaux existants, dont dépendent les générateurs, FUSION_ELIGIBLE (fusion
+   N1+N2 du PDF de domaine), la branche `found.sub.id === 'decimaux'` du PDF de
+   sous-domaine et les réglages de mise en page. Deux champs neufs, tous deux
+   génériques et utilisables par n'importe quel sous-domaine :
+     · `sub.niveauMenu` = [{ niveau, label }] — l'ORDRE D'AFFICHAGE des menus
+       déroulants, dissocié de l'ordre des numéros. Lu par `niveauxMenu(sub)`,
+       appelée par l'écran ET par l'atelier. Sans ce champ, l'ordre reste celui
+       des numéros (niveauLabels, ou « Niveau 1 » / « Niveau 2 »).
+       Décimaux : 3 « Nombres entiers », puis 1, puis 2.
+     · `sub.titreParNiveau` = { 3: "Calculer avec des nombres entiers
+       (4 opérations)" } — lu par `titreDuSousDomaine(sub, niveau)`. Le titre
+       ne change QUE pour un exercice de ce niveau : en-tête et nom de fichier
+       du PDF de sous-domaine, en-tête de groupe d'une série à la carte, titre
+       d'exercice du PDF de domaine, titre dans l'atelier, sous-titres des
+       séries et des tests. Le titre de l'ÉCRAN ne change PAS (demande
+       d'Aurelio) : le menu déroulant, juste à côté, dit déjà « Nombres
+       entiers ».
+   PAS de `niveauLabels` sur decimaux : le poser rendrait `rub` vrai pour les
+   niveaux 1 et 2 et ferait basculer le titre d'exercice du PDF dans une
+   branche qui ignore `_numeroPdf` et `_suitePdf` — un exercice découpé
+   perdrait son numéro et sa mention « (suite) ».
+ · L'ÉCRAN S'OUVRE TOUJOURS SUR LE NIVEAU 1 (state.niveauxParSubId[id] || 1) :
+   rien à faire, l'ordre d'affichage ne touche pas au niveau par défaut.
+ · ÉTIQUETTE DE NIVEAU RETIRÉE quand le titre nomme déjà le niveau (énoncé et
+   corrigé) : « – Niveau 3 » n'apprendrait rien sous « Calculer avec des
+   nombres entiers ». La règle est portée par `titreParNiveau`, donc aucun
+   autre sous-domaine n'est touché.
+ · PDF DU SOUS-DOMAINE : sur le niveau 3, les DEUX exercices sont des entiers
+   (comme le niveau 2 tire ses deux exercices au niveau 2). Mêler un exercice
+   d'entiers et un de décimaux n'aurait pas de sens, le titre du document étant
+   commun aux deux.
+ · CONTENU (les 4 variantes marchent au nouveau niveau) : addition 2 termes de
+   3-4 chiffres avec retenue ; soustraction 4 − 3 chiffres avec emprunt,
+   résultat positif ; multiplication 3 × 2 chiffres, second facteur ni multiple
+   de 10 ni 10/11 ; division EXACTE, dividende 3-4 chiffres, quotient ne
+   finissant pas par 0, DIVISEURS LIMITÉS À 6 · 7 · 8 · 9 · 11 · 12 (v477).
+   Consigne « Pose les opérations en colonne » (sans la remarque sur le
+   quotient à deux décimales, qui n'a plus lieu d'être) ; les variantes gardent
+   « Pose les soustractions / multiplications / divisions en colonne ».
+   `consigneFusion` n'ajoute plus la remarque sur le quotient si AUCUNE des
+   deux consignes fusionnées ne la portait.
+ · PAS D'APOSTROPHE DES MILLIERS (« 51336 »), comme les niveaux 1 et 2 : elle
+   gênerait dans une opération posée en colonne. Point signalé à Aurelio.
+ Mesuré : 800 exercices × 4 variantes au niveau 3 → 0 réponse fausse, 0 nombre
+ décimal, 0 résultat négatif, 0 calcul répété dans un exercice. Niveaux 1 et 2
+ à graine fixe, ancienne version contre nouvelle : 0 écart sur 1200 tirages.
+ Regardé au vrai navigateur (§3 ter) : menu à trois entrées dans le bon ordre,
+ ouverture sur le niveau 1, PDF du niveau 3 (2 pages d'énoncés + corrigé) avec
+ le bon titre et sans étiquette de niveau, PDF du niveau 1 inchangé.
+ NON-RÉGRESSION au navigateur, 27 documents (5 domaines + 22 sous-domaines),
+ hasard neutralisé par une graine fixe : nom de fichier, nombre de pages et
+ nombre d'enregistrements IDENTIQUES à la v475.
 
 v475 — « avec 4 opérations » remis au sous-domaine « Résoudre un problème
  « concret » », dans les deux fichiers. La v474 l'avait retiré en lisant le
@@ -5541,6 +5609,17 @@ function genDecimal(operation) {
   // ADDITION
   // ===========================================================
   const opAdd = () => {
+    if (niveau === 3) {
+      // Nombres entiers : 2 termes de 3 ou 4 chiffres, au moins une retenue
+      // (sans quoi l'addition posée n'apprend rien).
+      let a, b;
+      for (let essai = 0; essai < 40; essai++) {
+        a = randDecimal(choice([3, 4]), 0);
+        b = randDecimal(choice([3, 4]), 0);
+        if (a % 10 + b % 10 >= 10) break;
+      }
+      return { text: `${toFr(a)} + ${toFr(b)} = `, answer: toFr(a + b) };
+    }
     if (niveau === 1) {
       // N1 : 2 termes, 4 ou 5 chiffres entiers, 1 décimale
       const ce = choice([3, 4]); // 3 ou 4 chiffres entiers + 1 décimale = 4-5 chiffres
@@ -5571,6 +5650,18 @@ function genDecimal(operation) {
   // SOUSTRACTION
   // ===========================================================
   const opSub = () => {
+    if (niveau === 3) {
+      // Nombres entiers : 4 chiffres − 3 chiffres, résultat toujours positif,
+      // avec au moins un emprunt (le chiffre des unités du second terme est
+      // plus grand que celui du premier).
+      let a, b;
+      for (let essai = 0; essai < 40; essai++) {
+        a = randDecimal(4, 0);
+        b = randDecimal(3, 0);
+        if (b % 10 > a % 10) break;
+      }
+      return { text: `${toFr(a)} − ${toFr(b)} = `, answer: toFr(a - b) };
+    }
     if (niveau === 1) {
       // N1 : 2 termes, décimales différentes entre eux. Le premier terme peut être
       // sans décimale (0 décimale) ; le second a toujours 1 décimale.
@@ -5618,6 +5709,15 @@ function genDecimal(operation) {
   // MULTIPLICATION
   // ===========================================================
   const opMul = () => {
+    if (niveau === 3) {
+      // Nombres entiers : 3 chiffres × 2 chiffres. Le second facteur ne se
+      // termine pas par 0 et n'est pas 10 ou 11 : la multiplication posée doit
+      // demander deux lignes de produits partiels qui ne se devinent pas.
+      const a = randDecimal(3, 0);
+      let b;
+      do { b = randDecimal(2, 0); } while (b % 10 === 0 || b === 10 || b === 11);
+      return { text: `${toFr(a)} × ${toFr(b)} = `, answer: toFr(a * b) };
+    }
     if (niveau === 1) {
       // N1 : 3 chiffres × 2 chiffres, virgule placée aléatoirement (inchangé par rapport à avant)
       const a = randDecimal(choice([1, 2]), choice([1, 2]));
@@ -5643,6 +5743,27 @@ function genDecimal(operation) {
   // DIVISION
   // ===========================================================
   const opDiv = () => {
+    if (niveau === 3) {
+      // Nombres entiers : division EXACTE (pas de reste, pas de quotient
+      // décimal). Les diviseurs sont les MÊMES CHIFFRES que ceux des niveaux
+      // décimaux (0,6 · 0,7 · 0,8 · 0,9 · 1,1 · 1,2), pris comme entiers :
+      // le niveau préliminaire prépare exactement les potences des suivants.
+      // Il y en a six, donc toujours assez pour les quatre diviseurs
+      // différents qu'exige la variante « Divisions ».
+      const DIVISEURS_ENTIERS = [6, 7, 8, 9, 11, 12];
+      for (let essai = 0; essai < 200; essai++) {
+        const d = choice(DIVISEURS_ENTIERS);
+        const q = rand(12, 999);
+        if (q % 10 === 0) continue;          // un quotient en 0 se lit d'un coup d'œil
+        const dividende = d * q;
+        const nbChiffres = String(dividende).length;
+        if (nbChiffres < 3 || nbChiffres > 4) continue;
+        return { text: `${toFr(dividende)} ÷ ${toFr(d)} = `, answer: toFr(q) };
+      }
+      // Filet : une division exacte quoi qu'il arrive.
+      const d = 7, q = rand(15, 99);
+      return { text: `${toFr(d * q)} ÷ ${toFr(d)} = `, answer: toFr(q) };
+    }
     // Diviseurs à UNE décimale aux deux niveaux ; le niveau 2 y ajoute trois
     // diviseurs à DEUX décimales. Le dividende gagne alors un chiffre, sinon
     // le quotient n'atteindrait plus les deux décimales exigées (il perd une
@@ -5784,10 +5905,14 @@ function genDecimal(operation) {
   const questions = [];
   const labels = ['a)', 'b)', 'c)', 'd)'];
   const OP_SEULE = { soustraction: opSub, multiplication: opMul, division: opDiv };
+  // Le niveau « Nombres entiers » divise juste : la remarque sur le quotient à
+  // deux décimales n'a plus lieu d'être.
   const CONSIGNE = {
     soustraction: "Pose les soustractions en colonne",
     multiplication: "Pose les multiplications en colonne",
-    division: "Pose les divisions en colonne (quotient à deux décimales au minimum)"
+    division: niveau === 3
+      ? "Pose les divisions en colonne"
+      : "Pose les divisions en colonne (quotient à deux décimales au minimum)"
   };
   const opSeule = OP_SEULE[operation];
   if (opSeule) {
@@ -5824,7 +5949,13 @@ function genDecimal(operation) {
     if (q.acceptAlt) qObj.acceptAlt = q.acceptAlt;
     questions.push(qObj);
   }
-  return { multi: true, intro: "Pose les opérations en colonne (pour les divisions, quotient à deux décimales au minimum)", questions };
+  return {
+    multi: true,
+    intro: niveau === 3
+      ? "Pose les opérations en colonne"
+      : "Pose les opérations en colonne (pour les divisions, quotient à deux décimales au minimum)",
+    questions
+  };
 }
 
 // Les quatre variantes proposées dans le second menu déroulant du sous-domaine.
@@ -17002,7 +17133,7 @@ const ICONE_ENSEIGNANT = '<svg viewBox="0 0 24 24" width="21" height="21" fill="
 const ICONE_PDF = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJkAAACUCAMAAAC3HHtWAAAAk1BMVEXi5ef////xVkKwt73K0dji6OrxW0jyUDnG2eHlzczmgnrV2t/x8/T19vbxUTzwTDX4u7Xnvr28wsf+8/L84N3yYlD1jID1hXf1kYb4q6L4t7D96ujwQib1mY7++Pf70c3zcWHxSC/zeGn3pJv6ysX72dXy2Nbj1dXtgnfyaFf3sKj6w73UubvV4ebco6HkioPitLFLhhsqAAAElUlEQVR4nO3ca5eaOhQG4ICOtHUa7AAqIgiIbdVezv//dUcS7tlAXIYkq4v308xCzeNOCAEVZAzmKxKWj8Xi4324tVbQyGahsqdow7J3wbLFgp82LHsTLuOv2rBMIKyQ8dMGZQLHfyXjpsmX8dIUyDhpKmR8NCUyLpoa2eLjq64yjqqpko1XTZlstGrqZGM0hbIRmkrZME2pbJCmVjZEUywboKmW9dOUy3qnXPWyvqppIOupmg4yuGpayMCq6SGDqiZPthySAVWTJ1sPytiqyZMNdydbNYmykaJ1aRJlY0Xr0GTKnqNJlY3sn22aXBlaL4fr1qBJlpEsB/KmVDZEUywboKmW9dOUy3pp6mV9NA1kPTQdZDBNCxlI00MG0TSRATRdZCxNGxlD00fWpWkkQ/rKkL4ypK8M6StD+sqQvjKkrwzpK0P6ypC+MqSvDOkrQ/rKkL6ytbYyVF+tnWWiZW8T5jlZ4Lby/fN0+YFAGyxzw9hbyUoc/oBooOxi2tiUFmybEA2SRaklz5XH/slZs5PEgtGsPrNFg2R3W7YMf+OTbWbZLJtls2yWzbJWrORYJklaaxFs2WUsiznm1htpoIPySzK8PQVl3Oyc1gQrDX3/nMc/h/t0lbTb3vqthDGwkHlFhneO0YyTXYtHWdvWFsc9xA3b6m504nhs1V6R2QemhT192OrS3WJs4rLx7hvKcz8KlVkbpoWI9ovnMlsMN4ULSnJIJpA5gUNStL+qZRFN+RLBDvfJgpXY3qSy2zXOs/MpIbRLWeT/3OYJb0UFL7R9KnMOdXzRewCV+TYmsa8BKdqxku3oFsvGu4C+SFLL3MakwU4rgmTlv/u8ak5emEJWVcKOadmuuJYBmKlkmHpiQGZaMenrg61EZppknso9jMw8khnG9fSTWWletCjF9TizHnmMwsdInFqG6S4A9mY5keR7LpUFYRX4JFugLPHzf6OK0ZatTuWDmfnM2UO012XnI931zTMZ5KfGrNFsEGdkF0igmdaJgQ59XZaFZE1xO9GZlrx/QGYS2Q2UGdtJZO3c6+NmZ5yRg/wZ6k3j4rEvLlrm0h2NlRW7R17R4uh0qnIA1kCCZVF2pW2wMjvMH+BcG7MGmTbywBfmBMqcU2gWbQDzGSnZhfwpa6Y9nWn2qVm9d0ZGZxQyzOTJzkfaJc0+6cjwMSQ7bmRLrZkPbClkCSZoHG+iumQayIzs9lgV3g73YqYzsuJp6mWdXK7N1baMccYpy7xi2EmQ2ed8C3Q4Zs/qorA6CcFpLhu9WP7a1YNNFB3AdULqRjXKcU/bY+P5OHQiN51UhnG6gz/AsLxdndSz2s+249119IOPF68F9axHyZY6TzxNmGzCzLJZNstm2TSyTPpnwh7nZ8KBbBiOGVfPdw9u7DXeSWHHX785ZVGYJNV52ORJ8J/lmlP2WOv54b6VL5Pl73/LT0/Iunn/NF3yLzXyjjNAxvzkQWy0lQEwPWTAKOOXrScM5PoXvrM3y2bZLJtls+zfk3He90Do3TnFykTe0ZQr9Q8XRmTSi9a4zcyITOQNap+Djckk92fzbin/A8PQxx30Ei25AAAAAElFTkSuQmCC';
 
 // Numéro de version, affiché en pied de menu.
-const APP_VERSION = '475';
+const APP_VERSION = '477';
 
 const DOMAINS = [
   {
@@ -17014,8 +17145,25 @@ const DOMAINS = [
       { id: 'probleme',   title: "Résoudre un problème « concret » avec 4 opérations", gen: genProbleme, patrons: () => [genProbleme] },
       { id: 'decimaux',   title: "Calculer avec des décimaux (4 opérations)",          gen: genDecimal, hasNiveau2: true, patrons: () => [genDecimal, genDecimal],
         // Premier sous-domaine à porter DEUX menus déroulants : niveau et
-        // variante. Les deux se combinent (4 variantes × 2 niveaux) et le cache
+        // variante. Les deux se combinent (4 variantes × 3 niveaux) et le cache
         // les distingue déjà (clé subId|variante|niveau).
+        //
+        // NIVEAU PRÉLIMINAIRE « Nombres entiers ». Il porte le numéro 3 et non
+        // le numéro 1 : renuméroter aurait décalé les deux niveaux existants,
+        // dont dépendent les générateurs, la fusion N1+N2 du PDF de domaine
+        // (FUSION_ELIGIBLE), la branche PDF du sous-domaine et les réglages de
+        // mise en page. `niveauMenu` le fait simplement figurer EN TÊTE des
+        // menus déroulants ; l'écran continue de s'ouvrir sur le niveau 1
+        // (state.niveauxParSubId[id] || 1).
+        niveauMenu: [
+          { niveau: 3, label: 'Nombres entiers' },
+          { niveau: 1, label: 'Niveau 1' },
+          { niveau: 2, label: 'Niveau 2' }
+        ],
+        // Le titre change POUR CE NIVEAU SEULEMENT (en-tête et nom de fichier
+        // du PDF, en-tête de groupe d'une série, sous-titres des séries et des
+        // tests). Les niveaux 1 et 2 gardent « … avec des décimaux ».
+        titreParNiveau: { 3: "Calculer avec des nombres entiers (4 opérations)" },
         variants: [
           { key: 'melange',         label: '4 opérations',    gen: genDecimalMelange },
           { key: 'soustractions',   label: 'Soustractions',   gen: genDecimalSoustractions },
@@ -18217,6 +18365,34 @@ const SANS_RUBRIQUE = new Set(['perim-aire', 'volumes']);
 // Sous-domaines où la réponse doit porter son unité.
 const UNITE_EXIGEE = new Set(['perim-aire', 'volumes', 'pythagore']);
 
+// Niveaux d'un sous-domaine, dans l'ORDRE D'AFFICHAGE des menus déroulants
+// (écran et atelier). Rend [{ niveau, label }].
+// Par défaut l'ordre d'affichage EST l'ordre des numéros : niveauLabels s'il y
+// en a, « Niveau 1 » / « Niveau 2 » sinon.
+// `sub.niveauMenu` permet de dissocier les deux : un niveau ajouté APRÈS coup
+// garde un numéro libre (rien n'est décalé dans les générateurs ni dans les
+// mises en page, qui se repèrent par le numéro) tout en s'affichant où l'on
+// veut dans la liste. Premier usage : « Nombres entiers » (décimaux), niveau 3
+// affiché en tête.
+function niveauxMenu(sub) {
+  if (!sub || !sub.hasNiveau2) return null;
+  if (Array.isArray(sub.niveauMenu) && sub.niveauMenu.length) return sub.niveauMenu;
+  const labs = (Array.isArray(sub.niveauLabels) && sub.niveauLabels.length >= 2)
+    ? sub.niveauLabels : ['Niveau 1', 'Niveau 2'];
+  return labs.map((lab, i) => ({ niveau: i + 1, label: lab }));
+}
+
+// Titre du sous-domaine POUR UN NIVEAU donné. Un niveau peut porter son propre
+// titre (`sub.titreParNiveau`) : « Calculer avec des nombres entiers
+// (4 opérations) » pour le niveau 3 des décimaux. Tous les autres niveaux
+// gardent le titre du sous-domaine — le titre ne change QUE pour un exercice
+// de ce niveau-là.
+function titreDuSousDomaine(sub, niveau) {
+  if (!sub) return '';
+  const t = sub.titreParNiveau && sub.titreParNiveau[Number(niveau)];
+  return t || sub.title;
+}
+
 // ----------------------------------------------------------------------------
 // SÉRIE À L'ÉCRAN : une composition travaillée dans l'application, exercice par
 // exercice, comme dans le menu principal — chacun garde SON bouton « Valider »
@@ -18252,7 +18428,7 @@ function renderSerie() {
     const rub = (Array.isArray(it.sub.niveauLabels) && typeof it.niveau === 'number'
                  && !SANS_RUBRIQUE.has(it.sub.id))
       ? it.sub.niveauLabels[Math.min(it.niveau, it.sub.niveauLabels.length) - 1] : null;
-    const sousTitre = it.sub.title + (rub ? ` – ${rub}` : '');
+    const sousTitre = titreDuSousDomaine(it.sub, it.niveau) + (rub ? ` – ${rub}` : '');
     html += `<div class="exercise-sub-title" style="font-weight:800; font-size:13px; color:#6B7280; text-transform:uppercase; letter-spacing:0.02em; margin:18px 0 6px 2px;">${sousTitre}</div>`;
     // `data-test-ex` en plus : c'est par cet attribut que l'export retrouve les
     // champs de saisie et leurs marques de correction.
@@ -18717,7 +18893,7 @@ function renderTest() {
       ? it.sub.niveauLabels[Math.min(it.niveau, it.sub.niveauLabels.length) - 1] : null;
     // La mention « sans calculatrice » n'est PAS répétée ici : elle vit sur la
     // ligne de séparation de domaine, avec les numéros d'exercices concernés.
-    const sousTitre = it.sub.title + (rub ? ` – ${rub}` : '');
+    const sousTitre = titreDuSousDomaine(it.sub, it.niveau) + (rub ? ` – ${rub}` : '');
     const consigne = UNITE_EXIGEE.has(it.sub.id)
       ? ` <span style="text-transform:none; font-weight:700; color:#B45309;">– donne le résultat avec son unité</span>` : '';
     html += `<div class="exercise-sub-title" style="font-weight:800; font-size:13px; color:#6B7280; text-transform:uppercase; letter-spacing:0.02em; margin:18px 0 6px 2px;">${sousTitre}${consigne}</div>`;
@@ -19039,7 +19215,7 @@ function texteComposition() {
     const detail = sel['*']
       ? "tout l'exercice"
       : labs.map(l => `${l})`).join(', ');
-    lignes.push(`Ex ${i + 1} · ${refCompo(it)} · ${it.sub.title}${rub ? ' – ' + rub : ''} : ${detail}`);
+    lignes.push(`Ex ${i + 1} · ${refCompo(it)} · ${titreDuSousDomaine(it.sub, it.niveau)}${rub ? ' – ' + rub : ''} : ${detail}`);
   });
   return lignes.length ? lignes.join('\n') : '(aucune question cochée)';
 }
@@ -20632,8 +20808,7 @@ function renderAtelier() {
     // sous-domaine en propose. Ils affichent le réglage RÉEL de cet exercice —
     // par défaut celui qu'on verrait en ouvrant le sous-domaine à neuf.
     const regl = it._reglages || {};
-    const nivLabels = Array.isArray(it.sub.niveauLabels) ? it.sub.niveauLabels
-      : (it.sub.hasNiveau2 ? ['Niveau 1', 'Niveau 2'] : null);
+    const nivMenu = niveauxMenu(it.sub);
     const nivCourant = regl.niveau || (typeof it.niveau === 'number' ? it.niveau : 1);
     // Un exercice FUSIONNÉ n'a plus de niveau ni de variante uniques : ses
     // questions viennent de plusieurs exercices. Changer l'un ou l'autre le
@@ -20644,10 +20819,10 @@ function renderAtelier() {
     // Les menus se décident exercice par exercice : un exercice ajouté à une
     // série de domaine garde les siens.
     const calibre = !!it._epreuve;
-    const selNiveau = (it.sub.hasNiveau2 && nivLabels && !calibre && !fusionne) ? `
+    const selNiveau = (it.sub.hasNiveau2 && nivMenu && !calibre && !fusionne) ? `
           <select class="variant-select atelier-reglage" aria-label="Niveau de cet exercice"
                   onchange="atelierReglerExercice(${i}, 'niveau', this.value)">
-            ${nivLabels.map((lab, k) => `<option value="${k + 1}"${nivCourant === k + 1 ? ' selected' : ''}>${lab}</option>`).join('')}
+            ${nivMenu.map(n => `<option value="${n.niveau}"${nivCourant === n.niveau ? ' selected' : ''}>${n.label}</option>`).join('')}
           </select>` : '';
     const varsAtelier = (typeof it.sub.atelierVariants === 'function')
       ? it.sub.atelierVariants(nivCourant) : null;
@@ -20666,7 +20841,7 @@ function renderAtelier() {
         <div class="atelier-entete">
           <span class="atelier-poignee" draggable="true" title="Glisser pour déplacer cet exercice"
                 ondragstart="atelierGlisserDebut(event, ${i})" ondragend="atelierGlisserFin()">⠿</span>
-          <span class="atelier-titre">${i + 1}. ${it.sub.title}${(rub && !selNiveau) ? ' – ' + rub : ''}</span>${selNiveau}${selVariante}
+          <span class="atelier-titre">${i + 1}. ${titreDuSousDomaine(it.sub, nivCourant)}${(rub && !selNiveau) ? ' – ' + rub : ''}</span>${selNiveau}${selVariante}
           <button class="btn-action btn-icon-mini" onclick="atelierDeplacerExercice(${i}, -1)" title="Monter"${i === 0 ? ' disabled' : ''}>▲</button>
           <button class="btn-action btn-icon-mini" onclick="atelierDeplacerExercice(${i}, 1)" title="Descendre"${i === at.items.length - 1 ? ' disabled' : ''}>▼</button>
           ${fusionne ? '' : `<button class="btn-action" onclick="atelierRefaireExercice(${i})" title="Renouveler">${ICONE_RECHARGER}<span>${nbQ ? 'Toutes les questions' : "L'exercice"}</span></button>`}
@@ -20767,7 +20942,10 @@ function consigneFusion(subId, introA, introB, questions) {
   if (subId !== 'decimaux') return null;
   const famille = (t) => /^Pose les .+ en colonne/.test(String(t || ''));
   if (!famille(introA) || !famille(introB)) return null;
-  const avecDivision = (questions || []).some(q => /÷/.test(String(q.text || '')));
+  // La remarque sur le quotient ne se justifie que si l'une des deux consignes
+  // la portait : au niveau « Nombres entiers », les divisions tombent juste.
+  const avecDivision = (questions || []).some(q => /÷/.test(String(q.text || '')))
+    && /deux décimales/.test(String(introA || '') + String(introB || ''));
   return avecDivision
     ? "Pose les opérations en colonne (pour les divisions, quotient à deux décimales au minimum)"
     : "Pose les opérations en colonne";
@@ -21705,16 +21883,13 @@ function renderMain() {
   // définit ses propres niveauLabels = ['LabelN1', 'LabelN2'(, 'LabelN3')].
   // Le nombre de niveaux est déterminé par la longueur de niveauLabels
   // (2 ou 3) ; à défaut, 2 niveaux génériques.
-  let nLabels;
-  if (Array.isArray(found.sub.niveauLabels) && found.sub.niveauLabels.length >= 2) {
-    nLabels = found.sub.niveauLabels;
-  } else {
-    nLabels = ['Niveau 1', 'Niveau 2'];
-  }
+  // L'ORDRE de la liste n'est plus forcément celui des numéros : niveauxMenu()
+  // le donne (décimaux : « Nombres entiers », niveau 3, en tête).
+  const nMenu = niveauxMenu(found.sub) || [];
   const niveauToggle = found.sub.hasNiveau2 ? `
           <select class="variant-select" onchange="setNiveau(parseInt(this.value, 10))" aria-label="Niveau">
-            ${nLabels.map((lab, i) =>
-              `<option value="${i + 1}" ${state.niveau === (i + 1) ? 'selected' : ''}>${lab}</option>`
+            ${nMenu.map(n =>
+              `<option value="${n.niveau}" ${state.niveau === n.niveau ? 'selected' : ''}>${n.label}</option>`
             ).join('')}
           </select>` : '';
 
@@ -27638,7 +27813,7 @@ async function exporterTest(opts) {
     bloc.style.cssText = 'margin-bottom: 14px; page-break-inside: avoid;';
     let corps = `<div style="display:flex; align-items:baseline; gap:10px; border-bottom:1px solid #E5E7EB; padding-bottom:3px; margin-bottom:6px;">`
       + `<span style="font-weight:800; font-size:14px;">Exercice ${i + 1}.</span>`
-      + `<span style="flex:1; font-size:13px; color:#374151;">${esc(it.sub.title)}${rub ? ' – ' + esc(rub) : ''}</span>`
+      + `<span style="flex:1; font-size:13px; color:#374151;">${esc(titreDuSousDomaine(it.sub, it.niveau))}${rub ? ' – ' + esc(rub) : ''}</span>`
       + (sansPoints ? ''
          : `<span style="font-weight:800; font-size:13px; color:${couleurEx};">`
            + (pctEx === null ? 'non compté' : `${nb(sc.obtenus)} / ${nb(sc.total)} – ${pctEx} %`)
@@ -29681,7 +29856,7 @@ async function downloadDomainPdf(domainNum, compoImposee) {
       //   N1 → "… proportionnalité" (titre normal)
       //   N2 → "… proportionnalité - fractions"
       //   N3 → "… proportionnalité - rabais"
-      let titre = sub.title;
+      let titre = titreDuSousDomaine(sub, niveau);
       if (sub.id === 'prop-concret' && niveau === 2) {
         titre = `${sub.title} - fractions`;
       } else if (sub.id === 'prop-concret' && niveau === 3) {
@@ -30403,6 +30578,22 @@ async function downloadPdf(opts) {
         title = `Transformer les unités : ${sel.map(v => v.label.toLowerCase()).join(', ')}`;
       }
     }
+    // Un niveau peut porter son propre titre (décimaux : « Nombres entiers »).
+    // Il ne s'applique que si TOUT le document est de ce niveau : sur le
+    // niveau 1, le PDF des décimaux mêle un exercice N1 et un exercice N2, et
+    // garde donc le titre du sous-domaine.
+    if (found.sub.titreParNiveau) {
+      const imposes = Array.isArray(opts.exercicesImposes) ? opts.exercicesImposes : null;
+      // Série à la carte : downloadPdf reçoit les exercices déjà composés, qui
+      // portent leur niveau réel. Sinon, c'est le niveau affiché à l'écran.
+      const nivDoc = (imposes && imposes.length)
+        ? (imposes.every(ex => ex && ex._realNiveau === imposes[0]._realNiveau)
+            ? imposes[0]._realNiveau : null)
+        : state.niveau;
+      if (nivDoc != null && found.sub.titreParNiveau[nivDoc]) {
+        title = found.sub.titreParNiveau[nivDoc];
+      }
+    }
     // Pas de suffixe de niveau dans le titre (les exercices sont déjà
     // étiquetés par niveau individuellement si besoin).
     const niveauSuffix = '';
@@ -30657,12 +30848,17 @@ async function downloadPdf(opts) {
         ? (found.sub.variants.find(v => v.key === variantKey) || found.sub.variants[0]) : null;
       const genV = (vDef && typeof vDef.gen === 'function') ? vDef.gen : found.sub.gen;
       const savedNiveau = state.niveau;
-      const nivEcran = (state.niveau === 2) ? 2 : 1;
+      // Sur le niveau « Nombres entiers » (3), les DEUX exercices en sont —
+      // comme le niveau 2 les tire tous les deux au niveau 2. Il n'y a pas de
+      // sens à mêler un exercice d'entiers et un exercice de décimaux : le
+      // titre du document change pour ce niveau.
+      const nivEcran = (state.niveau === 2 || state.niveau === 3) ? state.niveau : 1;
+      const nivSecond = (nivEcran === 3) ? 3 : 2;
       try {
         const ck = `decimaux|${variantKey}|${nivEcran}`;
         state.niveau = nivEcran;
         let ex1 = (state.exercisesCache[ck] && state.exercisesCache[ck][0]) || genV();
-        state.niveau = 2;
+        state.niveau = nivSecond;
         const dejaVus = new Set((ex1.questions || []).map(q => q.text));
         let ex2 = null;
         for (let essai = 0; essai < 40; essai++) {
@@ -30675,7 +30871,7 @@ async function downloadPdf(opts) {
         if (!ex2) ex2 = genV();          // filet : mieux vaut un doublon qu'un trou
         exercisesForPdf = [
           { ...ex1, _realNiveau: nivEcran },
-          { ...ex2, _realNiveau: 2 }
+          { ...ex2, _realNiveau: nivSecond }
         ];
       } finally {
         state.niveau = savedNiveau;
@@ -31340,7 +31536,12 @@ async function downloadPdf(opts) {
             const suite = ex._suitePdf ? ' <span style="color:#9CA3AF; font-weight:600; font-size:13px; text-transform:none;">(suite)</span>' : '';
             // La suite d'un exercice découpé ne reprend pas sa consigne.
             if (ex._suitePdf) exoDiv.querySelectorAll('.exo-consigne').forEach(el => el.remove());
-            numDiv.innerHTML = `Exercice ${num}.${suite} <span style="color:#6B7280; font-weight:600; font-size:14px;">– Niveau ${niveau}</span>`;
+            // « – Niveau 3 » ne dirait rien de plus quand le TITRE du document
+            // nomme déjà ce niveau (décimaux : « Calculer avec des nombres
+            // entiers »). Les niveaux sans titre propre gardent l'étiquette.
+            const tagNiv = (found.sub.titreParNiveau && found.sub.titreParNiveau[niveau])
+              ? '' : ` <span style="color:#6B7280; font-weight:600; font-size:14px;">– Niveau ${niveau}</span>`;
+            numDiv.innerHTML = `Exercice ${num}.${suite}${tagNiv}`;
           }
         }
       } else if (Array.isArray(found.sub.variants) && found.sub.variants.length > 0) {
@@ -31414,7 +31615,10 @@ async function downloadPdf(opts) {
       // veulent pas.
       const rubCor = (Array.isArray(found.sub.niveauLabels) && !SANS_RUBRIQUE.has(found.sub.id))
         ? found.sub.niveauLabels[(ex._realNiveau || (exIdx + 1)) - 1] : null;
-      const niveauTag = (found.sub.id === 'prop-concret')
+      const _nivTagCor = ex._realNiveau || (exIdx + 1);
+      const niveauTag = (found.sub.titreParNiveau && found.sub.titreParNiveau[_nivTagCor])
+        ? ''                                   // le titre du document nomme déjà ce niveau
+        : (found.sub.id === 'prop-concret')
         ? ` <span style="color:#6B7280; font-weight:600; font-size:13px;">– ${(['proportionnalité', 'fractions', '% - rabais'][(ex._propNiveau || (exIdx + 1)) - 1] || '')}</span>`
         : (rubCor && found.sub.id !== 'developpements' && found.sub.id !== 'vocab')
         ? ` <span style="color:#6B7280; font-weight:600; font-size:13px; text-transform:none;">– ${rubCor}</span>`
