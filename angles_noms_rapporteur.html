@@ -25,8 +25,8 @@ body{
 }
 .page{max-width:1320px;margin:0 auto;height:100%;display:flex;flex-direction:column}
 .entete{position:relative;display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;text-align:center;min-height:34px}
+.nav{position:absolute;right:0;top:50%;transform:translateY(-50%);display:flex;gap:8px}
 .plein{
-  position:absolute;right:0;top:50%;transform:translateY(-50%);
   width:34px;height:34px;padding:0;display:flex;align-items:center;justify-content:center;background:#fff;
 }
 .plein svg{width:19px;height:19px}
@@ -61,6 +61,19 @@ body.pleinecran .plein .sortir{display:block}
 .poignee{fill:#151a2e;stroke:#fff;stroke-width:2.5;cursor:grab}
 .poignee:hover{stroke:var(--bleu-fonce)}
 .etiq{fill:#151a2e;font-size:18px;font-weight:700;pointer-events:none;text-anchor:middle}
+.cote2{stroke:#151a2e;stroke-width:2;stroke-linecap:round}
+.marque{fill:#151a2e}
+.apercu{stroke:#2f6fc4;stroke-width:2.6;stroke-dasharray:9 5;stroke-linecap:round;fill:none}
+.regle-arete{stroke:#2f6fc4;stroke-width:2.6;opacity:0;pointer-events:none;transition:opacity .12s}
+.regle-bord:hover + .regle-arete{opacity:.85}
+.arc2{fill:none;stroke:#151a2e;stroke-width:1.8}
+.val-arc{fill:#2f6fc4;font-size:15px;font-weight:800;text-anchor:middle;dominant-baseline:middle;pointer-events:none}
+.regle-corps{fill:rgba(214,216,228,.62);stroke:#aeb2c4;stroke-width:1.4;cursor:grab}
+.regle-bord{fill:transparent}
+.regle-trait{stroke:#3a3f55;fill:none;pointer-events:none}
+.regle-txt{fill:#20263c;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;font-size:11px;pointer-events:none;text-anchor:middle}
+#svg2{cursor:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'><path d='M3 21l1.1-4.1L15.2 5.7l3 3L7.1 19.9 3 21z' fill='%23ffffff' stroke='%23151a2e' stroke-width='1.5' stroke-linejoin='round'/><path d='M16.1 4.8l2-2a1.5 1.5 0 0 1 2.2 0l1 1a1.5 1.5 0 0 1 0 2.2l-2 2z' fill='%23151a2e'/><path d='M4.1 16.9l3 3' stroke='%23151a2e' stroke-width='1.2'/></svg>") 3 21, crosshair}
+.regle-bord{cursor:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'><path d='M3 21l1.1-4.1L15.2 5.7l3 3L7.1 19.9 3 21z' fill='%23ffffff' stroke='%23151a2e' stroke-width='1.5' stroke-linejoin='round'/><path d='M16.1 4.8l2-2a1.5 1.5 0 0 1 2.2 0l1 1a1.5 1.5 0 0 1 0 2.2l-2 2z' fill='%23151a2e'/><path d='M4.1 16.9l3 3' stroke='%23151a2e' stroke-width='1.2'/></svg>") 3 21, crosshair}
 .val-angle{fill:#2f6fc4;font-size:16px;font-weight:800;pointer-events:none;text-anchor:middle}
 
 /* --- panneau --- */
@@ -86,7 +99,14 @@ button:focus-visible{outline:2px solid var(--bleu-fonce);outline-offset:2px}
 <div class="page">
 
   <div class="entete">
-    <p class="eyebrow">Géométrie · les noms des angles</p>
+    <p class="eyebrow" id="titre">Géométrie · les noms des angles</p>
+    <div class="nav">
+    <button id="btn-prec" class="plein" title="Les noms des angles" aria-label="Les noms des angles" style="display:none">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#151a2e" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 5L7.5 12l7 7"/></svg>
+    </button>
+    <button id="btn-suiv" class="plein" title="Tracer un angle" aria-label="Tracer un angle">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#151a2e" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 5l7 7-7 7"/></svg>
+    </button>
     <button id="btn-plein" class="plein" title="Plein écran" aria-label="Plein écran">
       <svg class="entrer" viewBox="0 0 24 24" fill="none" stroke="#151a2e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
         <path d="M9 3H5.5A2.5 2.5 0 0 0 3 5.5V9"/><path d="M15 3h3.5A2.5 2.5 0 0 1 21 5.5V9"/>
@@ -96,6 +116,7 @@ button:focus-visible{outline:2px solid var(--bleu-fonce);outline-offset:2px}
         <path d="M3.5 9H9V3.5"/><path d="M20.5 9H15V3.5"/><path d="M3.5 15H9v5.5"/><path d="M20.5 15H15v5.5"/>
       </svg>
     </button>
+    </div>
   </div>
   <div class="rule"></div>
 
@@ -133,6 +154,40 @@ button:focus-visible{outline:2px solid var(--bleu-fonce);outline-offset:2px}
               </svg>
             </button>
             <button id="btn-reset" title="Réinitialiser la figure" aria-label="Réinitialiser">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#151a2e" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20 4v4.6h-4.6"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="figure" id="figure2" style="display:none">
+          <svg id="svg2" viewBox="0 0 820 660" xmlns="http://www.w3.org/2000/svg">
+            <g id="traits2"></g>
+            <g id="marques2"></g>
+            <g id="regle2" style="display:none"></g>
+            <g id="rapporteur2" style="display:none"></g>
+            <path id="apercu2" class="apercu" d="" style="display:none"/>
+            <text id="apercuval2" class="val-arc" style="display:none"></text>
+          </svg>
+          <div class="outils">
+            <button id="btn-rap2" class="eteint" title="Afficher ou masquer le rapporteur" aria-label="Rapporteur">
+              <svg viewBox="8 12 264 154" fill="none" stroke="#151a2e" stroke-width="10" stroke-linecap="butt" stroke-linejoin="round">
+                <path d="M17.5 119A126.7 126.7 0 0 1 264.5 119C266.8 126 268 133 268 140C268 151 263 158.5 252 158.5L31 158.5C20 158.5 15.5 151 15.5 140C15.5 132 16 125 17.5 119"/>
+                <path d="M61 119A86.7 86.7 0 0 1 222 119"/>
+                <line x1="61" y1="119" x2="222" y2="119"/>
+                <path d="M30.5 89.5L42.5 94.5M49 59L60.5 67.5M78.5 37L84.5 49M108 23.5L111 36M141 19L141 32.5M174 23.5L171 36M203.5 37L197.5 49M233 59L221.5 67.5M251.5 89.5L239.5 94.5"/>
+                <path d="M78.5 119v16M109.5 119v16M140.5 119v13M171.5 119v16M202.5 119v16"/>
+                <circle cx="140.5" cy="138.5" r="6" fill="#fdfdfb"/>
+              </svg>
+            </button>
+            <button id="btn-regle2" class="eteint" title="Afficher ou masquer la règle" aria-label="Règle">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#151a2e" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2.2" y="7.6" width="19.6" height="8.8" rx="2"/>
+                <path d="M6 7.6v3.4M9.4 7.6v2.2M12.8 7.6v3.4M16.2 7.6v2.2M19 7.6v3.4"/>
+              </svg>
+            </button>
+            <button id="btn-reset2" title="Effacer la feuille" aria-label="Effacer">
               <svg viewBox="0 0 24 24" fill="none" stroke="#151a2e" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20 4v4.6h-4.6"/>
               </svg>
@@ -394,6 +449,386 @@ button:focus-visible{outline:2px solid var(--bleu-fonce);outline-offset:2px}
   reset();
   dessiner();
   ajuster();
+})();
+</script>
+
+<script>
+/* ---------------- page 2 : tracer un angle ---------------- */
+(function(){
+  "use strict";
+  const fig    = document.getElementById("figure2");
+  const svg    = document.getElementById("svg2");
+  const gTr    = document.getElementById("traits2");
+  const gMq    = document.getElementById("marques2");
+  const apercu = document.getElementById("apercu2");
+  const apVal  = document.getElementById("apercuval2");
+  const gRap   = document.getElementById("rapporteur2");
+  const gReg   = document.getElementById("regle2");
+  const NS = "http://www.w3.org/2000/svg";
+  const el = (n,at)=>{const e=document.createElementNS(NS,n); for(const k in at) e.setAttribute(k,at[k]); return e;};
+  const rad = d=>d*Math.PI/180, deg = r=>r*180/Math.PI;
+  const norm180 = a => { a = (a+180)%360; if(a<0) a+=360; return a-180; };
+  const R = 200, L = 470, W = 62;                 // rapporteur et règle
+  const DEC = -2;                                 // le crayon trace à 2 px du bord, à l'extérieur
+
+  let traits = [], marques = [], arcs = [], historique = [];
+  function memoriser(){
+    historique.push({t:traits.slice(), m:marques.slice(), a:arcs.slice()});
+    if(historique.length > 60) historique.shift();
+  }
+  function annuler(){
+    const e = historique.pop();
+    if(!e) return;
+    traits = e.t; marques = e.m; arcs = e.a; rendre();
+  }
+  let rap = {x:410, y:330, rot:0, on:false};
+  let reg = {x:150, y:520, rot:0, on:false};
+
+  /* ---- construction des instruments ---- */
+  function construireRapporteur(g){
+    const P = (a,r) => [ (r*Math.cos(rad(a))).toFixed(1), (-r*Math.sin(rad(a))).toFixed(1) ];
+    g.appendChild(el("path",{class:"rap-corps","data-drag":"RAP",
+      d:"M "+(-R-8)+" 12 L "+(-R-8)+" 0 L "+(-R)+" 0 A "+R+" "+R+" 0 0 1 "+R+" 0 L "+(R+8)+" 0 L "+(R+8)+" 12 Z"}));
+    for(let i=0;i<=180;i++){
+      const lg = (i%10===0)?18:(i%5===0)?12:7;
+      const a = P(i,R-4), b = P(i,R-4-lg);
+      g.appendChild(el("line",{class:"rap-trait",x1:a[0],y1:a[1],x2:b[0],y2:b[1],
+        "stroke-width":(i%10===0)?1.4:(i%5===0)?1.1:.7}));
+      if(i%10===0){
+        const c = P(i,20), d = P(i,R-26);
+        g.appendChild(el("line",{class:"rap-trait",x1:c[0],y1:c[1],x2:d[0],y2:d[1],"stroke-width":.7}));
+        const g1 = P(i,R-40), g2 = P(i,R-59);
+        const t1 = el("text",{class:"rap-txt",x:g1[0],y:g1[1],"text-anchor":"middle","dominant-baseline":"middle",
+          "font-size":i===90?18:13,"font-weight":i===90?800:600,transform:"rotate("+(90-i)+","+g1[0]+","+g1[1]+")"});
+        t1.textContent = i;
+        const t2 = el("text",{class:"rap-txt",x:g2[0],y:g2[1],"text-anchor":"middle","dominant-baseline":"middle",
+          "font-size":9.5,transform:"rotate("+(90-i)+","+g2[0]+","+g2[1]+")"});
+        t2.textContent = 180-i;
+        g.appendChild(t1); g.appendChild(t2);
+      }
+    }
+    g.appendChild(el("circle",{cx:0,cy:0,r:9,fill:"#fdfdfb",stroke:"#8d92a6","stroke-width":1.4,"pointer-events":"none"}));
+    g.appendChild(el("circle",{cx:0,cy:0,r:2.4,fill:"#3a3f55","pointer-events":"none"}));
+    const ph = P(90,R+24), pa = P(90,R), pb = P(90,R+9);
+    g.appendChild(el("line",{class:"rap-trait",x1:pa[0],y1:pa[1],x2:pb[0],y2:pb[1],"stroke-width":1.4}));
+    g.appendChild(el("circle",{class:"rap-poignee","data-drag":"ROTRAP",cx:ph[0],cy:ph[1],r:15}));
+    const tr = el("text",{class:"rap-poignee-txt",x:ph[0],y:(+ph[1]+5)}); tr.textContent = "⟳";
+    g.appendChild(tr);
+  }
+
+  function construireRegle(g){
+    g.appendChild(el("rect",{class:"regle-corps","data-drag":"REGLE",x:0,y:0,width:L,height:W,rx:8}));
+    for(let x=0;x<=L-20;x+=10){
+      const lg = (x%50===0)?14:(x%25===0)?10:6;
+      g.appendChild(el("line",{class:"regle-trait",x1:x+10,y1:0,x2:x+10,y2:lg,"stroke-width":(x%50===0)?1.4:.8}));
+      if(x%50===0){
+        const t = el("text",{class:"regle-txt",x:x+10,y:30}); t.textContent = x/50;
+        g.appendChild(t);
+      }
+    }
+    g.appendChild(el("line",{class:"regle-trait",x1:0,y1:0,x2:L,y2:0,"stroke-width":1.6}));
+    g.appendChild(el("rect",{class:"regle-bord","data-drag":"TRACE",x:0,y:-17,width:L,height:23}));
+    g.appendChild(el("line",{class:"regle-arete",x1:0,y1:0,x2:L,y2:0}));
+    g.appendChild(el("circle",{class:"rap-poignee","data-drag":"ROTREGLE",cx:L-30,cy:W/2+4,r:15}));
+    const tr = el("text",{class:"rap-poignee-txt",x:L-30,y:W/2+9}); tr.textContent = "⟳";
+    g.appendChild(tr);
+  }
+
+  /* ---- rendu ---- */
+  function rendre(){
+    gTr.textContent = ""; gMq.textContent = "";
+    traits.forEach(t => gTr.appendChild(el("line",{class:"cote2",x1:t.x1,y1:t.y1,x2:t.x2,y2:t.y2})));
+    arcs.forEach(function(a){
+      gTr.appendChild(el("path",{class:"arc2", d:cheminArc(a, a.r)}));
+      const q = positionValeur(a, a.r);
+      const t = el("text",{class:"val-arc", x:q.x.toFixed(1), y:q.y.toFixed(1)});
+      t.textContent = Math.round(valeurArc(a)) + "°";
+      gTr.appendChild(t);
+    });
+    marques.forEach(m => gMq.appendChild(el("circle",{class:"marque",cx:m.x,cy:m.y,r:3.4})));
+    gRap.setAttribute("transform","translate("+rap.x.toFixed(1)+","+rap.y.toFixed(1)+") rotate("+rap.rot.toFixed(2)+")");
+    gReg.setAttribute("transform","translate("+reg.x.toFixed(1)+","+reg.y.toFixed(1)+") rotate("+reg.rot.toFixed(2)+")");
+    gRap.style.display = rap.on ? "" : "none";
+    gReg.style.display = reg.on ? "" : "none";
+    document.getElementById("btn-rap2").classList.toggle("eteint", !rap.on);
+    document.getElementById("btn-regle2").classList.toggle("eteint", !reg.on);
+  }
+
+  /* ---- sommets : croisement ou extrémité commune de deux traits ---- */
+  function croisement(A, B){
+    const r = {x:A.x2-A.x1, y:A.y2-A.y1}, q = {x:B.x2-B.x1, y:B.y2-B.y1};
+    const den = r.x*q.y - r.y*q.x;
+    if(Math.abs(den) < 1e-6) return null;
+    const t = ((B.x1-A.x1)*q.y - (B.y1-A.y1)*q.x) / den;
+    const u = ((B.x1-A.x1)*r.y - (B.y1-A.y1)*r.x) / den;
+    if(t < -0.03 || t > 1.03 || u < -0.03 || u > 1.03) return null;
+    return {x:A.x1 + t*r.x, y:A.y1 + t*r.y};
+  }
+  function rayons(T, S){
+    const d = [];
+    [[T.x1,T.y1],[T.x2,T.y2]].forEach(function(b){
+      if(Math.hypot(b[0]-S.x, b[1]-S.y) > 16) d.push(deg(Math.atan2(b[1]-S.y, b[0]-S.x)));
+    });
+    return d;
+  }
+  function sommets(){
+    const out = [];
+    for(let i=0;i<traits.length;i++) for(let j=i+1;j<traits.length;j++){
+      const A = traits[i], B = traits[j];
+      let S = croisement(A, B);
+      if(!S){                                   // extrémités presque confondues
+        const bouts = [[A.x1,A.y1],[A.x2,A.y2]], autres = [[B.x1,B.y1],[B.x2,B.y2]];
+        for(const a of bouts) for(const b of autres)
+          if(Math.hypot(a[0]-b[0], a[1]-b[1]) < 14){ S = {x:(a[0]+b[0])/2, y:(a[1]+b[1])/2}; break; }
+      }
+      if(!S) continue;
+      const d1 = rayons(A, S), d2 = rayons(B, S);
+      if(d1.length && d2.length) out.push({x:S.x, y:S.y, dirs:[d1, d2]});
+    }
+    return out;
+  }
+  function sommetProche(p){
+    let best = null, d = 46;
+    sommets().forEach(function(S){
+      const q = Math.hypot(p.x-S.x, p.y-S.y);
+      if(q < d){ d = q; best = S; }
+    });
+    if(!best) return null;
+    // on retient, de chaque trait, le côté vers lequel pointe le crayon
+    const ap = deg(Math.atan2(p.y-best.y, p.x-best.x));
+    const choisir = ds => ds.reduce((m,x) => Math.abs(norm180(x-ap)) < Math.abs(norm180(m-ap)) ? x : m, ds[0]);
+    return {x:best.x, y:best.y, a1:choisir(best.dirs[0]), a2:choisir(best.dirs[1])};
+  }
+  function valeurArc(S){ return Math.abs(norm180(S.a2 - S.a1)); }
+  function positionValeur(S, r){
+    const bis = S.a1 + norm180(S.a2 - S.a1)/2;
+    return {x:S.x + (r+22)*Math.cos(rad(bis)), y:S.y + (r+22)*Math.sin(rad(bis))};
+  }
+  function cheminArc(S, r){
+    const p1 = {x:S.x + r*Math.cos(rad(S.a1)), y:S.y + r*Math.sin(rad(S.a1))};
+    const p2 = {x:S.x + r*Math.cos(rad(S.a2)), y:S.y + r*Math.sin(rad(S.a2))};
+    const sens = norm180(S.a2 - S.a1) > 0 ? 1 : 0;
+    return "M "+p1.x.toFixed(1)+" "+p1.y.toFixed(1)+" A "+r.toFixed(1)+" "+r.toFixed(1)+" 0 0 "+sens+" "+p2.x.toFixed(1)+" "+p2.y.toFixed(1);
+  }
+
+  /* ---- repères disponibles pour les aimants ---- */
+  function reperes(){
+    const p = [];
+    traits.forEach(t => { p.push({x:t.x1,y:t.y1}); p.push({x:t.x2,y:t.y2}); });
+    marques.forEach(m => p.push({x:m.x,y:m.y}));
+    return p;
+  }
+
+  /* ---- règle : coordonnées locales ---- */
+  function local(p){
+    const c = Math.cos(rad(reg.rot)), s = Math.sin(rad(reg.rot));
+    const dx = p.x - reg.x, dy = p.y - reg.y;
+    return {x:dx*c + dy*s, y:-dx*s + dy*c};
+  }
+  function monde(l){
+    const c = Math.cos(rad(reg.rot)), s = Math.sin(rad(reg.rot));
+    return {x:reg.x + l.x*c - l.y*s, y:reg.y + l.x*s + l.y*c};
+  }
+  function prochesDuBord(tol){
+    return reperes().map(p => ({p, l:local(p)}))
+                    .filter(o => Math.abs(o.l.y - DEC) < tol && o.l.x > -50 && o.l.x < L + 50);
+  }
+  function aimanterRegle(alignement){
+    if(alignement){
+      const pr = prochesDuBord(32).sort((a,b) => a.l.x - b.l.x);
+      if(pr.length >= 2){
+        const A = pr[0].p, B = pr[pr.length-1].p;
+        if(Math.hypot(B.x-A.x, B.y-A.y) > 30){
+          let r = deg(Math.atan2(B.y-A.y, B.x-A.x));
+          if(Math.abs(norm180(r - reg.rot)) > 90) r += 180;
+          reg.rot = r;
+        }
+      }
+    }
+    const pr = prochesDuBord(20).sort((a,b) => Math.abs(a.l.y - DEC) - Math.abs(b.l.y - DEC));
+    if(pr.length){
+      const c = Math.cos(rad(reg.rot)), s = Math.sin(rad(reg.rot)), dy = pr[0].l.y - DEC;
+      reg.x += -s*dy; reg.y += c*dy;
+    }
+  }
+  function aimanterRapporteur(){
+    let best = null, d = 20;
+    reperes().forEach(p => { const q = Math.hypot(p.x-rap.x, p.y-rap.y); if(q < d){ d = q; best = p; } });
+    if(best){ rap.x = best.x; rap.y = best.y; }
+  }
+  function aimanterRotRap(r){
+    for(const p of reperes()){
+      const a = deg(Math.atan2(p.y-rap.y, p.x-rap.x));
+      for(const demi of [0,180]){
+        if(Math.abs(norm180(r - (a+demi))) < 4) return a + demi;
+      }
+    }
+    return r;
+  }
+
+  /* ---- interactions ---- */
+  function coord(e){
+    const r = fig.getBoundingClientRect(), k = r.width / 820;
+    return {x:(e.clientX - r.left)/k, y:(e.clientY - r.top)/k};
+  }
+  const angleVers = (p,o) => deg(Math.atan2(p.y-o.y, p.x-o.x));
+
+  let mode = null, dep = null, ecart = null, bouge = false, pivot = null, pivotLocal = null, sommet = null;
+
+  // rotation de la règle autour d'un pivot fixe (le repère sur lequel le bord est posé)
+  function placerDepuisPivot(){
+    const c = Math.cos(rad(reg.rot)), s = Math.sin(rad(reg.rot));
+    reg.x = pivot.x - (pivotLocal.x*c - pivotLocal.y*s);
+    reg.y = pivot.y - (pivotLocal.x*s + pivotLocal.y*c);
+  }
+  function alignerSurPivot(){
+    // aimant angulaire : le bord se cale sur la direction pivot -> repère (± 6°)
+    let choix = null, ecartMin = 6;
+    reperes().forEach(function(B){
+      if(Math.hypot(B.x - pivot.x, B.y - pivot.y) < 30) return;
+      const d = deg(Math.atan2(B.y - pivot.y, B.x - pivot.x));
+      [d, d + 180].forEach(function(c){
+        const e = Math.abs(norm180(reg.rot - c));
+        if(e < ecartMin){ ecartMin = e; choix = c; }
+      });
+    });
+    if(choix !== null){ reg.rot = choix; placerDepuisPivot(); }
+  }
+
+  svg.addEventListener("pointerdown", function(e){
+    const p = coord(e); dep = p; bouge = false;
+    const c = e.target.closest ? e.target.closest("[data-drag]") : null;
+    const t = c ? c.dataset.drag : null;
+    if(t === "RAP"){ mode = "rap"; ecart = {x:rap.x - p.x, y:rap.y - p.y}; }
+    else if(t === "ROTRAP"){ mode = "rotrap"; ecart = rap.rot - angleVers(p, rap); }
+    else if(t === "REGLE"){ mode = "regle"; ecart = {x:reg.x - p.x, y:reg.y - p.y}; }
+    else if(t === "ROTREGLE"){
+      mode = "rotregle";
+      const anc = prochesDuBord(3).sort((a,b) => Math.abs(a.l.y - DEC) - Math.abs(b.l.y - DEC));
+      pivot = anc.length ? {x:anc[0].p.x, y:anc[0].p.y} : {x:reg.x, y:reg.y};
+      pivotLocal = local(pivot);
+      ecart = reg.rot - angleVers(p, pivot);
+    }
+    else if(t === "TRACE"){ mode = "trace-regle"; }
+    else {
+      const S = sommetProche(p);
+      if(S){ mode = "arc"; sommet = S; } else { mode = "trace"; }
+    }
+    svg.setPointerCapture(e.pointerId);
+    e.preventDefault();
+  });
+
+  function surBord(p){
+    const l = local(p);
+    return monde({x:Math.max(0, Math.min(L, l.x)), y:DEC});   // le trait se pose contre le bord, à l'extérieur
+  }
+  function montrerApercu(a,b){
+    apercu.setAttribute("d","M "+a.x.toFixed(1)+" "+a.y.toFixed(1)+" L "+b.x.toFixed(1)+" "+b.y.toFixed(1));
+    apercu.style.display = "";
+  }
+
+  svg.addEventListener("pointermove", function(e){
+    if(!mode) return;
+    const p = coord(e);
+    if(Math.hypot(p.x - dep.x, p.y - dep.y) > 5) bouge = true;
+    if(mode === "rap"){ rap.x = p.x + ecart.x; rap.y = p.y + ecart.y; aimanterRapporteur(); }
+    else if(mode === "rotrap"){ rap.rot = aimanterRotRap(angleVers(p, rap) + ecart); }
+    else if(mode === "regle"){ reg.x = p.x + ecart.x; reg.y = p.y + ecart.y; aimanterRegle(false); }
+    else if(mode === "rotregle"){
+      reg.rot = angleVers(p, pivot) + ecart;
+      placerDepuisPivot();
+      alignerSurPivot();
+    }
+    else if(mode === "arc"){
+      const r = Math.max(20, Math.min(95, Math.hypot(p.x-sommet.x, p.y-sommet.y)));
+      apercu.setAttribute("d", cheminArc(sommet, r));
+      apercu.style.display = "";
+      const q = positionValeur(sommet, r);
+      apVal.setAttribute("x", q.x.toFixed(1)); apVal.setAttribute("y", q.y.toFixed(1));
+      apVal.textContent = Math.round(valeurArc(sommet)) + "°";
+      apVal.style.display = "";
+    }
+    else if(mode === "trace" && bouge){ montrerApercu(dep, p); }
+    else if(mode === "trace-regle" && bouge){ montrerApercu(surBord(dep), surBord(p)); }
+    rendre();
+  });
+
+  function relacher(e){
+    if(!mode) return;
+    const p = coord(e);
+    apercu.style.display = "none"; apVal.style.display = "none";
+    if(mode === "arc"){
+      const r = Math.max(20, Math.min(95, Math.hypot(p.x-sommet.x, p.y-sommet.y)));
+      memoriser();
+      arcs.push({x:sommet.x, y:sommet.y, a1:sommet.a1, a2:sommet.a2, r:bouge ? r : 34});
+    }else if(mode === "trace"){
+      memoriser();
+      if(bouge && Math.hypot(p.x-dep.x, p.y-dep.y) > 12) traits.push({x1:dep.x, y1:dep.y, x2:p.x, y2:p.y});
+      else marques.push({x:dep.x, y:dep.y});
+    }else if(mode === "trace-regle"){
+      const a = surBord(dep), b = surBord(p);
+      memoriser();
+      if(bouge && Math.hypot(b.x-a.x, b.y-a.y) > 12) traits.push({x1:a.x, y1:a.y, x2:b.x, y2:b.y});
+      else marques.push({x:a.x, y:a.y});
+    }else if(!bouge){
+      memoriser();
+      marques.push({x:dep.x, y:dep.y});          // un clic sur un instrument pose un repère
+    }else if(mode === "rotregle"){
+      aimanterRegle(true);                        // calage final du bord sur les repères
+    }
+    mode = null;
+    rendre();
+  }
+  svg.addEventListener("pointerup", relacher);
+  svg.addEventListener("pointercancel", function(){ mode = null; apercu.style.display = "none"; apVal.style.display = "none"; });
+
+  document.getElementById("btn-rap2").addEventListener("click", function(){
+    rap.on = !rap.on;
+    if(rap.on){ rap.x = 410; rap.y = 330; rap.rot = 0; aimanterRapporteur(); }
+    rendre();
+  });
+  document.getElementById("btn-regle2").addEventListener("click", function(){
+    reg.on = !reg.on;
+    if(reg.on){ reg.x = 150; reg.y = 520; reg.rot = 0; }
+    rendre();
+  });
+  document.getElementById("btn-reset2").addEventListener("click", function(){
+    memoriser(); traits = []; marques = []; arcs = []; rap.on = false; reg.on = false; rendre();
+  });
+
+  document.addEventListener("keydown", function(e){
+    if((e.ctrlKey || e.metaKey) && (e.key === "z" || e.key === "Z") && fig.style.display !== "none"){
+      e.preventDefault(); annuler();
+    }
+  });
+
+  construireRapporteur(gRap);
+  construireRegle(gReg);
+  rendre();
+})();
+
+/* ---------------- navigation entre les pages ---------------- */
+(function(){
+  "use strict";
+  const pages = [
+    {el:document.getElementById("figure"),  titre:"Géométrie · les noms des angles", court:"Les noms des angles"},
+    {el:document.getElementById("figure2"), titre:"Géométrie · tracer un angle",     court:"Tracer un angle"}
+  ];
+  let i = 0;
+  const prec = document.getElementById("btn-prec"), suiv = document.getElementById("btn-suiv");
+  function afficher(n){
+    i = n;
+    pages.forEach((p,k) => { p.el.style.display = (k === i) ? "" : "none"; });
+    document.getElementById("titre").textContent = pages[i].titre;
+    prec.style.display = i > 0 ? "" : "none";
+    suiv.style.display = i < pages.length-1 ? "" : "none";
+    if(i > 0){ prec.title = pages[i-1].court; prec.setAttribute("aria-label", pages[i-1].court); }
+    if(i < pages.length-1){ suiv.title = pages[i+1].court; suiv.setAttribute("aria-label", pages[i+1].court); }
+    window.dispatchEvent(new Event("resize"));
+  }
+  prec.addEventListener("click", () => afficher(i-1));
+  suiv.addEventListener("click", () => afficher(i+1));
+  afficher(0);
 })();
 </script>
 </body>
