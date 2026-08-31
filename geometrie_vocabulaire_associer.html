@@ -1,0 +1,374 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Espace – vocabulaire</title>
+<style>
+:root{
+  --encre:#1a1a1a;
+  --navy:#1F3A5F;
+  --bleu:#2E75B6;
+  --magenta:#E6007E;
+  --filet:#c9c9c9;
+  --bleu-pastille:#93c0f4;
+  --bleu-fonce:#1f4fa8;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:#e9e9e9;color:var(--encre);
+  font-family:"Avenir Next","Avenir","Segoe UI","Trebuchet MS",Verdana,sans-serif;
+  font-size:0;line-height:1.5;
+  -webkit-user-select:none;user-select:none;
+}
+.barre{
+  position:sticky;top:0;z-index:10;
+  display:flex;gap:10px;align-items:center;justify-content:center;
+  padding:8px;background:var(--navy);color:#fff;font-size:10pt;
+}
+.barre button{font:inherit;font-weight:600;cursor:pointer;background:#fff;color:var(--navy);border:none;border-radius:3px;
+  padding:0;width:30px;height:30px;line-height:1;display:inline-flex;align-items:center;justify-content:center;font-size:13pt}
+.barre button svg{display:block}
+.barre button:focus-visible{outline:2px solid var(--magenta);outline-offset:2px}
+.barre span{opacity:.8}
+.barre .zoom-outils{opacity:1}
+.zoom-outils{display:flex;gap:6px;align-items:center}
+.zoom-taux{font-variant-numeric:tabular-nums;min-width:44px;text-align:center;opacity:.9}
+
+/* ---------- page A4 ---------- */
+.page{
+  position:relative;zoom:var(--z,1);width:210mm;height:292mm;
+  margin:14px auto;padding:12mm 12mm 18mm 20mm;
+  background:#fff;overflow:hidden;font-size:11.5pt;
+}
+h1{font-size:15pt;font-weight:700;text-align:center;margin:0;letter-spacing:.1px}
+.sur-titre{text-align:center;font-size:11.5pt;margin:0}
+.etiquette-corrige{
+  display:none;position:absolute;top:13mm;right:12mm;margin:0;
+  color:var(--magenta);font-weight:700;font-size:11pt;letter-spacing:1px;
+}
+body.corrige .etiquette-corrige{display:block}
+p{margin:0 0 3mm}
+.consigne{font-weight:700;margin:0}
+.el{position:absolute;margin:0}
+.el.fig svg{display:block;width:100%;height:auto}
+
+/* ---------- réserve de pastilles ---------- */
+.reserve{
+  display:flex;flex-wrap:nowrap;gap:1.6mm;justify-content:center;align-items:center;
+  height:10mm;padding:1.4mm;
+  border:1px solid var(--filet);border-radius:3mm;
+}
+.mot{
+  display:inline-flex;align-items:center;justify-content:center;
+  padding:1mm 2.4mm;font-size:11pt;font-weight:400;white-space:nowrap;
+  color:#0d1526;background:var(--bleu-pastille);
+  border:1px solid rgba(31,79,168,.35);border-radius:2mm;
+  cursor:grab;touch-action:none;
+}
+.zone .mot{width:100%;height:100%;padding:0;border-radius:2.3mm}
+.liste-mots{display:none;margin:0;font-size:13.5pt;text-align:justify}
+.mot.attrape{cursor:grabbing;box-shadow:0 2px 8px rgba(0,0,0,.25);z-index:50}
+.mot.choisi{box-shadow:0 0 0 3px var(--bleu-fonce)}
+
+/* ---------- grille des figures ---------- */
+.grille{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:repeat(3,1fr);
+  height:217mm;gap:0 6mm}
+.cellule{display:flex;flex-direction:column;align-items:center;justify-content:center}
+.colonne{display:flex;flex-direction:column;align-items:center}
+.duo{display:flex;align-items:flex-start;gap:2mm}
+.duo > .zone{min-width:32mm}
+.zone.milieu{margin-top:15mm}
+.fig{display:block;width:100%;height:auto}
+.fig.etroite{width:56mm}
+.fig.reduite{width:60mm}
+.cellule.gauche{align-items:flex-start;padding-left:9mm}
+.cellule.gauche .zone{margin-top:0.5mm;margin-left:4mm}
+.zone{
+  display:inline-flex;align-items:center;justify-content:center;
+  height:10mm;
+  border:1.3px dashed var(--bleu);border-radius:2.5mm;
+  font-size:10.5pt;
+}
+.zone.survol{background:rgba(46,117,182,.12)}
+.zone.oblique{transform:rotate(-40deg);min-width:30mm;margin-left:-1mm}
+.zone .rep{display:none;color:var(--magenta);font-weight:700;font-size:13pt}
+.zone.juste{border-color:#2f9e57;background:rgba(47,158,87,.10)}
+.zone.faux{border-color:#d8402a;background:rgba(216,64,42,.08)}
+.verdict{
+  position:absolute;right:-7mm;top:50%;transform:translateY(-50%);
+  font-size:13pt;font-weight:700;line-height:1;
+}
+.verdict.ok{color:#2f9e57}
+.verdict.ko{color:#d8402a}
+body.corrige .zone .mot{display:none}
+body.corrige .zone .rep{display:inline}
+
+/* ---------- pied de page ---------- */
+.pied{
+  position:absolute;left:20mm;right:12mm;bottom:10mm;
+  padding-top:2.5mm;border-top:1px solid var(--filet);
+  display:flex;justify-content:space-between;font-size:9.5pt;color:#333;
+}
+
+@page{size:A4;margin:0}
+@media print{
+  html,body{width:210mm;margin:0;padding:0;overflow:hidden}
+  body{background:#fff}
+  .barre{display:none}
+  .reserve{display:none}
+  .liste-mots{display:block}
+  .mot{display:none}
+  .zone{border:none;border-bottom:1.3px dotted var(--encre);border-radius:0;
+        height:7mm;align-items:flex-end;padding-bottom:0.6mm}
+  .zone.juste,.zone.faux{background:none;border-color:transparent;border-bottom-color:var(--encre)}
+  .verdict{display:none}
+  .page{zoom:1;margin:0;page-break-after:always}
+  .page:last-of-type{page-break-after:auto}
+}
+@media screen{ .page{box-shadow:0 1px 6px rgba(0,0,0,.18)} }
+
+.page-corrige{display:none}
+@media print{
+  body.corrige .page:not(.page-corrige) .etiquette-corrige{display:none}
+  body.corrige .page:not(.page-corrige) .zone .rep{display:none}
+  body.corrige .page:not(.page-corrige) .zone .mot{display:inline-flex}
+  .page-corrige{display:block}
+  .page-corrige .etiquette-corrige{display:block}
+  .page-corrige .zone .rep{display:inline}
+  .page-corrige .zone .mot{display:none}
+}
+</style>
+</head>
+<body>
+
+<div class="barre">
+  <button id="btn" type="button" title="Afficher le corrigé" aria-label="Afficher le corrigé"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.3 8S3.6 3.8 8 3.8 14.7 8 14.7 8 12.4 12.2 8 12.2 1.3 8 1.3 8z"/><circle cx="8" cy="8" r="2.1"/></svg></button>
+  <button id="reinit" type="button" title="Remettre les pastilles" aria-label="Remettre les pastilles"><svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13.5 8a5.5 5.5 0 1 1-1.6-3.9"/><path d="M13.6 2.2v3.1h-3.1"/></svg></button>
+  <span class="zoom-outils">
+    <button id="zoom-moins" type="button" title="Réduire">−</button>
+    <span class="zoom-taux" id="zoom-taux">100 %</span>
+    <button id="zoom-plus" type="button" title="Agrandir">+</button>
+    <button id="zoom-page" type="button" title="Page entière" aria-label="Page entière"><svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3.2" y="1.6" width="9.6" height="12.8" rx="1.2"/><path d="M8 4.6v6.8"/><path d="M6.3 6.3L8 4.6l1.7 1.7"/><path d="M6.3 9.7L8 11.4l1.7-1.7"/></svg></button>
+    <button id="plein-ecran" type="button" title="Plein écran" aria-label="Plein écran"><svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6V2h4"/><path d="M10 2h4v4"/><path d="M14 10v4h-4"/><path d="M6 14H2v-4"/></svg></button>
+  </span>
+</div>
+
+<section class="page" data-corrige>
+  <h1 class="el" style="left:20mm;top:12mm;width:170mm">Espace</h1>
+  <p class="el sur-titre" style="left:20mm;top:19mm;width:170mm">Vocabulaire</p>
+  <p class="etiquette-corrige">CORRIGÉ</p>
+  <p class="el consigne" style="left:20mm;top:27mm;width:30mm">Associer :</p>
+  <p class="el liste-mots" style="left:20mm;top:34mm;width:170mm">Côté - Diagonale - Diamètre - Droite - Largeur - Longueur - Rayon - Segment</p>
+  <div class="el reserve" id="reserve" style="left:20mm;top:34mm;width:170mm">
+    <span class="mot" data-mot="Côté">Côté</span>
+    <span class="mot" data-mot="Diagonale">Diagonale</span>
+    <span class="mot" data-mot="Diamètre">Diamètre</span>
+    <span class="mot" data-mot="Droite">Droite</span>
+    <span class="mot" data-mot="Largeur">Largeur</span>
+    <span class="mot" data-mot="Longueur">Longueur</span>
+    <span class="mot" data-mot="Rayon">Rayon</span>
+    <span class="mot" data-mot="Segment">Segment</span>
+  </div>
+  <div class="el fig" style="left:23mm;top:54.5mm;width:80mm"><svg viewBox="0 0 80 40"><line x1="8" y1="8" x2="72" y2="34" stroke="#1a1a1a" stroke-width="0.5"/></svg></div>
+  <div class="el fig" style="left:113mm;top:54mm;width:83mm"><svg viewBox="0 0 80 40"><line x1="12" y1="8" x2="68" y2="31" stroke="#1a1a1a" stroke-width="0.5"/><line x1="12.9" y1="5.7" x2="11.1" y2="10.3" stroke="#1a1a1a" stroke-width="0.5"/><line x1="68.9" y1="28.7" x2="67.1" y2="33.3" stroke="#1a1a1a" stroke-width="0.5"/></svg></div>
+  <div class="el fig" style="left:11.5mm;top:104.5mm;width:92.5mm"><svg viewBox="0 0 80 44"><circle cx="40" cy="22" r="18" fill="none" stroke="#1a1a1a" stroke-width="0.5"/><line x1="40" y1="22" x2="52.7" y2="34.7" stroke="#1a1a1a" stroke-width="0.5"/></svg></div>
+  <div class="el fig" style="left:94mm;top:106.5mm;width:88.5mm"><svg viewBox="0 0 80 44"><circle cx="40" cy="22" r="18" fill="none" stroke="#1a1a1a" stroke-width="0.5"/><line x1="22" y1="22" x2="58" y2="22" stroke="#1a1a1a" stroke-width="0.5"/></svg></div>
+  <div class="el fig" style="left:21mm;top:177.5mm;width:70mm"><svg viewBox="0 0 56 40"><rect x="4" y="4" width="48" height="32" fill="none" stroke="#1a1a1a" stroke-width="0.5"/></svg></div>
+  <div class="el fig" style="left:110mm;top:208mm;width:67mm"><svg viewBox="0 0 56 40"><rect x="10" y="2" width="36" height="36" fill="none" stroke="#1a1a1a" stroke-width="0.5"/><line x1="10" y1="38" x2="46" y2="2" stroke="#2E75B6" stroke-width="0.5" stroke-dasharray="2 1.6"/></svg></div>
+  <span class="el zone" data-rep="Droite" style="left:34.5mm;top:85mm;width:34mm"><span class="rep">Droite</span><span class="verdict"></span></span>
+  <span class="el zone" data-rep="Segment" style="left:129.5mm;top:87.5mm;width:34mm"><span class="rep">Segment</span><span class="verdict"></span></span>
+  <span class="el zone" data-rep="Rayon" style="left:40mm;top:155.5mm;width:34mm"><span class="rep">Rayon</span><span class="verdict"></span></span>
+  <span class="el zone" data-rep="Diamètre" style="left:122.5mm;top:156.5mm;width:34mm"><span class="rep">Diamètre</span><span class="verdict"></span></span>
+  <span class="el zone" data-rep="Largeur" style="left:90.5mm;top:194mm;width:32mm"><span class="rep">Largeur</span><span class="verdict"></span></span>
+  <span class="el zone" data-rep="Longueur" style="left:41mm;top:228mm;width:32mm"><span class="rep">Longueur</span><span class="verdict"></span></span>
+  <span class="el zone" data-rep="Diagonale" style="left:167.5mm;top:220.5mm;width:30mm;transform:rotate(-40deg)"><span class="rep">Diagonale</span><span class="verdict"></span></span>
+  <span class="el zone" data-rep="Côté" style="left:128mm;top:259mm;width:32mm"><span class="rep">Côté</span><span class="verdict"></span></span>
+
+  <div class="pied"><span>Espace - vocabulaire relatif aux figures planes et aux solides - UOG/AM</span><span>1</span></div>
+</section>
+
+<script>
+/* corrigé : page additionnelle à l'impression, figée dans l'état initial */
+document.querySelectorAll('.page[data-corrige]').forEach(p => {
+  const c = p.cloneNode(true);
+  c.removeAttribute('data-corrige');
+  c.classList.add('page-corrige');
+  c.querySelectorAll('.mot, #reserve, [id]').forEach(e => e.removeAttribute('id'));
+  document.body.appendChild(c);
+});
+
+/* ---------- bouton : corrigé, ou validation quand tout est placé ---------- */
+const btn = document.getElementById('btn');
+const OEIL = '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.3 8S3.6 3.8 8 3.8 14.7 8 14.7 8 12.4 12.2 8 12.2 1.3 8 1.3 8z"/><circle cx="8" cy="8" r="2.1"/></svg>';
+const OEIL_B = '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.3 8S3.6 3.8 8 3.8 14.7 8 14.7 8 12.4 12.2 8 12.2 1.3 8 1.3 8z"/><circle cx="8" cy="8" r="2.1"/><path d="M2.5 13.5L13.5 2.5"/></svg>';
+const COCHE = '<svg viewBox=\"0 0 16 16\" width=\"16\" height=\"16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M3 8.6l3.4 3.4L13 5\"/></svg>';
+let complet = false, valide = null;
+function majBouton(){
+  const on = document.body.classList.contains('corrige');
+  if (complet && !on){ btn.innerHTML = COCHE; btn.title = 'Valider'; }
+  else { btn.innerHTML = on ? OEIL_B : OEIL; btn.title = on ? 'Masquer le corrigé' : 'Afficher le corrigé'; }
+  btn.setAttribute('aria-label', btn.title);
+}
+btn.addEventListener('click', () => {
+  if (complet && !document.body.classList.contains('corrige')){ if (valide) valide(); return; }
+  document.body.classList.toggle('corrige');
+  majBouton();
+});
+
+/* ---------- glisser-déposer des pastilles (souris, tactile, TBI) ---------- */
+(function(){
+  const reserve = document.getElementById('reserve');
+  const zones = [...document.querySelectorAll('.page[data-corrige] .zone')];
+  const mots = [...document.querySelectorAll('#reserve .mot')];
+  let choisi = null;
+
+  let depose = function(mot, cible){
+    if (!cible || cible === reserve) { reserve.appendChild(mot); return; }
+    const occupant = cible.querySelector('.mot');
+    if (occupant && occupant !== mot) reserve.appendChild(occupant);
+    cible.appendChild(mot);
+  };
+  function cibleSous(x, y){
+    for (const z of zones){
+      const r = z.getBoundingClientRect();
+      if (x >= r.left - 12 && x <= r.right + 12 && y >= r.top - 12 && y <= r.bottom + 12) return z;
+    }
+    return null;
+  }
+  function selectionne(mot){
+    if (choisi === mot){ mot.classList.remove('choisi'); choisi = null; return; }
+    if (choisi) choisi.classList.remove('choisi');
+    choisi = mot; mot.classList.add('choisi');
+  }
+
+  mots.forEach(mot => {
+    let fantome = null, x0 = 0, y0 = 0, ex = 0, ey = 0, bouge = false;
+
+    mot.addEventListener('pointerdown', e => {
+      if (document.body.classList.contains('corrige')) return;
+      e.preventDefault();
+      const r = mot.getBoundingClientRect();
+      x0 = e.clientX; y0 = e.clientY; ex = e.clientX - r.left; ey = e.clientY - r.top; bouge = false;
+      /* le fantôme vit hors de la page (qui est mise à l'échelle par le zoom) */
+      const k = r.width / mot.offsetWidth;        /* la page est mise à l'échelle par le zoom */
+      fantome = mot.cloneNode(true);
+      fantome.classList.add('attrape');
+      Object.assign(fantome.style, {position:'fixed', margin:'0', left:r.left+'px', top:r.top+'px',
+                                    width:mot.offsetWidth+'px', height:mot.offsetHeight+'px',
+                                    transform:'scale('+k+')', transformOrigin:'top left',
+                                    pointerEvents:'none'});
+      document.body.appendChild(fantome);
+      mot.style.visibility = 'hidden';
+      mot.setPointerCapture(e.pointerId);
+    });
+
+    mot.addEventListener('pointermove', e => {
+      if (!fantome) return;
+      if (Math.abs(e.clientX - x0) > 4 || Math.abs(e.clientY - y0) > 4) bouge = true;
+      fantome.style.left = (e.clientX - ex) + 'px';
+      fantome.style.top  = (e.clientY - ey) + 'px';
+      const z = cibleSous(e.clientX, e.clientY);
+      zones.forEach(zz => zz.classList.toggle('survol', zz === z));
+    });
+
+    mot.addEventListener('pointerup', e => {
+      if (!fantome) return;
+      fantome.remove(); fantome = null;
+      mot.style.visibility = '';
+      zones.forEach(zz => zz.classList.remove('survol'));
+      if (bouge) depose(mot, cibleSous(e.clientX, e.clientY));
+      else selectionne(mot);            /* simple clic : mode sélection, pratique au TBI */
+    });
+    mot.addEventListener('pointercancel', () => {
+      if (fantome){ fantome.remove(); fantome = null; mot.style.visibility = ''; }
+    });
+  });
+
+  zones.forEach(z => z.addEventListener('click', () => {
+    if (!choisi) return;
+    depose(choisi, z);
+    choisi.classList.remove('choisi'); choisi = null;
+  }));
+  reserve.addEventListener('click', e => {
+    if (!choisi || e.target.closest('.mot') === choisi) return;
+    depose(choisi, reserve);
+    choisi.classList.remove('choisi'); choisi = null;
+  });
+
+  function etat(){
+    zones.forEach(z => {
+      z.classList.remove('juste','faux');
+      const v = z.querySelector('.verdict');
+      if (v){ v.textContent = ''; v.className = 'verdict'; }
+    });
+    complet = zones.every(z => z.querySelector('.mot'));
+    majBouton();
+  }
+  valide = () => {
+    zones.forEach(z => {
+      const m = z.querySelector('.mot'), v = z.querySelector('.verdict');
+      const juste = !!m && m.dataset.mot === z.dataset.rep;
+      z.classList.toggle('juste', juste);
+      z.classList.toggle('faux', !!m && !juste);
+      if (v){ v.textContent = juste ? '✓' : '✗'; v.className = 'verdict ' + (juste ? 'ok' : 'ko'); }
+    });
+  };
+  const deposeInitial = depose;
+  depose = function(mot, cible){ deposeInitial(mot, cible); etat(); };
+
+  document.getElementById('reinit').addEventListener('click', () => {
+    mots.forEach(m => reserve.appendChild(m));
+    if (choisi){ choisi.classList.remove('choisi'); choisi = null; }
+    etat();
+  });
+  etat();
+})();
+
+/* ---------- zoom écran (ignoré à l'impression) ---------- */
+(function(){
+  const racine = document.documentElement;
+  const barre = document.querySelector('.barre');
+  const taux = document.getElementById('zoom-taux');
+  let z = 1;
+  function applique(v){
+    z = Math.max(0.15, Math.min(v, 4));
+    racine.style.setProperty('--z', z);
+    if (taux) taux.textContent = Math.round(z * 100) + ' %';
+  }
+  function pageEntiere(){
+    racine.style.setProperty('--z', 1);
+    const p = document.querySelector('.page');
+    if (!p) return;
+    const r = p.getBoundingClientRect();
+    const hBarre = barre ? barre.getBoundingClientRect().height : 0;
+    applique(Math.min((window.innerWidth - 36) / r.width,
+                      (window.innerHeight - hBarre - 36) / r.height));
+  }
+  document.getElementById('zoom-moins').addEventListener('click', () => applique(z / 1.15));
+  document.getElementById('zoom-plus').addEventListener('click', () => applique(z * 1.15));
+  document.getElementById('zoom-page').addEventListener('click', pageEntiere);
+  let t; window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(pageEntiere, 150); });
+  pageEntiere();
+
+  /* plein écran */
+  const bpe = document.getElementById('plein-ecran');
+  if (bpe) {
+    bpe.addEventListener('click', () => {
+      if (document.fullscreenElement) document.exitFullscreen();
+      else document.documentElement.requestFullscreen();
+    });
+    document.addEventListener('fullscreenchange', () => {
+      const plein = !!document.fullscreenElement;
+      bpe.innerHTML = plein
+        ? '<svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2v4H2"/><path d="M14 6h-4V2"/><path d="M10 14v-4h4"/><path d="M2 10h4v4"/></svg>'
+        : '<svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6V2h4"/><path d="M10 2h4v4"/><path d="M14 10v4h-4"/><path d="M6 14H2v-4"/></svg>';
+      bpe.title = plein ? 'Quitter le plein écran' : 'Plein écran';
+      setTimeout(pageEntiere, 120);
+    });
+  }
+})();
+</script>
+</body>
+</html>
