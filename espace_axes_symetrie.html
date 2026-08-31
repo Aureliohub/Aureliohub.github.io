@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Espace – axes de symétrie</title>
+<style>
+:root{
+  --encre:#1a1a1a;--navy:#1F3A5F;--bleu:#2E75B6;--magenta:#E6007E;--filet:#c9c9c9;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:#e9e9e9;color:var(--encre);
+  font-family:"Avenir Next","Avenir","Segoe UI","Trebuchet MS",Verdana,sans-serif;
+  font-size:0;line-height:1.5;
+}
+.barre{
+  position:sticky;top:0;z-index:10;
+  display:flex;gap:10px;align-items:center;justify-content:center;
+  padding:8px;background:var(--navy);color:#fff;font-size:10pt;
+}
+.barre button{font:inherit;font-weight:600;cursor:pointer;background:#fff;color:var(--navy);border:none;border-radius:3px;
+  padding:0;width:30px;height:30px;line-height:1;display:inline-flex;align-items:center;justify-content:center;font-size:13pt}
+.barre button svg{display:block}
+.barre button:focus-visible{outline:2px solid var(--magenta);outline-offset:2px}
+.barre span{opacity:.8}
+.barre .zoom-outils{opacity:1}
+.zoom-outils{display:flex;gap:6px;align-items:center}
+.zoom-taux{font-variant-numeric:tabular-nums;min-width:44px;text-align:center;opacity:.9}
+
+.page{
+  position:relative;zoom:var(--z,1);width:210mm;height:292mm;
+  margin:14px auto;padding:12mm 12mm 18mm 20mm;
+  background:#fff;overflow:hidden;font-size:11.5pt;
+}
+h1{font-size:15pt;font-weight:700;text-align:center;margin:0 0 1mm;letter-spacing:.1px}
+.sur-titre{text-align:center;font-size:11.5pt;margin:0 0 6mm}
+.etiquette-corrige{
+  display:none;position:absolute;top:13mm;right:12mm;margin:0;
+  color:var(--magenta);font-weight:700;font-size:11pt;letter-spacing:1px;
+}
+body.corrige .etiquette-corrige{display:block}
+p{margin:0 0 4mm}
+
+.exo-titre{display:flex;gap:3mm;align-items:flex-start;margin-bottom:2mm}
+.exo-titre .consigne{font-weight:700}
+.pastille{flex:0 0 auto;width:15px;height:15px;margin-top:2px}
+.item{margin:0 0 2mm 8mm}
+
+.fig{display:block;margin:2mm auto 0;width:170mm;height:auto}
+.grille{display:grid;gap:3mm 6mm;margin-top:3mm}
+.g2{grid-template-columns:1fr 1fr}
+.g3{grid-template-columns:1fr 1fr 1fr}
+.case{display:flex;flex-direction:column;align-items:center}
+.case svg{display:block;width:100%;height:auto}
+.grille.haute{height:172mm;margin-top:8mm;grid-template-rows:1fr 1fr;gap:0 18mm}
+.grille.haute .case svg{width:auto;height:40mm;margin:0 auto}
+.grille.haute3{height:200mm;grid-template-rows:repeat(3,1fr);row-gap:12mm}
+.grille.haute3 .case svg{width:46mm}
+.case .champ{margin:1.5mm 0 0;font-size:10pt;width:100%}
+.champ .ligne{display:inline-block;width:auto;min-width:34mm;border-bottom:1px dotted var(--encre);
+  text-align:center;color:var(--magenta);font-weight:700;font-size:11pt}
+.champ .ligne.court{min-width:16mm}
+.nom-forme{font-size:10.5pt;font-weight:700;margin:0 0 1mm}
+.ligne{display:block;width:90%;margin-top:1mm;border-bottom:1px dotted var(--encre);
+  text-align:center;color:var(--magenta);font-weight:700;font-size:11pt;min-height:6mm}
+.ligne i{font-style:normal;visibility:hidden}
+body.corrige .ligne i{visibility:visible}
+.page-corrige .ligne i{visibility:visible}
+.materiel{margin:0 0 3mm 8mm;font-size:10.5pt}
+.item{margin:0 0 2mm 8mm}
+.sol{visibility:hidden}
+body.corrige .sol{visibility:visible}
+
+.pied{
+  position:absolute;left:20mm;right:12mm;bottom:10mm;
+  padding-top:2.5mm;border-top:1px solid var(--filet);
+  display:flex;justify-content:space-between;font-size:9.5pt;color:#333;
+}
+
+@page{size:A4;margin:0}
+@media print{
+  html,body{width:210mm;margin:0;padding:0;overflow:hidden}
+  body{background:#fff}
+  .barre{display:none}
+  .page{zoom:1;margin:0;page-break-after:always}
+  .page:last-of-type{page-break-after:auto}
+}
+@media screen{ .page{box-shadow:0 1px 6px rgba(0,0,0,.18)} }
+
+.page-corrige{display:none}
+@media print{
+  body.corrige .page:not(.page-corrige) .etiquette-corrige{display:none}
+  body.corrige .page:not(.page-corrige) .sol{visibility:hidden}
+  body.corrige .page:not(.page-corrige) .ligne i{visibility:hidden}
+  .page-corrige{display:block}
+  .page-corrige .etiquette-corrige{display:block}
+  .page-corrige .sol{visibility:visible}
+}
+</style>
+</head>
+<body>
+
+<div class="barre">
+  <button id="btn" type="button" title="Afficher le corrigé" aria-label="Afficher le corrigé"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.3 8S3.6 3.8 8 3.8 14.7 8 14.7 8 12.4 12.2 8 12.2 1.3 8 1.3 8z"/><circle cx="8" cy="8" r="2.1"/></svg></button>
+  <span class="zoom-outils">
+    <button id="zoom-moins" type="button" title="Réduire">−</button>
+    <span class="zoom-taux" id="zoom-taux">100 %</span>
+    <button id="zoom-plus" type="button" title="Agrandir">+</button>
+    <button id="zoom-page" type="button" title="Page entière" aria-label="Page entière"><svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3.2" y="1.6" width="9.6" height="12.8" rx="1.2"/><path d="M8 4.6v6.8"/><path d="M6.3 6.3L8 4.6l1.7 1.7"/><path d="M6.3 9.7L8 11.4l1.7-1.7"/></svg></button>
+    <button id="plein-ecran" type="button" title="Plein écran" aria-label="Plein écran"><svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6V2h4"/><path d="M10 2h4v4"/><path d="M14 10v4h-4"/><path d="M6 14H2v-4"/></svg></button>
+  </span>
+</div>
+
+<!-- ══════════════════ PAGE 1 ══════════════════ -->
+<section class="page" data-corrige>
+  <h1>Espace</h1>
+  <p class="sur-titre">Axes de symétrie</p>
+  <p class="etiquette-corrige">CORRIGÉ</p>
+
+  <div class="exo-titre">
+    <svg class="pastille" viewBox="0 0 16 16" aria-hidden="true"><rect width="16" height="16" rx="2" fill="#1F3A5F"/><text x="8" y="12" text-anchor="middle" fill="#fff" font-size="11" font-weight="700" font-family="Verdana,sans-serif">1</text></svg>
+    <span class="consigne">Panneaux de signalisation</span>
+  </div>
+  <p class="materiel">Matériel : miroir</p>
+  <p class="item">a) Indiquez le nom de ces quatre panneaux de signalisation.</p>
+  <p class="item">b) Placez le miroir sur chaque panneau de façon que la partie réfléchie et la partie originale forment le panneau entier. Une fois que vous avez fait cela, tracez une ligne droite le long du miroir, c’est un axe de symétrie. Y a-t-il plusieurs axes de symétrie par panneau de signalisation ?</p>
+
+  <div class="grille g2 haute">
+    <div class="case">
+      <svg viewBox="-7 -7 174.41333 154.67999" role="img" aria-label="panneau"><g transform="matrix(1.3333333,0,0,-1.3333333,0,140.68)"><g transform="scale(0.1)"><path style="fill:#ee2c30;fill-opacity:1;fill-rule:nonzero;stroke:none" d="M 49.6875,0 H 1153.44 v 0 c 38.2,0 62.07,41.3281 42.99,74.4141 v 0 L 644.516,1030.29 v 0 c -19.082,33.08 -66.817,33.08 -85.899,0 v 0 L 6.70313,74.4141 v 0 C -12.3789,41.3281 11.4883,0 49.6875,0 v 0" /><path transform="translate(601.6,343.4) scale(1.045) translate(-601.6,-343.4)" style="fill:none;stroke:#231f20;stroke-width:5;stroke-linejoin:round" d="M 49.6875,0 H 1153.44 c 38.2,0 62.07,41.3281 42.99,74.4141 L 644.516,1030.29 c -19.082,33.08 -66.817,33.08 -85.899,0 L 6.70313,74.4141 C -12.3789,41.3281 11.4883,0 49.6875,0 Z" /><path style="fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:none" d="M 135.582,99.2188 H 1067.55 L 601.566,906.262 135.582,99.2188" /><path style="fill:#231f20;fill-opacity:1;fill-rule:nonzero;stroke:none" d="M 658.227,640.227 630.043,318.098 v 0 c -1.875,-7.278 -8.281,-14.582 -15.156,-18.106 -9.684,-3.75 -23.438,-3.07 -30.782,4.461 -12.058,14.582 -8.531,35.246 -11.589,54.289 v 0 l -27.719,285.223 v 0 c 1.652,20.449 16.125,40.176 36.25,46.769 36.937,14.539 79.777,-12.707 77.18,-50.507 v 0" /><path style="fill:#231f20;fill-opacity:1;fill-rule:nonzero;stroke:none" d="m 601.566,269.316 c 31.321,0 56.7,-25.418 56.7,-56.699 0,-31.289 -25.379,-56.699 -56.7,-56.699 -31.285,0 -56.699,25.41 -56.699,56.699 0,31.281 25.414,56.699 56.699,56.699 v 0" /></g></g><g class="sol" fill="none"><g stroke="#ffffff" stroke-width="2.3" stroke-linecap="round"><line x1="80.2" y1="0" x2="80.2" y2="140.7"/></g><g stroke="#111111" stroke-width="0.9" stroke-dasharray="4 2.6"><line x1="80.2" y1="0" x2="80.2" y2="140.7"/></g></g></svg>
+      <p class="champ">nom : <span class="ligne"><i>Autres dangers</i></span></p>
+      <p class="champ">nombre d’axes de symétrie : <span class="ligne court"><i>1</i></span></p>
+    </div>
+    <div class="case">
+      <svg viewBox="-18 -18 638 638" role="img" aria-label="panneau"><clipPath id="c"><circle cx="301" cy="301" r="275"/></clipPath> <circle cx="301" cy="301" r="300" fill="#ee2c30" stroke="none"/><circle cx="301" cy="301" r="312" fill="none" stroke="#231f20" stroke-width="5"/> <path clip-path="url(#c)" fill="none" stroke="#fff" stroke-width="120" d="M16,301 586,301"/><g class="sol" fill="none"><g stroke="#ffffff" stroke-width="18.2" stroke-linecap="round"><line x1="301" y1="-10" x2="301" y2="612"/><line x1="-10" y1="301" x2="612" y2="301"/></g><g stroke="#111111" stroke-width="7.0" stroke-dasharray="26 18"><line x1="301" y1="-10" x2="301" y2="612"/><line x1="-10" y1="301" x2="612" y2="301"/></g></g></svg>
+      <p class="champ">nom : <span class="ligne"><i>Sens interdit</i></span></p>
+      <p class="champ">nombre d’axes de symétrie : <span class="ligne court"><i>2</i></span></p>
+    </div>
+    <div class="case">
+      <svg viewBox="0 0 94.866669 94.866669" role="img" aria-label="panneau"><g transform="matrix(1.3333333,0,0,-1.3333333,0,94.866667)"><g transform="scale(0.1)"><path style="fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:none" d="m 1.41406,1.41797 h 708.664 v 708.656 H 1.41406 Z" /><path style="fill:none;stroke:#231f20;stroke-width:2.83500004;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" d="M 1.41406,1.41797 H 710.078 V 710.074 H 1.41406 V 1.41797" /><path style="fill:#1a67bb;fill-opacity:1;fill-rule:nonzero;stroke:none" d="M 426.57,369.945 426.504,15.5938 H 695.926 V 695.887 H 15.6016 V 15.5938 L 284.773,15.8477 V 369.84 l -106.199,0.105 V 511.641 H 532.918 V 369.945 H 426.57" /><path style="fill:#ee2c30;fill-opacity:1;fill-rule:nonzero;stroke:none" d="m 192.758,384.09 h 326 v 113.391 h -326 z" /></g></g><g class="sol" fill="none"><g stroke="#ffffff" stroke-width="1.8" stroke-linecap="round"><line x1="47.4" y1="0" x2="47.4" y2="94.9"/></g><g stroke="#111111" stroke-width="0.7" stroke-dasharray="2.6 1.8"><line x1="47.4" y1="0" x2="47.4" y2="94.9"/></g></g></svg>
+      <p class="champ">nom : <span class="ligne"><i>Voie sans issue</i></span></p>
+      <p class="champ">nombre d’axes de symétrie : <span class="ligne court"><i>1</i></span></p>
+    </div>
+    <div class="case">
+      <svg viewBox="0 0 113.76 113.76" role="img" aria-label="panneau"><g transform="matrix(1.3333333,0,0,-1.3333333,0,113.76)"><g transform="scale(0.1)"><path style="fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:none" d="m 727.277,727.27 c 166.043,-166.047 166.043,-435.266 0,-601.321 -166.054,-166.0467 -435.273,-166.0467 -601.324,0 -166.0507,166.055 -166.0507,435.274 0,601.321 166.051,166.05 435.27,166.05 601.324,0 v 0" /><path style="fill:none;stroke:#231f20;stroke-width:2.83500004;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" d="m 727.277,727.27 c 166.043,-166.047 166.043,-435.266 0,-601.321 -166.054,-166.0467 -435.273,-166.0467 -601.324,0 -166.0507,166.055 -166.0507,435.274 0,601.321 166.051,166.05 435.27,166.05 601.324,0 v 0" /><path style="fill:#1a67bb;fill-opacity:1;fill-rule:nonzero;stroke:none" d="m 717.285,717.25 c 39.434,-39.43 69.524,-84.746 90.293,-135.961 20.07,-49.476 30.098,-101.039 30.098,-154.68 0,-53.64 -10.028,-105.195 -30.098,-154.675 C 786.809,220.723 756.719,175.402 717.285,135.977 677.863,96.5547 632.551,66.457 581.328,45.6836 531.855,25.6172 480.293,15.5859 426.652,15.5859 c -53.64,0 -105.195,10.0313 -154.675,30.0977 -51.215,20.7734 -96.536,50.8711 -135.961,90.2934 -39.4222,39.425 -69.5199,84.746 -90.2933,135.957 -20.0625,49.48 -30.0938,101.035 -30.0938,154.675 0,53.641 10.0313,105.204 30.0938,154.68 20.7734,51.215 50.8711,96.531 90.2933,135.957 39.425,39.43 84.746,69.524 135.961,90.293 49.48,20.063 101.035,30.098 154.675,30.098 53.641,0 105.203,-10.035 154.676,-30.098 51.223,-20.769 96.535,-50.863 135.957,-90.289 v 0" /><path style="fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:none" d="m 682.082,170.984 c 3.387,3.411 4.734,8.286 3.953,12.61 v 0 l -50.547,271.269 v 0 c -0.476,2.617 -1.718,5.114 -3.718,7.106 -5.352,5.359 -14.075,5.301 -19.512,-0.133 -0.82,-0.824 -1.524,-1.719 -2.07,-2.664 v 0 L 551.68,375.699 241.031,732.141 121.125,612.129 477.57,301.484 394.098,242.98 v 0 c -0.95,-0.546 -1.84,-1.25 -2.668,-2.07 -5.434,-5.441 -5.492,-14.16 -0.137,-19.512 2,-2.003 4.492,-3.242 7.109,-3.722 v 0 L 669.68,167.129 v 0 c 4.324,-0.781 9.011,0.461 12.402,3.855 v 0" /></g></g><g class="sol" fill="none"><g stroke="#ffffff" stroke-width="2.3" stroke-linecap="round"><line x1="6" y1="6" x2="107.8" y2="107.8"/></g><g stroke="#111111" stroke-width="0.9" stroke-dasharray="3.2 2.2"><line x1="6" y1="6" x2="107.8" y2="107.8"/></g></g></svg>
+      <p class="champ">nom : <span class="ligne"><i>Obstacle à contourner par la droite</i></span></p>
+      <p class="champ">nombre d’axes de symétrie : <span class="ligne court"><i>1</i></span></p>
+    </div>
+  </div>
+
+  <p style="position:absolute;left:20mm;bottom:22mm;margin:0;font-size:8pt;color:#777">Pictogrammes officiels OSR — Confédération suisse (domaine public), via Wikimedia Commons.</p>
+  <div class="pied"><span>Espace - Identifier les axes de symétrie d’une figure plane</span><span>1</span></div>
+</section>
+
+<!-- ══════════════════ PAGE 2 ══════════════════ -->
+<section class="page" data-corrige>
+  <h1>Espace</h1>
+  <p class="sur-titre">Axes de symétrie</p>
+  <p class="etiquette-corrige">CORRIGÉ</p>
+
+  <div class="exo-titre">
+    <svg class="pastille" viewBox="0 0 16 16" aria-hidden="true"><rect width="16" height="16" rx="2" fill="#1F3A5F"/><text x="8" y="12" text-anchor="middle" fill="#fff" font-size="11" font-weight="700" font-family="Verdana,sans-serif">2</text></svg>
+    <span class="consigne">Formes géométriques</span>
+  </div>
+  <p class="item">Tracer tous les axes de symétrie de chaque figure, puis indiquer leur nombre.</p>
+
+  <div class="grille g3 haute3">
+    <div class="case">
+      <p class="nom-forme">carré</p>
+      <svg viewBox="0 0 56 48" role="img" aria-label="carré">
+        <g stroke="#1a1a1a" stroke-width="0.7" fill="none"><rect x="13" y="6" width="30" height="30"/></g>
+        <g class="sol" stroke="#E6007E" stroke-width="0.6" stroke-dasharray="3 2" fill="none"><line x1="28" y1="1" x2="28" y2="41"/><line x1="8" y1="21" x2="48" y2="21"/><line x1="8" y1="1" x2="48" y2="41"/><line x1="48" y1="1" x2="8" y2="41"/></g>
+      </svg>
+      <p class="champ">axes : <span class="ligne court"><i>4</i></span></p>
+    </div>
+    <div class="case">
+      <p class="nom-forme">rectangle</p>
+      <svg viewBox="0 0 56 48" role="img" aria-label="rectangle">
+        <g stroke="#1a1a1a" stroke-width="0.7" fill="none"><rect x="9" y="9" width="38" height="24"/></g>
+        <g class="sol" stroke="#E6007E" stroke-width="0.6" stroke-dasharray="3 2" fill="none"><line x1="28" y1="4" x2="28" y2="38"/><line x1="4" y1="21" x2="52" y2="21"/></g>
+      </svg>
+      <p class="champ">axes : <span class="ligne court"><i>2</i></span></p>
+    </div>
+    <div class="case">
+      <p class="nom-forme">triangle quelconque</p>
+      <svg viewBox="0 0 56 48" role="img" aria-label="triangle quelconque">
+        <g stroke="#1a1a1a" stroke-width="0.7" fill="none"><path d="M8 38 L46 38 L20 8 Z"/></g>
+        <g class="sol" stroke="#E6007E" stroke-width="0.6" stroke-dasharray="3 2" fill="none"></g>
+      </svg>
+      <p class="champ">axes : <span class="ligne court"><i>0</i></span></p>
+    </div>
+    <div class="case">
+      <p class="nom-forme">triangle isocèle</p>
+      <svg viewBox="0 0 56 48" role="img" aria-label="triangle isocèle">
+        <g stroke="#1a1a1a" stroke-width="0.7" fill="none"><path d="M15 40 L41 40 L28 6 Z"/></g>
+        <g class="sol" stroke="#E6007E" stroke-width="0.6" stroke-dasharray="3 2" fill="none"><line x1="28" y1="2" x2="28" y2="45"/></g>
+      </svg>
+      <p class="champ">axes : <span class="ligne court"><i>1</i></span></p>
+    </div>
+    <div class="case">
+      <p class="nom-forme">triangle équilatéral</p>
+      <svg viewBox="0 0 56 48" role="img" aria-label="triangle équilatéral">
+        <g stroke="#1a1a1a" stroke-width="0.7" fill="none"><path d="M12 38 L44 38 L28 10.3 Z"/></g>
+        <g class="sol" stroke="#E6007E" stroke-width="0.6" stroke-dasharray="3 2" fill="none"><line x1="9.8" y1="39.2" x2="38.2" y2="22.9"/><line x1="46.2" y1="39.2" x2="17.8" y2="22.9"/><line x1="28" y1="7.8" x2="28" y2="40.5"/></g>
+      </svg>
+      <p class="champ">axes : <span class="ligne court"><i>3</i></span></p>
+    </div>
+    <div class="case">
+      <p class="nom-forme">losange</p>
+      <svg viewBox="0 0 56 48" role="img" aria-label="losange">
+        <g stroke="#1a1a1a" stroke-width="0.7" fill="none"><path d="M28 6 L48 22 L28 38 L8 22 Z"/></g>
+        <g class="sol" stroke="#E6007E" stroke-width="0.6" stroke-dasharray="3 2" fill="none"><line x1="28" y1="1" x2="28" y2="43"/><line x1="3" y1="22" x2="53" y2="22"/></g>
+      </svg>
+      <p class="champ">axes : <span class="ligne court"><i>2</i></span></p>
+    </div>
+    <div class="case">
+      <p class="nom-forme">cercle</p>
+      <svg viewBox="0 0 56 48" role="img" aria-label="cercle">
+        <g stroke="#1a1a1a" stroke-width="0.7" fill="none"><circle cx="28" cy="22" r="16"/></g>
+        <g class="sol" stroke="#E6007E" stroke-width="0.6" stroke-dasharray="3 2" fill="none"><line x1="10.0" y1="22.0" x2="46.0" y2="22.0"/><line x1="15.3" y1="9.3" x2="40.7" y2="34.7"/><line x1="28.0" y1="4.0" x2="28.0" y2="40.0"/><line x1="41.8" y1="10.4" x2="14.2" y2="33.6"/><line x1="42.7" y1="11.7" x2="13.3" y2="32.3"/><line x1="43.6" y1="13.0" x2="12.4" y2="31.0"/><line x1="44.3" y1="14.4" x2="11.7" y2="29.6"/><line x1="44.9" y1="15.8" x2="11.1" y2="28.2"/><line x1="45.4" y1="17.3" x2="10.6" y2="26.7"/></g>
+      </svg>
+      <p class="champ">axes : <span class="ligne court"><i>une infinité</i></span></p>
+    </div>
+    <div class="case">
+      <p class="nom-forme">parallélogramme</p>
+      <svg viewBox="0 0 56 48" role="img" aria-label="parallélogramme">
+        <g stroke="#1a1a1a" stroke-width="0.7" fill="none"><path d="M6 38 L42 38 L50 14 L14 14 Z"/></g>
+        <g class="sol" stroke="#E6007E" stroke-width="0.6" stroke-dasharray="3 2" fill="none"></g>
+      </svg>
+      <p class="champ">axes : <span class="ligne court"><i>0</i></span></p>
+    </div>
+    <div class="case">
+      <p class="nom-forme">trapèze isocèle</p>
+      <svg viewBox="0 0 56 48" role="img" aria-label="trapèze isocèle">
+        <g stroke="#1a1a1a" stroke-width="0.7" fill="none"><path d="M10 38 L46 38 L38 12 L18 12 Z"/></g>
+        <g class="sol" stroke="#E6007E" stroke-width="0.6" stroke-dasharray="3 2" fill="none"><line x1="28" y1="7" x2="28" y2="43"/></g>
+      </svg>
+      <p class="champ">axes : <span class="ligne court"><i>1</i></span></p>
+    </div>
+  </div>
+
+  <div class="pied"><span>Espace - Identifier les axes de symétrie d’une figure plane</span><span>2</span></div>
+</section>
+
+<script>
+document.querySelectorAll('.page[data-corrige]').forEach(p => {
+  const c = p.cloneNode(true);          /* le corrigé garde le numéro de la page d'origine */
+  c.removeAttribute('data-corrige');
+  c.classList.add('page-corrige');
+  document.body.appendChild(c);
+});
+
+const btn = document.getElementById('btn');
+const OEIL = '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.3 8S3.6 3.8 8 3.8 14.7 8 14.7 8 12.4 12.2 8 12.2 1.3 8 1.3 8z"/><circle cx="8" cy="8" r="2.1"/></svg>';
+const OEIL_B = '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.3 8S3.6 3.8 8 3.8 14.7 8 14.7 8 12.4 12.2 8 12.2 1.3 8 1.3 8z"/><circle cx="8" cy="8" r="2.1"/><path d="M2.5 13.5L13.5 2.5"/></svg>';
+btn.addEventListener('click', () => {
+  const on = document.body.classList.toggle('corrige');
+  btn.innerHTML = on ? OEIL_B : OEIL;
+  btn.title = on ? 'Masquer le corrigé' : 'Afficher le corrigé';
+  btn.setAttribute('aria-label', btn.title);
+});
+
+(function(){
+  const racine = document.documentElement;
+  const barre = document.querySelector('.barre');
+  const taux = document.getElementById('zoom-taux');
+  let z = 1;
+  function applique(v){
+    z = Math.max(0.15, Math.min(v, 4));
+    racine.style.setProperty('--z', z);
+    if (taux) taux.textContent = Math.round(z * 100) + ' %';
+  }
+  function pageEntiere(){
+    racine.style.setProperty('--z', 1);
+    const p = document.querySelector('.page');
+    if (!p) return;
+    const r = p.getBoundingClientRect();
+    const hBarre = barre ? barre.getBoundingClientRect().height : 0;
+    applique(Math.min((window.innerWidth - 36) / r.width,
+                      (window.innerHeight - hBarre - 36) / r.height));
+  }
+  document.getElementById('zoom-moins').addEventListener('click', () => applique(z / 1.15));
+  document.getElementById('zoom-plus').addEventListener('click', () => applique(z * 1.15));
+  document.getElementById('zoom-page').addEventListener('click', pageEntiere);
+  let t; window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(pageEntiere, 150); });
+  pageEntiere();
+
+  const bpe = document.getElementById('plein-ecran');
+  if (bpe) {
+    bpe.addEventListener('click', () => {
+      if (document.fullscreenElement) document.exitFullscreen();
+      else document.documentElement.requestFullscreen();
+    });
+    document.addEventListener('fullscreenchange', () => {
+      const plein = !!document.fullscreenElement;
+      bpe.innerHTML = plein
+        ? '<svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2v4H2"/><path d="M14 6h-4V2"/><path d="M10 14v-4h4"/><path d="M2 10h4v4"/></svg>'
+        : '<svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6V2h4"/><path d="M10 2h4v4"/><path d="M14 10v4h-4"/><path d="M6 14H2v-4"/></svg>';
+      bpe.title = plein ? 'Quitter le plein écran' : 'Plein écran';
+      setTimeout(pageEntiere, 120);
+    });
+  }
+})();
+</script>
+</body>
+</html>
