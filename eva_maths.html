@@ -8,7 +8,7 @@ générant des exercices de mathématiques pour adultes (programme PAI, Suisse).
 Product owner : Aurelio (Onex/Genève). Répondre en FRANÇAIS.
 
 ───────────────────────────────────────────────────────────────────────────────
-0. OÙ ON EN EST (v477, 28.08.2026) — à lire en premier
+0. OÙ ON EN EST (v483, 03.09.2026) — à lire en premier
 ───────────────────────────────────────────────────────────────────────────────
 L'application est en ligne : https://aureliohub.github.io/eva_maths.html
 Les fichiers de série et de test (.json) sont déposés à côté d'elle, et s'ouvrent
@@ -508,6 +508,144 @@ PDF de domaine :
 ───────────────────────────────────────────────────────────────────────────────
 Cette section décrit l'ÉTAT, non l'historique. Les numéros de version ne sont
 cités que lorsqu'ils aident à retrouver un choix dans le fichier.
+
+v483 — ÉNONCÉS PAR DOMAINE DE FORMATION. Chaque ligne de l'éditeur des prénoms
+ peut porter le métier de l'apprenant : « Daniel - employé de commerce ».
+ · MÉTIERS (11 entrées) + `metierDepuisSaisie` : la comparaison passe par
+   `_cleTexte` (sans accents ni ponctuation), si bien que « Assist. pharmacie »,
+   « assistante en pharmacie » et « Pharmacie » mènent à la même entrée, tout
+   comme « commerce de détai » (le l oublié de la liste d'Aurelio).
+ · L'ACCORD SUIT LA COLONNE, jamais la forme tapée : « Hussein - mécanicienne »
+   saisi en colonne masculine est réécrit « mécanicien » à l'enregistrement.
+   C'est `ligneDuPrenom(prenom, genre)` qui compose la ligne affichée.
+ · PRENOMS_M / PRENOMS_F ne contiennent TOUJOURS que des prénoms — tout le
+   fichier compte là-dessus. Le métier vit à côté, dans METIER_DE (clé du
+   prénom → clé de métier) ; un métier non reconnu va dans METIER_BRUT, il
+   s'affiche tel quel mais n'appelle aucun énoncé. `PRENOMS_*_SOURCE` et
+   `PRENOMS_*_ORIGINE` portent, elles, les lignes complètes.
+ · Le tiret ne sépare que s'il est entouré d'espaces OU suivi d'un métier
+   connu : « Anne-Sophie » reste un prénom. `prenomsLire` découpe désormais
+   d'abord par LIGNES (une ligne à métier reste entière), puis aux espaces et
+   virgules comme avant pour une liste collée d'un coup.
+ · ENONCES_METIER : 34 générateurs, 3 par métier (4 pour l'ASE : deux faciles,
+   l'un avec des enfants, l'autre avec des résidents), aux mêmes paliers que
+   les patrons neutres. Le métier n'est PAS nommé dans l'énoncé — seule
+   exception, l'assistante dentaire — c'est le contexte qui le porte.
+   Les paliers 3 tirent jusqu'à ce que la division tombe juste (`_essais`,
+   60 essais puis une valeur de secours : ne JAMAIS rendre null).
+ · genProbleme : DEUX questions sur quatre viennent d'un métier, deux restent
+   neutres, l'équilibre des paliers (1, 2, 2, 3) est conservé ; deux prénoms
+   différents. Sans aucun métier dans la liste, tout redevient neutre.
+ · `prenomFige` sur ces questions : unifierPrenoms réserve leurs prénoms
+   D'ABORD et ce sont les questions neutres qui cèdent en cas de doublon —
+   sans quoi le mécanicien héritait des cartons de la logisticienne.
+ · Patron 3 : l'« enseignant·e de français » a disparu (il nommait un métier
+   qui n'est pas celui du groupe) ; l'achat se fait pour la bibliothèque du
+   quartier.
+ · Prix calés sur des références suisses relues avec Aurelio : garage
+   140-160 CHF/h, électricien 110-130, sanitaire 120-140, contrôle dentaire
+   110-130, nettoyage 55-65. NE PAS les rabaisser « pour simplifier ».
+ Banc d'essai (t3.js, à refaire si on touche à ENONCES_METIER) : 400 exercices
+ → toujours 2 questions métier, prénom toujours accordé à son métier, aucune
+ division non entière, aucun résultat visible dans l'énoncé, les 11 métiers
+ sortent.
+
+v482 — LISTE DES PRÉNOMS D'ORIGINE remise à jour sur la classe d'Aurelio :
+ Ahmed → Warryh, Amanuel → Shkelkim, Soraya → Seraya. Effectifs inchangés
+ (7 M / 6 F). ATTENTION : si une liste a déjà été enregistrée dans l'espace
+ enseignant, elle est relue au démarrage et masque celle-ci ; c'est « Rétablir »
+ dans l'éditeur des prénoms qui fait revenir la nouvelle.
+
+v481 — PATRON « SALAIRE NET » (prop-concret / probleme, patron 6) : l'énoncé
+ laissait croire qu'il fallait passer au salaire MENSUEL (« travaille 25 heures
+ durant la semaine … Quel est son salaire net ? »). Il est désormais au passé et
+ ancré des deux côtés : « Cette semaine, X a travaillé 25 heures … Quel est son
+ salaire net de la semaine ? ». Le corrigé dit « Salaire brut de la semaine ».
+ Rien d'autre ne change : mêmes tirages, mêmes opérations, même réponse.
+
+v480 — SOUSTRACTION ET MULTIPLICATION POSÉES : notation corrigée.
+ · SOUSTRACTION (rectification d'Aurelio, la v478 avait mal compris) : SEUL LE
+   CHIFFRE PRÊTEUR EST BARRÉ, sa nouvelle valeur écrite au-dessus. Le chiffre
+   emprunteur DEMEURE, et c'est « 10 » qui se pose au-dessus de lui — l'élève
+   lit « 10 + 4 ». La v478 barrait les deux et écrivait 14 : c'est une AUTRE
+   notation, ne pas y revenir.
+   Conséquence : cette écriture suppose un emprunt ISOLÉ. Une colonne qui prête
+   ET emprunte devrait porter deux annotations sur la même case ; le générateur
+   écarte donc les emprunts EN CASCADE via `empruntSimple(a, b)` (une colonne à
+   double rôle, ou un prêteur qui tomberait sous zéro). 44,6 % des tirages
+   passent le filtre, sur 200 essais : la marge est large. `poseSoustractionHtml`
+   garde un repli (colonne à double rôle → barrée avec sa valeur de travail) au
+   cas où elle serait appelée depuis ailleurs.
+   Les soustractions à cassage en cascade sont donc HORS du niveau. Si Aurelio
+   les veut, il faudra d'abord convenir de leur notation.
+ · MULTIPLICATION : chaque produit partiel a désormais SA LIGNE DE RETENUES —
+   deux lignes pour un multiplicateur à deux chiffres, trois pour trois.
+   `_poseRetenuesProduit(a, d)` les calcule ; la retenue née au rang k s'écrit
+   au-dessus du chiffre de rang k+1, celle qui dépasse à gauche ne s'écrit pas
+   (elle passe dans le produit). `poseMultiplicationHtml` accepte un
+   multiplicateur de N chiffres ; le générateur en tire toujours 2.
+   Toutes les lignes se superposent sur les MÊMES colonnes (celles du
+   multiplicande) : chacune porte donc sa couleur — POSE_RET_LIGNES = vert
+   (unités, ligne du bas, calculée en premier), violet, ambre. Sans les
+   couleurs on ne saurait plus quelle retenue va avec quel produit.
+   Une ligne reste affichée même vide (multiplicateur contenant un 1) : la
+   correspondance ligne ↔ produit prime sur l'économie de place.
+ Mesuré : 6000 opérations, chaque retenue recalculée et comparée case par case,
+ rôle prêteur/emprunteur vérifié colonne par colonne, 0 anomalie, 0 cascade
+ passée. Regardé au vrai navigateur.
+
+v479 — ADDITION DU NIVEAU « NOMBRES ENTIERS » : le PLUS GRAND TERME SE POSE
+ AU-DESSUS (demande d'Aurelio). Les deux termes sont tirés indépendamment comme
+ avant, puis remis dans l'ordre décroissant — la retenue garantie aux unités et
+ la distribution des tailles n'en sont pas affectées (mesuré sur 3000 tirages :
+ 100 % de retenue aux unités, répartition 4+4 / 4+3 / 3+3 inchangée). L'énoncé
+ suit le même ordre que l'opération posée du corrigé, forcément : les deux
+ lisent le même `pose`.
+ NON APPLIQUÉ AUX NIVEAUX 1 ET 2 : leur consigne demande aussi de poser en
+ colonne, mais les toucher changerait des exercices existants sans demande.
+ À proposer si la question revient.
+
+v478 — CORRIGÉ DU NIVEAU « NOMBRES ENTIERS » : LES OPÉRATIONS POSÉES.
+ Le corrigé n'est plus une liste de réponses mais les quatre opérations écrites
+ en colonne, retenues comprises. Moteur : `poseOperationHtml(pose)` et ses
+ quatre fonctions (`poseAdditionHtml`, `poseSoustractionHtml`,
+ `poseMultiplicationHtml`, `poseDivisionHtml`), rendues par
+ `poseColonneCorrigeHtml` en grille 2 colonnes.
+ · BRANCHEMENT en tête d'espaceCorrigeInner, sur le marqueur `ex._poseColonne`
+   (posé par genDecimal au niveau 3, et par lui seul). Un seul point d'entrée
+   sert donc le PDF de sous-domaine, le PDF de domaine et l'export des séries
+   et des tests.
+ · LES VALEURS NE SONT PAS RELUES DANS L'ÉNONCÉ. Chaque question porte
+   `q.pose = { a, b, op }`, posé à la génération. Ne jamais reconstruire les
+   opérandes en analysant `q.text` : le formatage changerait, le corrigé
+   suivrait sans prévenir.
+ · ALIGNEMENT : une cellule par chiffre, largeur fixe POSE_W. La police du site
+   n'a pas de chiffres tabulaires ; sans cellules, les colonnes se décalent.
+   `_poseCells(txt, W, decal, style)` cale un nombre à droite, `decal` laissant
+   des colonnes vides à sa droite (produit partiel de la multiplication,
+   soustractions de la potence).
+ · SOUSTRACTION PAR EMPRUNT (méthode d'Aurelio, confirmée le 28.08) : on casse
+   une dizaine au rang supérieur. NE PAS passer à la compensation sans le lui
+   demander : ce n'est pas un détail de présentation mais une méthode
+   différente. Pour la notation exacte, voir v480 (la description donnée ici en
+   v478 était fausse).
+ · MULTIPLICATION : les produits partiels, le second décalé d'un rang, sans
+   zéro de position. Les retenues, absentes en v478, ont été ajoutées en v480.
+ · DIVISION : potence classique. Le reste ne s'écrit QU'UNE FOIS : le trait sous
+   une soustraction est suivi directement de la ligne « reste + chiffres
+   abaissés », qui est le `cur` du bloc suivant. Les zéros du quotient sont
+   conservés dans cette ligne (6048 ÷ 6 → 0 0 4 8), sinon le quotient à trous
+   deviendrait illisible. Le trait ne barre que les colonnes de la soustraction
+   (`traitCols` de `_poseLigne`), pas toute la ligne.
+ · LE RÉSULTAT EST EN VERT (POSE_RES) comme dans tous les autres corrigés ;
+   les retenues et les valeurs de travail aussi. Le reste final d'une division
+   reste noir : la réponse, c'est le quotient.
+ · SEUL LE NIVEAU 3 EST CONCERNÉ. Poser les décimaux (virgule alignée, quotient
+   à deux décimales) est un autre chantier, non ouvert.
+ Mesuré : 6000 opérations posées, tirées des 4 variantes → résultat, produits
+ partiels, décalage, quotient, diviseur, reste final et cohérence
+ barrés/annotés vérifiés un à un, 0 anomalie. Regardé au vrai navigateur : les
+ 8 opérations posées tiennent sur la seule page du corrigé, avec de la marge.
 
 v477 — DIVISEURS DU NIVEAU « NOMBRES ENTIERS » limités à 6 · 7 · 8 · 9 · 11 · 12
  (demande d'Aurelio). Ce sont les MÊMES CHIFFRES que les diviseurs des niveaux
@@ -1649,7 +1787,8 @@ e) ESPACE ENSEIGNANT — bouton clé de la barre de titre, accueil à QUATRE
    composition en cours survit à un aller-retour, elle vit dans `state.atelier`.
 
 f) PRÉNOMS — PRENOMS_M (7) / PRENOMS_F (6), liste de la classe d'Aurelio, ne
-   figurent NULLE PART ailleurs ; les 20 générateurs qui nomment quelqu'un
+   figurent NULLE PART ailleurs ; chacun porte un DOMAINE DE FORMATION (voir
+   v483 : METIERS, METIER_DE, ENONCES_METIER) ; les 20 générateurs qui nomment quelqu'un
    passent par pickPrenom / `pickPrenomsDistincts(n, genre)`.
    `appliquerPrenoms` remplace EN PLACE (const, mais le contenu est relu à
    chaque tirage) ; PRENOMS_*_ORIGINE garde la liste de départ.
@@ -5107,17 +5246,127 @@ const fmtSigned = (n) => n >= 0 ? `(+${n})` : `(${n})`;
 // Liste de la classe d'Aurelio, devenue la liste D'ORIGINE (v393) : le bouton
 // « Rétablir » y revient. Les prénoms précédents (Amir, Yusuf, Samir, Omar,
 // Mehdi / Laetitia, Fatima, Leïla, Aïcha, Nadia, Sofia) ne servent plus.
-const PRENOMS_M = ['Daniel', 'Hussein', 'Medhanie', 'Ahmed', 'Belal', 'Maksymilian', 'Amanuel'];
-const PRENOMS_F = ['Soraya', 'Mafatoumata', 'Nicky', 'Natalia', 'Maria', 'Ayse'];
-const PRENOMS_M_ORIGINE = PRENOMS_M.slice();
-const PRENOMS_F_ORIGINE = PRENOMS_F.slice();
+// Chaque ligne peut porter le DOMAINE DE FORMATION de l'apprenant, à la suite
+// du prénom : « Daniel - employé de commerce ». Le métier ne se lit PAS dans
+// les énoncés (seule exception : l'assistante dentaire) ; il choisit le
+// CONTEXTE de la situation — des classeurs pour l'un, des pneus pour l'autre.
+const PRENOMS_M_SOURCE = ['Daniel - employé de commerce', 'Hussein - mécanicien',
+  'Medhanie - électricien', 'Warryh - gestionnaire du commerce de détail',
+  'Belal - installateur sanitaire', 'Maksymilian - employé de commerce',
+  'Shkelkim - agent de propreté'];
+const PRENOMS_F_SOURCE = ['Seraya - assistante dentaire', 'Mafatoumata - logisticienne',
+  'Nicky - ASE', 'Natalia - assistante en pharmacie', 'Maria - ASSC', 'Ayse - ASE'];
+
+// Les onze métiers du groupe. `formes` = les autres façons de les écrire ;
+// la forme masculine et la forme féminine sont reconnues d'office.
+const METIERS = [
+  { cle: 'employe-commerce', m: 'employé de commerce', f: 'employée de commerce',
+    formes: ['employe commerce', 'commerce'] },
+  { cle: 'mecanicien', m: 'mécanicien', f: 'mécanicienne', formes: ['mecano'] },
+  { cle: 'electricien', m: 'électricien', f: 'électricienne', formes: ['electricite'] },
+  { cle: 'gestionnaire-detail', m: 'gestionnaire du commerce de détail',
+    f: 'gestionnaire du commerce de détail',
+    formes: ['gestionnaire commerce de detail', 'gestionnaire commerce de detai',
+             'gestionnaire de commerce de detail', 'gestionnaire', 'commerce de detail'] },
+  { cle: 'sanitaire', m: 'installateur sanitaire', f: 'installatrice sanitaire',
+    formes: ['sanitaire'] },
+  { cle: 'dentaire', m: 'assistant dentaire', f: 'assistante dentaire',
+    formes: ['assist dentaire', 'dentaire'] },
+  { cle: 'pharmacie', m: 'assistant en pharmacie', f: 'assistante en pharmacie',
+    formes: ['assistant pharmacie', 'assistante pharmacie', 'assist pharmacie', 'pharmacie'] },
+  { cle: 'logistique', m: 'logisticien', f: 'logisticienne', formes: ['logistique'] },
+  { cle: 'proprete', m: 'agent de propreté', f: 'agente de propreté',
+    formes: ['agent proprete', 'proprete', 'nettoyage'] },
+  { cle: 'ase', m: 'ASE', f: 'ASE',
+    formes: ['assistant socio educatif', 'assistante socio educative', 'socio educatif'] },
+  { cle: 'assc', m: 'ASSC', f: 'ASSC',
+    formes: ['assistant en soins et sante communautaire',
+             'assistante en soins et sante communautaire', 'soins et sante communautaire'] }
+];
+
+// Clé de comparaison : sans accents, sans ponctuation, en minuscules. « Assist.
+// pharmacie », « assistante en pharmacie » et « Pharmacie » mènent à la même
+// entrée — et « commerce de détai », le l oublié, aussi.
+function _cleTexte(txt) {
+  return String(txt == null ? '' : txt).normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+}
+const _METIER_PAR_FORME = {};
+METIERS.forEach(mt => {
+  [mt.m, mt.f].concat(mt.formes || []).forEach(fo => { _METIER_PAR_FORME[_cleTexte(fo)] = mt.cle; });
+});
+function metierDepuisSaisie(txt) {
+  const c = _cleTexte(txt);
+  return c ? (_METIER_PAR_FORME[c] || null) : null;
+}
+// L'ACCORD SUIT LA COLONNE DE SAISIE, jamais la forme tapée : « Hussein -
+// mécanicienne » écrit dans la colonne masculine redonne « mécanicien », et
+// « Dominique - employé » dans la colonne féminine donne « employée ».
+function libelleMetier(cle, genre) {
+  const mt = METIERS.find(x => x.cle === cle);
+  return mt ? (genre === 'F' ? mt.f : mt.m) : '';
+}
+
+// Une ligne de l'éditeur → { prenom, metier, brut }. Le tiret ne sépare que
+// s'il est entouré d'espaces ou suivi d'un métier connu : « Anne-Sophie » reste
+// un prénom. `brut` garde un métier non reconnu, qui s'affiche tel quel mais
+// n'appelle aucun énoncé particulier.
+function _lirePrenomMetier(ligne) {
+  const s = String(ligne == null ? '' : ligne).trim();
+  const m = s.match(/^(.+?)\s*[-–—]\s*(.+)$/);
+  if (m) {
+    const cle = metierDepuisSaisie(m[2]);
+    if (cle || /\s[-–—]\s/.test(s)) {
+      return { prenom: m[1].trim(), metier: cle, brut: cle ? '' : m[2].trim() };
+    }
+  }
+  return { prenom: s, metier: null, brut: '' };
+}
+
+const PRENOMS_M = [];
+const PRENOMS_F = [];
+const METIER_DE = {};    // clé du prénom → clé de métier
+const METIER_BRUT = {};  // clé du prénom → texte saisi non reconnu
+const PRENOMS_M_ORIGINE = PRENOMS_M_SOURCE.slice();
+const PRENOMS_F_ORIGINE = PRENOMS_F_SOURCE.slice();
 const CLE_PRENOMS = 'eva-maths-prenoms';
 
 // Remplacement EN PLACE : les tableaux sont des `const` et sont lus à chaque
 // tirage, donc le changement vaut immédiatement pour tout ce qui sera généré.
+// Les lignes reçues peuvent porter un métier ; PRENOMS_M / PRENOMS_F ne
+// contiennent QUE des prénoms, tout le reste du fichier compte là-dessus.
 function appliquerPrenoms(m, f) {
-  if (Array.isArray(m) && m.length) PRENOMS_M.splice(0, PRENOMS_M.length, ...m);
-  if (Array.isArray(f) && f.length) PRENOMS_F.splice(0, PRENOMS_F.length, ...f);
+  const poser = (lignes, cible) => {
+    if (!Array.isArray(lignes) || !lignes.length) return;
+    const noms = [];
+    lignes.forEach(l => {
+      const e = _lirePrenomMetier(l);
+      if (!e.prenom) return;
+      noms.push(e.prenom);
+      const k = _cleTexte(e.prenom);
+      if (e.metier) METIER_DE[k] = e.metier; else delete METIER_DE[k];
+      if (e.brut) METIER_BRUT[k] = e.brut; else delete METIER_BRUT[k];
+    });
+    if (noms.length) cible.splice(0, cible.length, ...noms);
+  };
+  poser(m, PRENOMS_M);
+  poser(f, PRENOMS_F);
+}
+appliquerPrenoms(PRENOMS_M_SOURCE, PRENOMS_F_SOURCE);
+
+function metierDe(prenom) { return METIER_DE[_cleTexte(prenom)] || null; }
+// Ligne telle qu'elle s'affiche dans l'éditeur, accordée d'après la colonne.
+function ligneDuPrenom(prenom, genre) {
+  const k = _cleTexte(prenom);
+  if (METIER_DE[k]) return prenom + ' - ' + libelleMetier(METIER_DE[k], genre);
+  if (METIER_BRUT[k]) return prenom + ' - ' + METIER_BRUT[k];
+  return prenom;
+}
+function prenomsAvecMetier() {
+  const out = [];
+  PRENOMS_M.forEach(p => { const c = metierDe(p); if (c) out.push({ prenom: p, genre: 'M', metier: c }); });
+  PRENOMS_F.forEach(p => { const c = metierDe(p); if (c) out.push({ prenom: p, genre: 'F', metier: c }); });
+  return out;
 }
 
 // n prénoms tous différents. Si les listes n'en offrent pas assez (l'enseignant
@@ -5157,8 +5406,17 @@ const CHAMPS_PRENOM = ['text', 'answer', 'solutionDetail', 'equation'];
 function unifierPrenoms(ex) {
   if (!ex || !Array.isArray(ex.questions)) return ex;
   const vus = new Set();
+  // Une question liée à un domaine de formation garde SON prénom : c'est lui
+  // qui a choisi le contexte de l'énoncé, le changer donnerait les cartons de
+  // la logisticienne au mécanicien. On réserve donc ces prénoms d'abord, et
+  // ce sont les autres questions qui cèdent en cas de doublon.
   ex.questions.forEach(q => {
-    if (!q) return;
+    if (q && q.prenomFige) {
+      _prenomsPresents(CHAMPS_PRENOM.map(c => q[c]).join(' ')).forEach(p => vus.add(p));
+    }
+  });
+  ex.questions.forEach(q => {
+    if (!q || q.prenomFige) return;
     const presents = _prenomsPresents(CHAMPS_PRENOM.map(c => q[c]).join(' '));
     presents.forEach(p => {
       if (!vus.has(p)) { vus.add(p); return; }
@@ -5258,7 +5516,8 @@ function pickPrenom(genre) {
   if (genre === 'M') return choice(PRENOMS_M);
   if (genre === 'F') return choice(PRENOMS_F);
   const g = choice(['M', 'F']);
-  return { prenom: choice(g === 'M' ? PRENOMS_M : PRENOMS_F), genre: g };
+  const p = choice(g === 'M' ? PRENOMS_M : PRENOMS_F);
+  return { prenom: p, genre: g, metier: metierDe(p) };
 }
 
 const gcd = (a, b) => {
@@ -5403,10 +5662,9 @@ const PROBLEME_PATRONS = [
     const billet = totalAchats < 450 ? choice([500, 1000]) : 1000;
     const rendu = billet - totalAchats;
     const { prenom, genre } = pickPrenom();
-    const fonction = genre === 'M' ? 'enseignant' : 'enseignante';
     const pronom = genre === 'M' ? 'Il' : 'Elle';
     return {
-      text: `${prenom}, ${fonction} de français, achète ${livres} livres à ${prixLivre} CHF pièce et ${cahiers} cahiers à ${prixCahier} CHF pièce pour son groupe d'apprenants. ${pronom} paie avec un billet de ${billet} CHF. Combien lui rend-on ?`,
+      text: `${prenom} achète ${livres} livres à ${prixLivre} CHF pièce et ${cahiers} cahiers à ${prixCahier} CHF pièce pour la bibliothèque de son quartier. ${pronom} paie avec un billet de ${billet} CHF. Combien lui rend-on ?`,
       answer: `Livres : ${livres}×${prixLivre} = ${livres*prixLivre} CHF. Cahiers : ${cahiers}×${prixCahier} = ${cahiers*prixCahier} CHF. Total achats : ${livres*prixLivre}+${cahiers*prixCahier} = ${totalAchats} CHF. Rendu : ${billet}−${totalAchats} = ${rendu} CHF.`
     };
   },
@@ -5458,8 +5716,8 @@ const PROBLEME_PATRONS = [
     const charges = choice([120, 150, 180, 200, 250]);
     const net = brut - charges;
     return {
-      text: `${prenom} travaille ${h} heures durant la semaine, payées ${taux} CHF de l'heure. On déduit ensuite ${charges} CHF de charges sociales. Quel est son salaire net ?`,
-      answer: `Salaire brut : ${h}×${taux} = ${brut} CHF. Salaire net : ${brut}−${charges} = ${net} CHF.`
+      text: `Cette semaine, ${prenom} a travaillé ${h} heures, payées ${taux} CHF de l'heure. On déduit ensuite ${charges} CHF de charges sociales. Quel est son salaire net de la semaine ?`,
+      answer: `Salaire brut de la semaine : ${h}×${taux} = ${brut} CHF. Salaire net : ${brut}−${charges} = ${net} CHF.`
     };
   },
   // Patron 7 : recette d'un spectacle (moyen, 3 opérations : ×, × puis +)
@@ -5515,6 +5773,272 @@ const PROBLEME_PATRONS = [
   }
 ];
 
+// ============================================================================
+// ÉNONCÉS PAR DOMAINE DE FORMATION (v483)
+// ----------------------------------------------------------------------------
+// Le métier n'est PAS nommé dans l'énoncé — seule exception, l'assistante
+// dentaire, où il situe la scène. C'est le CONTEXTE qui doit le porter : des
+// classeurs, des pneus, des palettes. Trois paliers, les mêmes que les patrons
+// neutres : 1 = facile (2 opérations), 2 = moyen (3), 3 = difficile
+// (4 opérations, ou une division qui doit tomber juste).
+// Chaque générateur reçoit { prenom, genre } et rend { text, answer }.
+// Les prix sont calés sur des références suisses relues avec Aurelio :
+// garage 140-160 CHF/h, électricien 110-130, sanitaire 120-140, contrôle
+// dentaire 110-130, nettoyage 55-65.
+// ============================================================================
+// Les paliers 3 tirent jusqu'à ce que la division tombe juste ; `_essais` rend
+// la valeur de secours si le tirage n'a rien donné, pour ne JAMAIS renvoyer
+// null à genProbleme.
+const _essais = (fn, secours) => {
+  for (let i = 0; i < 60; i++) { const r = fn(); if (r) return r; }
+  return secours();
+};
+const ENONCES_METIER = {
+  'employe-commerce': {
+    1: [(p) => {
+      const n = rand(18, 30), pr = choice([7, 8, 9, 11, 12]), r = choice([25, 30, 35, 40, 50]);
+      return { text: `${p.prenom} commande ${n} classeurs à ${pr} CHF pièce. Le fournisseur accorde ${r} CHF de remise sur la facture. Combien l'entreprise paie-t-elle ?`,
+        answer: `Classeurs : ${n}×${pr} = ${n * pr} CHF. À payer : ${n * pr}−${r} = ${n * pr - r} CHF.` };
+    }],
+    2: [(p) => {
+      const a = rand(10, 20), pa = choice([6, 7, 8, 9]), b = rand(5, 10), pb = choice([38, 42, 45, 48]);
+      return { text: `${p.prenom} commande ${a} ramettes de papier à ${pa} CHF et ${b} cartouches d'encre à ${pb} CHF. Quel est le montant total de la commande ?`,
+        answer: `Papier : ${a}×${pa} = ${a * pa} CHF. Encre : ${b}×${pb} = ${b * pb} CHF. Total : ${a * pa}+${b * pb} = ${a * pa + b * pb} CHF.` };
+    }],
+    3: [(p) => _essais(() => {
+      const s = choice([3, 4, 5]), n = rand(8, 15), pr = choice([12, 15, 18, 20]), port = choice([10, 12, 15, 18]);
+      const t = n * pr + port;
+      if (t % s || t / s < 30) return null;
+      return { text: `${p.prenom} répartit une facture entre ${s} services : ${n} classeurs à ${pr} CHF, plus ${port} CHF de frais de port. Combien chaque service paie-t-il ?`,
+        answer: `Classeurs : ${n}×${pr} = ${n * pr} CHF. Total : ${n * pr}+${port} = ${t} CHF. Par service : ${t}÷${s} = ${t / s} CHF.` };
+    }, () => ({ text: `${p.prenom} répartit une facture entre 4 services : 12 classeurs à 15 CHF, plus 12 CHF de frais de port. Combien chaque service paie-t-il ?`,
+      answer: `Classeurs : 12×15 = 180 CHF. Total : 180+12 = 192 CHF. Par service : 192÷4 = 48 CHF.` }))]
+  },
+
+  'mecanicien': {
+    1: [(p) => {
+      const pn = choice([125, 135, 145, 155, 165]), bon = choice([50, 60, 80, 100]);
+      return { text: `${p.prenom} change les 4 pneus d'une voiture, chaque pneu coûte ${pn} CHF. Le client présente un bon de réduction de ${bon} CHF. Combien paie-t-il ?`,
+        answer: `Pneus : 4×${pn} = ${4 * pn} CHF. À payer : ${4 * pn}−${bon} = ${4 * pn - bon} CHF.` };
+    }],
+    2: [(p) => {
+      const h = rand(2, 4), t = choice([140, 150, 160]), l = choice([4, 5, 6]), pl = choice([20, 22, 24]);
+      return { text: `${p.prenom} facture ${h} heures de main-d'œuvre à ${t} CHF et ${l} litres d'huile à ${pl} CHF le litre. Quel est le montant de la facture ?`,
+        answer: `Main-d'œuvre : ${h}×${t} = ${h * t} CHF. Huile : ${l}×${pl} = ${l * pl} CHF. Facture : ${h * t}+${l * pl} = ${h * t + l * pl} CHF.` };
+    }],
+    3: [(p) => {
+      const h = rand(2, 4), t = choice([140, 150, 160]), fi = choice([38, 45, 52]),
+        l = choice([4, 5, 6]), pl = choice([20, 22, 24]);
+      return { text: `${p.prenom} facture ${h} heures de main-d'œuvre à ${t} CHF, 1 filtre à huile à ${fi} CHF et ${l} litres d'huile à ${pl} CHF le litre. Quel est le montant de la facture ?`,
+        answer: `Main-d'œuvre : ${h}×${t} = ${h * t} CHF. Huile : ${l}×${pl} = ${l * pl} CHF. Facture : ${h * t}+${fi}+${l * pl} = ${h * t + fi + l * pl} CHF.` };
+    }]
+  },
+
+  'electricien': {
+    1: [(p) => {
+      const m = rand(20, 35), pm = choice([5, 6, 7]), r = choice([30, 40, 50, 60]);
+      const il = p.genre === 'F' ? 'Elle' : 'Il';
+      return { text: `${p.prenom} achète ${m} mètres de câble à ${pm} CHF le mètre. ${il} rend du matériel non utilisé pour ${r} CHF. Combien lui coûte le matériel ?`,
+        answer: `Câble : ${m}×${pm} = ${m * pm} CHF. Coût : ${m * pm}−${r} = ${m * pm - r} CHF.` };
+    }],
+    2: [(p) => {
+      const sp = rand(8, 15), ps = choice([28, 32, 35, 40]), it = rand(2, 5), pi = choice([24, 26, 28, 32]);
+      return { text: `${p.prenom} pose ${sp} spots à ${ps} CHF pièce et ${it} interrupteurs à ${pi} CHF pièce. Quel est le prix du matériel ?`,
+        answer: `Spots : ${sp}×${ps} = ${sp * ps} CHF. Interrupteurs : ${it}×${pi} = ${it * pi} CHF. Total : ${sp * ps}+${it * pi} = ${sp * ps + it * pi} CHF.` };
+    }],
+    3: [(p) => _essais(() => {
+      const ap = choice([3, 4, 5]), tb = rand(4, 6), pt = choice([300, 320, 340]),
+        h = rand(4, 8), th = choice([110, 120, 130]);
+      const t = tb * pt + h * th;
+      if (t % ap) return null;
+      return { text: `Un immeuble de ${ap} appartements reçoit ${tb} tableaux électriques à ${pt} CHF pièce. ${p.prenom} s'occupe de leur installation et travaille pendant ${h} heures, au tarif de ${th} CHF par heure. Les frais sont répartis équitablement entre les ${ap} appartements. Combien chaque appartement doit-il payer ?`,
+        answer: `Tableaux : ${tb}×${pt} = ${tb * pt} CHF. Pose : ${h}×${th} = ${h * th} CHF. Total : ${tb * pt}+${h * th} = ${t} CHF. Par appartement : ${t}÷${ap} = ${t / ap} CHF.` };
+    }, () => ({ text: `Un immeuble de 4 appartements reçoit 5 tableaux électriques à 320 CHF pièce. ${p.prenom} s'occupe de leur installation et travaille pendant 6 heures, au tarif de 120 CHF par heure. Les frais sont répartis équitablement entre les 4 appartements. Combien chaque appartement doit-il payer ?`,
+      answer: `Tableaux : 5×320 = 1600 CHF. Pose : 6×120 = 720 CHF. Total : 1600+720 = 2320 CHF. Par appartement : 2320÷4 = 580 CHF.` }))]
+  },
+
+  'gestionnaire-detail': {
+    1: [(p) => {
+      const c = rand(12, 18), b = choice([20, 24, 30]), k = rand(10, 25);
+      const il = p.genre === 'F' ? 'elle' : 'il';
+      return { text: `${p.prenom} reçoit ${c} cartons de ${b} bouteilles. ${k} bouteilles sont cassées à la livraison. Combien de bouteilles peut-${il} mettre en rayon ?`,
+        answer: `Bouteilles reçues : ${c}×${b} = ${c * b}. En rayon : ${c * b}−${k} = ${c * b - k} bouteilles.` };
+    }],
+    2: [(p) => {
+      const a = rand(30, 50), pa = choice([10, 12, 14]), b = rand(12, 20), pb = choice([22, 25, 28]);
+      return { text: `${p.prenom} vend ${a} paquets de café à ${pa} CHF et ${b} boîtes de chocolats à ${pb} CHF. Quelle est la recette de la journée ?`,
+        answer: `Café : ${a}×${pa} = ${a * pa} CHF. Chocolats : ${b}×${pb} = ${b * pb} CHF. Recette : ${a * pa}+${b * pb} = ${a * pa + b * pb} CHF.` };
+    }],
+    3: [(p) => _essais(() => {
+      const c = rand(6, 10), v = choice([10, 12]), pv = choice([40, 45, 50]),
+        rem = choice([150, 180, 200]), ver = choice([3, 4]);
+      const t = c * v * pv - rem;
+      if (t % ver) return null;
+      const il = p.genre === 'F' ? 'Elle' : 'Il';
+      return { text: `${p.prenom} commande ${c} cartons de ${v} vestes à ${pv} CHF pièce et obtient ${rem} CHF de remise. ${il} règle la facture en ${ver} versements égaux. Quel est le montant d'un versement ?`,
+        answer: `Vestes : ${c}×${v} = ${c * v}. Prix : ${c * v}×${pv} = ${c * v * pv} CHF. Après remise : ${c * v * pv}−${rem} = ${t} CHF. Par versement : ${t}÷${ver} = ${t / ver} CHF.` };
+    }, () => ({ text: `${p.prenom} commande 9 cartons de 12 vestes à 45 CHF pièce et obtient 180 CHF de remise. La facture est réglée en 3 versements égaux. Quel est le montant d'un versement ?`,
+      answer: `Vestes : 9×12 = 108. Prix : 108×45 = 4860 CHF. Après remise : 4860−180 = 4680 CHF. Par versement : 4680÷3 = 1560 CHF.` }))]
+  },
+
+  'sanitaire': {
+    1: [(p) => {
+      const m = rand(25, 40), pm = choice([8, 9, 10]), r = choice([35, 45, 55]);
+      return { text: `${p.prenom} achète ${m} mètres de tuyau à ${pm} CHF le mètre et obtient ${r} CHF de rabais. Combien paie-t-${p.genre === 'F' ? 'elle' : 'il'} ?`,
+        answer: `Tuyau : ${m}×${pm} = ${m * pm} CHF. À payer : ${m * pm}−${r} = ${m * pm - r} CHF.` };
+    }],
+    2: [(p) => {
+      const l = rand(2, 4), pl = choice([160, 180, 200]), r = rand(2, 3), pr = choice([85, 95, 110]);
+      return { text: `${p.prenom} pose ${l} lavabos à ${pl} CHF pièce et ${r} robinets à ${pr} CHF pièce. Quel est le prix du matériel ?`,
+        answer: `Lavabos : ${l}×${pl} = ${l * pl} CHF. Robinets : ${r}×${pr} = ${r * pr} CHF. Total : ${l * pl}+${r * pr} = ${l * pl + r * pr} CHF.` };
+    }],
+    3: [(p) => _essais(() => {
+      const s = choice([3, 4]), rb = choice([80, 85, 90]), si = choice([25, 30, 35]),
+        h = rand(3, 5), th = choice([120, 130, 140]);
+      const parSalle = 2 * rb + si, t = s * parSalle + h * th;
+      if (t % s) return null;
+      const il = p.genre === 'F' ? 'Elle' : 'Il';
+      return { text: `${p.prenom} équipe ${s} salles de bains identiques : 2 robinets à ${rb} CHF et 1 siphon à ${si} CHF par salle. ${il} travaille ${h} heures au tarif de ${th} CHF par heure. Les ${s} locataires se partagent la dépense. Combien chacun doit-il payer ?`,
+        answer: `Par salle : 2×${rb}+${si} = ${parSalle} CHF. Matériel : ${s}×${parSalle} = ${s * parSalle} CHF. Main-d'œuvre : ${h}×${th} = ${h * th} CHF. Total : ${s * parSalle}+${h * th} = ${t} CHF. Par locataire : ${t}÷${s} = ${t / s} CHF.` };
+    }, () => ({ text: `${p.prenom} équipe 4 salles de bains identiques : 2 robinets à 85 CHF et 1 siphon à 30 CHF par salle, et travaille 4 heures au tarif de 130 CHF par heure. Les 4 locataires se partagent la dépense. Combien chacun doit-il payer ?`,
+      answer: `Par salle : 2×85+30 = 200 CHF. Matériel : 4×200 = 800 CHF. Main-d'œuvre : 4×130 = 520 CHF. Total : 800+520 = 1320 CHF. Par locataire : 1320÷4 = 330 CHF.` }))]
+  },
+
+  'dentaire': {
+    1: [(p) => {
+      const a = rand(6, 10), b = rand(11, 16), t = choice([110, 120, 130]);
+      return { text: `${p.prenom}, ${libelleMetier('dentaire', p.genre)}, inscrit ${a} patients le matin et ${b} l'après-midi. Chaque contrôle est facturé ${t} CHF. Quelle est la recette de la journée ?`,
+        answer: `Patients : ${a}+${b} = ${a + b}. Recette : ${a + b}×${t} = ${(a + b) * t} CHF.` };
+    }],
+    2: [(p) => {
+      const g = rand(10, 18), pg = choice([12, 14, 16]), m = rand(6, 10), pm = choice([20, 22, 25]),
+        rem = choice([30, 40, 50]);
+      const il = p.genre === 'F' ? 'Elle' : 'Il';
+      return { text: `${p.prenom} commande ${g} boîtes de gants à ${pg} CHF et ${m} boîtes de masques à ${pm} CHF. ${il} obtient ${rem} CHF de remise. Combien paie-t-${p.genre === 'F' ? 'elle' : 'il'} ?`,
+        answer: `Gants : ${g}×${pg} = ${g * pg} CHF. Masques : ${m}×${pm} = ${m * pm} CHF. Total : ${g * pg}+${m * pm} = ${g * pg + m * pm} CHF. À payer : ${g * pg + m * pm}−${rem} = ${g * pg + m * pm - rem} CHF.` };
+    }],
+    3: [(p) => _essais(() => {
+      const n = choice([3, 4, 5]), pu = choice([1100, 1200, 1400]), lo = choice([500, 600, 800]),
+        mo = choice([10, 12]);
+      const t = n * pu + lo;
+      if (t % mo) return null;
+      return { text: `Le cabinet dentaire où travaille ${p.prenom} renouvelle son informatique : ${n} ordinateurs à ${pu} CHF pièce et ${lo} CHF de logiciels. La dépense est répartie sur ${mo} mois. Combien le cabinet paie-t-il chaque mois ?`,
+        answer: `Ordinateurs : ${n}×${pu} = ${n * pu} CHF. Total : ${n * pu}+${lo} = ${t} CHF. Par mois : ${t}÷${mo} = ${t / mo} CHF.` };
+    }, () => ({ text: `Le cabinet dentaire où travaille ${p.prenom} renouvelle son informatique : 4 ordinateurs à 1200 CHF pièce et 600 CHF de logiciels. La dépense est répartie sur 12 mois. Combien le cabinet paie-t-il chaque mois ?`,
+      answer: `Ordinateurs : 4×1200 = 4800 CHF. Total : 4800+600 = 5400 CHF. Par mois : 5400÷12 = 450 CHF.` }))]
+  },
+
+  'ase': {
+    1: [(p) => _essais(() => {
+      const ta = rand(4, 7), pa = choice([6, 8]), t = ta * pa, m = rand(20, t - 6);
+      if (t - m < 6) return null;
+      return { text: `${p.prenom} prépare la collation : ${ta} tartes coupées en ${pa} parts. Les enfants en mangent ${m}. Combien de parts reste-t-il ?`,
+        answer: `Parts préparées : ${ta}×${pa} = ${t}. Reste : ${t}−${m} = ${t - m} parts.` };
+    }, () => ({ text: `${p.prenom} prépare la collation : 5 tartes coupées en 8 parts. Les enfants en mangent 26. Combien de parts reste-t-il ?`,
+      answer: `Parts préparées : 5×8 = 40. Reste : 40−26 = 14 parts.` })),
+    (p) => {
+      const pl = rand(3, 5), ta = choice([12, 15]), ab = rand(8, 15);
+      return { text: `${p.prenom} prépare la collation de l'après-midi : ${pl} plateaux de ${ta} tasses. ${ab} résidents sont absents et ne prennent pas de collation. Combien de tasses sont servies ?`,
+        answer: `Tasses préparées : ${pl}×${ta} = ${pl * ta}. Servies : ${pl * ta}−${ab} = ${pl * ta - ab} tasses.` };
+    }],
+    2: [(p) => {
+      const n = rand(12, 20), e = choice([10, 12, 15]), r = choice([18, 20, 22]);
+      return { text: `${p.prenom} organise une sortie au musée pour ${n} résidents. L'entrée du musée coûte ${e} CHF par personne et le repas de midi ${r} CHF par personne. Quel est le coût total de la sortie ?`,
+        answer: `Entrées : ${n}×${e} = ${n * e} CHF. Repas : ${n}×${r} = ${n * r} CHF. Total : ${n * e}+${n * r} = ${n * e + n * r} CHF.` };
+    }],
+    3: [(p) => {
+      const g = choice([3, 4]), n = rand(10, 14), pp = choice([4, 5, 6]), com = g * choice([20, 24, 28]);
+      const t = g * n * pp + com;
+      return { text: `${p.prenom} achète le matériel d'atelier créatif de ${g} groupes de ${n} résidents : ${pp} CHF par personne, plus ${com} CHF de fournitures communes. Quel est le coût du matériel par groupe ?`,
+        answer: `Résidents : ${g}×${n} = ${g * n}. Matériel : ${g * n}×${pp} = ${g * n * pp} CHF. Total : ${g * n * pp}+${com} = ${t} CHF. Par groupe : ${t}÷${g} = ${t / g} CHF.` };
+    }]
+  },
+
+  'pharmacie': {
+    1: [(p) => {
+      const c = rand(10, 16), b = choice([15, 20, 24]), pe = rand(20, 40);
+      return { text: `${p.prenom} range ${c} cartons de ${b} boîtes de sirop. ${pe} boîtes sont périmées et retirées. Combien de boîtes restent en rayon ?`,
+        answer: `Boîtes rangées : ${c}×${b} = ${c * b}. En rayon : ${c * b}−${pe} = ${c * b - pe} boîtes.` };
+    }],
+    2: [(p) => {
+      const a = rand(2, 4), pa = choice([16, 18, 22]), b = rand(2, 3), pb = choice([24, 26, 30]);
+      return { text: `${p.prenom} sert une cliente qui achète ${a} boîtes de comprimés à ${pa} CHF et ${b} flacons de sirop à ${pb} CHF. Combien la cliente paie-t-elle ?`,
+        answer: `Comprimés : ${a}×${pa} = ${a * pa} CHF. Sirop : ${b}×${pb} = ${b * pb} CHF. Total : ${a * pa}+${b * pb} = ${a * pa + b * pb} CHF.` };
+    }],
+    3: [(p) => _essais(() => {
+      const c = rand(4, 8), b = choice([20, 25]), pb = choice([12, 15, 18]),
+        rem = choice([80, 90, 120]), me = choice([3, 4]);
+      const t = c * b * pb - rem;
+      if (t % me) return null;
+      return { text: `${p.prenom} réceptionne ${c} cartons de ${b} boîtes de vitamines à ${pb} CHF la boîte. La pharmacie bénéficie de ${rem} CHF de remise et règle la facture en ${me} mensualités. Combien paie-t-elle chaque mois ?`,
+        answer: `Boîtes : ${c}×${b} = ${c * b}. Prix : ${c * b}×${pb} = ${c * b * pb} CHF. Après remise : ${c * b * pb}−${rem} = ${t} CHF. Par mois : ${t}÷${me} = ${t / me} CHF.` };
+    }, () => ({ text: `${p.prenom} réceptionne 6 cartons de 25 boîtes de vitamines à 15 CHF la boîte. La pharmacie bénéficie de 90 CHF de remise et règle la facture en 4 mensualités. Combien paie-t-elle chaque mois ?`,
+      answer: `Boîtes : 6×25 = 150. Prix : 150×15 = 2250 CHF. Après remise : 2250−90 = 2160 CHF. Par mois : 2160÷4 = 540 CHF.` }))]
+  },
+
+  'assc': {
+    1: [(p) => {
+      const c = rand(3, 5), pi = choice([12, 15, 18]), r = rand(8, 15);
+      return { text: `${p.prenom} prépare ${c} chariots de ${pi} piluliers. ${r} piluliers sont rendus à la pharmacie. Combien en reste-t-il ?`,
+        answer: `Piluliers préparés : ${c}×${pi} = ${c * pi}. Reste : ${c * pi}−${r} = ${c * pi - r} piluliers.` };
+    }],
+    2: [(p) => {
+      const a = rand(10, 15), pa = choice([14, 16, 18]), b = rand(6, 12), pb = choice([12, 14, 16]);
+      return { text: `${p.prenom} commande ${a} boîtes de compresses à ${pa} CHF et ${b} boîtes de gants à ${pb} CHF. Quel est le montant de la commande ?`,
+        answer: `Compresses : ${a}×${pa} = ${a * pa} CHF. Gants : ${b}×${pb} = ${b * pb} CHF. Total : ${a * pa}+${b * pb} = ${a * pa + b * pb} CHF.` };
+    }],
+    3: [(p) => {
+      const et = choice([3, 4]), re = rand(12, 16), pr = choice([11, 12, 14]),
+        sub = et * choice([80, 100, 120]);
+      const brut = et * re * 2 * pr, t = brut - sub;
+      return { text: `${p.prenom} s'occupe de ${et} étages comptant chacun ${re} résidents. Chaque résident prend 2 repas à ${pr} CHF. L'EMS reçoit une subvention de ${sub} CHF, puis répartit le montant restant entre les ${et} étages. Quel montant chaque étage doit-il payer ?`,
+        answer: `Résidents : ${et}×${re} = ${et * re}. Repas : ${et * re}×2 = ${et * re * 2}. Coût : ${et * re * 2}×${pr} = ${brut} CHF. Après subvention : ${brut}−${sub} = ${t} CHF. Par étage : ${t}÷${et} = ${t / et} CHF.` };
+    }]
+  },
+
+  'logistique': {
+    1: [(p) => {
+      const pa = rand(12, 20), ca = choice([20, 24, 30]), ab = rand(10, 25);
+      return { text: `${p.prenom} réceptionne ${pa} palettes de ${ca} cartons. ${ab} cartons sont endommagés et refusés. Combien de cartons entrent en stock ?`,
+        answer: `Cartons livrés : ${pa}×${ca} = ${pa * ca}. En stock : ${pa * ca}−${ab} = ${pa * ca - ab} cartons.` };
+    }],
+    2: [(p) => {
+      const a = rand(25, 40), pa = choice([10, 12, 15]), b = rand(12, 20), pb = choice([6, 8, 9]);
+      return { text: `${p.prenom} prépare une expédition de ${a} cartons de ${pa} kg et ${b} cartons de ${pb} kg. Quelle est la masse totale de l'expédition ?`,
+        answer: `Gros cartons : ${a}×${pa} = ${a * pa} kg. Petits cartons : ${b}×${pb} = ${b * pb} kg. Total : ${a * pa}+${b * pb} = ${a * pa + b * pb} kg.` };
+    }],
+    3: [(p) => _essais(() => {
+      const pa = rand(5, 8), ca = choice([40, 45, 50]), li = rand(30, 60), mg = choice([4, 5, 6]);
+      const r = pa * ca - li;
+      if (r % mg || r / mg < 15) return null;
+      return { text: `${p.prenom} charge un camion de ${pa} palettes de ${ca} cartons. ${li} cartons sont livrés à un premier client, le reste est réparti équitablement entre ${mg} magasins. Combien de cartons chaque magasin reçoit-il ?`,
+        answer: `Cartons chargés : ${pa}×${ca} = ${pa * ca}. Reste : ${pa * ca}−${li} = ${r}. Par magasin : ${r}÷${mg} = ${r / mg} cartons.` };
+    }, () => ({ text: `${p.prenom} charge un camion de 6 palettes de 45 cartons. 40 cartons sont livrés à un premier client, le reste est réparti équitablement entre 5 magasins. Combien de cartons chaque magasin reçoit-il ?`,
+      answer: `Cartons chargés : 6×45 = 270. Reste : 270−40 = 230. Par magasin : 230÷5 = 46 cartons.` }))]
+  },
+
+  'proprete': {
+    1: [(p) => {
+      const b = rand(12, 20), pb = choice([10, 12, 14]), r = choice([30, 35, 45]);
+      return { text: `${p.prenom} achète ${b} bidons de produit à ${pb} CHF et obtient ${r} CHF de remise. Combien paie-t-${p.genre === 'F' ? 'elle' : 'il'} ?`,
+        answer: `Bidons : ${b}×${pb} = ${b * pb} CHF. À payer : ${b * pb}−${r} = ${b * pb - r} CHF.` };
+    }],
+    2: [(p) => {
+      const bu = rand(4, 8), sb = choice([40, 45, 50]), co = rand(2, 4), sc = choice([55, 60, 70]);
+      return { text: `${p.prenom} nettoie ${bu} bureaux de ${sb} m² et ${co} couloirs de ${sc} m². Quelle surface nettoie-t-${p.genre === 'F' ? 'elle' : 'il'} en tout ?`,
+        answer: `Bureaux : ${bu}×${sb} = ${bu * sb} m². Couloirs : ${co}×${sc} = ${co * sc} m². Total : ${bu * sb}+${co * sc} = ${bu * sb + co * sc} m².` };
+    }],
+    3: [(p) => _essais(() => {
+      const ag = choice([4, 5]), h = rand(3, 5), th = choice([55, 60, 65]), pr = choice([80, 90, 100]);
+      if (pr === th) return null;
+      const fa = ag * h * th + pr;
+      return { text: `L'entreprise de ${p.prenom} facture ${fa} CHF le nettoyage d'un immeuble, dont ${pr} CHF de produits. ${ag} agents y ont travaillé ${h} heures chacun. À combien l'heure de travail est-elle facturée ?`,
+        answer: `Main-d'œuvre : ${fa}−${pr} = ${fa - pr} CHF. Heures : ${ag}×${h} = ${ag * h}. Par heure : ${fa - pr}÷${ag * h} = ${th} CHF.` };
+    }, () => ({ text: `L'entreprise de ${p.prenom} facture 1280 CHF le nettoyage d'un immeuble, dont 80 CHF de produits. 5 agents y ont travaillé 4 heures chacun. À combien l'heure de travail est-elle facturée ?`,
+      answer: `Main-d'œuvre : 1280−80 = 1200 CHF. Heures : 5×4 = 20. Par heure : 1200÷20 = 60 CHF.` }))]
+  }
+};
+
 // Palier de difficulté de chaque patron (même ordre que PROBLEME_PATRONS) :
 // 1 = facile (2 opérations), 2 = moyen (3 opérations), 3 = difficile (4 op. / division).
 //          excursion verres enseign. restau. boulang. salaire spect. épargne chalet
@@ -5531,12 +6055,42 @@ function genProbleme() {
     while (out.length < k && c.length) out.push(c.splice(Math.floor(Math.random() * c.length), 1)[0]);
     return out;
   };
-  let chosen = [...pick(byTier[1], 1), ...pick(byTier[2], 2), ...pick(byTier[3], 1)];
-  // Filet : si un palier manquait d'entrées, on complète avec d'autres patrons.
-  if (chosen.length < 4) {
-    const reste = PROBLEME_PATRONS.map((_, i) => i).filter(i => !chosen.includes(i));
-    chosen = chosen.concat(pick(reste, 4 - chosen.length));
+  const tiers = [1, 2, 2, 3];
+  // DEUX questions sur quatre parlent du domaine de formation d'un apprenant,
+  // quand la liste des prénoms en porte un ; les deux autres restent des
+  // situations de la vie courante, pour qu'une feuille entière ne parle pas
+  // que de travail. Deux prénoms différents : un même apprenant ne se retrouve
+  // pas dans deux questions.
+  const candidats = prenomsAvecMetier().filter(c => ENONCES_METIER[c.metier]);
+  const metierPar = {};
+  let aPlacer = candidats.length ? 2 : 0;
+  const rangs = [0, 1, 2, 3];
+  for (let i = rangs.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [rangs[i], rangs[j]] = [rangs[j], rangs[i]];
   }
+  const prisPrenoms = [];
+  rangs.forEach(r => {
+    if (!aPlacer) return;
+    const t = tiers[r];
+    const libres = candidats.filter(c => !prisPrenoms.includes(c.prenom)
+      && (ENONCES_METIER[c.metier][t] || []).length);
+    if (!libres.length) return;
+    const c = choice(libres);
+    prisPrenoms.push(c.prenom);
+    metierPar[r] = { c, gen: choice(ENONCES_METIER[c.metier][t]) };
+    aPlacer--;
+  });
+  // Patrons neutres pour les rangs restants, sans répéter le même patron.
+  const utilises = [];
+  const patronPour = (t) => {
+    const dispo = (byTier[t] || []).filter(i => !utilises.includes(i));
+    const src = dispo.length ? dispo
+      : (byTier[t] && byTier[t].length ? byTier[t] : PROBLEME_PATRONS.map((_, i) => i));
+    const i = choice(src);
+    utilises.push(i);
+    return i;
+  };
   // Garde-fou anti-trivialité : le résultat final ne doit pas figurer tel quel
   // dans l'énoncé.
   const isTrivial = (q) => {
@@ -5547,13 +6101,24 @@ function genProbleme() {
     return new RegExp('(?<![\\d.,])' + esc + '(?![\\d.,])').test(q.text);
   };
   const labels = ['a)', 'b)', 'c)', 'd)'];
-  const questions = chosen.slice(0, 4).map((idx, i) => {
-    let q, safety = 20;
-    do { q = PROBLEME_PATRONS[idx](); } while (isTrivial(q) && --safety > 0);
+  const questions = tiers.map((t, i) => {
+    let q, safety = 20, modele;
+    if (metierPar[i]) {
+      const { c, gen } = metierPar[i];
+      modele = `metier-${c.metier}-${t}`;
+      do { q = gen({ prenom: c.prenom, genre: c.genre }); } while (isTrivial(q) && --safety > 0);
+    } else {
+      const idx = patronPour(t);
+      modele = `probleme-${idx}`;
+      do { q = PROBLEME_PATRONS[idx](); } while (isTrivial(q) && --safety > 0);
+    }
     // `answer` = solution rédigée (validation : on en extrait le résultat final) ;
     // `solutionDetail` affiche les étapes au corrigé.
     const item = { label: labels[i], text: q.text, answer: q.answer, solutionDetail: q.answer,
-      _modele: `probleme-${idx}` };
+      _modele: modele };
+    // Le prénom d'une question « métier » ne doit pas être réécrit par
+    // unifierPrenoms : c'est lui qui a choisi le contexte.
+    if (metierPar[i]) item.prenomFige = true;
     // Unité à droite du champ, comme pour les problèmes de proportionnalité :
     // l'élève n'écrit que la valeur et sait dans quoi elle s'exprime.
     const u = uniteDeLaReponse(q.answer);
@@ -5618,7 +6183,11 @@ function genDecimal(operation) {
         b = randDecimal(choice([3, 4]), 0);
         if (a % 10 + b % 10 >= 10) break;
       }
-      return { text: `${toFr(a)} + ${toFr(b)} = `, answer: toFr(a + b) };
+      // Le plus grand terme se pose au-dessus (demande d'Aurelio, 28.08). Le
+      // tirage reste indépendant : on se contente de les remettre dans l'ordre,
+      // ce qui ne change ni la retenue garantie ni la distribution des tailles.
+      if (b > a) { const t = a; a = b; b = t; }
+      return { text: `${toFr(a)} + ${toFr(b)} = `, answer: toFr(a + b), pose: { a, b, op: '+' } };
     }
     if (niveau === 1) {
       // N1 : 2 termes, 4 ou 5 chiffres entiers, 1 décimale
@@ -5654,13 +6223,21 @@ function genDecimal(operation) {
       // Nombres entiers : 4 chiffres − 3 chiffres, résultat toujours positif,
       // avec au moins un emprunt (le chiffre des unités du second terme est
       // plus grand que celui du premier).
-      let a, b;
-      for (let essai = 0; essai < 40; essai++) {
+      // On écarte aussi les emprunts EN CASCADE — une colonne qui prête et
+      // emprunte à la fois, ou un prêteur à 0 : la notation du corrigé (prêteur
+      // barré, « 10 » au-dessus de l'emprunteur) demanderait alors deux
+      // annotations sur une même colonne.
+      let a, b, secours = null;
+      for (let essai = 0; essai < 200; essai++) {
         a = randDecimal(4, 0);
         b = randDecimal(3, 0);
-        if (b % 10 > a % 10) break;
+        if (b % 10 <= a % 10) continue;
+        if (!secours) secours = [a, b];
+        if (empruntSimple(a, b)) break;
+        a = null;
       }
-      return { text: `${toFr(a)} − ${toFr(b)} = `, answer: toFr(a - b) };
+      if (a == null) { a = secours ? secours[0] : 4321; b = secours ? secours[1] : 987; }
+      return { text: `${toFr(a)} − ${toFr(b)} = `, answer: toFr(a - b), pose: { a, b, op: '−' } };
     }
     if (niveau === 1) {
       // N1 : 2 termes, décimales différentes entre eux. Le premier terme peut être
@@ -5716,7 +6293,7 @@ function genDecimal(operation) {
       const a = randDecimal(3, 0);
       let b;
       do { b = randDecimal(2, 0); } while (b % 10 === 0 || b === 10 || b === 11);
-      return { text: `${toFr(a)} × ${toFr(b)} = `, answer: toFr(a * b) };
+      return { text: `${toFr(a)} × ${toFr(b)} = `, answer: toFr(a * b), pose: { a, b, op: '×' } };
     }
     if (niveau === 1) {
       // N1 : 3 chiffres × 2 chiffres, virgule placée aléatoirement (inchangé par rapport à avant)
@@ -5758,11 +6335,11 @@ function genDecimal(operation) {
         const dividende = d * q;
         const nbChiffres = String(dividende).length;
         if (nbChiffres < 3 || nbChiffres > 4) continue;
-        return { text: `${toFr(dividende)} ÷ ${toFr(d)} = `, answer: toFr(q) };
+        return { text: `${toFr(dividende)} ÷ ${toFr(d)} = `, answer: toFr(q), pose: { a: dividende, b: d, op: '÷' } };
       }
       // Filet : une division exacte quoi qu'il arrive.
       const d = 7, q = rand(15, 99);
-      return { text: `${toFr(d * q)} ÷ ${toFr(d)} = `, answer: toFr(q) };
+      return { text: `${toFr(d * q)} ÷ ${toFr(d)} = `, answer: toFr(q), pose: { a: d * q, b: d, op: '÷' } };
     }
     // Diviseurs à UNE décimale aux deux niveaux ; le niveau 2 y ajoute trois
     // diviseurs à DEUX décimales. Le dividende gagne alors un chiffre, sinon
@@ -5938,19 +6515,22 @@ function genDecimal(operation) {
       if (operation === 'division') diviseursVus.add(diviseurDe(q.text));
       const qObj = { label: labels[i], text: q.text, answer: q.answer };
       if (q.acceptAlt) qObj.acceptAlt = q.acceptAlt;
+      if (q.pose) qObj.pose = q.pose;      // corrigé : opération posée en colonne
       questions.push(qObj);
     }
-    return { multi: true, intro: CONSIGNE[operation], questions };
+    return { multi: true, intro: CONSIGNE[operation], questions, _poseColonne: niveau === 3 };
   }
   const ops = [opAdd, opSub, opMul, opDiv];
   for (let i = 0; i < 4; i++) {
     const q = ops[i]();
     const qObj = { label: labels[i], text: q.text, answer: q.answer };
     if (q.acceptAlt) qObj.acceptAlt = q.acceptAlt;
+    if (q.pose) qObj.pose = q.pose;        // corrigé : opération posée en colonne
     questions.push(qObj);
   }
   return {
     multi: true,
+    _poseColonne: niveau === 3,
     intro: niveau === 3
       ? "Pose les opérations en colonne"
       : "Pose les opérations en colonne (pour les divisions, quotient à deux décimales au minimum)",
@@ -17133,7 +17713,7 @@ const ICONE_ENSEIGNANT = '<svg viewBox="0 0 24 24" width="21" height="21" fill="
 const ICONE_PDF = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJkAAACUCAMAAAC3HHtWAAAAk1BMVEXi5ef////xVkKwt73K0dji6OrxW0jyUDnG2eHlzczmgnrV2t/x8/T19vbxUTzwTDX4u7Xnvr28wsf+8/L84N3yYlD1jID1hXf1kYb4q6L4t7D96ujwQib1mY7++Pf70c3zcWHxSC/zeGn3pJv6ysX72dXy2Nbj1dXtgnfyaFf3sKj6w73UubvV4ebco6HkioPitLFLhhsqAAAElUlEQVR4nO3ca5eaOhQG4ICOtHUa7AAqIgiIbdVezv//dUcS7tlAXIYkq4v308xCzeNOCAEVZAzmKxKWj8Xi4324tVbQyGahsqdow7J3wbLFgp82LHsTLuOv2rBMIKyQ8dMGZQLHfyXjpsmX8dIUyDhpKmR8NCUyLpoa2eLjq64yjqqpko1XTZlstGrqZGM0hbIRmkrZME2pbJCmVjZEUywboKmW9dOUy3qnXPWyvqppIOupmg4yuGpayMCq6SGDqiZPthySAVWTJ1sPytiqyZMNdydbNYmykaJ1aRJlY0Xr0GTKnqNJlY3sn22aXBlaL4fr1qBJlpEsB/KmVDZEUywboKmW9dOUy3pp6mV9NA1kPTQdZDBNCxlI00MG0TSRATRdZCxNGxlD00fWpWkkQ/rKkL4ypK8M6StD+sqQvjKkrwzpK0P6ypC+MqSvDOkrQ/rKkL6ytbYyVF+tnWWiZW8T5jlZ4Lby/fN0+YFAGyxzw9hbyUoc/oBooOxi2tiUFmybEA2SRaklz5XH/slZs5PEgtGsPrNFg2R3W7YMf+OTbWbZLJtls2yWzbJWrORYJklaaxFs2WUsiznm1htpoIPySzK8PQVl3Oyc1gQrDX3/nMc/h/t0lbTb3vqthDGwkHlFhneO0YyTXYtHWdvWFsc9xA3b6m504nhs1V6R2QemhT192OrS3WJs4rLx7hvKcz8KlVkbpoWI9ovnMlsMN4ULSnJIJpA5gUNStL+qZRFN+RLBDvfJgpXY3qSy2zXOs/MpIbRLWeT/3OYJb0UFL7R9KnMOdXzRewCV+TYmsa8BKdqxku3oFsvGu4C+SFLL3MakwU4rgmTlv/u8ak5emEJWVcKOadmuuJYBmKlkmHpiQGZaMenrg61EZppknso9jMw8khnG9fSTWWletCjF9TizHnmMwsdInFqG6S4A9mY5keR7LpUFYRX4JFugLPHzf6OK0ZatTuWDmfnM2UO012XnI931zTMZ5KfGrNFsEGdkF0igmdaJgQ59XZaFZE1xO9GZlrx/QGYS2Q2UGdtJZO3c6+NmZ5yRg/wZ6k3j4rEvLlrm0h2NlRW7R17R4uh0qnIA1kCCZVF2pW2wMjvMH+BcG7MGmTbywBfmBMqcU2gWbQDzGSnZhfwpa6Y9nWn2qVm9d0ZGZxQyzOTJzkfaJc0+6cjwMSQ7bmRLrZkPbClkCSZoHG+iumQayIzs9lgV3g73YqYzsuJp6mWdXK7N1baMccYpy7xi2EmQ2ed8C3Q4Zs/qorA6CcFpLhu9WP7a1YNNFB3AdULqRjXKcU/bY+P5OHQiN51UhnG6gz/AsLxdndSz2s+249119IOPF68F9axHyZY6TzxNmGzCzLJZNstm2TSyTPpnwh7nZ8KBbBiOGVfPdw9u7DXeSWHHX785ZVGYJNV52ORJ8J/lmlP2WOv54b6VL5Pl73/LT0/Iunn/NF3yLzXyjjNAxvzkQWy0lQEwPWTAKOOXrScM5PoXvrM3y2bZLJtls+zfk3He90Do3TnFykTe0ZQr9Q8XRmTSi9a4zcyITOQNap+Djckk92fzbin/A8PQxx30Ei25AAAAAElFTkSuQmCC';
 
 // Numéro de version, affiché en pied de menu.
-const APP_VERSION = '477';
+const APP_VERSION = '483';
 
 const DOMAINS = [
   {
@@ -21374,13 +21954,27 @@ function renderAccueilEnseignant() {
 // coupé en deux. Écrit avec un trait d'union (« Anne-Sophie »), il reste entier.
 // L'enregistrement réécrit les deux zones une ligne par prénom, pour qu'une
 // coupure de ce genre se voie tout de suite.
+// Une ligne « Prénom - métier » reste entière ; une liste collée sur une seule
+// ligne est recoupée aux espaces, virgules et points-virgules comme avant.
+// Le doublon se juge sur le PRÉNOM, pas sur la ligne : deux apprenants ne
+// peuvent pas porter le même prénom, même avec deux métiers différents.
 function prenomsLire(id) {
   const z = document.getElementById(id);
   if (!z) return [];
   const vus = new Set();
-  return z.value.split(/[\s,;]+/)
-    .map(l => l.trim())
-    .filter(l => l && !vus.has(l.toLowerCase()) && vus.add(l.toLowerCase()));
+  const lignes = [];
+  z.value.split(/[\n\r]+/).forEach(brut => {
+    const l = brut.trim();
+    if (!l) return;
+    if (_lirePrenomMetier(l).prenom !== l) lignes.push(l);
+    else l.split(/[\s,;]+/).filter(Boolean).forEach(x => lignes.push(x));
+  });
+  return lignes.filter(l => {
+    const c = _cleTexte(_lirePrenomMetier(l).prenom);
+    if (!c || vus.has(c)) return false;
+    vus.add(c);
+    return true;
+  });
 }
 
 function prenomsMajCompte() {
@@ -21398,16 +21992,19 @@ function prenomsEnregistrer() {
     return;
   }
   appliquerPrenoms(m, f);
-  // Remise en forme visible : un prénom par ligne.
+  // Remise en forme visible : une ligne par prénom, métier accordé d'après la
+  // COLONNE — « Hussein - mécanicienne » ressort « Hussein - mécanicien ».
+  const lignesM = PRENOMS_M.map(x => ligneDuPrenom(x, 'M'));
+  const lignesF = PRENOMS_F.map(x => ligneDuPrenom(x, 'F'));
   const zm = document.getElementById('prenoms-m'), zf = document.getElementById('prenoms-f');
-  if (zm) zm.value = m.join('\n');
-  if (zf) zf.value = f.join('\n');
+  if (zm) zm.value = lignesM.join('\n');
+  if (zf) zf.value = lignesF.join('\n');
   // Les exercices déjà tirés gardent leurs anciens prénoms : on vide le cache
   // pour que le prochain passage sur un sous-domaine les renouvelle.
   Object.keys(state.exercisesCache).forEach(k => { delete state.exercisesCache[k]; });
   let stocke = false;
   try {
-    window.localStorage.setItem(CLE_PRENOMS, JSON.stringify({ m, f }));
+    window.localStorage.setItem(CLE_PRENOMS, JSON.stringify({ m: lignesM, f: lignesF }));
     stocke = true;
   } catch (e) { stocke = false; }
   const info = document.getElementById('prenoms-info');
@@ -21444,14 +22041,20 @@ function renderPrenoms() {
     <p class="atelier-aide">Ces listes alimentent tous les énoncés qui nomment quelqu'un :
       problèmes concrets, proportionnalité, problèmes à mettre en équation. Le genre sert à
       accorder l'énoncé — « il » ou « elle », « son » ou « sa ».</p>
+    <p class="atelier-aide">Tu peux écrire le <strong>domaine de formation</strong> à la suite du
+      prénom, séparé par un tiret : « Daniel - employé de commerce ». Deux des quatre questions
+      des problèmes concrets prendront alors le contexte du métier — des classeurs, des pneus,
+      des palettes. Le métier lui-même n'est pas nommé dans l'énoncé. L'accord suit la colonne :
+      un métier écrit au féminin dans la colonne masculine est remis au masculin à
+      l'enregistrement.</p>
     <div class="prenoms-cols">
       <div class="prenoms-col">
         <label class="prenoms-titre" for="prenoms-m">Prénoms masculins</label>
-        <textarea id="prenoms-m" oninput="prenomsMajCompte()">${PRENOMS_M.join('\n')}</textarea>
+        <textarea id="prenoms-m" oninput="prenomsMajCompte()">${PRENOMS_M.map(p => ligneDuPrenom(p, 'M')).join('\n')}</textarea>
       </div>
       <div class="prenoms-col">
         <label class="prenoms-titre" for="prenoms-f">Prénoms féminins</label>
-        <textarea id="prenoms-f" oninput="prenomsMajCompte()">${PRENOMS_F.join('\n')}</textarea>
+        <textarea id="prenoms-f" oninput="prenomsMajCompte()">${PRENOMS_F.map(p => ligneDuPrenom(p, 'F')).join('\n')}</textarea>
       </div>
     </div>
     <div class="atelier-barre">
@@ -21724,7 +22327,7 @@ function renderClasse() {
         </button>
         ${ouverte ? `<div class="classe-corps">
           <label class="prenoms-titre" for="classe-liste">Élèves — un par ligne : prénom, puis mot de passe</label>
-          <textarea id="classe-liste" oninput="classeMajCompte()" placeholder="Daniel  4t7p&#10;Soraya  b2xq">${(c.eleves || []).map(e => `${e.prenom}${e.mdp ? ' ' + e.mdp : ''}`).join('\n')}</textarea>
+          <textarea id="classe-liste" oninput="classeMajCompte()" placeholder="Daniel  4t7p&#10;Seraya  b2xq">${(c.eleves || []).map(e => `${e.prenom}${e.mdp ? ' ' + e.mdp : ''}`).join('\n')}</textarea>
           <div class="atelier-barre">
             <button class="btn-action btn-primary" onclick="classeEnregistrer()">Enregistrer</button>
             <button class="btn-action" onclick="classeAttribuerMdp()">Attribuer les mots de passe manquants</button>
@@ -28540,6 +29143,277 @@ function addPageNumbers(pdf, corrigeStartPage) {
 
 // Corrigé (domaine Espace) : rendu partagé entre le PDF de sous-domaine et
 // le PDF de domaine → même présentation des corrigés.
+// ---------------------------------------------------------------------------
+// OPÉRATIONS POSÉES EN COLONNE (corrigé du niveau « Nombres entiers »)
+// ---------------------------------------------------------------------------
+// Rend l'opération telle qu'on l'écrit sur le cahier : chiffres alignés en
+// colonnes de largeur fixe (la police du site n'a pas de chiffres tabulaires,
+// d'où une cellule par chiffre), retenues en petit au-dessus, chiffres cassés
+// barrés. Utilisé par espaceCorrigeInner, donc valable pour le PDF de
+// sous-domaine, le PDF de domaine et l'export des séries et des tests.
+// Les valeurs viennent de `q.pose` ({ a, b, op }), posé par genDecimal au
+// niveau 3 : rien n'est recalculé ici à partir du texte de l'énoncé.
+const POSE_W  = 15;   // largeur d'une colonne de chiffres, en px
+const POSE_FS = 15;   // taille d'un chiffre
+const POSE_FP = 10;   // taille d'une retenue ou d'un chiffre cassé
+const POSE_ENC = '#111827';   // encre
+const POSE_RET = '#059669';   // retenues et cassages : le vert des corrigés
+
+// Une ligne de cellules. `cells` est un tableau de longueur fixe (colonnes de
+// gauche à droite) ; chaque entrée vaut null ou { t, style }.
+function _poseLigne(cells, opts) {
+  opts = opts || {};
+  const h = opts.h || (POSE_FS + 5);
+  const fs = opts.fs || POSE_FS;
+  // `trait` barre toute la ligne (addition, soustraction, multiplication) ;
+  // `traitCols` ne la barre que sur un intervalle de colonnes — la potence,
+  // où le trait ne court que sous la soustraction qu'on vient de faire.
+  const trait = opts.trait ? `border-top:1.3px solid ${POSE_ENC};` : '';
+  const tc = opts.traitCols || null;
+  let s = `<div style="display:flex; height:${h}px; line-height:${h}px; font-size:${fs}px; color:${POSE_ENC}; ${trait}">`;
+  cells.forEach((c, i) => {
+    const st = (c && c.style) || '';
+    const bt = (tc && i >= tc[0] && i <= tc[1]) ? `border-top:1.3px solid ${POSE_ENC};` : '';
+    s += `<span style="display:inline-block; width:${POSE_W}px; text-align:center; ${bt}${st}">${(c && c.t != null) ? c.t : ''}</span>`;
+  });
+  return s + '</div>';
+}
+
+// Place une chaîne dans un tableau de W cellules, calée à droite, en laissant
+// `decal` colonnes vides à sa droite (utile pour les produits partiels).
+function _poseCells(txt, W, decal, style) {
+  decal = decal || 0;
+  const out = new Array(W).fill(null);
+  const s = String(txt);
+  for (let k = 0; k < s.length; k++) {
+    const col = W - 1 - decal - (s.length - 1 - k);
+    if (col >= 0) out[col] = { t: s[k], style: style || '' };
+  }
+  return out;
+}
+
+// Le résultat porte le vert des corrigés, comme partout ailleurs dans
+// l'application : c'est ce que l'élève vient chercher.
+const POSE_RES = `color:${POSE_RET}; font-weight:700;`;
+
+function poseAdditionHtml(a, b) {
+  const A = String(a), B = String(b), S = String(a + b);
+  const W = Math.max(A.length, B.length, S.length) + 1;   // +1 : colonne du signe
+  // Retenues : celle qui naît au rang k se pose au-dessus du rang k+1.
+  const ret = new Array(W).fill(null);
+  let r = 0;
+  for (let k = 0; k < W - 1; k++) {
+    const da = +(A[A.length - 1 - k] || 0), db = +(B[B.length - 1 - k] || 0);
+    r = (da + db + r >= 10) ? 1 : 0;
+    if (r) ret[W - 2 - k] = { t: '1', style: `color:${POSE_RET}; font-weight:700;` };
+  }
+  const ligneB = _poseCells(B, W);
+  ligneB[0] = { t: '+' };
+  return _poseLigne(ret, { h: 12, fs: POSE_FP })
+       + _poseLigne(_poseCells(A, W))
+       + _poseLigne(ligneB)
+       + _poseLigne(_poseCells(S, W, 0, POSE_RES), { trait: true });
+}
+
+// Soustraction PAR EMPRUNT, notation d'Aurelio (28.08) : on casse une dizaine
+// au rang supérieur ; SEUL LE CHIFFRE PRÊTEUR EST BARRÉ, avec sa nouvelle
+// valeur au-dessus. Le chiffre emprunteur reste tel quel et reçoit « 10 »
+// au-dessus — l'élève lit « 10 + 4 ».
+// Cette notation suppose un emprunt ISOLÉ : une colonne qui prêterait ET
+// emprunterait devrait porter deux annotations à la fois. Le générateur les
+// écarte (voir `empruntSimple` dans genDecimal) ; le repli ci-dessous n'existe
+// que pour un appel venu d'ailleurs.
+function _poseSoustractionRoles(a, b) {
+  const A = String(a).split('').map(Number), B = String(b);
+  const n = A.length, trav = A.slice();
+  const preteur = new Array(n).fill(false), emprunteur = new Array(n).fill(false);
+  for (let k = 0; k < n; k++) {
+    const i = n - 1 - k;
+    const db = +(B[B.length - 1 - k] || 0);
+    if (trav[i] < db && i > 0) {
+      trav[i - 1] -= 1; preteur[i - 1] = true;
+      trav[i] += 10;    emprunteur[i] = true;
+    }
+  }
+  return { A, trav, preteur, emprunteur, n };
+}
+
+// Vrai si aucune colonne ne prête et n'emprunte à la fois, et si aucun prêteur
+// ne tombe en négatif (cascade sur un 0). Utilisé par le générateur.
+function empruntSimple(a, b) {
+  const r = _poseSoustractionRoles(a, b);
+  for (let i = 0; i < r.n; i++) {
+    if (r.preteur[i] && r.emprunteur[i]) return false;
+    if (r.trav[i] < 0) return false;
+  }
+  return true;
+}
+
+function poseSoustractionHtml(a, b) {
+  const { A, trav, preteur, emprunteur, n } = _poseSoustractionRoles(a, b);
+  const B = String(b), W = n + 1;
+  const haut = new Array(W).fill(null);
+  const ligneA = new Array(W).fill(null);
+  const barre = 'text-decoration:line-through; color:#9CA3AF;';
+  const vert = `color:${POSE_RET}; font-weight:700;`;
+  for (let i = 0; i < n; i++) {
+    const col = W - n + i;
+    if (emprunteur[i] && !preteur[i]) {
+      // Le chiffre demeure, « 10 » se pose au-dessus.
+      ligneA[col] = { t: A[i] };
+      haut[col] = { t: '10', style: vert };
+    } else if (preteur[i] || emprunteur[i]) {
+      // Prêteur (ou, en repli, colonne à double rôle) : barré, valeur au-dessus.
+      ligneA[col] = { t: A[i], style: barre };
+      haut[col] = { t: trav[i], style: vert };
+    } else {
+      ligneA[col] = { t: A[i] };
+    }
+  }
+  const ligneB = _poseCells(B, W);
+  ligneB[0] = { t: '−' };
+  return _poseLigne(haut, { h: 12, fs: POSE_FP })
+       + _poseLigne(ligneA)
+       + _poseLigne(ligneB)
+       + _poseLigne(_poseCells(String(a - b), W, 0, POSE_RES), { trait: true });
+}
+
+// Multiplication : un produit partiel par chiffre du multiplicateur, chacun
+// avec SA LIGNE DE RETENUES au-dessus du multiplicande — deux lignes pour un
+// multiplicateur à deux chiffres, trois pour trois (demande d'Aurelio, 28.08).
+// Les lignes se superposent toutes sur les mêmes colonnes, celles du
+// multiplicande : chacune porte donc sa propre couleur, sans quoi on ne saurait
+// plus laquelle va avec quel produit. La ligne du bas (la plus proche du
+// multiplicande) est celle des unités, calculée en premier.
+const POSE_RET_LIGNES = ['#059669', '#7C3AED', '#B45309'];   // vert, violet, ambre
+
+// Retenues de a × d, indexées comme les chiffres de `a` : la retenue née au
+// rang k s'écrit au-dessus du chiffre de rang k+1. La dernière (celle qui
+// dépasse à gauche) ne s'écrit pas, elle passe directement dans le produit.
+function _poseRetenuesProduit(a, d) {
+  const A = String(a).split('').map(Number);
+  const n = A.length;
+  const ret = new Array(n).fill(null);
+  let r = 0;
+  for (let k = 0; k < n; k++) {
+    const i = n - 1 - k;
+    const p = A[i] * d + r;
+    r = Math.floor(p / 10);
+    if (r > 0 && i - 1 >= 0) ret[i - 1] = r;
+  }
+  return ret;
+}
+
+function poseMultiplicationHtml(a, b) {
+  const A = String(a), B = String(b), bd = B.split('').map(Number);
+  const nb = bd.length, nA = A.length;
+  const tot = a * b;
+  // Produits partiels, des unités vers la gauche ; le k-ième est décalé de k.
+  const prods = [];
+  for (let k = 0; k < nb; k++) {
+    const d = bd[nb - 1 - k];
+    prods.push({ d, decal: k, val: a * d });
+  }
+  const W = Math.max(nA, B.length, String(tot).length,
+                     ...prods.map(p => String(p.val).length + p.decal)) + 1;
+  let out = '';
+  // Lignes de retenues : la plus haute est celle du chiffre le plus à gauche du
+  // multiplicateur, la plus basse celle des unités.
+  for (let k = nb - 1; k >= 0; k--) {
+    const ret = _poseRetenuesProduit(a, bd[nb - 1 - k]);
+    const cells = new Array(W).fill(null);
+    let vide = true;
+    for (let i = 0; i < nA; i++) {
+      if (ret[i] != null) {
+        cells[W - nA + i] = { t: ret[i], style: `color:${POSE_RET_LIGNES[k % 3]}; font-weight:700;` };
+        vide = false;
+      }
+    }
+    if (!vide || nb > 1) out += _poseLigne(cells, { h: 12, fs: POSE_FP });
+  }
+  out += _poseLigne(_poseCells(A, W));
+  const ligneB = _poseCells(B, W);
+  ligneB[0] = { t: '×' };
+  out += _poseLigne(ligneB);
+  prods.forEach((p, k) => {
+    const cells = _poseCells(String(p.val), W, p.decal);
+    if (k > 0) cells[0] = { t: '+' };
+    out += _poseLigne(cells, k === 0 ? { trait: true } : {});
+  });
+  if (nb > 1) out += _poseLigne(_poseCells(String(tot), W, 0, POSE_RES), { trait: true });
+  return out;
+}
+
+// Division : la potence, avec les soustractions successives et les chiffres
+// abaissés. Pas de retenue à montrer ici.
+function poseDivisionHtml(a, d) {
+  const ds = String(a).split('').map(Number);
+  const W = ds.length + 1;
+  const blocs = [];
+  const quotient = [];
+  let reste = 0, commence = false, prevIdx = -1, prevReste = 0;
+  for (let i = 0; i < ds.length; i++) {
+    const cur = reste * 10 + ds[i];
+    const qd = Math.floor(cur / d);
+    if (qd > 0 || commence) { quotient.push(qd); commence = true; }
+    if (qd > 0) {
+      // Le nombre écrit sur la ligne : le reste précédent SUIVI de tous les
+      // chiffres abaissés depuis, zéros compris (quotient à trous).
+      const txt = (blocs.length === 0)
+        ? String(a).slice(0, i + 1)
+        : String(prevReste) + ds.slice(prevIdx + 1, i + 1).join('');
+      blocs.push({ col: W - ds.length + i, txt, prod: qd * d, reste: cur - qd * d });
+      prevIdx = i; prevReste = cur - qd * d;
+    }
+    reste = cur - qd * d;
+  }
+  // Le dividende occupe déjà la première ligne : le premier bloc ne la réécrit
+  // pas. Chaque bloc pose son produit, puis le trait et la ligne suivante
+  // portent le reste augmenté des chiffres abaissés — comme sur le cahier, le
+  // reste ne s'écrit qu'une fois.
+  let g = _poseLigne(_poseCells(String(a), W));
+  blocs.forEach((bl, k) => {
+    const decal = W - 1 - bl.col;
+    const lp = _poseCells(String(bl.prod), W, decal);
+    const gauche = lp.findIndex(c => c !== null);
+    if (gauche > 0) lp[gauche - 1] = { t: '−' };
+    g += _poseLigne(lp);
+    const suivant = blocs[k + 1];
+    const suite = suivant ? suivant.txt : String(bl.reste);
+    const decalS = suivant ? (W - 1 - suivant.col) : decal;
+    g += _poseLigne(_poseCells(suite, W, decalS), { traitCols: [Math.max(0, gauche - 1), bl.col] });
+  });
+  const droite = `<div style="display:flex; flex-direction:column; border-left:1.3px solid ${POSE_ENC}; padding-left:6px; margin-left:2px;">`
+    + `<div style="height:${POSE_FS + 5}px; line-height:${POSE_FS + 5}px; font-size:${POSE_FS}px; color:${POSE_ENC};">${d}</div>`
+    + `<div style="height:${POSE_FS + 5}px; line-height:${POSE_FS + 5}px; font-size:${POSE_FS}px; color:${POSE_RET}; font-weight:700; border-top:1.3px solid ${POSE_ENC};">${quotient.join('')}</div>`
+    + `</div>`;
+  return `<div style="display:flex; align-items:flex-start;"><div>${g}</div>${droite}</div>`;
+}
+
+function poseOperationHtml(pose) {
+  if (!pose) return '';
+  switch (pose.op) {
+    case '+': return poseAdditionHtml(pose.a, pose.b);
+    case '−': return poseSoustractionHtml(pose.a, pose.b);
+    case '×': return poseMultiplicationHtml(pose.a, pose.b);
+    case '÷': return poseDivisionHtml(pose.a, pose.b);
+    default:  return '';
+  }
+}
+
+// Le corrigé complet d'un exercice « Nombres entiers » : les quatre opérations
+// posées, en grille 2 colonnes, dans l'ordre des questions.
+function poseColonneCorrigeHtml(ex) {
+  let out = `<div style="display:grid; grid-template-columns:1fr 1fr; gap:14px 24px; padding-left:16px;">`;
+  ex.questions.forEach(q => {
+    out += `<div style="display:flex; align-items:flex-start; gap:8px;">`
+        +  `<strong style="font-size:14px; line-height:22px;">${q.label}</strong>`
+        +  `<div>${q.pose ? poseOperationHtml(q.pose) : `<span style="color:${POSE_RET}; font-weight:800; line-height:22px;">${q.answer}</span>`}</div>`
+        +  `</div>`;
+  });
+  return out + `</div>`;
+}
+
 function espaceCorrigeInner(ex, opts) {
   // Instruments de géométrie : leur corrigé n'est pas une liste de réponses
   // mais une planche calquée au pixel près sur l'énoncé, avec la construction
@@ -28548,6 +29422,10 @@ function espaceCorrigeInner(ex, opts) {
   // captait au passage (leurs questions portent `figureSvg`) et rendait à la
   // place une grille de vignettes qui ne se superposait plus à l'énoncé.
   if (ex && ex._instrKind) return null;
+  // Niveau « Nombres entiers » : le corrigé n'est pas une liste de réponses
+  // mais les quatre opérations POSÉES, retenues et cassages compris. Marqueur
+  // posé par genDecimal ; aucun autre sous-domaine ne le porte.
+  if (ex && ex._poseColonne && Array.isArray(ex.questions)) return poseColonneCorrigeHtml(ex);
   opts = opts || {};
   let out = '';
       if (ex.fillBlanks) {
