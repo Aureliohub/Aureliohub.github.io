@@ -294,12 +294,12 @@ kbd{
 .ap-tab{border-collapse:collapse;margin:3mm 0;width:100%}
 .ap-tab td{border:.3mm solid var(--encre);padding:.8mm 1.6mm;vertical-align:top}
 .ap-num{
-  position:absolute;left:-15mm;top:0;width:14mm;display:flex;justify-content:flex-end;gap:.5mm;
-  font-family:var(--sans);font-size:2.4mm;color:var(--revision);font-weight:600;line-height:1;z-index:3;
+  position:absolute;left:-19mm;top:-.4mm;width:18mm;display:flex;justify-content:flex-end;gap:.7mm;
+  font-family:var(--sans);font-size:3.2mm;color:var(--revision);font-weight:600;line-height:1;z-index:3;
 }
 .ap-num span{
-  display:inline-flex;align-items:center;justify-content:center;width:3.8mm;height:3.8mm;
-  border-radius:50%;box-shadow:inset 0 0 0 .28mm var(--revision);cursor:pointer;
+  display:inline-flex;align-items:center;justify-content:center;width:5.2mm;height:5.2mm;
+  border-radius:50%;box-shadow:inset 0 0 0 .32mm var(--revision);cursor:pointer;
 }
 .ap-num span.vise{
   background:var(--revision);color:#fff;
@@ -592,7 +592,7 @@ function lireParagraphes(xml, defaultTab){
       if(t){ const d = s.length; s += t; styles.push({ debut: d, fin: s.length, ...styleDuRun(el) }); }
     }
     const pPr = p.getElementsByTagNameNS(W, "pPr")[0];
-    let ind = 0, indD = 0, indP = 0, jc = "", apres = null, avant = null, interligne = null, taquets = [], numero = null;
+    let ind = 0, indD = 0, indP = 0, jc = "", apres = null, avant = null, interligne = null, taquets = [], numero = null, style = null;
     if(pPr){
       const i = pPr.getElementsByTagNameNS(W, "ind")[0];
       if(i){
@@ -609,6 +609,8 @@ function lireParagraphes(xml, defaultTab){
         const l = num(sp, "line", NaN);
         if(!isNaN(l) && (att(sp, "lineRule") || "auto") === "auto") interligne = l / 240;
       }
+      const ps = pPr.getElementsByTagNameNS(W, "pStyle")[0];
+      if(ps) style = att(ps, "val");
       const np = pPr.getElementsByTagNameNS(W, "numPr")[0];
       if(np){
         const id = np.getElementsByTagNameNS(W, "numId")[0];
@@ -626,7 +628,7 @@ function lireParagraphes(xml, defaultTab){
       texte: s, styles,
       lignes: s.split("\n"),
       dansTableau: ancetres(p, body).includes("tc"),
-      ind, indD, indP, jc, apres, avant, interligne, taquets, numero,
+      ind, indD, indP, jc, apres, avant, interligne, taquets, numero, style,
       images: p.getElementsByTagNameNS(W, "drawing").length
             + p.getElementsByTagName("pict").length,
       taille: (() => {                      // dimensions d'affichage de l'image, en mm
@@ -724,6 +726,32 @@ function lireNumerotation(xml){
   return m;
 }
 
+/* couleur portée par un style de paragraphe (word/styles.xml), chaîne basedOn suivie */
+function lireCouleursStyles(xml){
+  const m = new Map();
+  if(!xml) return m;
+  const doc = new DOMParser().parseFromString(xml, "application/xml");
+  if(doc.getElementsByTagName("parsererror").length) return m;
+  const att = (el, n) => el ? (el.getAttributeNS(W, n) || el.getAttribute("w:" + n)) : null;
+  const brut = new Map();
+  for(const s of doc.getElementsByTagNameNS(W, "style")){
+    const id = att(s, "styleId");
+    const rpr = s.getElementsByTagNameNS(W, "rPr")[0];
+    const c = rpr && rpr.getElementsByTagNameNS(W, "color")[0];
+    const v = c ? att(c, "val") : null;
+    const base = s.getElementsByTagNameNS(W, "basedOn")[0];
+    brut.set(id, { couleur: (v && v !== "auto") ? v.toUpperCase() : null, base: base ? att(base, "val") : null });
+  }
+  const resoudre = (id, vus) => {
+    const e = brut.get(id);
+    if(!e || vus.has(id)) return null;
+    vus.add(id);
+    return e.couleur || (e.base ? resoudre(e.base, vus) : null);
+  };
+  for(const id of brut.keys()) m.set(id, resoudre(id, new Set()));
+  return m;
+}
+
 
 /* =========================================================
    2. Le modèle de référence
@@ -735,7 +763,7 @@ const MODELE = [
   { id:"image", crit:"C", ref:"", image:true, jc:"center" },
 
   { id:"r1", crit:"D", ref:"Entretenir son aquarium", liste:"decimal" },
-  { id:"b1", crit:"E", ref:"Vérifier que la température est toujours entre 24 et 26 degrés", liste:"bullet" },
+  { id:"b1", crit:"E", ref:"Vérifier que la température de l’eau est toujours entre 24 et 26 degrés", liste:"bullet" },
   { id:"b2", crit:"E", ref:"Placer la lampe chauffante au-dessus de l’aquarium", liste:"bullet" },
   { id:"b3", crit:"E", ref:"Changer l’eau tous les 3 jours", liste:"bullet" },
 
@@ -846,6 +874,7 @@ function styleP(p){
       if(s.souligne) st.souligne = true;
     }
   }
+  if(!st.couleur && p.couleurStyle) st.couleur = p.couleurStyle;
   return st;
 }
 
@@ -868,6 +897,78 @@ function famille(hex){
   if(t < 170) return "vert";
   if(t < 260) return "bleu";
   return "violet";
+}
+
+/* Comparaison par jetons : mots, espaces et signes séparés.
+   Un mot remplacé par un mot voisin est une faute d'orthographe, pas une
+   omission : on surligne le mot entier et on dit lequel écrire. */
+const LETTRE = /[\p{L}\p{N}]/u;
+const jetons = s => s.match(/[\p{L}\p{N}'\u2019-]+|\s+|[^\s\p{L}\p{N}]/gu) || [];
+const estMot = t => LETTRE.test(t);
+const estBlanc = t => /^\s+$/.test(t);
+
+function diffJetons(a, b){
+  const d = lcs(a, b), out = [];
+  let i = a.length, j = b.length;
+  while(i > 0 || j > 0){
+    if(i > 0 && j > 0 && a[i-1] === b[j-1]){ out.push({ t:"=", c:a[i-1] }); i--; j--; }
+    else if(j > 0 && (i === 0 || d[i][j-1] >= d[i-1][j])){ out.push({ t:"+", c:b[j-1] }); j--; }
+    else { out.push({ t:"-", c:a[i-1] }); i--; }
+  }
+  return out.reverse();
+}
+
+/* deux mots se ressemblent-ils assez pour que l'un soit l'autre mal écrit ? */
+function proche(x, y){
+  const a = [...x.toLowerCase()], b = [...y.toLowerCase()];
+  if(Math.abs(a.length - b.length) > Math.max(a.length, b.length) / 2) return false;
+  const n = lcs(a, b)[a.length][b.length];
+  return 2 * n / (a.length + b.length) >= 0.55;
+}
+
+function comparer(ref, saisi){
+  const ops = diffJetons(jetons(ref), jetons(saisi));
+  const pris = new Set(), out = [];
+  const voisin = (k, sens, cible) => {           // premier jeton utile dans une direction
+    for(let i = k + sens; i >= 0 && i < ops.length; i += sens){
+      if(pris.has(i)) continue;
+      if(ops[i].t === "=" && estBlanc(ops[i].c)) continue;
+      if(ops[i].t === cible && estMot(ops[i].c)) return i;
+      return -1;
+    }
+    return -1;
+  };
+  for(let k = 0; k < ops.length; k++){
+    if(pris.has(k)) continue;
+    const o = ops[k];
+    if(o.t === "-" && estMot(o.c)){
+      let m = voisin(k, 1, "+");
+      if(m < 0) m = voisin(k, -1, "+");
+      if(m >= 0 && proche(o.c, ops[m].c)){
+        pris.add(m);
+        out.push({ t:"sub", ref:o.c, c:ops[m].c });
+        continue;
+      }
+    }
+    out.push(o);
+  }
+  return out;
+}
+
+/* messages de correction tirés de la comparaison */
+function messages(ops){
+  const dits = [], manque = [], trop = [];
+  for(const o of ops){
+    if(o.t === "sub") dits.push("écrire « " + o.ref + " » et non « " + o.c + " »");
+    else if(o.t === "-" && !estBlanc(o.c)) manque.push(o.c);
+    else if(o.t === "+" && !estBlanc(o.c)) trop.push(o.c);
+  }
+  const u = l => [...new Set(l.map(x => x.trim()).filter(Boolean))];
+  const d = [];
+  if(dits.length)  d.push(u(dits).join(" ; "));
+  if(manque.length) d.push("il manque : " + u(manque).map(x => "« " + x + " »").join(", "));
+  if(trop.length)   d.push("à supprimer : " + u(trop).map(x => "« " + x + " »").join(", "));
+  return d.join(" ; ");
 }
 
 /* =========================================================
@@ -903,19 +1004,15 @@ function analyser(paras, page, police, formats){
     const p = app.get(m.id);
     if(!p){ fautives++; corr.push({ t:"Élément manquant", d:"« " + norm(m.ref).slice(0,60) + " » n’a pas été trouvé." }); continue; }
     // une puce ou un numéro tapé au clavier relève des critères de liste, pas du texte
-    const sansMarque = t => norm(t).replace(/^([-\u2013\u2014\u2022*]|\d+[.)])\s+/, "");
+    const sansMarque = t => norm(t).replace(/^([-\u2013\u2014\u2022*]|\d+[.)])\s*/, "");
     const ref = sansMarque(m.ref), saisi = sansMarque(p.texte);
     if(ref === saisi) continue;
-    const ops = groupes(diffCar(ref, saisi));
-    const manque = ops.filter(o => o.t === "-").map(o => o.c);
-    const trop   = ops.filter(o => o.t === "+").map(o => o.c);
-    if(!manque.length && !trop.length) continue;
+    const ops = comparer(ref, saisi);
+    const d = messages(ops);
+    if(!d) continue;
     fautives++;
-    p.marques = ops;                       // pour l’aperçu : V des oublis, surlignage des ajouts
-    let d = [];
-    if(manque.length) d.push("il manque : " + manque.map(x => "« " + x + " »").join(", "));
-    if(trop.length)   d.push("à supprimer : " + trop.map(x => "« " + x + " »").join(", "));
-    corr.push({ t:"Texte : « " + norm(m.ref).slice(0, 40) + " »", d: d.join(" ; "), cible:p });
+    p.marques = ops;                       // pour l’aperçu : surlignage et V d’omission
+    corr.push({ t:"Texte : « " + norm(m.ref).slice(0, 40) + " »", d, cible:p });
   }
   res.A = Math.max(0, 2 - PENALITE * fautives);
 
@@ -1067,9 +1164,9 @@ const texteMarque = p => {
   if(!p.marques) return echapper(p.texte);
   let h = "";
   for(const o of p.marques){
-    if(o.t === "=")      h += echapper(o.c);
-    else if(o.t === "+") h += '<span class="ap-faux">' + echapper(o.c) + '</span>';
-    else                 h += '<span class="caret"></span>';
+    if(o.t === "=")                          h += echapper(o.c);
+    else if(o.t === "+" || o.t === "sub")    h += '<span class="ap-faux">' + echapper(o.c) + '</span>';
+    else if(!estBlanc(o.c))                  h += '<span class="caret"></span>';
   }
   return h;
 };
@@ -1271,6 +1368,8 @@ async function traiter(f){
     if(!bonDocument(paragraphes)) throw new Error("horssujet");
     const police = lirePolice(xml, styles, theme);
     const formats = lireNumerotation(numxml);
+    const couleursStyles = lireCouleursStyles(styles);
+    for(const p of paragraphes) p.couleurStyle = couleursStyles.get(p.style) || null;
 
     // l'image du document, pour l'aperçu
     let imageURL = null;
