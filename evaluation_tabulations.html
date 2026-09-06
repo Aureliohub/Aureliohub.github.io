@@ -1,0 +1,1168 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Demande de stage — contrôle des tabulations</title>
+<style>
+:root{
+  --papier:#FFFFFF;
+  --gris-fond:#F5F5F7;
+  --encre:#1D1D1F;
+  --gris:#6E6E73;
+  --filet:#D2D2D7;
+  --bleu:#0071E3;
+  --marque:#2B579A;        /* marques de mise en forme, code couleur de Word */
+  --revision:#C22B34;      /* stylo de correction */
+  --acquis:#1D8A4E;
+  --jaune:#FBE38E;         /* surligneur */
+  --sans:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --lettre:Arial,"Liberation Sans",Helvetica,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--papier);color:var(--encre);font-family:var(--sans);
+  font-size:17px;line-height:1.5;-webkit-font-smoothing:antialiased;
+  letter-spacing:-.01em;
+}
+.wrap{max-width:900px;margin:0 auto;padding:0 22px 90px}
+
+/* ---------- en-tête ---------- */
+header.tete{padding:22px 0 24px;text-align:center;transition:padding .35s ease}
+.pil{display:block;font-size:.82rem;color:var(--gris);margin-bottom:10px;text-align:left}
+.tete-texte{max-height:300px;opacity:1;overflow:hidden;transition:max-height .38s ease,opacity .22s ease}
+body.compact .tete-texte{max-height:0;opacity:0}
+body.compact header.tete{padding-bottom:10px}
+header.tete h1{
+  font-size:clamp(1.15rem,3.3vw,2.1rem);white-space:nowrap;
+  line-height:1.15;margin:0 0 10px;font-weight:600;letter-spacing:-.025em;
+}
+header.tete p{margin:0 auto;color:var(--gris);max-width:74ch;font-size:1rem}
+.insecable{white-space:nowrap}
+
+/* ---------- onglets : contrôle segmenté ---------- */
+nav.onglets{
+  display:flex;gap:2px;flex-wrap:wrap;
+  background:var(--gris-fond);border-radius:999px;padding:3px;margin:18px auto 0;width:max-content;max-width:100%;
+}
+nav.onglets button{
+  font:inherit;font-size:.92rem;font-weight:500;background:transparent;color:var(--gris);
+  border:none;border-radius:999px;padding:8px 20px;cursor:pointer;
+  transition:background .2s ease,color .2s ease;
+}
+nav.onglets button:hover{color:var(--encre)}
+nav.onglets button[aria-selected="true"]{background:var(--papier);color:var(--encre);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+nav.onglets button:focus-visible{outline:2px solid var(--bleu);outline-offset:2px}
+section.panneau{padding:40px 0 0}
+/* à l'écran, le tableau de mise en page ne doit rien changer */
+.cadre,.cadre>thead,.cadre>tfoot,.cadre>tbody,
+.cadre>thead>tr,.cadre>tfoot>tr,.cadre>tbody>tr,
+.cadre>thead>tr>td,.cadre>tfoot>tr>td,.cadre>tbody>tr>td{display:block;padding:0;margin:0;border:0}
+.bande{display:none}
+.deux-col{display:grid;grid-template-columns:minmax(0,1fr);gap:10px}
+table.grille .sous{color:var(--gris);font-size:.88em}
+.bloc-remarques[hidden]{display:none}
+.bloc-remarques li.remarque{background:var(--gris-fond)}
+.deux-col > div{min-width:0}
+@media (min-width:1060px){
+  .wrap{max-width:1260px}
+  header.tete,#p-grille,#p-aide,#p-eval .depot{max-width:900px;margin-left:auto;margin-right:auto}
+  .deux-col{grid-template-columns:minmax(0,1.12fr) minmax(0,1fr);gap:44px;align-items:start}
+  .deux-col > div > h2:first-child{margin-top:0}
+}
+#p-grille,#p-aide{padding-top:24px;font-size:.95rem}
+#p-grille .leg{margin-bottom:8px}
+#p-grille table.grille th,#p-grille table.grille td,
+#p-aide table.grille th,#p-aide table.grille td{padding:8px 10px}
+#p-grille h3,#p-aide h3{margin:20px 0 6px;font-size:1rem}
+#p-grille p,#p-aide p{margin-bottom:8px}
+#p-grille ul,#p-aide ul{margin-bottom:6px}
+#p-grille li,#p-aide li{margin-bottom:2px}
+section.panneau[hidden]{display:none}
+
+h2{font-size:1.3rem;margin:52px 0 14px;font-weight:600;letter-spacing:-.02em}
+h2:first-child{margin-top:0}
+h3{font-size:1.05rem;margin:28px 0 8px;font-weight:600;letter-spacing:-.015em}
+p{margin:0 0 12px}
+ul,ol{margin:0 0 12px;padding-left:22px}
+li{margin-bottom:6px}
+a{color:var(--bleu);text-decoration:none}
+a:hover{text-decoration:underline}
+
+/* ---------- dépôt du fichier ---------- */
+.depot{
+  border:1px dashed var(--filet);border-radius:18px;background:var(--gris-fond);
+  padding:46px 24px;text-align:center;cursor:pointer;transition:background .15s,border-color .15s;
+}
+.depot[hidden]{display:none}
+.depot:hover,.depot.survol{border-color:var(--bleu);background:#F0F6FE}
+.depot:focus-visible{outline:2px solid var(--bleu);outline-offset:3px}
+.pilcrow{font-family:Georgia,serif;font-size:2.6rem;line-height:1;color:var(--marque);display:block;margin-bottom:10px}
+.depot b{display:block;font-size:1.15rem;font-weight:590;letter-spacing:-.02em}
+.depot .aide{display:block;color:var(--gris);font-size:.9rem;margin-top:8px}
+input[type=file]{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+.erreur{background:var(--gris-fond);border-radius:14px;padding:16px 20px;margin-top:18px;color:var(--revision)}
+
+/* ---------- note ---------- */
+#resultat[hidden]{display:none}
+.bandeau{display:flex;align-items:baseline;gap:20px;flex-wrap:wrap;padding:6px 0 4px}
+.note{font-size:4rem;font-weight:600;line-height:1;letter-spacing:-.04em}
+.note small{display:block;font-size:.8rem;font-weight:400;letter-spacing:0;color:var(--gris);margin-top:8px}
+.bandeau .detail{flex:1;min-width:220px;cursor:pointer;border-radius:10px;padding:6px 10px;margin:-6px -10px;transition:background .15s}
+.bandeau .detail:hover{background:var(--gris-fond)}
+.bandeau .detail:focus-visible{outline:2px solid var(--bleu);outline-offset:2px}
+.chev{display:inline-block;margin-left:8px;color:var(--gris);font-size:1.1rem;transform:rotate(90deg);transition:transform .3s ease}
+.detail[aria-expanded="true"] .chev{transform:rotate(-90deg)}
+.repli{max-height:0;overflow:hidden;transition:max-height .4s ease}
+.repli.ouvert{max-height:1200px}
+.bandeau .detail b{font-size:1.15rem;font-weight:590;letter-spacing:-.02em}
+.jauge{height:6px;border-radius:99px;background:#E8E8ED;margin-top:12px;overflow:hidden;max-width:420px}
+.jauge i{display:block;height:100%;border-radius:99px;transition:width .6s ease-out}
+.fichier{color:var(--gris);font-size:.88rem;margin-top:10px}
+
+/* ---------- tableaux ---------- */
+table.grille{width:100%;border-collapse:collapse;font-size:.96rem;margin-bottom:14px}
+table.grille th,table.grille td{border-bottom:1px solid var(--filet);padding:14px 12px;text-align:left;vertical-align:top}
+table.grille th{font-weight:590;font-size:.82rem;color:var(--gris);border-bottom:1px solid var(--encre)}
+table.grille td.pts{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums;width:70px}
+table.grille tr.total td{font-weight:600;border-bottom:none}
+.etat{display:inline-block;width:1.2em;font-weight:700}
+.ok{color:var(--acquis)}
+.partiel{color:#9A6B00}
+.ko{color:var(--revision)}
+
+/* ---------- corrections ---------- */
+ol.corrections{list-style:none;padding:0;margin:0}
+ol.corrections li{
+  position:relative;padding:16px 20px 16px 58px;margin:0 0 8px;border-radius:14px;
+  background:var(--gris-fond);cursor:pointer;transition:background .15s,box-shadow .15s;
+}
+ol.corrections li:hover{background:#EDEDF0}
+ol.corrections li b{display:block;font-size:1rem;font-weight:590;letter-spacing:-.015em}
+ol.corrections li b i{
+  position:absolute;left:18px;top:16px;width:26px;height:26px;border-radius:50%;
+  background:var(--papier);color:var(--revision);font-style:normal;font-weight:600;font-size:.82rem;
+  display:flex;align-items:center;justify-content:center;box-shadow:inset 0 0 0 1.5px var(--revision);
+}
+ol.corrections li em{font-style:normal;color:var(--gris);display:block;font-size:.95rem;margin-top:4px}
+ol.corrections li.remarque{padding-left:20px}
+ol.corrections li.remarque b{color:var(--gris);font-weight:500}
+ol.corrections li.remarque em{color:var(--encre)}
+ol.corrections li.rien{cursor:default}
+ol.corrections li.vise{box-shadow:0 0 0 2px var(--revision)}
+ol.corrections li.remarque.vise{box-shadow:0 0 0 2px var(--filet)}
+
+/* ---------- fac-similé ---------- */
+.fac-wrap{position:relative;overflow:hidden;background:var(--gris-fond);border-radius:18px;padding:20px}
+.fac-scale{transform-origin:top left}
+.fac-page{font-variant-ligatures:none;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.08),0 12px 32px rgba(0,0,0,.10);color:var(--encre);text-align:left;letter-spacing:normal;word-spacing:normal}
+.fac-p{position:relative;white-space:pre-wrap;overflow-wrap:break-word;min-height:1em}
+.fac-tab{display:inline-block;overflow:hidden;white-space:pre;min-width:2px;vertical-align:baseline}
+.mk{color:var(--marque);font-weight:400}
+.mk.fin{display:inline-block;width:0;overflow:visible;white-space:pre}
+.mk.err-mk{color:var(--revision);font-weight:700;cursor:pointer}
+.sp{position:relative}
+.sp::after{content:"·";position:absolute;left:0;right:0;text-align:center;color:var(--marque);pointer-events:none}
+.fac-p .err{
+  background:var(--jaune);border-radius:2px;
+  print-color-adjust:exact;-webkit-print-color-adjust:exact;
+}
+.fac-p .sup-mot{text-decoration:line-through var(--revision);text-decoration-thickness:1px}
+.fac-p .err.vise{box-shadow:0 0 0 2px var(--revision);background:#FFD27A}
+.caret{display:inline-block;width:0;position:relative}
+.caret::after{
+  content:"V";position:absolute;left:-.34em;top:-1.35em;
+  font-size:1em;font-weight:700;color:var(--revision);line-height:1;
+}
+.caret.vise::after{color:#fff;background:var(--revision);border-radius:2px;padding:0 .12em;left:-.42em;print-color-adjust:exact;-webkit-print-color-adjust:exact}
+.fac-num{
+  position:absolute;left:-36px;top:.05em;width:30px;text-align:right;
+  font-family:var(--sans);font-size:.62rem;font-weight:600;color:var(--revision);
+}
+.fac-num span{
+  display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;
+  border-radius:50%;box-shadow:inset 0 0 0 1.2px var(--revision);
+}
+.fac-num span.vise{background:var(--revision);color:#fff;print-color-adjust:exact;-webkit-print-color-adjust:exact}
+.fac-signale{box-shadow:-3px 0 0 -1px var(--revision)}
+.caret,.fac-p .err,.fac-num span{cursor:pointer}
+.fac-p [data-note]:focus-visible,.fac-num span:focus-visible{outline:2px solid var(--bleu);outline-offset:1px}
+
+/* ---------- divers ---------- */
+.leg{font-size:.94rem;color:var(--gris);margin-bottom:14px;max-width:70ch}
+.leg .ex{background:var(--jaune);color:var(--encre);border-radius:2px;print-color-adjust:exact;-webkit-print-color-adjust:exact}
+.leg .cr{color:var(--revision);font-weight:700}
+kbd{
+  font-family:var(--sans);font-size:.82rem;background:var(--gris-fond);border:1px solid var(--filet);
+  border-radius:5px;padding:1px 6px;white-space:nowrap;
+}
+.bouton{font:inherit;font-size:.95rem;background:var(--bleu);color:#fff;border:none;padding:11px 22px;cursor:pointer;border-radius:999px;font-weight:500}
+.bouton:hover{background:#0077ED}
+.bouton.secondaire{background:transparent;color:var(--bleu);padding-left:6px}
+.bouton.secondaire:hover{background:transparent;text-decoration:underline}
+.bouton:focus-visible{outline:2px solid var(--bleu);outline-offset:3px}
+.actions{display:flex;gap:14px;align-items:center;margin-top:40px;flex-wrap:wrap}
+
+@media (max-width:640px){
+  body{font-size:16px}
+  .wrap{padding:0 16px 50px}
+  header.tete{padding:16px 0 18px}
+  header.tete h1{white-space:normal;font-size:1.35rem}
+  .insecable{white-space:normal}
+  nav.onglets{width:100%}
+  nav.onglets button{flex:1;padding:8px 10px;font-size:.86rem}
+  .note{font-size:3rem}
+  .fac-wrap{padding:10px;border-radius:12px}
+  ol.corrections li{padding:14px 16px 14px 50px}
+}
+@media print{
+  @page{size:A4;margin:0}   /* la marge est portée par le contenu, elle, respectée partout */
+  body{background:#fff;font-size:10.5pt;letter-spacing:0}
+  nav.onglets,.depot,.actions,.noprint{display:none!important}
+  /* Safari n'applique pas les marges @page : elles sont donc portées par le contenu */
+  /* les bandes vides d'un vrai <thead>/<tfoot> sont répétées en haut et en bas de
+     chaque page par tous les navigateurs : c'est la seule marge verticale fiable */
+  .wrap{max-width:none;padding:0 20mm}
+  .cadre{display:table;table-layout:fixed;width:100%}
+  .cadre>thead{display:table-header-group}
+  .cadre>tfoot{display:table-footer-group}
+  .cadre>tbody{display:table-row-group}
+  .cadre>thead>tr,.cadre>tfoot>tr,.cadre>tbody>tr{display:table-row}
+  .cadre>thead>tr>td,.cadre>tfoot>tr>td,.cadre>tbody>tr>td{display:table-cell}
+  .bande{display:block;height:18mm}
+  .bloc-corr{break-before:page}
+  /* si les remarques ne tiennent pas sous les corrections, elles passent en bloc
+     à la page suivante, avec leur propre marge haute */
+  .bloc-remarques{break-inside:avoid;padding-top:8mm}
+  header.tete{padding:0 0 8pt;text-align:left;border-bottom:.75pt solid var(--filet)}
+  header.tete p,.pil{display:none}
+  header.tete h1{font-size:15pt}
+  section.panneau{padding:0}
+  h2{font-size:12pt;margin:14pt 0 6pt;break-after:avoid}
+  .bandeau{break-inside:avoid;margin:12pt 0;gap:14pt}
+  .note{font-size:26pt}
+  .jauge{display:none}
+  ol.corrections li{
+    break-inside:avoid;background:none!important;box-shadow:none!important;
+    padding:4pt 0 4pt 26pt;margin-bottom:7pt;
+  }
+  ol.corrections li b i{left:0;top:3pt;width:16pt;height:16pt;box-shadow:none;border:.75pt solid var(--revision)}
+  ol.corrections li.remarque{padding-left:0}
+  .deux-col{display:block}
+  .repli{max-height:none!important;overflow:visible}
+  .chev{display:none}
+  /* tout le haut de page est compacté pour que la lettre tienne à la suite */
+  #detail-criteres table.grille th,
+  #detail-criteres table.grille td{padding:1.5pt 6pt;font-size:8.8pt;line-height:1.25}
+  #detail-criteres table.grille td br{display:none}
+  #detail-criteres table.grille .sous{font-size:8.2pt}
+  #detail-criteres table.grille .sous::before{content:" — "}
+  header.tete{padding:0 0 4pt}
+  header.tete h1{font-size:12.5pt}
+  .bandeau{margin:4pt 0 3pt;align-items:baseline;gap:12pt}
+  .note{font-size:16pt}
+  .note small{display:inline;font-size:7.5pt;margin:0 0 0 4pt}
+  .bandeau .detail{padding:0;margin:0}
+  .bandeau .detail b{font-size:10pt}
+  .fichier{margin-top:2pt;font-size:8pt}
+  h2{font-size:10.5pt;margin:7pt 0 3pt}
+  .leg{font-size:8.2pt;margin-bottom:3pt}
+  .deux-col .bloc-corr h2{margin-top:16pt}
+  .fac-wrap{break-inside:avoid;background:none;padding:0;border-radius:0;overflow:hidden}
+  .fac-page{box-shadow:none;outline:.5pt solid #CCC}
+  .fac-p .err,.leg .ex{background:var(--jaune)!important;box-shadow:none!important}
+  .fac-num span{background:none!important;color:var(--revision)!important;box-shadow:none}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+/* ---------- aperçu de la page ---------- */
+.apercu-wrap{background:var(--gris-fond);border-radius:18px;padding:16px;overflow:hidden}
+.apercu-scale{transform-origin:top left}
+.apercu-page{
+  position:relative;background:#fff;color:var(--encre);font-family:var(--lettre);
+  box-shadow:0 1px 3px rgba(0,0,0,.08),0 12px 32px rgba(0,0,0,.10);
+}
+.apercu-ligne{position:relative}
+.apercu-ligne.plein{white-space:normal;position:relative}
+.seg{position:absolute;top:0;white-space:pre}
+.suite{position:absolute;top:0;overflow:hidden;white-space:nowrap;color:var(--encre)}
+.suite.absente{
+  background:var(--jaune);border-radius:2px;
+  print-color-adjust:exact;-webkit-print-color-adjust:exact;
+}
+.marque-taquet{position:absolute;width:0;border-left:1.5px solid;top:0;bottom:0}
+.marque-taquet.ok{border-color:var(--acquis)}
+.marque-taquet.ko{border-color:var(--revision)}
+.regle-page{position:relative;height:16px;margin-bottom:4px}
+.regle-page .fond{position:absolute;left:0;right:0;top:9px;height:1px;background:var(--filet)}
+.regle-page b{position:absolute;top:0;width:0;border-left:2px solid;height:9px}
+.regle-page b.ok{border-color:var(--acquis)}
+.regle-page b.ko{border-color:var(--revision)}
+.regle-page b.abs{border-color:#B9B9BE;border-left-style:dotted}
+.regle-page span{position:absolute;top:10px;font-size:9px;color:var(--gris);transform:translateX(-50%);font-family:var(--sans)}
+.legende-apercu{display:flex;gap:16px;flex-wrap:wrap;font-size:.86rem;color:var(--gris);margin-bottom:10px}
+.legende-apercu i{font-style:normal;font-weight:700}
+.legende-apercu .jn{background:var(--jaune);border-radius:2px;padding:0 4px;color:var(--encre)}
+#detail-criteres table.grille{font-size:.88rem;margin-bottom:8px}
+#detail-criteres table.grille th,
+#detail-criteres table.grille td{padding:6px 8px;line-height:1.3}
+#detail-criteres table.grille td.pts{width:82px;white-space:nowrap}
+#detail-criteres table.grille td:first-child{padding-right:4px}
+.bloc-apercu{order:0}
+.bloc-corr{order:1}
+.apercu-num{
+  position:absolute;left:-15mm;top:0;width:14mm;display:flex;justify-content:flex-end;gap:.5mm;
+  font-family:var(--sans);font-size:2.4mm;color:var(--revision);font-weight:600;line-height:1;
+}
+.apercu-num span{
+  display:inline-flex;align-items:center;justify-content:center;width:3.8mm;height:3.8mm;
+  border-radius:50%;box-shadow:inset 0 0 0 .28mm var(--revision);margin-left:.6mm;
+}
+@media print{
+  .deux-col{display:block}
+  .bloc-corr{break-before:page;padding-top:2mm}
+  .bloc-apercu{break-before:auto}
+  .bloc-apercu h2{margin-top:6pt}
+  .apercu-wrap{background:none;padding:0;border-radius:0;overflow:hidden;break-inside:avoid}
+  .apercu-page{box-shadow:none;outline:.5pt solid #CCC}
+  .suite.absente{background:var(--jaune)!important;print-color-adjust:exact;-webkit-print-color-adjust:exact}
+  .marque-taquet{print-color-adjust:exact;-webkit-print-color-adjust:exact}
+  .legende-apercu{font-size:8.2pt;margin-bottom:4pt}
+  body.compact .tete-texte{max-height:none;opacity:1}
+  header.tete h1{font-size:12.5pt;margin-bottom:0}
+}
+</style>
+<style id="regles-impression"></style>
+</head>
+<body>
+<div class="wrap">
+<table class="cadre"><thead><tr><td><div class="bande"></div></td></tr></thead>
+<tfoot><tr><td><div class="bande"></div></td></tr></tfoot><tbody><tr><td>
+
+<header class="tete">
+  <span class="pil">Informatique · PAI · traitement de texte</span>
+  <div class="tete-texte">
+    <h1>Demande de stage : contrôle de vos tabulations</h1>
+    <p><span class="insecable">Déposez votre fichier, il est analysé dans votre navigateur (rien n’est envoyé sur Internet).</span>
+      <span class="insecable">Vous obtenez votre note ainsi que la liste des corrections à apporter.</span></p>
+  </div>
+</header>
+
+<nav class="onglets" role="tablist">
+  <button role="tab" id="t-eval" aria-controls="p-eval" aria-selected="true">Corriger mon fichier</button>
+  <button role="tab" id="t-grille" aria-controls="p-grille" aria-selected="false">Grille d’évaluation</button>
+  <button role="tab" id="t-aide" aria-controls="p-aide" aria-selected="false">Mémento Word</button>
+</nav>
+
+<!-- ================= ÉVALUATION ================= -->
+<section class="panneau" id="p-eval" role="tabpanel" aria-labelledby="t-eval">
+
+  <div class="depot" id="depot" tabindex="0" role="button" aria-label="Choisir le fichier Word à corriger">
+    <span class="pilcrow" aria-hidden="true">¶</span>
+    <b>Déposez ici votre fichier .docx</b>
+    <span class="aide">ou cliquez pour le choisir — enregistrez d’abord votre formulaire dans Word (Ctrl+S)</span>
+  </div>
+  <input type="file" id="fichier" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
+  <div id="probleme" class="erreur" hidden></div>
+
+  <div id="resultat" hidden>
+    <div class="bandeau">
+      <div class="note" id="note">–</div>
+      <div class="detail" id="bascule-detail" role="button" tabindex="0"
+           aria-expanded="false" aria-controls="detail-criteres" title="Afficher le détail par critère">
+        <b id="points">0 / 20 points</b><span class="chev" aria-hidden="true">›</span>
+        <div class="jauge"><i id="jauge" style="width:0"></i></div>
+        <div class="fichier" id="nom-fichier"></div>
+      </div>
+    </div>
+
+    <div class="repli" id="detail-criteres">
+      <table class="grille" id="tab-criteres">
+        <thead><tr><th>Détail par critère</th><th class="pts">Points</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div class="deux-col">
+      <div class="bloc-apercu">
+        <h2>Aperçu de votre page</h2>
+        <p class="legende-apercu" id="legende-apercu"></p>
+        <div class="apercu-wrap" id="apercu-wrap"><div class="apercu-scale" id="apercu-scale"></div></div>
+      </div>
+
+      <div class="bloc-corr">
+        <h2>Corrections à apporter</h2>
+        <ol class="corrections" id="liste-corrections"></ol>
+      </div>
+    </div>
+
+    <div class="bloc-remarques" id="bloc-remarques" hidden>
+      <h2>Remarques, non comptées</h2>
+      <ol class="corrections" id="liste-remarques"></ol>
+    </div>
+
+    <div class="actions noprint">
+      <button class="bouton" onclick="window.print()">Imprimer / enregistrer en PDF</button>
+      <button class="bouton secondaire" id="recommencer">Corriger un autre fichier</button>
+    </div>
+  </div>
+</section>
+
+<!-- ================= GRILLE ================= -->
+<section class="panneau" id="p-grille" role="tabpanel" aria-labelledby="t-grille" hidden>
+  <h2>Grille d’évaluation — reproduction du formulaire « Demande de stage »</h2>
+  <p class="leg">Total 20 points. Note = 1 + 5 × (points / 20), arrondie au demi-point. Chaque taquet attendu est jugé une seule fois : une erreur répétée sur plusieurs lignes ne compte qu’une fois.</p>
+  <table class="grille">
+    <thead><tr><th>Critère</th><th>Indicateurs observables</th><th class="pts">Pts</th></tr></thead>
+    <tbody>
+      <tr><td><b>A. Fidélité du texte</b></td><td>Tous les intitulés, les trois titres de rubrique, les neuf domaines de stage, les trois montants et la phrase d’engagement sont saisis sans omission ni faute de frappe.</td><td class="pts">4</td></tr>
+      <tr><td><b>B. Ligne de titre</b></td><td>Taquet <b>centré à 8 cm</b> pour « DEMANDE DE STAGE » et taquet <b>droit à 16 cm</b> pour la date.</td><td class="pts">2</td></tr>
+      <tr><td><b>C. Lignes à deux colonnes</b></td><td>Taquet <b>droit à 8 cm</b>, taquet <b>gauche à 8,5 cm</b> pour le second intitulé, taquet <b>droit à 16 cm</b>.</td><td class="pts">4</td></tr>
+      <tr><td><b>D. Domaines de stage</b></td><td>Taquets <b>gauches à 5,5 cm et 10 cm</b> pour les deuxième et troisième colonnes de cases à cocher.</td><td class="pts">2</td></tr>
+      <tr><td><b>E. Montants</b></td><td>Taquet <b>droit à 14 cm</b> — le taquet décimal est également accepté.</td><td class="pts">1</td></tr>
+      <tr><td><b>F. Signatures</b></td><td>Taquet <b>gauche à 7,5 cm</b> pour « Visa du formateur ».</td><td class="pts">1</td></tr>
+      <tr><td><b>G. Propreté de l’alignement</b></td><td>Aucun alignement obtenu à la barre d’espace (trois espaces ou plus) ni par des tabulations sans taquet posé.</td><td class="pts">2</td></tr>
+      <tr><td><b>H. Points de suite</b></td><td>Les taquets à 8 cm, 14 cm et 16 cm portent des points de suite.</td><td class="pts">4</td></tr>
+      <tr class="total"><td>Total</td><td></td><td class="pts">20</td></tr>
+    </tbody>
+  </table>
+  <h3>Remarques non notées, signalées à l’apprenant</h3>
+  <ul>
+    <li>Police du document (Arial 12 pt attendue).</li>
+    <li>Marges de la page (3 cm à gauche, 2 cm à droite).</li>
+    <li>Soulignement de la ligne de titre.</li>
+  </ul>
+</section>
+
+<!-- ================= AIDE ================= -->
+<section class="panneau" id="p-aide" role="tabpanel" aria-labelledby="t-aide" hidden>
+  <h2>Mémento</h2>
+
+  <h3>Voir ce que l’on tape</h3>
+  <p><kbd>Ctrl</kbd>+<kbd>Maj</kbd>+<kbd>8</kbd> affiche et masque les marques de mise en forme : ¶ fin de paragraphe, → tabulation, · espace. Il est recommandé de les activer pendant toute la saisie : une tabulation et une suite d’espaces se ressemblent à l’écran, mais pas à l’impression.</p>
+
+  <h3>Poser un taquet</h3>
+  <p>Sélectionnez d’abord les paragraphes concernés, puis cliquez dans la règle à la position voulue. Le bouton à gauche de la règle change le type de taquet à chaque clic : gauche, centré, droit, décimal, barre. Un double-clic sur un taquet ouvre la boîte <b>Tabulations</b>, où la position se saisit au millimètre et où l’on choisit les points de suite.</p>
+
+  <h3>Les quatre types</h3>
+  <table class="grille">
+    <thead><tr><th>Type</th><th>Le texte…</th><th>Dans ce formulaire</th></tr></thead>
+    <tbody>
+      <tr><td><b>Gauche</b></td><td>commence au taquet</td><td>8,5 cm (second intitulé), 5,5 et 10 cm (cases), 7,5 cm (visa)</td></tr>
+      <tr><td><b>Centré</b></td><td>se répartit de part et d’autre</td><td>8 cm (DEMANDE DE STAGE)</td></tr>
+      <tr><td><b>Droit</b></td><td>se termine au taquet</td><td>8 et 16 cm (fins de lignes), 14 cm (montants)</td></tr>
+      <tr><td><b>Décimal</b></td><td>aligne la virgule ou le point décimal</td><td>alternative acceptée pour les montants</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Points de suite</h3>
+  <p>Les lignes de points ne se tapent pas. Double-cliquez sur le taquet dans la règle, puis choisissez le point dans la zone <b>Points de suite</b>. Word remplit alors tout l’espace laissé par la tabulation.</p>
+
+  <h3>Pourquoi pas la barre d’espace</h3>
+  <p>Une suite d’espaces donne un alignement qui se défait dès qu’un mot change de longueur, dès que la police change et à l’impression. Un taquet, lui, tient une position fixe sur la règle : c’est la seule façon d’obtenir des colonnes stables.</p>
+
+  <h3>Tabulations par défaut</h3>
+  <p>Sans taquet posé, Word place un arrêt tous les 1,25 cm. Appuyer trois ou quatre fois sur <kbd>Tab</kbd> pour atteindre à peu près la bonne colonne fonctionne à l’écran, puis se décale à la première correction. Posez un taquet, et une seule tabulation suffit.</p>
+
+  <h3>Reproduire une ligne à l’identique</h3>
+  <p>Les taquets appartiennent au paragraphe. Pour donner à plusieurs lignes les mêmes taquets, sélectionnez-les toutes avant de poser le taquet ; ou posez-le sur la première ligne, puis validez par <kbd>Entrée</kbd> : le paragraphe suivant hérite des mêmes taquets.</p>
+</section>
+
+</td></tr></tbody></table>
+</div>
+
+<script>
+"use strict";
+
+/* =========================================================
+   1. Lecture du .docx (ZIP + XML) sans bibliothèque externe
+   ========================================================= */
+const W = "http://schemas.openxmlformats.org/wordprocessingml/2006/main";
+
+async function lireZip(buffer){
+  const dv = new DataView(buffer), u8 = new Uint8Array(buffer);
+  let eocd = -1;
+  const min = Math.max(0, u8.length - 66000);
+  for(let i = u8.length - 22; i >= min; i--){
+    if(dv.getUint32(i, true) === 0x06054b50){ eocd = i; break; }
+  }
+  if(eocd < 0) throw new Error("archive");
+  const n = dv.getUint16(eocd + 10, true);
+  let off = dv.getUint32(eocd + 16, true);
+  const entrees = new Map();
+  for(let i = 0; i < n; i++){
+    if(off + 46 > u8.length || dv.getUint32(off, true) !== 0x02014b50) break;
+    const methode = dv.getUint16(off + 10, true);
+    const taille  = dv.getUint32(off + 20, true);
+    const lNom    = dv.getUint16(off + 28, true);
+    const lExtra  = dv.getUint16(off + 30, true);
+    const lComm   = dv.getUint16(off + 32, true);
+    const lho     = dv.getUint32(off + 42, true);
+    const nom     = new TextDecoder("utf-8").decode(u8.subarray(off + 46, off + 46 + lNom));
+    const lNom2   = dv.getUint16(lho + 26, true);
+    const lExtra2 = dv.getUint16(lho + 28, true);
+    const debut   = lho + 30 + lNom2 + lExtra2;
+    entrees.set(nom, { methode, data: u8.subarray(debut, debut + taille) });
+    off += 46 + lNom + lExtra + lComm;
+  }
+  return entrees;
+}
+
+async function texteEntree(e){
+  if(!e) return null;
+  if(e.methode === 0) return new TextDecoder("utf-8").decode(e.data);
+  if(typeof DecompressionStream === "undefined") throw new Error("navigateur");
+  const flux = new Blob([e.data]).stream().pipeThrough(new DecompressionStream("deflate-raw"));
+  return await new Response(flux).text();
+}
+
+function ancetres(el, racine){
+  const l = [];
+  let p = el.parentNode;
+  while(p && p !== racine.parentNode){ l.push(p.localName); p = p.parentNode; }
+  return l;
+}
+
+/* Convertit chaque w:p en objet { texte, lignes, tabsDebut, dansTableau, ind, jc } */
+function lireParagraphes(xml, defaultTab){
+  const doc = new DOMParser().parseFromString(xml, "application/xml");
+  if(doc.getElementsByTagName("parsererror").length) throw new Error("xml");
+  const body = doc.getElementsByTagNameNS(W, "body")[0];
+  if(!body) throw new Error("xml");
+  const ps = body.getElementsByTagNameNS(W, "p");
+  const res = [];
+  const tableaux = doc.getElementsByTagNameNS(W, "tbl").length;
+  const att = (el, n) => el ? (el.getAttributeNS(W, n) || el.getAttribute("w:" + n)) : null;
+  const num = (el, n, d) => { const v = att(el, n); const x = parseInt(v, 10); return isNaN(x) ? d : x; };
+
+  const styleDuRun = el => {                       // rPr du run qui contient cet élément
+    let r = el.parentNode;
+    while(r && r.localName !== "r") r = r.parentNode;
+    const rPr = r && r.getElementsByTagNameNS(W, "rPr")[0];
+    if(!rPr) return {};
+    const st = {};
+    const sz = rPr.getElementsByTagNameNS(W, "sz")[0];
+    if(sz) st.taille = (parseInt(att(sz, "val"), 10) || 0) / 2;
+    const f = rPr.getElementsByTagNameNS(W, "rFonts")[0];
+    if(f) st.police = att(f, "ascii") || null;
+    const b = rPr.getElementsByTagNameNS(W, "b")[0];
+    if(b && att(b, "val") !== "0" && att(b, "val") !== "false") st.gras = true;
+    const u = rPr.getElementsByTagNameNS(W, "u")[0];
+    if(u && att(u, "val") !== "none") st.souligne = true;
+    const i = rPr.getElementsByTagNameNS(W, "i")[0];
+    if(i && att(i, "val") !== "0" && att(i, "val") !== "false") st.ital = true;
+    return st;
+  };
+
+  for(const p of ps){
+    let s = "";
+    const styles = [];
+    for(const el of p.getElementsByTagName("*")){
+      const nom = el.localName;
+      if(nom !== "t" && nom !== "tab" && nom !== "br" && nom !== "cr" && nom !== "noBreakHyphen") continue;
+      const anc = ancetres(el, p);
+      if(anc.includes("pPr") || anc.includes("rPr") || anc.includes("del") || anc.includes("instrText")) continue;
+      let t;
+      if(nom === "t") t = el.textContent;
+      else if(nom === "tab") t = "\t";
+      else if(nom === "noBreakHyphen") t = "-";
+      else t = "\n";
+      if(t){ s += t; styles.push({ fin: s.length, ...styleDuRun(el) }); }
+    }
+    const pPr = p.getElementsByTagNameNS(W, "pPr")[0];
+    let ind = 0, indD = 0, indP = 0, jc = "", apres = null, avant = null, interligne = null, taquets = [];
+    if(pPr){
+      const i = pPr.getElementsByTagNameNS(W, "ind")[0];
+      if(i){
+        ind  = num(i, "left", 0) || num(i, "start", 0);
+        indD = num(i, "right", 0) || num(i, "end", 0);
+        indP = num(i, "firstLine", 0) - num(i, "hanging", 0);
+      }
+      const j = pPr.getElementsByTagNameNS(W, "jc")[0];
+      if(j) jc = att(j, "val") || "";
+      const sp = pPr.getElementsByTagNameNS(W, "spacing")[0];
+      if(sp){
+        const a = num(sp, "after", NaN); if(!isNaN(a)) apres = a;
+        const b = num(sp, "before", NaN); if(!isNaN(b)) avant = b;
+        const l = num(sp, "line", NaN);
+        if(!isNaN(l) && (att(sp, "lineRule") || "auto") === "auto") interligne = l / 240;
+      }
+      const tabs = pPr.getElementsByTagNameNS(W, "tabs")[0];
+      if(tabs) for(const t of tabs.getElementsByTagNameNS(W, "tab")){
+        const type = att(t, "val") || "left";
+        if(type === "clear") continue;
+        taquets.push({ pos: num(t, "pos", 0), type, points: (att(t, "leader") || "none") });
+      }
+    }
+    res.push({
+      texte: s, styles,
+      lignes: s.split("\n"),
+      dansTableau: ancetres(p, body).includes("tc"),
+      ind, indD, indP, jc, apres, avant, interligne, taquets
+    });
+  }
+
+  const sect = body.getElementsByTagNameNS(W, "sectPr")[0];
+  const sz = sect && sect.getElementsByTagNameNS(W, "pgSz")[0];
+  const mg = sect && sect.getElementsByTagNameNS(W, "pgMar")[0];
+  const page = {
+    pgW: num(sz, "w", 11906), pgH: num(sz, "h", 16838),
+    gauche: num(mg, "left", 1417), droite: num(mg, "right", 1417),
+    haut: num(mg, "top", 1417), bas: num(mg, "bottom", 1417),
+    taquet: defaultTab || 708
+  };
+  return { paragraphes: res, tableaux, page };
+}
+
+function lirePolice(xmlDoc, xmlStyles, xmlTheme){
+  const dominant = (xml, re) => {
+    if(!xml) return null;
+    const m = {}; let r;
+    while((r = re.exec(xml)) !== null) m[r[1]] = (m[r[1]] || 0) + 1;
+    const e = Object.entries(m).sort((a, b) => b[1] - a[1])[0];
+    return e ? e[0] : null;
+  };
+  const bloc = (xml, re) => { if(!xml) return null; const m = xml.match(re); return m ? m[0] : null; };
+  const normalStyle = bloc(xmlStyles, /<w:style[^>]*w:styleId="Normal"[\s\S]*?<\/w:style>/);
+  const defauts = bloc(xmlStyles, /<w:docDefaults[\s\S]*?<\/w:docDefaults>/);
+  let nom = dominant(xmlDoc, /w:ascii="([^"]+)"/g)
+         || dominant(normalStyle, /w:ascii="([^"]+)"/g)
+         || dominant(defauts, /w:ascii="([^"]+)"/g);
+  if(!nom && xmlTheme){                       // police de thème (minorHAnsi / majorHAnsi)
+    const theme = dominant(xmlDoc, /w:asciiTheme="([^"]+)"/g) || "minorHAnsi";
+    const cible = /major/i.test(theme) ? "majorFont" : "minorFont";
+    const m = xmlTheme.match(new RegExp("<a:" + cible + ">[\\s\\S]*?<a:latin[^>]*typeface=\"([^\"]*)\""));
+    if(m && m[1]) nom = m[1];
+  }
+  const sz = dominant(xmlDoc, /<w:sz w:val="(\d+)"/g)
+          || dominant(normalStyle, /<w:sz w:val="(\d+)"/g)
+          || dominant(defauts, /<w:sz w:val="(\d+)"/g);
+  // valeurs héritées par les passages qui ne précisent rien : c'est la base du rendu
+  const szBase = dominant(normalStyle, /<w:sz w:val="(\d+)"/g)
+              || dominant(defauts, /<w:sz w:val="(\d+)"/g) || sz;
+  let nomBase = dominant(normalStyle, /w:ascii="([^"]+)"/g)
+             || dominant(defauts, /w:ascii="([^"]+)"/g);
+  if(!nomBase) nomBase = nom;
+  const esp = bloc(defauts, /<w:spacing[^>]*\/>/) || "";
+  const apres = (esp.match(/w:after="(\d+)"/) || [])[1];
+  const ligne = (esp.match(/w:line="(\d+)"/) || [])[1];
+  return {
+    nom, taille: sz ? parseInt(sz, 10) / 2 : null,
+    nomBase, tailleBase: szBase ? parseInt(szBase, 10) / 2 : null,
+    apres: apres === undefined ? 160 : parseInt(apres, 10),
+    interligne: ligne ? parseInt(ligne, 10) / 240 : 1.15
+  };
+}
+
+
+
+/* =========================================================
+   2. Le modèle de référence
+   ========================================================= */
+const MM = 56.6929;                    // 1 mm en twips
+const mm = v => Math.round(v * MM);
+const TOL = mm(3);                     // tolérance de position : 3 mm
+
+const T_TITRE   = [ {p:mm(80),  t:"center", d:false}, {p:mm(160), t:"right",  d:false} ];
+const T_DOUBLE  = [ {p:mm(80),  t:"right",  d:true },
+                    {p:mm(85),  t:"left",   d:false},
+                    {p:mm(160), t:"right",  d:true } ];
+const T_CASES   = [ {p:mm(55),  t:"left",   d:false}, {p:mm(100), t:"left", d:false} ];
+const T_MONTANT = [ {p:mm(140), t:"right",  d:true } ];
+const T_SIGN    = [ {p:mm(75),  t:"left",   d:false} ];
+
+/* bloc : groupe de lignes qui doivent porter les mêmes taquets */
+const MODELE = [
+  { id:"titre", bloc:"titre", crit:"B", taquets:T_TITRE, tabs:2,
+    ref:"UOG – PAI\tDEMANDE DE STAGE\tDate : «date»" },
+
+  { id:"h1", bloc:null, crit:null, taquets:null, tabs:0, ref:"1. Personne en formation" },
+  { id:"nom",     bloc:"double", crit:"C", taquets:T_DOUBLE, tabs:3, ref:"Nom :\t\tPrénom :\t" },
+  { id:"naiss",   bloc:"double", crit:"C", taquets:T_DOUBLE, tabs:3, ref:"Date de naissance :\t\tTéléphone :\t" },
+  { id:"adresse", bloc:"double", crit:"C", taquets:T_DOUBLE, tabs:3, ref:"Adresse :\t\tEmail :\t" },
+  { id:"npa",     bloc:"double", crit:"C", taquets:T_DOUBLE, tabs:3, ref:"NPA - Localité :\t\tClasse :\t" },
+
+  { id:"h2", bloc:null, crit:null, taquets:null, tabs:0, ref:"1. Domaine de stage souhaité" },
+  { id:"c1", bloc:"cases", crit:"D", taquets:T_CASES, tabs:2, ref:"☐ Administration\t☐ Agriculture\t☐ Commerce de détail" },
+  { id:"c2", bloc:"cases", crit:"D", taquets:T_CASES, tabs:2, ref:"☐ Intendance\t☐ Logistique\t☐ Hôtellerie et restauration" },
+  { id:"c3", bloc:"cases", crit:"D", taquets:T_CASES, tabs:1, ref:"☐ Propreté\t☐ Santé" },
+  { id:"periode", bloc:"double", crit:"C", taquets:T_DOUBLE, tabs:3, ref:"Période souhaitée : du\t\tau\t" },
+
+  { id:"h3", bloc:null, crit:null, taquets:null, tabs:0, ref:"2. Entreprise" },
+  { id:"raison",  bloc:"double", crit:"C", taquets:T_DOUBLE, tabs:3, ref:"Raison sociale :\t\tTéléphone :\t" },
+  { id:"form",    bloc:"double", crit:"C", taquets:T_DOUBLE, tabs:3, ref:"Formateur :\t\tEmail :\t" },
+  { id:"adresse2",bloc:"double", crit:"C", taquets:T_DOUBLE, tabs:1, ref:"Adresse :\t" },
+  { id:"npa2",    bloc:"double", crit:"C", taquets:T_DOUBLE, tabs:1, ref:"NPA - Localité :\t" },
+
+  { id:"h4", bloc:null, crit:null, taquets:null, tabs:0, ref:"3. Frais de déplacement et de repas" },
+  { id:"m1", bloc:"montant", crit:"E", taquets:T_MONTANT, tabs:1, ref:"Abonnement TPG mensuel :\t45.00" },
+  { id:"m2", bloc:"montant", crit:"E", taquets:T_MONTANT, tabs:1, ref:"Repas de midi (20 jours) :\t240.00" },
+  { id:"m3", bloc:"montant", crit:"E", taquets:T_MONTANT, tabs:1, ref:"Total pris en charge par l’entreprise :\t285.00" },
+
+  { id:"engage", bloc:null, crit:null, taquets:null, tabs:0,
+    ref:"Par sa signature, l’élève s’engage à respecter les horaires de l’entreprise et à annoncer toute absence le jour même au formateur et à l’entreprise." },
+  { id:"sign", bloc:"signature", crit:"F", taquets:T_SIGN, tabs:1, ref:"Date et signature de l’élève\tVisa du formateur" }
+];
+
+const LIB_BLOC = {
+  titre:"Ligne de titre", double:"Lignes à deux colonnes", cases:"Domaines de stage",
+  montant:"Montants", signature:"Ligne des signatures"
+};
+
+const BAREME = [
+  { c:"A", lib:"Fidélité du texte", pts:4 },
+  { c:"B", lib:"Ligne de titre — centré 8, droit 16", pts:2 },
+  { c:"C", lib:"Deux colonnes — droit 8, gauche 8,5, droit 16", pts:4 },
+  { c:"D", lib:"Domaines de stage — gauches 5,5 et 10", pts:2 },
+  { c:"E", lib:"Montants — droit 14", pts:1 },
+  { c:"F", lib:"Signatures — gauche 7,5", pts:1 },
+  { c:"G", lib:"Alignement propre — ni espaces, ni taquets par défaut", pts:2 },
+  { c:"H", lib:"Points de suite — taquets 8, 14 et 16", pts:4 }
+];
+
+/* =========================================================
+   3. Outils de texte
+   ========================================================= */
+const APOS = /[\u2018\u2019\u201B\u02BC\u0060\u00B4]/g;
+const INSEC = /[\u00A0\u202F\u2007\u2009]/g;
+const RE_DATE = /\b\d{1,2}\s*[.\/-]\s*\d{1,2}\s*[.\/-]\s*\d{2,4}\b/;
+
+function norm(s){
+  return (s || "").normalize("NFC")
+    .replace(APOS, "'")
+    .replace(/[\u2010\u2011\u2012\u2013\u2014]/g, "-")
+    .replace(INSEC, " ")
+    .replace(/[\u2610\u2611\u2612\u25A1\u25AA\u25CF\u00A4\uF0A8\uF06F]/g, "☐")
+    .replace(/[\t\n]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+const cle = s => norm(s).toLowerCase().replace(RE_DATE, "«date»");
+const mots = s => norm(s).split(" ").filter(Boolean);
+
+function lcs(a, b){
+  const n = a.length, m = b.length;
+  const d = Array.from({length:n+1}, () => new Uint16Array(m+1));
+  for(let i=1;i<=n;i++) for(let j=1;j<=m;j++)
+    d[i][j] = a[i-1]===b[j-1] ? d[i-1][j-1]+1 : Math.max(d[i-1][j], d[i][j-1]);
+  return d;
+}
+function similitude(x, y){
+  const a = mots(x).map(m=>m.toLowerCase()), b = mots(y).map(m=>m.toLowerCase());
+  if(!a.length || !b.length) return 0;
+  return 2 * lcs(a,b)[a.length][b.length] / (a.length + b.length);
+}
+function diffMots(ref, app){
+  const a = mots(ref), b = mots(app), d = lcs(a,b), out = [];
+  let i = a.length, j = b.length;
+  while(i>0 || j>0){
+    if(i>0 && j>0 && a[i-1]===b[j-1]){ out.push({t:"=", m:a[i-1]}); i--; j--; }
+    else if(j>0 && (i===0 || d[i][j-1] >= d[i-1][j])){ out.push({t:"+", m:b[j-1]}); j--; }
+    else { out.push({t:"-", m:a[i-1]}); i--; }
+  }
+  return out.reverse();
+}
+
+/* =========================================================
+   4. Analyse
+   ========================================================= */
+const libPos  = t => (t / MM / 10).toFixed(1).replace(".0","").replace(".",",") + " cm";
+const NOMS    = { left:"gauche", right:"droit", center:"centré", decimal:"décimal", bar:"barre" };
+const libTaquet = a => NOMS[a.t] + " à " + libPos(a.p);
+const libTrouve = t => (NOMS[t.type] || t.type) + " à " + libPos(t.pos);
+
+/* le taquet attendu « a » est-il posé sur ce paragraphe ? */
+function chercher(p, a){
+  let m = null, e = 1e9;
+  for(const t of p.taquets){
+    const d = Math.abs(t.pos - a.p);
+    if(d <= TOL && d < e){ e = d; m = t; }
+  }
+  if(!m) return { etat:"absent" };
+  const typeOK = m.type === a.t || (a.t === "right" && a.d && m.type === "decimal");
+  return { etat: typeOK ? "ok" : "type", tr:m, suite: !!(m.points && m.points !== "none") };
+}
+
+function analyser(paras, page, police){
+  const lignes = paras.filter(p => p.texte.replace(/[\s\t]/g,"") !== "");
+
+  /* --- appariement modèle → paragraphe --- */
+  const app = new Map();
+  let curseur = 0;
+  for(const m of MODELE){
+    let best = -1, bs = 0;
+    for(let i = curseur; i < Math.min(lignes.length, curseur + 6); i++){
+      const s = similitude(m.ref, lignes[i].texte);
+      if(s > bs){ bs = s; best = i; }
+    }
+    if(best >= 0 && bs >= 0.5){ app.set(m.id, lignes[best]); curseur = best + 1; lignes[best].modele = m; }
+  }
+
+  const corr = [], remarques = [], res = {};
+
+  /* --- A : fidélité du texte --- */
+  let justes = 0, total = 0;
+  for(const m of MODELE){
+    total++;
+    const p = app.get(m.id);
+    if(!p){ corr.push({ t:"Ligne manquante", d:"« " + norm(m.ref).slice(0,60) + " » n’a pas été trouvée." }); continue; }
+    const refT = m.id === "titre" ? cle(m.ref) : norm(m.ref).toLowerCase();
+    const appT = m.id === "titre" ? cle(p.texte) : norm(p.texte).toLowerCase();
+    if(refT === appT){ justes++; continue; }
+    const ops = diffMots(norm(m.ref), norm(p.texte));
+    const manque = ops.filter(o=>o.t==="-").map(o=>o.m);
+    const trop   = ops.filter(o=>o.t==="+").map(o=>o.m);
+    if(!manque.length && !trop.length){ justes++; continue; }
+    let d = "";
+    if(manque.length) d += "à écrire : « " + manque.join(" ") + " »";
+    if(trop.length)   d += (d ? " ; " : "") + "écrit à tort : « " + trop.join(" ") + " »";
+    corr.push({ t:"Texte : « " + norm(m.ref).slice(0,40) + " »", d, cible:p });
+  }
+  res.A = Math.max(0, 4 - (total - justes));   // une ligne fautive = un point de moins
+
+  /* --- B à F : chaque taquet attendu est jugé une seule fois --- */
+  const blocs = {};
+  for(const m of MODELE){
+    if(!m.bloc) continue;
+    (blocs[m.bloc] = blocs[m.bloc] || { crit:m.crit, attendus:m.taquets, lignes:[] })
+      .lignes.push(app.get(m.id) || null);
+  }
+
+  const suites = [];          // état des taquets à points de suite, tous blocs confondus
+  for(const [nom, b] of Object.entries(blocs)){
+    const bareme = BAREME.find(x => x.c === b.crit).pts;
+    const presentes = b.lignes.filter(Boolean);
+    let acquis = 0;
+    const aPoser = [], aCorriger = [];
+
+    for(const a of b.attendus){
+      let ok = 0, typeFaux = null, avecSuite = 0;
+      for(const p of presentes){
+        const r = chercher(p, a);
+        if(r.etat === "ok") ok++;
+        else if(r.etat === "type") typeFaux = r.tr;
+        // les points de suite sont jugés à part : un taquet du bon rang suffit
+        if(r.etat !== "absent" && r.suite) avecSuite++;
+      }
+      const part = presentes.length ? ok / presentes.length : 0;
+      acquis += part;
+      if(part < 1){
+        if(typeFaux) aCorriger.push(libTaquet(a) + " — trouvé " + libTrouve(typeFaux));
+        else aPoser.push(libTaquet(a));
+      }
+      if(a.d) suites.push({ bloc:nom, a, part, suite: presentes.length ? avecSuite / presentes.length : 0 });
+    }
+
+    res[b.crit] = Math.round(bareme * acquis / b.attendus.length * 2) / 2;
+    if(acquis < b.attendus.length){
+      const d = [];
+      if(aPoser.length)    d.push("taquet(s) à poser : " + aPoser.join(", "));
+      if(aCorriger.length) d.push("taquet(s) à corriger : " + aCorriger.join(" ; "));
+      corr.push({ t: LIB_BLOC[nom], d: d.join(". "), cible: presentes[0] || null });
+    }
+  }
+  for(const x of BAREME) if(res[x.c] === undefined) res[x.c] = 0;
+
+  /* --- H : les points de suite, comptés une fois par taquet --- */
+  let sTot = 0;
+  const sManquants = [];
+  for(const s of suites){
+    sTot += s.suite;
+    if(s.suite < 1) sManquants.push(libPos(s.a.p));
+  }
+  res.H = suites.length ? Math.round(4 * sTot / suites.length * 2) / 2 : 0;
+  if(sManquants.length)
+    corr.push({ t:"Points de suite", cible: (blocs.double && blocs.double.lignes.filter(Boolean)[0]) || null,
+      d:"Les taquets à " + [...new Set(sManquants)].join(", ") +
+      " doivent porter des points de suite. Double-cliquez sur le taquet dans la règle, puis choisissez le point dans la zone « Points de suite »." });
+
+  /* --- G : propreté de l’alignement --- */
+  let espaces = 0, defaut = 0, pEsp = null, pDef = null;
+  for(const p of lignes){
+    if(/ {3,}/.test(p.texte)){ espaces++; pEsp = pEsp || p; }
+    const n = (p.texte.match(/\t/g) || []).length;
+    if(n > 0 && p.taquets.length === 0){ defaut++; pDef = pDef || p; }
+    else if(/\t{3,}/.test(p.texte)){ defaut++; pDef = pDef || p; }
+  }
+  res.G = 2;
+  if(espaces){
+    res.G -= 1;
+    corr.push({ t:"Alignement à la barre d’espace", cible:pEsp, d: espaces + " ligne(s) contiennent trois espaces ou plus à la suite. Remplacez-les par une tabulation posée sur un taquet." });
+  }
+  if(defaut){
+    res.G -= 1;
+    corr.push({ t:"Tabulations par défaut", cible:pDef, d: defaut + " ligne(s) utilisent des tabulations sans taquet posé. Posez un taquet à la position voulue : une seule tabulation suffit alors." });
+  }
+  if(res.G < 0) res.G = 0;
+
+  /* --- remarques non notées --- */
+  if(police.nomBase && !/arial|helvetica|liberation sans/i.test(police.nomBase))
+    remarques.push({ t:"Police", d:"Le document est en " + police.nomBase + ". Le modèle est en Arial." });
+  if(police.tailleBase && Math.abs(police.tailleBase - 12) > 0.4)
+    remarques.push({ t:"Taille", d:"Le corps du texte est en " + police.tailleBase + " pt. Le modèle est en 12 pt." });
+  const gcm = page.gauche / 566.93, dcm = page.droite / 566.93;
+  if(Math.abs(gcm - 3) > 0.3 || Math.abs(dcm - 2) > 0.3)
+    remarques.push({ t:"Marges", d:"Marges de " + gcm.toFixed(1) + " cm à gauche et " + dcm.toFixed(1) + " cm à droite. Le modèle utilise 3 cm et 2 cm." });
+  const ti = app.get("titre");
+  if(ti && !(ti.styles || []).some(s => s.souligne))
+    remarques.push({ t:"Ligne de titre", d:"La ligne de titre du modèle est soulignée sur toute sa largeur, tabulations comprises." });
+
+  const points = BAREME.reduce((s, x) => s + res[x.c], 0);
+  return { res, total: points, corr, remarques, lignes, page, police };
+}
+
+/* =========================================================
+   5. Affichage
+   ========================================================= */
+const $ = id => document.getElementById(id);
+const TW = 56.6929;                        // twips par mm
+const echapper = s => s.replace(/[&<>]/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;" }[c]));
+
+/* --- aperçu de la page, taquets réels appliqués --- */
+function apercu(r){
+  const page = r.page;
+  const largeur = page.pgW / TW, mgG = page.gauche / TW, mgD = page.droite / TW, mgH = page.haut / TW;
+  const zone = largeur - mgG - mgD;
+  const ptmm = 0.35278;
+  const corps = (r.police.tailleBase || 12) * ptmm;
+  const defTab = (page.taquet || 708) / TW;
+
+  const cv = document.createElement("canvas").getContext("2d");
+  const mesure = (txt, gras) => {
+    cv.font = (gras ? "bold " : "") + (corps / ptmm) + "pt Arial";
+    return cv.measureText(txt).width / 3.7795;          // px (96 dpi) → mm
+  };
+
+  let html = "", y = 0, aOK = false, aKO = false, aSuite = false;
+  const hauteurLigne = corps * 1.25;
+
+  // règle : union des taquets rencontrés + taquets attendus jamais posés
+  const vus = new Map(), attendus = new Map();
+  for(const p of r.lignes){
+    if(p.modele && p.modele.taquets) for(const a of p.modele.taquets) attendus.set(a.p, a);
+    for(const t of p.taquets){
+      const a = p.modele && p.modele.taquets && p.modele.taquets.find(x => Math.abs(x.p - t.pos) <= TOL
+                 && (t.type === x.t || (x.t === "right" && x.d && t.type === "decimal")));
+      const cle = Math.round(t.pos / 10) * 10;
+      if(!vus.has(cle) || !a) vus.set(cle, { pos:t.pos, ok: !!a });
+    }
+  }
+  let regle = `<div class="regle-page" style="margin-left:${mgG}mm;width:${zone}mm"><i class="fond"></i>`;
+  for(let cm = 2; cm <= 16; cm += 2)
+    regle += `<span style="left:${cm*10}mm">${cm}</span>`;
+  for(const [, a] of attendus)
+    if(![...vus.values()].some(v => Math.abs(v.pos - a.p) <= TOL))
+      regle += `<b class="abs" style="left:${a.p/TW}mm"></b>`;
+  for(const [, v] of vus)
+    regle += `<b class="${v.ok ? "ok" : "ko"}" style="left:${v.pos/TW}mm"></b>`;
+  regle += `</div>`;
+
+  for(const p of r.lignes){
+    const segs = p.texte.split("\t");
+    const gras = (p.styles || []).some(s => s.gras);
+    const num = (p.numeros && p.numeros.length)
+      ? `<i class="apercu-num">${p.numeros.map(n => "<span>" + n + "</span>").join("")}</i>` : "";
+    if(segs.length === 1){                       // paragraphe sans tabulation : texte au fil
+      const marge = (p.apres === null || p.apres === undefined ? 0 : p.apres / 20 * ptmm);
+      html += `<div class="apercu-ligne plein" style="margin-left:${mgG}mm;width:${zone}mm;`
+            + `margin-bottom:${marge}mm;font-size:${corps}mm;line-height:${hauteurLigne}mm;`
+            + `font-weight:${gras ? 600 : 400}">${num}${echapper(p.texte)}</div>`;
+      y += hauteurLigne * Math.max(1, Math.ceil(mesure(p.texte, gras) / zone)) + marge;
+      continue;
+    }
+    let x = 0, ligne = "", marques = "";
+    ligne += `<span class="seg" style="left:0">${echapper(segs[0])}</span>`;
+    x = mesure(segs[0], gras);
+
+    for(let i = 1; i < segs.length; i++){
+      const s = segs[i];
+      const l = mesure(s, gras);
+      // taquet utilisé
+      let t = null;
+      for(const c of p.taquets.slice().sort((a,b)=>a.pos-b.pos)) if(c.pos / TW > x + 0.1){ t = c; break; }
+      // le taquet attendu est celui de même rang que la tabulation
+      const att = p.modele && p.modele.taquets ? p.modele.taquets[i - 1] : null;
+      let cible, type, suite = false, poseOK;
+      if(t){
+        cible = t.pos / TW; type = t.type; suite = !!(t.points && t.points !== "none");
+        poseOK = !!(att && Math.abs(att.p - t.pos) <= TOL
+                  && (t.type === att.t || (att.t === "right" && att.d && t.type === "decimal")));
+      }else{
+        cible = (Math.floor(x / defTab) + 1) * defTab; type = "left"; poseOK = false;
+      }
+      let debut = cible;
+      if(type === "right")       debut = cible - l;
+      else if(type === "center") debut = cible - l / 2;
+      else if(type === "decimal"){
+        const k = s.indexOf(".") >= 0 ? s.indexOf(".") : (s.indexOf(",") >= 0 ? s.indexOf(",") : s.length);
+        debut = cible - mesure(s.slice(0, k), gras);
+      }
+      if(debut < x) debut = x;
+
+      const attendSuite = !!(att && att.d);
+      const larg = Math.max(0, debut - x);
+      if(larg > 0.5){
+        if(suite){
+          const n = Math.max(1, Math.round(larg / mesure(".", false)));
+          ligne += `<span class="suite" style="left:${x}mm;width:${larg}mm">${".".repeat(n)}</span>`;
+        }else if(attendSuite){
+          aSuite = true;
+          ligne += `<span class="suite absente" style="left:${x}mm;width:${larg}mm">&nbsp;</span>`;
+        }
+      }
+      ligne += `<span class="seg" style="left:${debut}mm">${echapper(s)}</span>`;
+      if(poseOK) aOK = true; else aKO = true;
+      marques += `<i class="marque-taquet ${poseOK ? "ok" : "ko"}" style="left:${cible}mm"></i>`;
+      x = debut + l;
+    }
+
+    const h = hauteurLigne + (p.apres === null || p.apres === undefined ? 0 : p.apres / 20 * ptmm);
+    html += `<div class="apercu-ligne" style="margin-left:${mgG}mm;width:${zone}mm;height:${h}mm;`
+          + `font-size:${corps}mm;line-height:${hauteurLigne}mm;font-weight:${gras ? 600 : 400}">`
+          + num + marques + ligne + `</div>`;
+    y += h;
+  }
+
+  const hautPage = Math.max(297, mgH + y + 20);
+  const legende = [];
+  if(aOK)    legende.push('<span><i class="ok">▏</i> taquet correct</span>');
+  if(aKO)    legende.push('<span><i class="ko">▏</i> taquet erroné, absent ou par défaut</span>');
+  if(aSuite) legende.push('<span><i class="jn">points</i> points de suite manquants</span>');
+  return {
+    legende: legende.join(""),
+    html: `<div class="apercu-page" style="width:${largeur}mm;height:${hautPage}mm;padding-top:${mgH}mm">${regle}${html}</div>`
+  };
+}
+
+function ajusterEchelle(){
+  const w = $("apercu-wrap"), s = $("apercu-scale"), p = s.firstElementChild;
+  if(!p) return;
+  s.style.transform = "none";
+  const dispo = w.clientWidth - 32;
+  const k = Math.min(1, dispo / p.offsetWidth);
+  s.style.transform = "scale(" + k + ")";
+  w.style.height = (p.offsetHeight * k + 32) + "px";
+  $("regles-impression").textContent = reglesImpression(p.offsetWidth, p.offsetHeight);
+}
+window.addEventListener("resize", ajusterEchelle);
+
+/* la largeur réelle du papier n'est connue que du navigateur : on prépare des
+   paliers, il retiendra celui qui correspond au format choisi dans la boîte
+   d'impression. L'aperçu occupe sa propre page, sous son titre. */
+function reglesImpression(largeurPx, hauteurPx){
+  const mmPx = v => v * 96 / 25.4;
+  const paliers = [[null, 170, 144], [200, 160, 137], [190, 150, 130],
+                   [180, 140, 123], [170, 130, 116], [160, 120, 108]];
+  return paliers.map(([lim, lmm, hmm]) => {
+    const f = Math.min(mmPx(lmm) / largeurPx, mmPx(hmm) / hauteurPx);
+    return "@media print" + (lim ? " and (max-width:" + lim + "mm)" : "") + "{" +
+      "#apercu-scale{transform:scale(" + f.toFixed(3) + ")!important}" +
+      "#apercu-wrap{height:" + (Math.round(hauteurPx * f) + 2) + "px!important}" +
+    "}";
+  }).join("\n");
+}
+
+function afficher(r, nomFichier){
+  const note = Math.round((1 + 5 * r.total / 20) * 2) / 2;
+  $("note").textContent = note.toFixed(1).replace(".", ",").replace(",0", "");
+  $("points").textContent = r.total.toFixed(1).replace(".0","").replace(".", ",") + " / 20 points";
+  $("nom-fichier").textContent = nomFichier;
+  const j = $("jauge");
+  j.style.width = Math.round(r.total / 20 * 100) + "%";
+  j.style.background = r.total >= 16 ? "var(--acquis)" : (r.total >= 11 ? "#E0A100" : "var(--revision)");
+
+  const tb = $("tab-criteres").querySelector("tbody");
+  tb.innerHTML = BAREME.map(x => {
+    const p = r.res[x.c];
+    const etat = p === x.pts ? '<span class="etat ok">✓</span>'
+               : (p > 0 ? '<span class="etat partiel">≈</span>' : '<span class="etat ko">✕</span>');
+    return `<tr><td>${etat}<b>${x.c}.</b> ${x.lib}</td><td class="pts">${String(p).replace(".",",")} / ${x.pts}</td></tr>`;
+  }).join("") + `<tr class="total"><td>Total</td><td class="pts">${r.total.toFixed(1).replace(".0","").replace(".",",")} / 20</td></tr>`;
+
+  for(const p of r.lignes) p.numeros = [];
+  r.corr.forEach((c, i) => { c.n = i + 1; if(c.cible) c.cible.numeros.push(i + 1); });
+
+  $("resultat").hidden = false;            // visible avant d'être mesuré
+  $("depot").hidden = true;
+  const vue = apercu(r);
+  $("apercu-scale").innerHTML = vue.html;
+  $("legende-apercu").innerHTML = vue.legende;
+  ajusterEchelle();
+
+  const li = c => `<li><b><i>${c.n}</i>${echapper(c.t)}</b><em>${echapper(c.d)}</em></li>`;
+  $("liste-corrections").innerHTML = r.corr.length
+    ? r.corr.map(li).join("")
+    : `<li class="rien"><b>Rien à corriger</b><em>Le formulaire est conforme au modèle.</em></li>`;
+
+  if(r.remarques.length){
+    $("bloc-remarques").hidden = false;
+    $("liste-remarques").innerHTML = r.remarques.map(c => `<li class="remarque"><b>${echapper(c.t)}</b><em>${echapper(c.d)}</em></li>`).join("");
+  } else $("bloc-remarques").hidden = true;
+
+  document.body.classList.add("compact");
+}
+
+/* ---- lecture du fichier ---- */
+async function traiter(f){
+  $("probleme").hidden = true;
+  try{
+    const buf = await f.arrayBuffer();
+    const zip = await lireZip(buf);
+    const xml = await texteEntree(zip.get("word/document.xml"));
+    if(!xml) throw new Error("docx");
+    const styles = await texteEntree(zip.get("word/styles.xml"));
+    const theme  = await texteEntree(zip.get("word/theme/theme1.xml"));
+    const dt = styles && (styles.match(/<w:defaultTabStop w:val="(\d+)"/) || [])[1];
+    const { paragraphes, page } = lireParagraphes(xml, dt ? parseInt(dt, 10) : 708);
+    const police = lirePolice(xml, styles, theme);
+    afficher(analyser(paragraphes, page, police), f.name);
+  }catch(e){
+    const msg = {
+      archive:"Ce fichier n’est pas un .docx. Enregistrez votre document depuis Word au format Word (.docx).",
+      docx:"Ce fichier ne contient pas de document Word lisible.",
+      xml:"Le document n’a pas pu être lu. Réenregistrez-le depuis Word.",
+      navigateur:"Votre navigateur ne sait pas décompresser ce fichier. Utilisez Firefox, Chrome ou Safari à jour."
+    }[e.message] || "Le fichier n’a pas pu être analysé.";
+    $("probleme").textContent = msg;
+    $("probleme").hidden = false;
+  }
+}
+
+const depot = $("depot"), champ = $("fichier");
+depot.addEventListener("click", () => champ.click());
+depot.addEventListener("keydown", e => { if(e.key === "Enter" || e.key === " "){ e.preventDefault(); champ.click(); } });
+champ.addEventListener("change", () => { if(champ.files[0]) traiter(champ.files[0]); });
+["dragenter","dragover"].forEach(t => depot.addEventListener(t, e => { e.preventDefault(); depot.classList.add("survol"); }));
+["dragleave","drop"].forEach(t => depot.addEventListener(t, e => { e.preventDefault(); depot.classList.remove("survol"); }));
+depot.addEventListener("drop", e => { const f = e.dataTransfer.files[0]; if(f) traiter(f); });
+$("recommencer").addEventListener("click", () => {
+  champ.value = "";
+  $("resultat").hidden = true;
+  $("depot").hidden = false;
+  document.body.classList.remove("compact");
+});
+
+/* ---- onglets ---- */
+document.querySelectorAll('nav.onglets button').forEach(b => {
+  b.addEventListener("click", () => {
+    document.querySelectorAll('nav.onglets button').forEach(x => {
+      const on = x === b;
+      x.setAttribute("aria-selected", on ? "true" : "false");
+      $(x.getAttribute("aria-controls")).hidden = !on;
+    });
+  });
+});
+
+/* ---- repli du détail ---- */
+const bd = $("bascule-detail"), dc = $("detail-criteres");
+const basculer = () => {
+  const ouvert = bd.getAttribute("aria-expanded") === "true";
+  bd.setAttribute("aria-expanded", ouvert ? "false" : "true");
+  dc.classList.toggle("ouvert", !ouvert);
+};
+bd.addEventListener("click", basculer);
+bd.addEventListener("keydown", e => { if(e.key === "Enter" || e.key === " "){ e.preventDefault(); basculer(); } });
+</script>
+</body>
+</html>
