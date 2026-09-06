@@ -1,0 +1,1341 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Document complexe — contrôle de la mise en forme</title>
+<style>
+:root{
+  --papier:#FFFFFF;
+  --gris-fond:#F5F5F7;
+  --encre:#1D1D1F;
+  --gris:#6E6E73;
+  --filet:#D2D2D7;
+  --bleu:#0071E3;
+  --marque:#2B579A;        /* marques de mise en forme, code couleur de Word */
+  --revision:#C22B34;      /* stylo de correction */
+  --acquis:#1D8A4E;
+  --jaune:#FBE38E;         /* surligneur */
+  --sans:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --lettre:Arial,"Liberation Sans",Helvetica,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--papier);color:var(--encre);font-family:var(--sans);
+  font-size:17px;line-height:1.5;-webkit-font-smoothing:antialiased;
+  letter-spacing:-.01em;
+}
+.wrap{max-width:900px;margin:0 auto;padding:0 22px 90px}
+
+/* ---------- en-tête ---------- */
+header.tete{padding:22px 0 24px;text-align:center;transition:padding .35s ease}
+.pil{display:block;font-size:.82rem;color:var(--gris);margin-bottom:10px;text-align:left}
+.tete-texte{max-height:300px;opacity:1;overflow:hidden;transition:max-height .38s ease,opacity .22s ease}
+body.compact .tete-texte{max-height:0;opacity:0}
+body.compact header.tete{padding-bottom:10px}
+header.tete h1{
+  font-size:clamp(1.15rem,3.3vw,2.1rem);white-space:nowrap;
+  line-height:1.15;margin:0 0 10px;font-weight:600;letter-spacing:-.025em;
+}
+header.tete p{margin:0 auto;color:var(--gris);max-width:74ch;font-size:1rem}
+.insecable{white-space:nowrap}
+
+/* ---------- onglets : contrôle segmenté ---------- */
+nav.onglets{
+  display:flex;gap:2px;flex-wrap:wrap;
+  background:var(--gris-fond);border-radius:999px;padding:3px;margin:18px auto 0;width:max-content;max-width:100%;
+}
+nav.onglets button{
+  font:inherit;font-size:.92rem;font-weight:500;background:transparent;color:var(--gris);
+  border:none;border-radius:999px;padding:8px 20px;cursor:pointer;
+  transition:background .2s ease,color .2s ease;
+}
+nav.onglets button:hover{color:var(--encre)}
+nav.onglets button[aria-selected="true"]{background:var(--papier);color:var(--encre);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+nav.onglets button:focus-visible{outline:2px solid var(--bleu);outline-offset:2px}
+section.panneau{padding:40px 0 0}
+/* à l'écran, le tableau de mise en page ne doit rien changer */
+.cadre,.cadre>thead,.cadre>tfoot,.cadre>tbody,
+.cadre>thead>tr,.cadre>tfoot>tr,.cadre>tbody>tr,
+.cadre>thead>tr>td,.cadre>tfoot>tr>td,.cadre>tbody>tr>td{display:block;padding:0;margin:0;border:0}
+.bande{display:none}
+.deux-col{display:grid;grid-template-columns:minmax(0,1fr);gap:10px}
+table.grille .sous{color:var(--gris);font-size:.88em}
+.bloc-remarques[hidden]{display:none}
+.bloc-remarques li.remarque{background:var(--gris-fond)}
+.deux-col > div{min-width:0}
+@media (min-width:1060px){
+  .wrap{max-width:1260px}
+  header.tete,#p-grille,#p-aide,#p-eval .depot{max-width:900px;margin-left:auto;margin-right:auto}
+  .deux-col{grid-template-columns:minmax(0,1.12fr) minmax(0,1fr);gap:44px;align-items:start}
+  .deux-col > div > h2:first-child{margin-top:0}
+}
+#p-grille,#p-aide{padding-top:24px;font-size:.95rem}
+#p-grille .leg{margin-bottom:8px}
+#p-grille table.grille th,#p-grille table.grille td,
+#p-aide table.grille th,#p-aide table.grille td{padding:8px 10px}
+#p-grille h3,#p-aide h3{margin:20px 0 6px;font-size:1rem}
+#p-grille p,#p-aide p{margin-bottom:8px}
+#p-grille ul,#p-aide ul{margin-bottom:6px}
+#p-grille li,#p-aide li{margin-bottom:2px}
+section.panneau[hidden]{display:none}
+
+h2{font-size:1.3rem;margin:52px 0 14px;font-weight:600;letter-spacing:-.02em}
+h2:first-child{margin-top:0}
+h3{font-size:1.05rem;margin:28px 0 8px;font-weight:600;letter-spacing:-.015em}
+p{margin:0 0 12px}
+ul,ol{margin:0 0 12px;padding-left:22px}
+li{margin-bottom:6px}
+a{color:var(--bleu);text-decoration:none}
+a:hover{text-decoration:underline}
+
+/* ---------- dépôt du fichier ---------- */
+.depot{
+  border:1px dashed var(--filet);border-radius:18px;background:var(--gris-fond);
+  padding:46px 24px;text-align:center;cursor:pointer;transition:background .15s,border-color .15s;
+}
+.depot[hidden]{display:none}
+.depot:hover,.depot.survol{border-color:var(--bleu);background:#F0F6FE}
+.depot:focus-visible{outline:2px solid var(--bleu);outline-offset:3px}
+.pilcrow{font-family:Georgia,serif;font-size:2.6rem;line-height:1;color:var(--marque);display:block;margin-bottom:10px}
+.depot b{display:block;font-size:1.15rem;font-weight:590;letter-spacing:-.02em}
+.depot .aide{display:block;color:var(--gris);font-size:.9rem;margin-top:8px}
+input[type=file]{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+.erreur{background:var(--gris-fond);border-radius:14px;padding:16px 20px;margin-top:18px;color:var(--revision)}
+
+/* ---------- note ---------- */
+#resultat[hidden]{display:none}
+.bandeau{display:flex;align-items:baseline;gap:20px;flex-wrap:wrap;padding:6px 0 4px}
+.note{font-size:4rem;font-weight:600;line-height:1;letter-spacing:-.04em}
+.note small{display:block;font-size:.8rem;font-weight:400;letter-spacing:0;color:var(--gris);margin-top:8px}
+.bandeau .detail{flex:1;min-width:220px;cursor:pointer;border-radius:10px;padding:6px 10px;margin:-6px -10px;transition:background .15s}
+.bandeau .detail:hover{background:var(--gris-fond)}
+.bandeau .detail:focus-visible{outline:2px solid var(--bleu);outline-offset:2px}
+.chev{display:inline-block;margin-left:8px;color:var(--gris);font-size:1.1rem;transform:rotate(90deg);transition:transform .3s ease}
+.detail[aria-expanded="true"] .chev{transform:rotate(-90deg)}
+.repli{max-height:0;overflow:hidden;transition:max-height .4s ease}
+.repli.ouvert{max-height:1200px}
+.bandeau .detail b{font-size:1.15rem;font-weight:590;letter-spacing:-.02em}
+.jauge{height:6px;border-radius:99px;background:#E8E8ED;margin-top:12px;overflow:hidden;max-width:420px}
+.jauge i{display:block;height:100%;border-radius:99px;transition:width .6s ease-out}
+.fichier{color:var(--gris);font-size:.88rem;margin-top:10px}
+
+/* ---------- tableaux ---------- */
+table.grille{width:100%;border-collapse:collapse;font-size:.96rem;margin-bottom:14px}
+table.grille th,table.grille td{border-bottom:1px solid var(--filet);padding:14px 12px;text-align:left;vertical-align:top}
+table.grille th{font-weight:590;font-size:.82rem;color:var(--gris);border-bottom:1px solid var(--encre)}
+table.grille td.pts{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums;width:70px}
+table.grille tr.total td{font-weight:600;border-bottom:none}
+.etat{display:inline-block;width:1.2em;font-weight:700}
+.ok{color:var(--acquis)}
+.partiel{color:#9A6B00}
+.ko{color:var(--revision)}
+
+/* ---------- corrections ---------- */
+ol.corrections{list-style:none;padding:0;margin:0}
+ol.corrections li{
+  position:relative;padding:16px 20px 16px 58px;margin:0 0 8px;border-radius:14px;
+  background:var(--gris-fond);cursor:pointer;transition:background .15s,box-shadow .15s;
+}
+ol.corrections li:hover{background:#EDEDF0}
+ol.corrections li b{display:block;font-size:1rem;font-weight:590;letter-spacing:-.015em}
+ol.corrections li b i{
+  position:absolute;left:18px;top:16px;width:26px;height:26px;border-radius:50%;
+  background:var(--papier);color:var(--revision);font-style:normal;font-weight:600;font-size:.82rem;
+  display:flex;align-items:center;justify-content:center;box-shadow:inset 0 0 0 1.5px var(--revision);
+}
+ol.corrections li em{font-style:normal;color:var(--gris);display:block;font-size:.95rem;margin-top:4px}
+ol.corrections li.remarque{padding-left:20px}
+ol.corrections li.remarque b{color:var(--gris);font-weight:500}
+ol.corrections li.remarque em{color:var(--encre)}
+ol.corrections li.rien{cursor:default}
+ol.corrections li.vise{box-shadow:0 0 0 2px var(--revision)}
+ol.corrections li.remarque.vise{box-shadow:0 0 0 2px var(--filet)}
+
+/* ---------- fac-similé ---------- */
+.fac-wrap{position:relative;overflow:hidden;background:var(--gris-fond);border-radius:18px;padding:20px}
+.fac-scale{transform-origin:top left}
+.fac-page{font-variant-ligatures:none;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.08),0 12px 32px rgba(0,0,0,.10);color:var(--encre);text-align:left;letter-spacing:normal;word-spacing:normal}
+.fac-p{position:relative;white-space:pre-wrap;overflow-wrap:break-word;min-height:1em}
+.fac-tab{display:inline-block;overflow:hidden;white-space:pre;min-width:2px;vertical-align:baseline}
+.mk{color:var(--marque);font-weight:400}
+.mk.fin{display:inline-block;width:0;overflow:visible;white-space:pre}
+.mk.err-mk{color:var(--revision);font-weight:700;cursor:pointer}
+.sp{position:relative}
+.sp::after{content:"·";position:absolute;left:0;right:0;text-align:center;color:var(--marque);pointer-events:none}
+.fac-p .err{
+  background:var(--jaune);border-radius:2px;
+  print-color-adjust:exact;-webkit-print-color-adjust:exact;
+}
+.fac-p .sup-mot{text-decoration:line-through var(--revision);text-decoration-thickness:1px}
+.fac-p .err.vise{box-shadow:0 0 0 2px var(--revision);background:#FFD27A}
+.caret{display:inline-block;width:0;position:relative}
+.caret::after{
+  content:"V";position:absolute;left:-.34em;top:-1.35em;
+  font-size:1em;font-weight:700;color:var(--revision);line-height:1;
+}
+.caret.vise::after{color:#fff;background:var(--revision);border-radius:2px;padding:0 .12em;left:-.42em;print-color-adjust:exact;-webkit-print-color-adjust:exact}
+.fac-num{
+  position:absolute;left:-36px;top:.05em;width:30px;text-align:right;
+  font-family:var(--sans);font-size:.62rem;font-weight:600;color:var(--revision);
+}
+.fac-num span{
+  display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;
+  border-radius:50%;box-shadow:inset 0 0 0 1.2px var(--revision);
+}
+.fac-num span.vise{background:var(--revision);color:#fff;print-color-adjust:exact;-webkit-print-color-adjust:exact}
+.fac-signale{box-shadow:-3px 0 0 -1px var(--revision)}
+.caret,.fac-p .err,.fac-num span{cursor:pointer}
+.fac-p [data-note]:focus-visible,.fac-num span:focus-visible{outline:2px solid var(--bleu);outline-offset:1px}
+
+/* ---------- divers ---------- */
+.leg{font-size:.94rem;color:var(--gris);margin-bottom:14px;max-width:70ch}
+.leg .ex{background:var(--jaune);color:var(--encre);border-radius:2px;print-color-adjust:exact;-webkit-print-color-adjust:exact}
+.leg .cr{color:var(--revision);font-weight:700}
+kbd{
+  font-family:var(--sans);font-size:.82rem;background:var(--gris-fond);border:1px solid var(--filet);
+  border-radius:5px;padding:1px 6px;white-space:nowrap;
+}
+.bouton{font:inherit;font-size:.95rem;background:var(--bleu);color:#fff;border:none;padding:11px 22px;cursor:pointer;border-radius:999px;font-weight:500}
+.bouton:hover{background:#0077ED}
+.bouton.secondaire{background:transparent;color:var(--bleu);padding-left:6px}
+.bouton.secondaire:hover{background:transparent;text-decoration:underline}
+.bouton:focus-visible{outline:2px solid var(--bleu);outline-offset:3px}
+.actions{display:flex;gap:14px;align-items:center;margin-top:40px;flex-wrap:wrap}
+
+@media (max-width:640px){
+  body{font-size:16px}
+  .wrap{padding:0 16px 50px}
+  header.tete{padding:16px 0 18px}
+  header.tete h1{white-space:normal;font-size:1.35rem}
+  .insecable{white-space:normal}
+  nav.onglets{width:100%}
+  nav.onglets button{flex:1;padding:8px 10px;font-size:.86rem}
+  .note{font-size:3rem}
+  .fac-wrap{padding:10px;border-radius:12px}
+  ol.corrections li{padding:14px 16px 14px 50px}
+}
+@media print{
+  @page{size:A4;margin:0}   /* la marge est portée par le contenu, elle, respectée partout */
+  body{background:#fff;font-size:10.5pt;letter-spacing:0}
+  nav.onglets,.depot,.actions,.noprint{display:none!important}
+  /* Safari n'applique pas les marges @page : elles sont donc portées par le contenu */
+  /* les bandes vides d'un vrai <thead>/<tfoot> sont répétées en haut et en bas de
+     chaque page par tous les navigateurs : c'est la seule marge verticale fiable */
+  .wrap{max-width:none;padding:0 20mm}
+  .cadre{display:table;table-layout:fixed;width:100%}
+  .cadre>thead{display:table-header-group}
+  .cadre>tfoot{display:table-footer-group}
+  .cadre>tbody{display:table-row-group}
+  .cadre>thead>tr,.cadre>tfoot>tr,.cadre>tbody>tr{display:table-row}
+  .cadre>thead>tr>td,.cadre>tfoot>tr>td,.cadre>tbody>tr>td{display:table-cell}
+  .bande{display:block;height:18mm}
+  .bloc-corr{break-before:page}
+  /* si les remarques ne tiennent pas sous les corrections, elles passent en bloc
+     à la page suivante, avec leur propre marge haute */
+  .bloc-remarques{break-inside:avoid;padding-top:8mm}
+  header.tete{padding:0 0 8pt;text-align:left;border-bottom:.75pt solid var(--filet)}
+  header.tete p,.pil{display:none}
+  header.tete h1{font-size:15pt}
+  section.panneau{padding:0}
+  h2{font-size:12pt;margin:14pt 0 6pt;break-after:avoid}
+  .bandeau{break-inside:avoid;margin:12pt 0;gap:14pt}
+  .note{font-size:26pt}
+  .jauge{display:none}
+  ol.corrections li{
+    break-inside:avoid;background:none!important;box-shadow:none!important;
+    padding:4pt 0 4pt 26pt;margin-bottom:7pt;
+  }
+  ol.corrections li b i{left:0;top:3pt;width:16pt;height:16pt;box-shadow:none;border:.75pt solid var(--revision)}
+  ol.corrections li.remarque{padding-left:0}
+  .deux-col{display:block}
+  .repli{max-height:none!important;overflow:visible}
+  .chev{display:none}
+  /* tout le haut de page est compacté pour que la lettre tienne à la suite */
+  #detail-criteres table.grille th,
+  #detail-criteres table.grille td{padding:1.5pt 6pt;font-size:8.8pt;line-height:1.25}
+  #detail-criteres table.grille td br{display:none}
+  #detail-criteres table.grille .sous{font-size:8.2pt}
+  #detail-criteres table.grille .sous::before{content:" — "}
+  header.tete{padding:0 0 4pt}
+  header.tete h1{font-size:12.5pt}
+  .bandeau{margin:4pt 0 3pt;align-items:baseline;gap:12pt}
+  .note{font-size:16pt}
+  .note small{display:inline;font-size:7.5pt;margin:0 0 0 4pt}
+  .bandeau .detail{padding:0;margin:0}
+  .bandeau .detail b{font-size:10pt}
+  .fichier{margin-top:2pt;font-size:8pt}
+  h2{font-size:10.5pt;margin:7pt 0 3pt}
+  .leg{font-size:8.2pt;margin-bottom:3pt}
+  .deux-col .bloc-corr h2{margin-top:16pt}
+  .fac-wrap{break-inside:avoid;background:none;padding:0;border-radius:0;overflow:hidden}
+  .fac-page{box-shadow:none;outline:.5pt solid #CCC}
+  .fac-p .err,.leg .ex{background:var(--jaune)!important;box-shadow:none!important}
+  .fac-num span{background:none!important;color:var(--revision)!important;box-shadow:none}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+/* ---------- aperçu du document ---------- */
+.apercu-wrap{background:var(--gris-fond);border-radius:18px;padding:16px;overflow:hidden}
+.apercu-scale{transform-origin:top left}
+.apercu-page{
+  position:relative;background:#fff;color:var(--encre);font-family:var(--lettre);
+  box-shadow:0 1px 3px rgba(0,0,0,.08),0 12px 32px rgba(0,0,0,.10);
+  padding:20mm 20mm 16mm;width:210mm;
+}
+.ap-l{position:relative;margin:0 0 2.2mm}
+.ap-l .puce{position:absolute;left:-7mm;width:6mm;text-align:right;color:var(--encre);pointer-events:none}
+.ap-img{
+  display:inline-flex;align-items:center;justify-content:center;border-radius:1mm;
+  background:#ECECF0;color:var(--gris);font-family:var(--sans);font-size:3mm;margin:3mm 0;
+  min-width:20mm;min-height:12mm;
+}
+.ap-tab{border-collapse:collapse;margin:3mm 0;width:100%}
+.ap-tab td{border:.3mm solid var(--encre);padding:.8mm 1.6mm;vertical-align:top}
+.ap-num{
+  position:absolute;left:-15mm;top:0;width:14mm;display:flex;justify-content:flex-end;gap:.5mm;
+  font-family:var(--sans);font-size:2.4mm;color:var(--revision);font-weight:600;line-height:1;z-index:3;
+}
+.ap-num span{
+  display:inline-flex;align-items:center;justify-content:center;width:3.8mm;height:3.8mm;
+  border-radius:50%;box-shadow:inset 0 0 0 .28mm var(--revision);cursor:pointer;
+}
+.ap-num span.vise{
+  background:var(--revision);color:#fff;
+  print-color-adjust:exact;-webkit-print-color-adjust:exact;
+}
+ol.corrections li{cursor:pointer}
+.caret{display:inline-block;width:0;position:relative}
+.caret::after{
+  content:"V";position:absolute;left:-.34em;top:-1.25em;
+  font-size:1em;font-weight:700;color:var(--revision);line-height:1;
+  print-color-adjust:exact;-webkit-print-color-adjust:exact;
+}
+.ap-img img{display:block;max-width:100%;height:auto}
+.ap-faux{
+  background:var(--jaune);border-radius:2px;
+  print-color-adjust:exact;-webkit-print-color-adjust:exact;
+}
+.legende-apercu{font-size:.9rem;color:var(--gris);margin-bottom:10px;max-width:70ch}
+.legende-apercu .ex{background:var(--jaune);color:var(--encre);border-radius:2px;padding:0 2px;
+  print-color-adjust:exact;-webkit-print-color-adjust:exact}
+.legende-apercu .cr{color:var(--revision);font-weight:700}
+#detail-criteres table.grille{font-size:.88rem;margin-bottom:8px}
+#detail-criteres table.grille th,
+#detail-criteres table.grille td{padding:6px 8px;line-height:1.3}
+#detail-criteres table.grille td.pts{width:82px;white-space:nowrap}
+.bloc-apercu{order:0}
+.bloc-corr{order:1}
+@media print{
+  .deux-col{display:block}
+  .bloc-corr{break-before:page;padding-top:2mm}
+  .bloc-apercu{break-before:auto}
+  .bloc-apercu h2{margin-top:6pt}
+  .apercu-wrap{background:none;padding:0;border-radius:0;overflow:hidden;break-inside:avoid}
+  .apercu-page{box-shadow:none;outline:.5pt solid #CCC}
+  .caret{display:inline-block;width:0;position:relative}
+.caret::after{
+  content:"V";position:absolute;left:-.34em;top:-1.25em;
+  font-size:1em;font-weight:700;color:var(--revision);line-height:1;
+  print-color-adjust:exact;-webkit-print-color-adjust:exact;
+}
+.ap-img img{display:block;max-width:100%;height:auto}
+.ap-faux{background:var(--jaune)!important;print-color-adjust:exact;-webkit-print-color-adjust:exact}
+  .legende-apercu{font-size:8.2pt;margin-bottom:4pt}
+  body.compact .tete-texte{max-height:none;opacity:1}
+  header.tete h1{font-size:12.5pt;margin-bottom:0}
+}
+</style>
+<style id="regles-impression"></style>
+</head>
+<body>
+<div class="wrap">
+<table class="cadre"><thead><tr><td><div class="bande"></div></td></tr></thead>
+<tfoot><tr><td><div class="bande"></div></td></tr></tfoot><tbody><tr><td>
+
+<header class="tete">
+  <span class="pil">Informatique · PAI · traitement de texte</span>
+  <div class="tete-texte">
+    <h1>Document complexe : contrôle de votre mise en forme</h1>
+    <p><span class="insecable">Déposez votre fichier, il est analysé dans votre navigateur (rien n’est envoyé sur Internet).</span>
+      <span class="insecable">Vous obtenez votre note ainsi que la liste des corrections à apporter.</span></p>
+  </div>
+</header>
+
+<nav class="onglets" role="tablist">
+  <button role="tab" id="t-eval" aria-controls="p-eval" aria-selected="true">Corriger mon fichier</button>
+  <button role="tab" id="t-grille" aria-controls="p-grille" aria-selected="false">Grille d’évaluation</button>
+  <button role="tab" id="t-aide" aria-controls="p-aide" aria-selected="false">Mémento Word</button>
+</nav>
+
+<!-- ================= ÉVALUATION ================= -->
+<section class="panneau" id="p-eval" role="tabpanel" aria-labelledby="t-eval">
+
+  <div class="depot" id="depot" tabindex="0" role="button" aria-label="Choisir le fichier Word à corriger">
+    <span class="pilcrow" aria-hidden="true">¶</span>
+    <b>Déposez ici votre fichier .docx</b>
+    <span class="aide">ou cliquez pour le choisir — enregistrez d’abord votre document dans Word (Ctrl+S)</span>
+  </div>
+  <input type="file" id="fichier" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
+  <div id="probleme" class="erreur" hidden></div>
+
+  <div id="resultat" hidden>
+    <div class="bandeau">
+      <div class="note" id="note">–</div>
+      <div class="detail" id="bascule-detail" role="button" tabindex="0"
+           aria-expanded="false" aria-controls="detail-criteres" title="Afficher le détail par critère">
+        <b id="points">0 / 20 points</b><span class="chev" aria-hidden="true">›</span>
+        <div class="jauge"><i id="jauge" style="width:0"></i></div>
+        <div class="fichier" id="nom-fichier"></div>
+      </div>
+    </div>
+
+    <div class="repli" id="detail-criteres">
+      <table class="grille" id="tab-criteres">
+        <thead><tr><th>Détail par critère</th><th class="pts">Points</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div class="deux-col">
+      <div class="bloc-apercu">
+        <h2>Aperçu de votre document</h2>
+        <p class="legende-apercu" id="legende-apercu"></p>
+        <div class="apercu-wrap" id="apercu-wrap"><div class="apercu-scale" id="apercu-scale"></div></div>
+      </div>
+
+      <div class="bloc-corr">
+        <h2>Corrections à apporter</h2>
+        <ol class="corrections" id="liste-corrections"></ol>
+      </div>
+    </div>
+
+    <div class="bloc-remarques" id="bloc-remarques" hidden>
+      <h2>Remarques, non comptées</h2>
+      <ol class="corrections" id="liste-remarques"></ol>
+    </div>
+
+    <div class="actions noprint">
+      <button class="bouton" onclick="window.print()">Imprimer / enregistrer en PDF</button>
+      <button class="bouton secondaire" id="recommencer">Corriger un autre fichier</button>
+    </div>
+  </div>
+</section>
+
+<!-- ================= GRILLE ================= -->
+<section class="panneau" id="p-grille" role="tabpanel" aria-labelledby="t-grille" hidden>
+  <h2>Grille d’évaluation — « Comment s’occuper de Tarama »</h2>
+  <p class="leg">Total 20 points. Note = 1 + 5 × (points / 20), arrondie au demi-point. Chaque défaut coûte 1,5 point ; une erreur répétée sur plusieurs lignes ne compte qu’une fois.</p>
+  <table class="grille">
+    <thead><tr><th>Critère</th><th>Indicateurs observables</th><th class="pts">Pts</th></tr></thead>
+    <tbody>
+      <tr><td><b>A. Fidélité du texte</b></td><td>Tout le texte est saisi sans omission ni faute de frappe, tableau compris.</td><td class="pts">2</td></tr>
+      <tr><td><b>B. Titre</b></td><td>« Comment s’occuper de Tarama la tortue d’eau douce ? » en <b>Arial 20, gras, souligné, centré</b>.</td><td class="pts">3</td></tr>
+      <tr><td><b>C. Image</b></td><td>L’image est <b>insérée</b> dans le document et son paragraphe est <b>centré</b>.</td><td class="pts">2</td></tr>
+      <tr><td><b>D. Titres de rubrique</b></td><td>Les trois titres forment une <b>liste à numéros</b> automatique, en <b>Arial 18, gras, souligné</b>.</td><td class="pts">4</td></tr>
+      <tr><td><b>E. Liste à puces</b></td><td>Les trois consignes d’entretien forment une <b>liste à puces</b> automatique, en <b>Arial 11</b>.</td><td class="pts">3</td></tr>
+      <tr><td><b>F. Tableau</b></td><td>Un <b>tableau de 2 lignes et 2 colonnes</b> est inséré ; sa ligne d’en-tête est en <b>gras</b> et le contenu des cellules est en <b>liste à puces</b>.</td><td class="pts">2</td></tr>
+      <tr><td><b>G. Mises en forme ponctuelles</b></td><td>« Attention… » et « Quentin, ton frérot » en <b>italique</b> ; « Si tu as un doute… » et la signature en <b>Arial 12</b> ; « Merci encore pour ton aide ! » en <b>Arial 18 gras</b>.</td><td class="pts">2</td></tr>
+      <tr><td><b>H. Couleurs</b></td><td>Titre en <b>bleu</b>, titres de rubrique en <b>rouge</b>, remerciement en <b>vert</b>. Seule la teinte est jugée, pas la nuance.</td><td class="pts">2</td></tr>
+      <tr class="total"><td>Total</td><td></td><td class="pts">20</td></tr>
+    </tbody>
+  </table>
+  <h3>Remarques non notées, signalées à l’apprenant</h3>
+  <ul>
+        <li>Taille et proportions de l’image.</li>
+    <li>Marges de la page.</li>
+  </ul>
+</section>
+
+<!-- ================= AIDE ================= -->
+<section class="panneau" id="p-aide" role="tabpanel" aria-labelledby="t-aide" hidden>
+  <h2>Mémento</h2>
+
+  <h3>Police et taille</h3>
+  <p>Sélectionnez le passage, puis choisissez la police et la taille dans l’onglet <b>Accueil</b>. Un titre en Arial 20 et un corps de texte en Arial 11 ne s’obtiennent pas en agrandissant l’affichage : c’est la taille du caractère qui change, et elle est enregistrée dans le fichier.</p>
+
+  <h3>Listes automatiques</h3>
+  <p>Les boutons <b>Liste à puces</b> et <b>Liste numérotée</b> de l’onglet Accueil créent une liste que Word gère seul : les numéros se renumérotent si vous en insérez un, et le retrait est identique partout. Taper « 1. » puis un espace au début d’une ligne donne le même aspect mais pas la même chose : le numéro devient du texte ordinaire, et le contrôle le voit.</p>
+  <p>Pour retirer une liste, recliquez sur le même bouton.</p>
+
+  <h3>Insérer une image</h3>
+  <p><b>Insertion ▸ Images</b>, puis centrez le paragraphe qui la contient avec <kbd>Ctrl</kbd>+<kbd>E</kbd>. Une image collée depuis un navigateur fonctionne aussi, mais vérifiez qu’elle reste dans le fil du texte (habillage « aligné sur le texte »), sinon elle se déplacera à la première modification.</p>
+
+  <h3>Insérer un tableau</h3>
+  <p><b>Insertion ▸ Tableau</b>, puis choisissez le nombre de colonnes et de lignes. Un tableau dessiné avec des tirets et des espaces n’en est pas un : il ne s’aligne pas et ne se redimensionne pas.</p>
+
+  <h3>Les quatre attributs de caractère</h3>
+  <table class="grille">
+    <thead><tr><th>Attribut</th><th>Raccourci</th><th>Dans ce document</th></tr></thead>
+    <tbody>
+      <tr><td>Gras</td><td><kbd>Ctrl</kbd>+<kbd>G</kbd></td><td>titre, en-têtes du tableau, remerciement</td></tr>
+      <tr><td>Italique</td><td><kbd>Ctrl</kbd>+<kbd>I</kbd></td><td>« Attention… », « Quentin, ton frérot »</td></tr>
+      <tr><td>Souligné</td><td><kbd>Ctrl</kbd>+<kbd>U</kbd></td><td>titre, trois titres de rubrique</td></tr>
+      <tr><td>Centré</td><td><kbd>Ctrl</kbd>+<kbd>E</kbd></td><td>titre, image</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Voir ce que l’on a fait</h3>
+  <p><kbd>Ctrl</kbd>+<kbd>Maj</kbd>+<kbd>8</kbd> affiche les marques de mise en forme. Cliquer dans un paragraphe met à jour la police et la taille affichées dans le ruban : c’est la façon la plus rapide de contrôler qu’une ligne est bien en Arial 18 et non en 16.</p>
+</section>
+
+</td></tr></tbody></table>
+</div>
+
+<script>
+"use strict";
+
+/* =========================================================
+   1. Lecture du .docx (ZIP + XML) sans bibliothèque externe
+   ========================================================= */
+const W = "http://schemas.openxmlformats.org/wordprocessingml/2006/main";
+
+async function lireZip(buffer){
+  const dv = new DataView(buffer), u8 = new Uint8Array(buffer);
+  let eocd = -1;
+  const min = Math.max(0, u8.length - 66000);
+  for(let i = u8.length - 22; i >= min; i--){
+    if(dv.getUint32(i, true) === 0x06054b50){ eocd = i; break; }
+  }
+  if(eocd < 0) throw new Error("archive");
+  const n = dv.getUint16(eocd + 10, true);
+  let off = dv.getUint32(eocd + 16, true);
+  const entrees = new Map();
+  for(let i = 0; i < n; i++){
+    if(off + 46 > u8.length || dv.getUint32(off, true) !== 0x02014b50) break;
+    const methode = dv.getUint16(off + 10, true);
+    const taille  = dv.getUint32(off + 20, true);
+    const lNom    = dv.getUint16(off + 28, true);
+    const lExtra  = dv.getUint16(off + 30, true);
+    const lComm   = dv.getUint16(off + 32, true);
+    const lho     = dv.getUint32(off + 42, true);
+    const nom     = new TextDecoder("utf-8").decode(u8.subarray(off + 46, off + 46 + lNom));
+    const lNom2   = dv.getUint16(lho + 26, true);
+    const lExtra2 = dv.getUint16(lho + 28, true);
+    const debut   = lho + 30 + lNom2 + lExtra2;
+    entrees.set(nom, { methode, data: u8.subarray(debut, debut + taille) });
+    off += 46 + lNom + lExtra + lComm;
+  }
+  return entrees;
+}
+
+async function texteEntree(e){
+  if(!e) return null;
+  if(e.methode === 0) return new TextDecoder("utf-8").decode(e.data);
+  if(typeof DecompressionStream === "undefined") throw new Error("navigateur");
+  const flux = new Blob([e.data]).stream().pipeThrough(new DecompressionStream("deflate-raw"));
+  return await new Response(flux).text();
+}
+
+async function binaireEntree(e){
+  if(!e) return null;
+  if(e.methode === 0) return e.data;
+  if(typeof DecompressionStream === "undefined") throw new Error("navigateur");
+  const flux = new Blob([e.data]).stream().pipeThrough(new DecompressionStream("deflate-raw"));
+  return new Uint8Array(await new Response(flux).arrayBuffer());
+}
+
+function ancetres(el, racine){
+  const l = [];
+  let p = el.parentNode;
+  while(p && p !== racine.parentNode){ l.push(p.localName); p = p.parentNode; }
+  return l;
+}
+
+/* Convertit chaque w:p en objet { texte, lignes, tabsDebut, dansTableau, ind, jc } */
+function lireParagraphes(xml, defaultTab){
+  const doc = new DOMParser().parseFromString(xml, "application/xml");
+  if(doc.getElementsByTagName("parsererror").length) throw new Error("xml");
+  const body = doc.getElementsByTagNameNS(W, "body")[0];
+  if(!body) throw new Error("xml");
+  const ps = body.getElementsByTagNameNS(W, "p");
+  const res = [];
+  const tableaux = doc.getElementsByTagNameNS(W, "tbl").length;
+  const att = (el, n) => el ? (el.getAttributeNS(W, n) || el.getAttribute("w:" + n)) : null;
+  const num = (el, n, d) => { const v = att(el, n); const x = parseInt(v, 10); return isNaN(x) ? d : x; };
+
+  const styleDuRun = el => {                       // rPr du run qui contient cet élément
+    let r = el.parentNode;
+    while(r && r.localName !== "r") r = r.parentNode;
+    const rPr = r && r.getElementsByTagNameNS(W, "rPr")[0];
+    if(!rPr) return {};
+    const st = {};
+    const sz = rPr.getElementsByTagNameNS(W, "sz")[0];
+    if(sz) st.taille = (parseInt(att(sz, "val"), 10) || 0) / 2;
+    const f = rPr.getElementsByTagNameNS(W, "rFonts")[0];
+    if(f) st.police = att(f, "ascii") || null;
+    const b = rPr.getElementsByTagNameNS(W, "b")[0];
+    if(b && att(b, "val") !== "0" && att(b, "val") !== "false") st.gras = true;
+    const c = rPr.getElementsByTagNameNS(W, "color")[0];
+    if(c){ const v = att(c, "val"); if(v && v !== "auto") st.couleur = v.toUpperCase(); }
+    const u = rPr.getElementsByTagNameNS(W, "u")[0];
+    if(u && att(u, "val") !== "none") st.souligne = true;
+    const i = rPr.getElementsByTagNameNS(W, "i")[0];
+    if(i && att(i, "val") !== "0" && att(i, "val") !== "false") st.ital = true;
+    return st;
+  };
+
+  for(const p of ps){
+    let s = "";
+    const styles = [];
+    for(const el of p.getElementsByTagName("*")){
+      const nom = el.localName;
+      if(nom !== "t" && nom !== "tab" && nom !== "br" && nom !== "cr" && nom !== "noBreakHyphen") continue;
+      const anc = ancetres(el, p);
+      if(anc.includes("pPr") || anc.includes("rPr") || anc.includes("del") || anc.includes("instrText")) continue;
+      let t;
+      if(nom === "t") t = el.textContent;
+      else if(nom === "tab") t = "\t";
+      else if(nom === "noBreakHyphen") t = "-";
+      else t = "\n";
+      if(t){ const d = s.length; s += t; styles.push({ debut: d, fin: s.length, ...styleDuRun(el) }); }
+    }
+    const pPr = p.getElementsByTagNameNS(W, "pPr")[0];
+    let ind = 0, indD = 0, indP = 0, jc = "", apres = null, avant = null, interligne = null, taquets = [], numero = null;
+    if(pPr){
+      const i = pPr.getElementsByTagNameNS(W, "ind")[0];
+      if(i){
+        ind  = num(i, "left", 0) || num(i, "start", 0);
+        indD = num(i, "right", 0) || num(i, "end", 0);
+        indP = num(i, "firstLine", 0) - num(i, "hanging", 0);
+      }
+      const j = pPr.getElementsByTagNameNS(W, "jc")[0];
+      if(j) jc = att(j, "val") || "";
+      const sp = pPr.getElementsByTagNameNS(W, "spacing")[0];
+      if(sp){
+        const a = num(sp, "after", NaN); if(!isNaN(a)) apres = a;
+        const b = num(sp, "before", NaN); if(!isNaN(b)) avant = b;
+        const l = num(sp, "line", NaN);
+        if(!isNaN(l) && (att(sp, "lineRule") || "auto") === "auto") interligne = l / 240;
+      }
+      const np = pPr.getElementsByTagNameNS(W, "numPr")[0];
+      if(np){
+        const id = np.getElementsByTagNameNS(W, "numId")[0];
+        const lv = np.getElementsByTagNameNS(W, "ilvl")[0];
+        numero = { id: att(id, "val"), niveau: num(lv, "val", 0) };
+      }
+      const tabs = pPr.getElementsByTagNameNS(W, "tabs")[0];
+      if(tabs) for(const t of tabs.getElementsByTagNameNS(W, "tab")){
+        const type = att(t, "val") || "left";
+        if(type === "clear") continue;
+        taquets.push({ pos: num(t, "pos", 0), type, points: (att(t, "leader") || "none") });
+      }
+    }
+    res.push({
+      texte: s, styles,
+      lignes: s.split("\n"),
+      dansTableau: ancetres(p, body).includes("tc"),
+      ind, indD, indP, jc, apres, avant, interligne, taquets, numero,
+      images: p.getElementsByTagNameNS(W, "drawing").length
+            + p.getElementsByTagName("pict").length,
+      taille: (() => {                      // dimensions d'affichage de l'image, en mm
+        const WP = "http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing";
+        const e = p.getElementsByTagNameNS(WP, "extent")[0];
+        if(!e) return null;
+        return { l: (+e.getAttribute("cx") || 0) / 36000, h: (+e.getAttribute("cy") || 0) / 36000 };
+      })(),
+      cellule: ancetres(p, body).includes("tc"),
+      place: (() => {                       // position dans le tableau : ligne / colonne
+        let tc = p.parentNode;
+        while(tc && tc.localName !== "tc") tc = tc.parentNode;
+        if(!tc) return null;
+        const tr = tc.parentNode, tbl = tr.parentNode;
+        const lignes = [...tbl.children].filter(x => x.localName === "tr");
+        const cases  = [...tr.children].filter(x => x.localName === "tc");
+        return { ligne: lignes.indexOf(tr), colonne: cases.indexOf(tc),
+                 nbLignes: lignes.length, nbColonnes: cases.length };
+      })()
+    });
+  }
+
+  const sect = body.getElementsByTagNameNS(W, "sectPr")[0];
+  const sz = sect && sect.getElementsByTagNameNS(W, "pgSz")[0];
+  const mg = sect && sect.getElementsByTagNameNS(W, "pgMar")[0];
+  const page = {
+    pgW: num(sz, "w", 11906), pgH: num(sz, "h", 16838),
+    gauche: num(mg, "left", 1417), droite: num(mg, "right", 1417),
+    haut: num(mg, "top", 1417), bas: num(mg, "bottom", 1417),
+    taquet: defaultTab || 708
+  };
+  return { paragraphes: res, tableaux, page };
+}
+
+function lirePolice(xmlDoc, xmlStyles, xmlTheme){
+  const dominant = (xml, re) => {
+    if(!xml) return null;
+    const m = {}; let r;
+    while((r = re.exec(xml)) !== null) m[r[1]] = (m[r[1]] || 0) + 1;
+    const e = Object.entries(m).sort((a, b) => b[1] - a[1])[0];
+    return e ? e[0] : null;
+  };
+  const bloc = (xml, re) => { if(!xml) return null; const m = xml.match(re); return m ? m[0] : null; };
+  const normalStyle = bloc(xmlStyles, /<w:style[^>]*w:styleId="Normal"[\s\S]*?<\/w:style>/);
+  const defauts = bloc(xmlStyles, /<w:docDefaults[\s\S]*?<\/w:docDefaults>/);
+  let nom = dominant(xmlDoc, /w:ascii="([^"]+)"/g)
+         || dominant(normalStyle, /w:ascii="([^"]+)"/g)
+         || dominant(defauts, /w:ascii="([^"]+)"/g);
+  if(!nom && xmlTheme){                       // police de thème (minorHAnsi / majorHAnsi)
+    const theme = dominant(xmlDoc, /w:asciiTheme="([^"]+)"/g) || "minorHAnsi";
+    const cible = /major/i.test(theme) ? "majorFont" : "minorFont";
+    const m = xmlTheme.match(new RegExp("<a:" + cible + ">[\\s\\S]*?<a:latin[^>]*typeface=\"([^\"]*)\""));
+    if(m && m[1]) nom = m[1];
+  }
+  const sz = dominant(xmlDoc, /<w:sz w:val="(\d+)"/g)
+          || dominant(normalStyle, /<w:sz w:val="(\d+)"/g)
+          || dominant(defauts, /<w:sz w:val="(\d+)"/g);
+  // valeurs héritées par les passages qui ne précisent rien : c'est la base du rendu
+  const szBase = dominant(normalStyle, /<w:sz w:val="(\d+)"/g)
+              || dominant(defauts, /<w:sz w:val="(\d+)"/g) || sz;
+  let nomBase = dominant(normalStyle, /w:ascii="([^"]+)"/g)
+             || dominant(defauts, /w:ascii="([^"]+)"/g);
+  if(!nomBase) nomBase = nom;
+  const esp = bloc(defauts, /<w:spacing[^>]*\/>/) || "";
+  const apres = (esp.match(/w:after="(\d+)"/) || [])[1];
+  const ligne = (esp.match(/w:line="(\d+)"/) || [])[1];
+  return {
+    nom, taille: sz ? parseInt(sz, 10) / 2 : null,
+    nomBase, tailleBase: szBase ? parseInt(szBase, 10) / 2 : null,
+    apres: apres === undefined ? 160 : parseInt(apres, 10),
+    interligne: ligne ? parseInt(ligne, 10) / 240 : 1.15
+  };
+}
+
+
+/* format des listes : numId -> "bullet" | "decimal" | ... (word/numbering.xml) */
+function lireNumerotation(xml){
+  const m = new Map();
+  if(!xml) return m;
+  const doc = new DOMParser().parseFromString(xml, "application/xml");
+  if(doc.getElementsByTagName("parsererror").length) return m;
+  const att = (el, n) => el ? (el.getAttributeNS(W, n) || el.getAttribute("w:" + n)) : null;
+  const abstraits = new Map();
+  for(const a of doc.getElementsByTagNameNS(W, "abstractNum")){
+    const id = att(a, "abstractNumId");
+    const lv = [...a.getElementsByTagNameNS(W, "lvl")].find(l => (att(l, "ilvl") || "0") === "0");
+    const fmt = lv && lv.getElementsByTagNameNS(W, "numFmt")[0];
+    abstraits.set(id, fmt ? att(fmt, "val") : null);
+  }
+  for(const n of doc.getElementsByTagNameNS(W, "num")){
+    const id = att(n, "numId");
+    const ab = n.getElementsByTagNameNS(W, "abstractNumId")[0];
+    m.set(id, abstraits.get(att(ab, "val")) || null);
+  }
+  return m;
+}
+
+
+/* =========================================================
+   2. Le modèle de référence
+   ========================================================= */
+const MODELE = [
+  { id:"titre", crit:"B", ref:"Comment s’occuper de Tarama la tortue d’eau douce ?",
+    police:{ taille:20, gras:true, souligne:true }, jc:"center" },
+
+  { id:"image", crit:"C", ref:"", image:true, jc:"center" },
+
+  { id:"r1", crit:"D", ref:"Entretenir son aquarium", liste:"decimal" },
+  { id:"b1", crit:"E", ref:"Vérifier que la température est toujours entre 24 et 26 degrés", liste:"bullet" },
+  { id:"b2", crit:"E", ref:"Placer la lampe chauffante au-dessus de l’aquarium", liste:"bullet" },
+  { id:"b3", crit:"E", ref:"Changer l’eau tous les 3 jours", liste:"bullet" },
+
+  { id:"r2", crit:"D", ref:"Nourrir la tortue", liste:"decimal" },
+  { id:"p1", crit:null, ref:"Tarama est omnivore. Tu peux lui donner les boulettes achetées en animalerie, des feuilles de salade, du poisson ou de la viande coupée en petits morceaux…" },
+  { id:"att", crit:"G", ref:"Attention : il ne faut lui donner à manger qu’une fois par jour." },
+
+  { id:"r3", crit:"D", ref:"Surveiller son état de santé", liste:"decimal" },
+
+  { id:"t11", crit:"F", ref:"Si Tarama est en bonne santé",    cellule:true },
+  { id:"t12", crit:"F", ref:"Si Tarama est en mauvaise santé", cellule:true },
+  { id:"c1",  crit:"F", ref:"Elle se déplace beaucoup",        cellule:true, liste:"bullet" },
+  { id:"c2",  crit:"F", ref:"Elle a un regard vif",            cellule:true, liste:"bullet" },
+  { id:"c3",  crit:"F", ref:"Elle mange régulièrement",        cellule:true, liste:"bullet" },
+  { id:"c4",  crit:"F", ref:"Elle reste immobile, sur son rocher", cellule:true, liste:"bullet" },
+  { id:"c5",  crit:"F", ref:"Ses yeux deviennent foncés",      cellule:true, liste:"bullet" },
+
+  { id:"vet",  crit:"G", ref:"Si tu as un doute, rends-toi chez le vétérinaire le plus proche." },
+  { id:"merci",crit:"G", ref:"Merci encore pour ton aide !" },
+  { id:"sign", crit:"G", ref:"Quentin, ton frérot" }
+];
+
+const PENALITE = 1.5;                    // coût d'un défaut, quel que soit le critère
+
+const BAREME = [
+  { c:"A", lib:"Fidélité du texte", pts:2 },
+  { c:"B", lib:"Titre — Arial 20, gras, souligné, centré", pts:3 },
+  { c:"C", lib:"Image — insérée et centrée", pts:2 },
+  { c:"D", lib:"Titres de rubrique — liste à numéros, Arial 18, gras, souligné", pts:4 },
+  { c:"E", lib:"Liste à puces — puces automatiques, Arial 11", pts:3 },
+  { c:"F", lib:"Tableau — 2 lignes et 2 colonnes, en-têtes en gras, puces dans les cellules", pts:2 },
+  { c:"G", lib:"Mises en forme ponctuelles — italique, Arial 12, Arial 18 gras", pts:2 },
+  { c:"H", lib:"Couleurs — titre bleu, rubriques rouges, remerciement vert", pts:2 }
+];
+
+/* =========================================================
+   3. Outils de texte
+   ========================================================= */
+const APOS = /[\u2018\u2019\u201B\u02BC\u0060\u00B4]/g;
+const INSEC = /[\u00A0\u202F\u2007\u2009]/g;
+function norm(s){
+  return (s || "").normalize("NFC")
+    .replace(APOS, "'")
+    .replace(/[\u2010\u2011\u2012\u2013\u2014]/g, "-")
+    .replace(INSEC, " ")
+    .replace(/\u2026/g, "...")
+    .replace(/[\t\n]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+const mots = s => norm(s).split(" ").filter(Boolean);
+function lcs(a, b){
+  const n = a.length, m = b.length;
+  const d = Array.from({length:n+1}, () => new Uint16Array(m+1));
+  for(let i=1;i<=n;i++) for(let j=1;j<=m;j++)
+    d[i][j] = a[i-1]===b[j-1] ? d[i-1][j-1]+1 : Math.max(d[i-1][j], d[i][j-1]);
+  return d;
+}
+function similitude(x, y){
+  const a = mots(x).map(m=>m.toLowerCase()), b = mots(y).map(m=>m.toLowerCase());
+  if(!a.length || !b.length) return 0;
+  return 2 * lcs(a,b)[a.length][b.length] / (a.length + b.length);
+}
+function diffCar(ref, app){
+  const a = [...ref], b = [...app], d = lcs(a, b), out = [];
+  let i = a.length, j = b.length;
+  while(i > 0 || j > 0){
+    if(i > 0 && j > 0 && a[i-1] === b[j-1]){ out.push({ t:"=", c:a[i-1] }); i--; j--; }
+    else if(j > 0 && (i === 0 || d[i][j-1] >= d[i-1][j])){ out.push({ t:"+", c:b[j-1] }); j--; }
+    else { out.push({ t:"-", c:a[i-1] }); i--; }
+  }
+  return out.reverse();
+}
+
+/* regroupe les opérations en blocs : « proche » + « . » manquant, etc. */
+function groupes(ops){
+  const g = [];
+  for(const o of ops){
+    const der = g[g.length - 1];
+    if(der && der.t === o.t) der.c += o.c;
+    else g.push({ t:o.t, c:o.c });
+  }
+  return g;
+}
+
+function diffMots(ref, app){
+  const a = mots(ref), b = mots(app), d = lcs(a,b), out = [];
+  let i = a.length, j = b.length;
+  while(i>0 || j>0){
+    if(i>0 && j>0 && a[i-1]===b[j-1]){ out.push({t:"=", m:a[i-1]}); i--; j--; }
+    else if(j>0 && (i===0 || d[i][j-1] >= d[i-1][j])){ out.push({t:"+", m:b[j-1]}); j--; }
+    else { out.push({t:"-", m:a[i-1]}); i--; }
+  }
+  return out.reverse();
+}
+
+/* style dominant d’un paragraphe */
+function styleP(p){
+  const st = { taille:null, police:null, gras:false, ital:false, souligne:false, couleur:null };
+  let meilleur = 0;
+  for(const s of (p.styles || [])){
+    const l = (s.fin - s.debut) || 0;
+    if(l > meilleur && s.taille){ meilleur = l; st.taille = s.taille; st.police = s.police; }
+    if(l > 0 && s.couleur && !st.couleur) st.couleur = s.couleur;
+    if(l > 0){
+      if(s.gras) st.gras = true;
+      if(s.ital) st.ital = true;
+      if(s.souligne) st.souligne = true;
+    }
+  }
+  return st;
+}
+
+/* famille de couleur : on juge la teinte, pas la nuance exacte */
+function famille(hex){
+  if(!hex) return "noir";
+  const n = parseInt(hex, 16);
+  const r = (n >> 16) & 255, v = (n >> 8) & 255, b = n & 255;
+  const max = Math.max(r, v, b), min = Math.min(r, v, b);
+  if(max < 60) return "noir";
+  if(max - min < 40) return max > 200 ? "clair" : "gris";
+  let t;                                     // teinte en degrés
+  if(max === r)      t = 60 * (((v - b) / (max - min)) % 6);
+  else if(max === v) t = 60 * ((b - r) / (max - min) + 2);
+  else               t = 60 * ((r - v) / (max - min) + 4);
+  if(t < 0) t += 360;
+  if(t < 20 || t >= 330) return "rouge";
+  if(t < 45)  return "orange";
+  if(t < 70)  return "jaune";
+  if(t < 170) return "vert";
+  if(t < 260) return "bleu";
+  return "violet";
+}
+
+/* =========================================================
+   4. Analyse
+   ========================================================= */
+function analyser(paras, page, police, formats){
+  const lignes = paras.filter(p => p.texte.replace(/[\s\t]/g,"") !== "" || p.images > 0);
+
+  /* --- appariement --- */
+  const app = new Map();
+  let curseur = 0;
+  for(const m of MODELE){
+    let best = -1, bs = 0;
+    if(m.image){
+      for(let i = curseur; i < Math.min(lignes.length, curseur + 6); i++)
+        if(lignes[i].images > 0){ best = i; bs = 1; break; }
+    }else{
+      for(let i = curseur; i < Math.min(lignes.length, curseur + 8); i++){
+        const s = similitude(m.ref, lignes[i].texte);
+        if(s > bs){ bs = s; best = i; }
+      }
+    }
+    if(best >= 0 && bs >= 0.5){ app.set(m.id, lignes[best]); lignes[best].modele = m; curseur = best + 1; }
+  }
+
+  const corr = [], remarques = [], res = {};
+  const fmt = p => p.numero ? (formats.get(p.numero.id) || "?") : null;
+
+  /* --- A : fidélité du texte --- */
+  let fautives = 0;
+  for(const m of MODELE){
+    if(m.image) continue;
+    const p = app.get(m.id);
+    if(!p){ fautives++; corr.push({ t:"Élément manquant", d:"« " + norm(m.ref).slice(0,60) + " » n’a pas été trouvé." }); continue; }
+    // une puce ou un numéro tapé au clavier relève des critères de liste, pas du texte
+    const sansMarque = t => norm(t).replace(/^([-\u2013\u2014\u2022*]|\d+[.)])\s+/, "");
+    const ref = sansMarque(m.ref), saisi = sansMarque(p.texte);
+    if(ref === saisi) continue;
+    const ops = groupes(diffCar(ref, saisi));
+    const manque = ops.filter(o => o.t === "-").map(o => o.c);
+    const trop   = ops.filter(o => o.t === "+").map(o => o.c);
+    if(!manque.length && !trop.length) continue;
+    fautives++;
+    p.marques = ops;                       // pour l’aperçu : V des oublis, surlignage des ajouts
+    let d = [];
+    if(manque.length) d.push("il manque : " + manque.map(x => "« " + x + " »").join(", "));
+    if(trop.length)   d.push("à supprimer : " + trop.map(x => "« " + x + " »").join(", "));
+    corr.push({ t:"Texte : « " + norm(m.ref).slice(0, 40) + " »", d: d.join(" ; "), cible:p });
+  }
+  res.A = Math.max(0, 2 - PENALITE * fautives);
+
+  /* --- B : le titre --- */
+  const ti = app.get("titre");
+  {
+    const ex = [], manque = [];
+    if(ti){
+      const s = styleP(ti);
+      ex.push(["Arial 20", s.taille !== null && Math.abs(s.taille - 20) < .6]);
+      ex.push(["gras", s.gras]);
+      ex.push(["souligné", s.souligne]);
+      ex.push(["centré", ti.jc === "center"]);
+      for(const [lib, ok] of ex) if(!ok) manque.push(lib);
+      res.B = Math.max(0, 3 - PENALITE * manque.length);
+    }else res.B = 0;
+    if(manque.length){
+      corr.push({ t:"Mise en forme du titre", d:"À corriger : " + manque.join(", ") + ".", cible:ti }); }
+  }
+
+  /* --- C : l’image --- */
+  {
+    const im = app.get("image");
+    const manque = [];
+    if(!im) manque.push("insérer l’image (Insertion ▸ Images)");
+    else if(im.jc !== "center") manque.push("centrer le paragraphe de l’image");
+    res.C = Math.max(0, 2 - PENALITE * manque.length);
+    if(manque.length) corr.push({ t:"Image", d:"À corriger : " + manque.join(", ") + ".", cible: im || null });
+  }
+
+  /* --- D : les trois titres de rubrique --- */
+  {
+    const ps = ["r1","r2","r3"].map(i => app.get(i)).filter(Boolean);
+    const n = ps.length || 1;
+    const liste = ps.filter(p => fmt(p) === "decimal").length / n;
+    const taille = ps.filter(p => { const s = styleP(p); return s.taille !== null && Math.abs(s.taille - 18) < .6; }).length / n;
+    const gras  = ps.filter(p => styleP(p).gras).length / n;
+    const soul  = ps.filter(p => styleP(p).souligne).length / n;
+    const manque = [];
+    if(liste < 1)  manque.push("appliquer la liste numérotée automatique (Accueil ▸ Liste numérotée)");
+    if(taille < 1) manque.push("mettre les titres en Arial 18");
+    if(gras < 1)   manque.push("mettre les titres en gras");
+    if(soul < 1)   manque.push("souligner les titres");
+    res.D = Math.max(0, 4 - PENALITE * manque.length);
+    if(manque.length){
+      corr.push({ t:"Titres de rubrique", d:"À corriger : " + manque.join(" ; ") + ".", cible: ps[0] || null }); }
+  }
+
+  /* --- E : la liste à puces --- */
+  {
+    const ps = ["b1","b2","b3"].map(i => app.get(i)).filter(Boolean);
+    const n = ps.length || 1;
+    const liste = ps.filter(p => fmt(p) === "bullet").length / n;
+    const taille = ps.filter(p => { const s = styleP(p); return s.taille !== null && Math.abs(s.taille - 11) < .6; }).length / n;
+    const manque = [];
+    if(liste < 1)  manque.push("appliquer la liste à puces automatique (Accueil ▸ Liste à puces)");
+    if(taille < 1) manque.push("mettre ces trois lignes en Arial 11");
+    res.E = Math.max(0, 3 - PENALITE * manque.length);
+    if(manque.length){
+      corr.push({ t:"Liste à puces", d:"À corriger : " + manque.join(" ; ") + ".", cible: ps[0] || null }); }
+  }
+
+  /* --- F : le tableau --- */
+  {
+    const cells = ["t11","t12","c1","c2","c3","c4","c5"].map(i => app.get(i)).filter(Boolean);
+    const dansTab = cells.filter(p => p.cellule).length;
+    const entetes = ["t11","t12"].map(i => app.get(i)).filter(Boolean);
+    const puces   = ["c1","c2","c3","c4","c5"].map(i => app.get(i)).filter(Boolean);
+    const pl = cells.map(p => p.place).find(Boolean);
+    const manque = [];
+    if(!(cells.length === 7 && dansTab === cells.length))
+      manque.push("insérer un vrai tableau (Insertion ▸ Tableau)");
+    if(pl && (pl.nbLignes !== 2 || pl.nbColonnes !== 2))
+      manque.push("le tableau doit compter 2 lignes et 2 colonnes, il en a " + pl.nbLignes + " et " + pl.nbColonnes);
+    if(!(entetes.length === 2 && entetes.every(p => styleP(p).gras)))
+      manque.push("mettre la ligne d’en-tête en gras");
+    if(!(puces.length === 5 && puces.every(p => fmt(p) === "bullet")))
+      manque.push("mettre le contenu des cellules en liste à puces");
+    res.F = Math.max(0, 2 - PENALITE * manque.length);
+    if(manque.length){
+      corr.push({ t:"Tableau", d:"À corriger : " + manque.join(" ; ") + ".", cible: cells[0] || null }); }
+  }
+
+  /* --- G : mises en forme ponctuelles --- */
+  {
+    const tests = [
+      ["att",  "italique de « Attention… »",           p => styleP(p).ital],
+      ["sign", "italique de la signature",             p => styleP(p).ital],
+      ["vet",  "Arial 12 de « Si tu as un doute… »",   p => { const s = styleP(p); return s.taille !== null && Math.abs(s.taille - 12) < .6; }],
+      ["sign", "Arial 12 de la signature",             p => { const s = styleP(p); return s.taille !== null && Math.abs(s.taille - 12) < .6; }],
+      ["merci","Arial 18 gras du remerciement",        p => { const s = styleP(p); return s.gras && s.taille !== null && Math.abs(s.taille - 18) < .6; }]
+    ];
+    const manque = []; let premierFautif = null;
+    for(const [id, lib, f] of tests){
+      const p = app.get(id);
+      if(!(p && f(p))){ manque.push(lib); premierFautif = premierFautif || p; }
+    }
+    res.G = Math.max(0, 2 - PENALITE * manque.length);
+    if(manque.length)
+      corr.push({ t:"Mises en forme ponctuelles", d:"À corriger : " + manque.join(" ; ") + ".",
+                  cible: premierFautif || null });
+  }
+
+  /* --- H : les couleurs, jugées à la teinte --- */
+  {
+    const attendu = [
+      ["titre", "bleu",  "le titre"],
+      ["r1",    "rouge", "les trois titres de rubrique"],
+      ["merci", "vert",  "« Merci encore pour ton aide ! »"]
+    ];
+    const ecarts = []; let premier = null;
+    for(const [id, f, lib] of attendu){
+      const p = app.get(id);
+      if(!p) continue;
+      const trouvee = famille(styleP(p).couleur);
+      if(trouvee !== f){ ecarts.push(lib + " : " + trouvee + " au lieu de " + f); premier = premier || p; }
+    }
+    res.H = Math.max(0, 2 - PENALITE * ecarts.length);
+    if(ecarts.length)
+      corr.push({ t:"Couleurs", d: ecarts.join(" ; ") + ". La nuance exacte n’est pas exigée, seule la teinte compte.",
+                  cible: premier });
+  }
+
+  for(const x of BAREME) if(res[x.c] === undefined) res[x.c] = 0;
+
+  /* --- remarques non notées --- */
+  if(police.nomBase && !/arial|helvetica|liberation sans/i.test(police.nomBase))
+    remarques.push({ t:"Police", d:"Le document est en " + police.nomBase + ". Le modèle est en Arial." });
+  const gcm = page.gauche / 566.93, dcm = page.droite / 566.93;
+  if(Math.abs(gcm - 3) > 0.6 || Math.abs(dcm - 1.5) > 0.6)
+    remarques.push({ t:"Marges", d:"Marges de " + gcm.toFixed(1) + " cm à gauche et " + dcm.toFixed(1) +
+      " cm à droite. Le modèle utilise 3 cm et 1,5 cm." });
+
+  // les corrections sont numérotées dans l'ordre du document, de haut en bas
+  const rang = new Map(lignes.map((p, i) => [p, i]));
+  corr.sort((a, b) => (a.cible ? rang.get(a.cible) : 1e6) - (b.cible ? rang.get(b.cible) : 1e6));
+
+  const total = BAREME.reduce((s, x) => s + res[x.c], 0);
+  return { res, total, corr, remarques, lignes, page, police, formats };
+}
+
+/* =========================================================
+   5. Affichage
+   ========================================================= */
+const $ = id => document.getElementById(id);
+const echapper = s => s.replace(/[&<>]/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;" }[c]));
+
+const texteMarque = p => {
+  if(!p.marques) return echapper(p.texte);
+  let h = "";
+  for(const o of p.marques){
+    if(o.t === "=")      h += echapper(o.c);
+    else if(o.t === "+") h += '<span class="ap-faux">' + echapper(o.c) + '</span>';
+    else                 h += '<span class="caret"></span>';
+  }
+  return h;
+};
+
+function apercu(r){
+  const ptmm = 0.35278;
+  let html = "", aFaux = false, i = 0;
+  const compteurs = {};
+  const lignes = r.lignes;
+
+  while(i < lignes.length){
+    const p = lignes[i];
+
+    if(p.cellule){                                   // reconstruire le tableau
+      const bloc = [];
+      while(i < lignes.length && lignes[i].cellule){ bloc.push(lignes[i]); i++; }
+      const nl = (bloc[0].place && bloc[0].place.nbLignes) || 1;
+      const nc = (bloc[0].place && bloc[0].place.nbColonnes) || 1;
+      const cases = Array.from({length:nl}, () => Array.from({length:nc}, () => []));
+      for(const c of bloc){
+        const l = c.place ? c.place.ligne : 0, k = c.place ? c.place.colonne : 0;
+        if(cases[l] && cases[l][k]) cases[l][k].push(c);
+      }
+      let t = '<table class="ap-tab">';
+      for(const ligne of cases){
+        t += "<tr>";
+        for(const contenu of ligne){
+          t += "<td>";
+          for(const c of contenu){
+            const s = styleP(c);
+            const f = r.formats.get(c.numero ? c.numero.id : null);
+            if(c.marques) aFaux = true;
+            t += `<p class="ap-l" style="margin:0 0 .6mm ${c.numero ? 5 : 0}mm;`
+               + (s.couleur ? `color:#${s.couleur};` : "")
+               + `font-size:${(s.taille || 11) * ptmm}mm;font-weight:${s.gras ? 700 : 400};`
+               + `font-style:${s.ital ? "italic" : "normal"};`
+               + `text-decoration:${s.souligne ? "underline" : "none"}">`
+               + (c.numeros && c.numeros.length ? `<i class="ap-num">${c.numeros.map(n=>'<span data-n="'+n+'">'+n+"</span>").join("")}</i>` : "")
+               + (f === "bullet" ? '<span class="puce">•</span>' : "")
+               + texteMarque(c) + `</p>`;
+          }
+          t += "</td>";
+        }
+        t += "</tr>";
+      }
+      html += t + "</table>";
+      continue;
+    }
+
+    i++;
+    if(p.images > 0 && !p.texte.trim()){
+      const t = p.taille || { l:60, h:40 };
+      const dedans = r.imageURL
+        ? `<img src="${r.imageURL}" alt="" style="width:${t.l}mm;height:${t.h}mm">`
+        : "image insérée";
+      html += `<div class="ap-l" style="text-align:${p.jc === "center" ? "center" : "left"}">`
+            + (p.numeros && p.numeros.length ? `<i class="ap-num">${p.numeros.map(n=>'<span data-n="'+n+'">'+n+"</span>").join("")}</i>` : "")
+            + `<span class="ap-img">${dedans}</span></div>`;
+      continue;
+    }
+
+    const s = styleP(p);
+    const f = r.formats.get(p.numero ? p.numero.id : null);
+    if(p.marques) aFaux = true;
+    let puce = "";
+    if(p.numero){
+      if(f === "bullet") puce = "•";
+      else { const k = p.numero.id; compteurs[k] = (compteurs[k] || 0) + 1; puce = compteurs[k] + "."; }
+    }
+    html += `<p class="ap-l" style="`
+          + (s.couleur ? `color:#${s.couleur};` : "")
+          + `font-size:${(s.taille || 11) * ptmm}mm;`
+          + `line-height:1.35;`
+          + `font-weight:${s.gras ? 700 : 400};`
+          + `font-style:${s.ital ? "italic" : "normal"};`
+          + `text-decoration:${s.souligne ? "underline" : "none"};`
+          + `text-align:${p.jc === "center" ? "center" : (p.jc === "right" ? "right" : "left")};`
+          + `margin-left:${p.numero ? 8 : 0}mm">`
+          + (p.numeros && p.numeros.length ? `<i class="ap-num">${p.numeros.map(n=>'<span data-n="'+n+'">'+n+"</span>").join("")}</i>` : "")
+          + (puce ? `<span class="puce">${puce}</span>` : "")
+          + (texteMarque(p) || "&nbsp;") + `</p>`;
+  }
+
+  const legende = '<span>Ce qui est à corriger est <span class="ex">surligné</span> ; '
+                + 'un <span class="cr">V</span> marque un mot ou un signe oublié ; '
+                + 'les numéros en marge renvoient aux corrections numérotées.</span>';
+  return { html: `<div class="apercu-page">${html}</div>`, legende };
+}
+
+function ajusterEchelle(){
+  const w = $("apercu-wrap"), s = $("apercu-scale"), p = s.firstElementChild;
+  if(!p) return;
+  s.style.transform = "none";
+  const dispo = w.clientWidth - 32;
+  const k = Math.min(1, dispo / p.offsetWidth);
+  s.style.transform = "scale(" + k + ")";
+  w.style.height = (p.offsetHeight * k + 32) + "px";
+  $("regles-impression").textContent = reglesImpression(p.offsetWidth, p.offsetHeight);
+}
+window.addEventListener("resize", ajusterEchelle);
+
+function reglesImpression(largeurPx, hauteurPx){
+  const mmPx = v => v * 96 / 25.4;
+  const paliers = [[null, 170, 138], [200, 160, 131], [190, 150, 124],
+                   [180, 140, 118], [170, 130, 111], [160, 120, 104]];
+  return paliers.map(([lim, lmm, hmm]) => {
+    const f = Math.min(mmPx(lmm) / largeurPx, mmPx(hmm) / hauteurPx);
+    return "@media print" + (lim ? " and (max-width:" + lim + "mm)" : "") + "{" +
+      "#apercu-scale{transform:scale(" + f.toFixed(3) + ")!important}" +
+      "#apercu-wrap{height:" + (Math.round(hauteurPx * f) + 2) + "px!important}" +
+    "}";
+  }).join("\n");
+}
+
+function afficher(r, nomFichier){
+  const note = Math.round((1 + 5 * r.total / 20) * 2) / 2;
+  $("note").textContent = note.toFixed(1).replace(".", ",").replace(",0", "");
+  $("points").textContent = r.total.toFixed(1).replace(".0","").replace(".", ",") + " / 20 points";
+  $("nom-fichier").textContent = nomFichier;
+  const j = $("jauge");
+  j.style.width = Math.round(r.total / 20 * 100) + "%";
+  j.style.background = r.total >= 16 ? "var(--acquis)" : (r.total >= 11 ? "#E0A100" : "var(--revision)");
+
+  const tb = $("tab-criteres").querySelector("tbody");
+  tb.innerHTML = BAREME.map(x => {
+    const p = r.res[x.c];
+    const etat = p === x.pts ? '<span class="etat ok">✓</span>'
+               : (p > 0 ? '<span class="etat partiel">≈</span>' : '<span class="etat ko">✕</span>');
+    return `<tr><td>${etat}<b>${x.c}.</b> ${x.lib}</td><td class="pts">${String(p).replace(".",",")} / ${x.pts}</td></tr>`;
+  }).join("") + `<tr class="total"><td>Total</td><td class="pts">${r.total.toFixed(1).replace(".0","").replace(".",",")} / 20</td></tr>`;
+
+  for(const p of r.lignes) p.numeros = [];
+  r.corr.forEach((c, i) => { c.n = i + 1; if(c.cible) c.cible.numeros.push(i + 1); });
+
+  $("resultat").hidden = false;
+  $("depot").hidden = true;
+  const vue = apercu(r);
+  $("apercu-scale").innerHTML = vue.html;
+  $("legende-apercu").innerHTML = vue.legende;
+  ajusterEchelle();
+
+  const li = c => `<li data-n="${c.n}"><b><i>${c.n}</i>${echapper(c.t)}</b><em>${echapper(c.d)}</em></li>`;
+  $("liste-corrections").innerHTML = r.corr.length
+    ? r.corr.map(li).join("")
+    : `<li class="rien"><b>Rien à corriger</b><em>Le document est conforme au modèle.</em></li>`;
+
+  if(r.remarques.length){
+    $("bloc-remarques").hidden = false;
+    $("liste-remarques").innerHTML = r.remarques.map(c => `<li class="remarque"><b>${echapper(c.t)}</b><em>${echapper(c.d)}</em></li>`).join("");
+  } else $("bloc-remarques").hidden = true;
+
+  lier();
+  document.body.classList.add("compact");
+}
+
+/* une correction et sa pastille dans l'aperçu se désignent mutuellement */
+function lier(){
+  const items = [...document.querySelectorAll("#liste-corrections li[data-n]")];
+  const pastilles = [...document.querySelectorAll(".ap-num span[data-n]")];
+  const viser = (n, on) => {
+    for(const e of items)     e.classList.toggle("vise", on && e.dataset.n === n);
+    for(const e of pastilles) e.classList.toggle("vise", on && e.dataset.n === n);
+  };
+  for(const e of items.concat(pastilles)){
+    e.addEventListener("mouseenter", () => viser(e.dataset.n, true));
+    e.addEventListener("mouseleave", () => viser(e.dataset.n, false));
+    e.addEventListener("click", () => {                 // le clic amène l'autre élément à l'écran
+      viser(e.dataset.n, true);
+      const autre = (items.includes(e) ? pastilles : items).find(x => x.dataset.n === e.dataset.n);
+      if(autre) autre.scrollIntoView({ block:"center", behavior:"smooth" });
+    });
+  }
+}
+
+/* ---- le fichier déposé est-il bien celui de l’exercice ? ---- */
+function bonDocument(paras){
+  const texte = paras.map(p => p.texte).join(" ");
+  const ref = MODELE.map(m => m.ref).join(" ");
+  const t = norm(texte).toLowerCase();
+  const reperes = ["tarama", "tortue", "aquarium", "nourrir", "santé"];
+  const trouves = reperes.filter(x => t.includes(x)).length;
+  return trouves >= 3 && similitude(ref, texte) >= 0.40;
+}
+
+/* ---- lecture du fichier ---- */
+async function traiter(f){
+  $("probleme").hidden = true;
+  try{
+    const buf = await f.arrayBuffer();
+    const zip = await lireZip(buf);
+    const xml = await texteEntree(zip.get("word/document.xml"));
+    if(!xml) throw new Error("docx");
+    const lireSi = async n => { try{ return await texteEntree(zip.get(n)); }catch(e){ return null; } };
+    const styles = await lireSi("word/styles.xml");
+    const theme  = await lireSi("word/theme/theme1.xml");
+    const numxml = await lireSi("word/numbering.xml");
+    const dt = styles && (styles.match(/<w:defaultTabStop w:val="(\d+)"/) || [])[1];
+    const { paragraphes, page } = lireParagraphes(xml, dt ? parseInt(dt, 10) : 708);
+    if(!bonDocument(paragraphes)) throw new Error("horssujet");
+    const police = lirePolice(xml, styles, theme);
+    const formats = lireNumerotation(numxml);
+
+    // l'image du document, pour l'aperçu
+    let imageURL = null;
+    const media = [...zip.keys()].filter(n => /^word\/media\/.+\.(png|jpe?g|gif|bmp|webp)$/i.test(n));
+    if(media.length){
+      const nom = media[0];
+      const oct = await binaireEntree(zip.get(nom));
+      if(oct){
+        let bin = "";
+        for(let i = 0; i < oct.length; i += 8192)
+          bin += String.fromCharCode.apply(null, oct.subarray(i, i + 8192));
+        const ext = (nom.match(/\.(\w+)$/) || ["","jpeg"])[1].toLowerCase();
+        const type = "image/" + (ext === "jpg" ? "jpeg" : ext);
+        imageURL = "data:" + type + ";base64," + btoa(bin);
+      }
+    }
+
+    const r = analyser(paragraphes, page, police, formats);
+    r.imageURL = imageURL;
+    afficher(r, f.name);
+  }catch(e){
+    const msg = {
+      archive:"Ce fichier n’est pas un .docx. Enregistrez votre document depuis Word au format Word (.docx).",
+      docx:"Ce fichier ne contient pas de document Word lisible.",
+      xml:"Le document n’a pas pu être lu. Réenregistrez-le depuis Word.",
+      navigateur:"Votre navigateur ne sait pas décompresser ce fichier. Utilisez Firefox, Chrome ou Safari à jour.",
+      horssujet:"Ce document ne correspond pas à l’exercice. Le contrôle attend le document « Comment s’occuper de Tarama la tortue d’eau douce ? », avec ses trois rubriques, sa liste à puces et son tableau. Vérifiez que vous déposez le bon fichier."
+    }[e.message] || "Le fichier n’a pas pu être analysé.";
+    $("probleme").textContent = msg;
+    $("probleme").hidden = false;
+  }
+}
+
+const depot = $("depot"), champ = $("fichier");
+depot.addEventListener("click", () => champ.click());
+depot.addEventListener("keydown", e => { if(e.key === "Enter" || e.key === " "){ e.preventDefault(); champ.click(); } });
+champ.addEventListener("change", () => { if(champ.files[0]) traiter(champ.files[0]); });
+["dragenter","dragover"].forEach(t => depot.addEventListener(t, e => { e.preventDefault(); depot.classList.add("survol"); }));
+["dragleave","drop"].forEach(t => depot.addEventListener(t, e => { e.preventDefault(); depot.classList.remove("survol"); }));
+depot.addEventListener("drop", e => { const f = e.dataTransfer.files[0]; if(f) traiter(f); });
+$("recommencer").addEventListener("click", () => {
+  champ.value = "";
+  $("resultat").hidden = true;
+  $("depot").hidden = false;
+  document.body.classList.remove("compact");
+});
+
+document.querySelectorAll('nav.onglets button').forEach(b => {
+  b.addEventListener("click", () => {
+    document.querySelectorAll('nav.onglets button').forEach(x => {
+      const on = x === b;
+      x.setAttribute("aria-selected", on ? "true" : "false");
+      $(x.getAttribute("aria-controls")).hidden = !on;
+    });
+  });
+});
+
+const bd = $("bascule-detail"), dc = $("detail-criteres");
+const basculer = () => {
+  const ouvert = bd.getAttribute("aria-expanded") === "true";
+  bd.setAttribute("aria-expanded", ouvert ? "false" : "true");
+  dc.classList.toggle("ouvert", !ouvert);
+};
+bd.addEventListener("click", basculer);
+bd.addEventListener("keydown", e => { if(e.key === "Enter" || e.key === " "){ e.preventDefault(); basculer(); } });
+</script>
+</body>
+</html>
