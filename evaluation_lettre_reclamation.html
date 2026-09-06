@@ -57,7 +57,9 @@ nav.onglets button[aria-selected="true"]{background:var(--papier);color:var(--en
 nav.onglets button:focus-visible{outline:2px solid var(--bleu);outline-offset:2px}
 section.panneau{padding:40px 0 0}
 /* à l'écran, le tableau de mise en page ne doit rien changer */
-.cadre,.cadre thead,.cadre tfoot,.cadre tbody,.cadre tr,.cadre td{display:block;padding:0;margin:0;border:0}
+.cadre,.cadre>thead,.cadre>tfoot,.cadre>tbody,
+.cadre>thead>tr,.cadre>tfoot>tr,.cadre>tbody>tr,
+.cadre>thead>tr>td,.cadre>tfoot>tr>td,.cadre>tbody>tr>td{display:block;padding:0;margin:0;border:0}
 .bande{display:none}
 .deux-col{display:grid;grid-template-columns:minmax(0,1fr);gap:10px}
 table.grille .sous{color:var(--gris);font-size:.88em}
@@ -224,11 +226,11 @@ kbd{
      chaque page par tous les navigateurs : c'est la seule marge verticale fiable */
   .wrap{max-width:none;padding:0 20mm}
   .cadre{display:table;table-layout:fixed;width:100%}
-  .cadre thead{display:table-header-group}
-  .cadre tfoot{display:table-footer-group}
-  .cadre tbody{display:table-row-group}
-  .cadre tr{display:table-row}
-  .cadre td{display:table-cell}
+  .cadre>thead{display:table-header-group}
+  .cadre>tfoot{display:table-footer-group}
+  .cadre>tbody{display:table-row-group}
+  .cadre>thead>tr,.cadre>tfoot>tr,.cadre>tbody>tr{display:table-row}
+  .cadre>thead>tr>td,.cadre>tfoot>tr>td,.cadre>tbody>tr>td{display:table-cell}
   .bande{display:block;height:18mm}
   .bloc-corr{break-before:page}
   /* si les remarques ne tiennent pas sous les corrections, elles passent en bloc
@@ -1509,6 +1511,17 @@ function erreur(msg){
   $("#resultat").hidden = true;
 }
 
+/* ---- le fichier déposé est-il bien celui de l'exercice ? ---- */
+function bonDocument(paras){
+  const texte = paras.map(p => p.texte).join(" ");
+  const ref = CORPS.map(c => c.ref).join(" ");
+  const t = norm(texte).toLowerCase();
+  const reperes = ["réclamation", "cuisinière", "garantie", "madame, monsieur",
+                   "salutations distinguées", "pièce jointe"];
+  const trouves = reperes.filter(r => t.includes(r)).length;
+  return trouves >= 3 && similitude(ref, texte) >= 0.40;
+}
+
 async function traiter(file){
   $("#probleme").hidden = true;
   if(!file) return;
@@ -1526,6 +1539,12 @@ async function traiter(file){
     const theme = await lireSi("word/theme/theme1.xml");
     const defaultTab = parseInt((reglages || "").match(/w:defaultTabStop w:val="(\d+)"/)?.[1] || "708", 10);
     const { paragraphes, tableaux, page } = lireParagraphes(xml, defaultTab);
+    if(!bonDocument(paragraphes)){
+      erreur("<b>Ce document ne correspond pas à l’exercice.</b> Le contrôle attend la lettre de réclamation " +
+             "pour une cuisinière défectueuse, avec son objet, ses paragraphes et sa formule de politesse. " +
+             "Vérifiez que vous déposez le bon fichier.");
+      return;
+    }
     const police = lirePolice(xml, styles, theme);
     const r = analyser(paragraphes, tableaux, police);
     if(!r){ erreur("<b>Document vide.</b> Aucun texte n’a été trouvé dans ce fichier."); return; }

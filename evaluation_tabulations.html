@@ -1103,6 +1103,17 @@ function afficher(r, nomFichier){
   document.body.classList.add("compact");
 }
 
+/* ---- le fichier déposé est-il bien celui de l’exercice ? ---- */
+function bonDocument(paras){
+  const texte = paras.map(p => p.texte).join(" ");
+  const ref   = MODELE.map(m => m.ref).join(" ");
+  const reperes = ["demande de stage", "personne en formation", "domaine de stage",
+                   "entreprise", "frais de déplacement"];
+  const t = norm(texte).toLowerCase();
+  const trouves = reperes.filter(r => t.includes(r)).length;
+  return trouves >= 3 && similitude(ref, texte) >= 0.45;
+}
+
 /* ---- lecture du fichier ---- */
 async function traiter(f){
   $("probleme").hidden = true;
@@ -1115,6 +1126,7 @@ async function traiter(f){
     const theme  = await texteEntree(zip.get("word/theme/theme1.xml"));
     const dt = styles && (styles.match(/<w:defaultTabStop w:val="(\d+)"/) || [])[1];
     const { paragraphes, page } = lireParagraphes(xml, dt ? parseInt(dt, 10) : 708);
+    if(!bonDocument(paragraphes)) throw new Error("horssujet");
     const police = lirePolice(xml, styles, theme);
     afficher(analyser(paragraphes, page, police), f.name);
   }catch(e){
@@ -1122,7 +1134,8 @@ async function traiter(f){
       archive:"Ce fichier n’est pas un .docx. Enregistrez votre document depuis Word au format Word (.docx).",
       docx:"Ce fichier ne contient pas de document Word lisible.",
       xml:"Le document n’a pas pu être lu. Réenregistrez-le depuis Word.",
-      navigateur:"Votre navigateur ne sait pas décompresser ce fichier. Utilisez Firefox, Chrome ou Safari à jour."
+      navigateur:"Votre navigateur ne sait pas décompresser ce fichier. Utilisez Firefox, Chrome ou Safari à jour.",
+      horssujet:"Ce document ne correspond pas à l’exercice. Le contrôle attend le formulaire « Demande de stage » de l’UOG, avec ses rubriques Personne en formation, Domaine de stage souhaité, Entreprise et Frais de déplacement. Vérifiez que vous déposez le bon fichier."
     }[e.message] || "Le fichier n’a pas pu être analysé.";
     $("probleme").textContent = msg;
     $("probleme").hidden = false;
