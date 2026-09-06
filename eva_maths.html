@@ -8,7 +8,7 @@ générant des exercices de mathématiques pour adultes (programme PAI, Suisse).
 Product owner : Aurelio (Onex/Genève). Répondre en FRANÇAIS.
 
 ───────────────────────────────────────────────────────────────────────────────
-0. OÙ ON EN EST (v483, 03.09.2026) — à lire en premier
+0. OÙ ON EN EST (v492, 06.09.2026) — à lire en premier
 ───────────────────────────────────────────────────────────────────────────────
 L'application est en ligne : https://aureliohub.github.io/eva_maths.html
 Les fichiers de série et de test (.json) sont déposés à côté d'elle, et s'ouvrent
@@ -508,6 +508,103 @@ PDF de domaine :
 ───────────────────────────────────────────────────────────────────────────────
 Cette section décrit l'ÉTAT, non l'historique. Les numéros de version ne sont
 cités que lorsqu'ils aident à retrouver un choix dans le fichier.
+
+v492 — HORLOGES : la réponse attendue du nom s'écrit « angle obtus » et non
+ « obtus » — corrigé PDF comme solution à l'écran. Les deux formes restent
+ acceptées à la saisie (la comparaison retire le mot « angle » des deux côtés).
+
+v491 — HORLOGES : texte gris dans les champs (« mesure » et « nom ») pour dire
+ quoi écrire, et étiquettes différentes à l'écran et sur papier — le second
+ champ reste « Angle » à l'écran (le gris complète) mais s'imprime « Nom : »,
+ où il n'y a plus de gris pour l'expliquer. Mécanique : `q.labelAPdf` (et
+ `labelPPdf` si besoin) lu par `dualLabels(q, true)` ; le rendu écrit LES DEUX
+ étiquettes et la CSS `.pdf-mode` bascule de `.etq-ecran` à `.etq-pdf`. Les
+ corrigés, imprimés par nature, demandent la version PDF.
+
+v490 — HORLOGES : un angle droit et un angle plat ne sortent plus ensemble
+ (« trop simple » — Aurelio) ; celui des deux qui n'est pas tiré en premier est
+ écarté de toute la planche, filet de secours compris. Et le second champ
+ s'intitule « Angle » et non plus « Nom : » — on lit « Angle ≈ 105° » puis
+ « Angle obtus ». La validation retirait déjà le mot « angle » de la réponse,
+ « angle obtus » et « obtus » restent donc tous deux acceptés.
+
+v489 — HORLOGES, deux retouches : à l'écran l'horloge est centrée au-dessus de
+ ses champs (`justify-items: center` sur `.layout-horloge`, l'intro restant à
+ gauche) ; au corrigé, le nom passe SOUS l'angle au lieu de le suivre après un
+ point-virgule — sur quatre colonnes la ligne se coupait n'importe où.
+
+v488 — HORLOGES : disposition de la fiche papier. Les QUATRE horloges sur une
+ seule ligne, les deux champs SOUS chaque figure, et l'horloge réduite de 170 à
+ 132 px. Classes `multi-grid-horloges` (4 colonnes, 2 sur écran étroit) et
+ `layout-horloge` (grid-template-areas intro / figure / fields), posée par
+ `q.layoutClass` — un champ générique, pour ne pas figer « horloge » dans le
+ moteur de rendu. Champs ramenés à 78 px : à quatre colonnes, la solution
+ affichée à côté mordait sur l'horloge voisine.
+ Le corrigé PDF suit la même disposition ; son nom de figure passe AU-DESSUS
+ (à côté de la lettre) quand la question porte un `layoutClass`, comme dans
+ l'énoncé, au lieu de rester sous la figure.
+
+v487 — HORLOGES : les deux aiguilles ont la même épaisseur (3,4). La grande
+ était plus fine que la petite, ce qu'Aurelio ne veut pas ; elles ne se
+ distinguent plus que par leur LONGUEUR (64 contre 42), comme sur la fiche
+ papier. La rubrique s'appelle désormais « Angles » tout court (menu de l'écran,
+ de l'atelier et fenêtre PDF).
+
+v486 — HORLOGES : traits affinés à la demande d'Aurelio. Cadran 2 → 1,2 ;
+ traits des heures 2,4/1,6 → 1,4/1 ; grande aiguille 4,5 → 2,6 ; petite 6 → 3,4 ;
+ axe central r 3,2 → 2. Regardé à l'écran ET sur le PDF : à l'impression les
+ horloges tombent à ~90 px de large, c'est là qu'un trait trop fin disparaît —
+ ne pas descendre plus bas sans revoir le PDF.
+
+v485 — NOUVELLE RUBRIQUE DU VOCABULAIRE : « Angles - horloges ». Quatre
+ horloges, l'angle marqué en gris entre les deux aiguilles ; l'élève l'estime
+ puis le nomme (aigu, droit, obtus, plat, rentrant). Demandé par Aurelio sur le
+ modèle d'une fiche papier.
+ · NUMÉRO 7, pas 4. Les niveaux existants se repèrent par leur numéro dans les
+   générateurs et les mises en page (4 = cercle, 5/6 = triangle) : renuméroter
+   aurait tout décalé. `niveauMenu` place la rubrique entre « Compléter » et
+   « Cercle » sans qu'aucun numéro ne bouge — c'est à cela que sert ce champ.
+   `niveauLabels` compte donc 7 entrées, la 6e répétant « Droites du triangle »
+   (le niveau 6 existe et n'avait pas de libellé à lui).
+ · La petite aiguille AVANCE pendant l'heure : à 1h30 elle est à 45°, pas à 30°.
+   Le dessin le montre, et l'exercice serait faux sans cela.
+ · Les deux angles d'une même heure sont jouables (saillant et rentrant) : c'est
+   `depuis` qui dit d'où part le secteur gris, dans le sens des aiguilles.
+ · Écartées du pool : les mesures à moins de 12° de 90°, 180° ou 270° sans y
+   être égales — l'élève lirait « droit » là où la réponse serait « aigu ».
+   90° et 180° exacts restent, eux, parfaitement lisibles.
+ · Une planche = un droit ou plat, un rentrant, un aigu, et une quatrième d'une
+   catégorie encore absente (sans cela les rentrants, deux fois plus nombreux
+   dans le pool, sortaient en double).
+ · Réutilise `dualPA` + `layoutFigure` (figure et DEUX champs), déjà câblés
+   partout — écran, validation, atelier, export, les deux corrigés PDF. Deux
+   ajouts génériques pour cela : `dualLabels(q)` (les libellés « P = » / « A = »
+   deviennent paramétrables, ici « Angle ≈ » et « Nom : ») et, dans la
+   validation dualPA, la réponse EN TOUTES LETTRES (comparaison sans accents ni
+   casse, « angle obtus » = « obtus ») et la tolérance `q.tolerance` — ±10°
+   ici, puisqu'on estime. Sans `tolerance`, le seuil reste 0,02 comme avant.
+ · PDF du sous-domaine : la rubrique s'ajoute à la fenêtre de choix, cochée et
+   assemblée dans l'ordre du MENU (1, 2, 3, 7, 4, 5) et non des numéros.
+ · Le PDF de DOMAINE (Espace) garde sa composition fixe : la rubrique n'y
+   figure pas. À faire si Aurelio la veut aussi sur la planche du domaine.
+
+v484 — TROIS AJUSTEMENTS DEMANDÉS PAR AURELIO EN CLASSE :
+ · « ramettes de papier » → « rames de papier » (patron employé de commerce).
+ · CHALET (patron neutre 9) : « loue un chalet à 200 CHF la nuit pour 2 nuits »
+   se lisait comme un prix PAR PERSONNE. L'énoncé dit maintenant « Le chalet est
+   loué 200 CHF par nuit pour tout le groupe ». Mêmes tirages, même réponse.
+ · DIVISIONS DÉCIMALES : quand le quotient dépasse deux décimales, le corrigé
+   affiche la réponse attendue (2 décimales, tronquée) PUIS le quotient complet
+   en gris — nouveau champ `quotientComplet`, classe CSS `.quotient-complet`,
+   repris dans les DEUX corrigés PDF, qui sont écrits séparément : celui du PDF
+   de sous-domaine (bouton rouge de la page d'exercices) et celui du PDF de
+   domaine. Toucher l'un sans l'autre laisse la moitié du travail en plan.
+   Au passage, `acceptAlt` n'est plus posé
+   quand les deux écritures sont identiques : le corrigé affichait
+   « 11,84 ou 11,84 ». Le quotient tombe toujours juste par construction, il ne
+   dépasse jamais 3 décimales avec les diviseurs actuels (dividende ≤ 4
+   décimales, diviseur 1 ou 2) ; le code n'en fait pas l'hypothèse.
+ · Commentaire du patron 3 corrigé : il annonçait encore un enseignant.
 
 v483 — ÉNONCÉS PAR DOMAINE DE FORMATION. Chaque ligne de l'éditeur des prénoms
  peut porter le métier de l'apprenant : « Daniel - employé de commerce ».
@@ -3695,6 +3792,17 @@ ainsi (une remarque prise pour une consigne, une sélection ambiguë).
     vertical-align: middle;
   }
 
+  /* Quotient complet d'une division qui ne s'arrête pas à deux décimales :
+     il suit la réponse attendue, en gris, pour ne pas être pris pour elle. */
+  .quotient-complet {
+    display: inline-block;
+    margin-left: 5px;
+    color: #9CA3AF;
+    font-weight: 500;
+    font-size: 0.9em;
+    vertical-align: middle;
+  }
+
   /* Racine carrée / n-ième. Deux pièces :
        1) le crochet (SVG de largeur fixe, hauteur proportionnelle au contenu)
        2) la barre du dessus = border-top du conteneur du radicande
@@ -4785,12 +4893,63 @@ ainsi (une remarque prise pour une consigne, une sélection ambiguë).
     grid-auto-flow: column;
     gap: 14px 28px;
   }
+  /* Angles (horloges) : les QUATRE horloges sur une seule ligne, chacune avec
+     ses deux champs SOUS la figure — la disposition de la fiche papier.
+     Le PDF, énoncé comme corrigé, reprend la même. */
+  .multi-grid-horloges {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px 12px;
+    justify-items: center;
+  }
+  .multi-item.layout-horloge {
+    grid-template-columns: auto;
+    grid-template-areas:
+      "intro"
+      "figure"
+      "fields";
+    /* Horloge centrée au-dessus de ses deux champs ; les champs, eux, restent
+       alignés à gauche entre eux. */
+    justify-items: center;
+    gap: 4px;
+  }
+  .layout-horloge > .layout-figure-intro {
+    justify-self: start;
+  }
+  .layout-horloge > .perim-aire-fields {
+    flex-direction: column !important;
+    align-items: flex-start;
+    gap: 6px !important;
+  }
+  /* Champs plus étroits : quatre colonnes doivent tenir, et la solution
+     affichée à côté ne doit pas mordre sur la colonne voisine. */
+  .layout-horloge .answer-input {
+    width: 66px;
+  }
+  /* Solution SOUS le champ, pas à côté : « → angle rentrant » débordait sur la
+     colonne voisine dès qu'on affichait les corrigés à l'écran. */
+  .layout-horloge .perim-aire-fields > span {
+    display: block;
+  }
+  .layout-horloge .inline-solution {
+    display: block;
+    margin-left: 0;
+    margin-top: 2px;
+  }
+  /* Étiquette de champ : version écran par défaut, version imprimée dans les
+     conteneurs PDF. */
+  .etq-pdf { display: none; }
+  .pdf-mode .etq-ecran { display: none; }
+  .pdf-mode .etq-pdf { display: inline; }
   .multi-item {
     min-width: 0;
   }
   @media (max-width: 780px) {
     .multi-grid {
       grid-template-columns: 1fr;
+    }
+    /* Écran étroit : deux horloges par ligne plutôt que quatre serrées. */
+    .multi-grid-horloges {
+      grid-template-columns: 1fr 1fr;
     }
   }
   /* En impression, retour en 2 colonnes même sur petit écran simulé */
@@ -5217,6 +5376,7 @@ ainsi (une remarque prise pour une consigne, une sélection ambiguë).
       <label class="pdf-check"><input type="checkbox" id="vocab-chk-1" value="1" checked> Figures planes</label>
       <label class="pdf-check"><input type="checkbox" id="vocab-chk-2" value="2" checked> Solides</label>
       <label class="pdf-check"><input type="checkbox" id="vocab-chk-3" value="3" checked> Compléter</label>
+      <label class="pdf-check"><input type="checkbox" id="vocab-chk-7" value="7" checked> Angles</label>
       <label class="pdf-check"><input type="checkbox" id="vocab-chk-4" value="4" checked> Cercle</label>
       <label class="pdf-check"><input type="checkbox" id="vocab-chk-5" value="5" checked> Droites du triangle</label>
     </div>
@@ -5650,7 +5810,7 @@ const PROBLEME_PATRONS = [
       answer: `Verres reçus : ${cartons}×${parCarton} = ${cartons*parCarton}. Restants : ${cartons*parCarton}−${casses} = ${restants}. Total : ${restants}×${prix} = ${total} CHF.`
     };
   },
-  // Patron 3 : enseignant·e qui achète livres et cahiers
+  // Patron 3 : achat de livres et de cahiers, paiement avec un billet
   () => {
     const livres = rand(8, 20);
     const prixLivre = rand(15, 35);
@@ -5767,7 +5927,7 @@ const PROBLEME_PATRONS = [
     if (!r) { r = { n: 5, nuits: 2, prixNuit: 200, menage: 50, total: 450, perP: 90 }; }
     const { n, nuits, prixNuit, menage, total, perP } = r;
     return {
-      text: `Un groupe de ${n} amis loue un chalet à ${prixNuit} CHF la nuit pour ${nuits} nuits. Ils ajoutent ${menage} CHF de frais de ménage et partagent la dépense totale équitablement. Combien chaque personne doit-elle payer ?`,
+      text: `Un groupe de ${n} amis loue un chalet pour ${nuits} nuits. Le chalet est loué ${prixNuit} CHF par nuit pour tout le groupe. Les amis ajoutent ${menage} CHF de frais de ménage et partagent la dépense totale équitablement. Combien chaque personne doit-elle payer ?`,
       answer: `Location : ${prixNuit}×${nuits} = ${prixNuit * nuits} CHF. Coût total : ${prixNuit * nuits}+${menage} = ${total} CHF. Par personne : ${total}÷${n} = ${perP} CHF.`
     };
   }
@@ -5802,7 +5962,7 @@ const ENONCES_METIER = {
     }],
     2: [(p) => {
       const a = rand(10, 20), pa = choice([6, 7, 8, 9]), b = rand(5, 10), pb = choice([38, 42, 45, 48]);
-      return { text: `${p.prenom} commande ${a} ramettes de papier à ${pa} CHF et ${b} cartouches d'encre à ${pb} CHF. Quel est le montant total de la commande ?`,
+      return { text: `${p.prenom} commande ${a} rames de papier à ${pa} CHF et ${b} cartouches d'encre à ${pb} CHF. Quel est le montant total de la commande ?`,
         answer: `Papier : ${a}×${pa} = ${a * pa} CHF. Encre : ${b}×${pb} = ${b * pb} CHF. Total : ${a * pa}+${b * pb} = ${a * pa + b * pb} CHF.` };
     }],
     3: [(p) => _essais(() => {
@@ -6471,11 +6631,17 @@ function genDecimal(operation) {
         quotientExact: formatExact(k, sDiv.length - posVirgule - decDiviseur)
       };
     }
-    return {
-      text: `${tirage.dividend} ÷ ${divisor} = `,
-      answer: tirage.quotient,
-      acceptAlt: [tirage.quotientExact]
-    };
+    // Le quotient tombe juste par construction, mais il peut avoir plus de deux
+    // décimales : l'élève n'en écrit que deux (c'est la consigne), et le
+    // corrigé rappelle la valeur complète en gris (`quotientComplet`).
+    // acceptAlt n'existe QUE si les deux écritures diffèrent, sans quoi le
+    // corrigé affichait « 11,84 ou 11,84 ».
+    const q = { text: `${tirage.dividend} ÷ ${divisor} = `, answer: tirage.quotient };
+    if (tirage.quotientExact && tirage.quotientExact !== tirage.quotient) {
+      q.acceptAlt = [tirage.quotientExact];
+      q.quotientComplet = tirage.quotientExact;
+    }
+    return q;
   }
 
   // Composition de l'exercice : 4 questions a/b/c/d
@@ -6515,6 +6681,7 @@ function genDecimal(operation) {
       if (operation === 'division') diviseursVus.add(diviseurDe(q.text));
       const qObj = { label: labels[i], text: q.text, answer: q.answer };
       if (q.acceptAlt) qObj.acceptAlt = q.acceptAlt;
+      if (q.quotientComplet) qObj.quotientComplet = q.quotientComplet;
       if (q.pose) qObj.pose = q.pose;      // corrigé : opération posée en colonne
       questions.push(qObj);
     }
@@ -6525,6 +6692,7 @@ function genDecimal(operation) {
     const q = ops[i]();
     const qObj = { label: labels[i], text: q.text, answer: q.answer };
     if (q.acceptAlt) qObj.acceptAlt = q.acceptAlt;
+    if (q.quotientComplet) qObj.quotientComplet = q.quotientComplet;
     if (q.pose) qObj.pose = q.pose;        // corrigé : opération posée en colonne
     questions.push(qObj);
   }
@@ -17090,7 +17258,9 @@ function vocabSolides() {
 function genVocab() {
   // Niveau 1 : propriétés des quadrilatères ; Niveau 2 : dénombrement sur les solides ;
   // Niveau 3 : phrases à compléter (solides) ; Niveau 4 : vocabulaire du cercle (clic) ;
-  // Niveau 5 : droites remarquables du triangle (sélection).
+  // Niveau 5 : droites remarquables du triangle (sélection) ;
+  // Niveau 7 : angles des aiguilles d'une horloge (affiché entre 3 et 4).
+  if (typeof state !== 'undefined' && state.niveau === 7) return genAnglesHorloge();
   if (typeof state !== 'undefined' && state.niveau === 6) return genTriangleAssoc2();
   if (typeof state !== 'undefined' && state.niveau === 5) return genTriangleAssoc();
   if (typeof state !== 'undefined' && state.niveau === 4) return genCercleVocab();
@@ -17269,6 +17439,143 @@ function genCercleVocab() {
     _geoParams: { rot, mirror },
     parts: CERCLE_PARTS.map(p => ({ key: p.key, correct: p.key })),
     labels: CERCLE_PARTS.map(p => ({ key: p.key, term: p.term, n: p.n, color: p.color }))
+  };
+}
+
+// ============================================================
+// Niveau 7 du vocabulaire – ANGLES DES AIGUILLES D'UNE HORLOGE.
+// Quatre horloges : pour chacune, estimer la mesure de l'angle marqué en gris
+// et lui donner son nom (aigu, droit, obtus, plat, rentrant).
+// Numéro 7 et non 4 : les niveaux existants se repèrent par leur NUMÉRO dans
+// les générateurs et les mises en page (4 = cercle, 5/6 = triangle). Le niveau
+// prend donc un numéro libre et `niveauMenu` le place dans la liste entre
+// « Compléter » et « Cercle », là où Aurelio le veut.
+// ============================================================
+// Angle de chaque aiguille, en degrés, mesurés dans le sens des aiguilles
+// depuis midi. La petite aiguille avance aussi pendant l'heure : à 1h30 elle
+// est à 45°, pas à 30° — c'est ce que montre le dessin, et l'exercice serait
+// faux sans cela.
+function _angleAiguilles(h, m) {
+  return { heure: ((h % 12) * 30 + m * 0.5) % 360, minute: (m * 6) % 360 };
+}
+// Nom de l'angle. Les bornes sont exactes : un angle de 90° est droit, de 180°
+// plat ; au-delà de 180° il est rentrant.
+function nomAngle(a) {
+  if (a === 90) return 'droit';
+  if (a === 180) return 'plat';
+  if (a < 90) return 'aigu';
+  if (a < 180) return 'obtus';
+  return 'rentrant';
+}
+// Horloge : cadran, 12 traits, secteur gris de l'angle marqué, deux aiguilles.
+// `depuis` est l'aiguille d'où part le secteur, parcouru dans le sens des
+// aiguilles : c'est ce qui décide si l'on marque l'angle saillant ou le
+// rentrant, les deux étant formés par les mêmes aiguilles.
+function figHorloge(h, m, depuis) {
+  const R = 78, CX = 100, CY = 100;
+  const F = n => (+n).toFixed(2);
+  const pt = (ang, r) => [CX + r * Math.sin(ang * Math.PI / 180), CY - r * Math.cos(ang * Math.PI / 180)];
+  const { heure, minute } = _angleAiguilles(h, m);
+  const depart = depuis === 'minute' ? minute : heure;
+  const arrivee = depuis === 'minute' ? heure : minute;
+  const ouverture = (arrivee - depart + 360) % 360;
+  let s = `<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" style="width:132px;max-width:100%;height:auto;display:block;">`;
+  // Secteur gris D'ABORD : le cadran et les aiguilles se dessinent par-dessus.
+  if (ouverture > 0.01) {
+    const p1 = pt(depart, R), p2 = pt(arrivee, R);
+    const grand = ouverture > 180 ? 1 : 0;
+    s += `<path d="M ${CX} ${CY} L ${F(p1[0])} ${F(p1[1])} A ${R} ${R} 0 ${grand} 1 ${F(p2[0])} ${F(p2[1])} Z" fill="#D6D6D6"/>`;
+  }
+  s += `<circle cx="${CX}" cy="${CY}" r="${R}" fill="none" stroke="#1F2937" stroke-width="1.2"/>`;
+  for (let i = 0; i < 12; i++) {
+    const a = i * 30, ext = pt(a, R), inn = pt(a, R - (i % 3 === 0 ? 11 : 7));
+    s += `<line x1="${F(ext[0])}" y1="${F(ext[1])}" x2="${F(inn[0])}" y2="${F(inn[1])}" stroke="#1F2937" stroke-width="${i % 3 === 0 ? 1.4 : 1}"/>`;
+  }
+  const ah = pt(heure, 42), am = pt(minute, 64);
+  s += `<line x1="${CX}" y1="${CY}" x2="${F(ah[0])}" y2="${F(ah[1])}" stroke="#1F2937" stroke-width="3.4" stroke-linecap="round"/>`;
+  s += `<line x1="${CX}" y1="${CY}" x2="${F(am[0])}" y2="${F(am[1])}" stroke="#1F2937" stroke-width="3.4" stroke-linecap="round"/>`;
+  s += `<circle cx="${CX}" cy="${CY}" r="2" fill="#1F2937"/>`;
+  return s + `</svg>`;
+}
+// Toutes les horloges jouables, aux quarts d'heure, avec les DEUX angles
+// possibles (saillant et rentrant). Écartées : les mesures trop proches de 90°
+// ou de 180° sans y être égales — l'élève estimerait « droit » là où la
+// réponse serait « aigu ». 90° et 180° exacts restent, eux, très lisibles.
+function _horlogesJouables() {
+  const out = [];
+  for (let h = 1; h <= 12; h++) {
+    for (const m of [0, 15, 30, 45]) {
+      const { heure, minute } = _angleAiguilles(h, m);
+      for (const depuis of ['heure', 'minute']) {
+        const depart = depuis === 'minute' ? minute : heure;
+        const arrivee = depuis === 'minute' ? heure : minute;
+        const a = (arrivee - depart + 360) % 360;
+        if (a < 15 || a > 345) continue;                       // aiguilles superposées
+        const net = (a === 90 || a === 180)
+          || (Math.abs(a - 90) > 12 && Math.abs(a - 180) > 12 && Math.abs(a - 270) > 12);
+        if (!net) continue;
+        out.push({ h, m, depuis, angle: a, nom: nomAngle(a) });
+      }
+    }
+  }
+  return out;
+}
+const HORLOGES = _horlogesJouables();
+
+function genAnglesHorloge() {
+  const fmt = (a) => String(a).replace('.', ',') + '°';
+  const heureTxt = (h, m) => (m === 0 ? `${h} h` : `${h} h ${m}`);
+  // Composition : un angle droit ou plat, un rentrant, deux autres — et jamais
+  // deux fois la même heure sur la planche.
+  const tire = (filtre, prises) => {
+    const libres = HORLOGES.filter(x => filtre(x)
+      && !prises.some(p => p.h === x.h && p.m === x.m));
+    return libres.length ? choice(libres) : null;
+  };
+  const prises = [];
+  const ajoute = (filtre) => { const x = tire(filtre, prises); if (x) prises.push(x); };
+  ajoute(x => x.nom === 'droit' || x.nom === 'plat');
+  // Un angle droit ET un angle plat sur la même planche, c'est trop simple :
+  // celui des deux qui n'est pas sorti est écarté pour toute la série.
+  const dejaRemarquable = prises.length ? prises[0].nom : null;
+  const pasLautre = x => !(dejaRemarquable === 'droit' && x.nom === 'plat')
+    && !(dejaRemarquable === 'plat' && x.nom === 'droit');
+  ajoute(x => x.nom === 'rentrant' && pasLautre(x));
+  ajoute(x => x.nom === 'aigu' && pasLautre(x));
+  // La quatrième apporte une catégorie encore absente : sans cela les angles
+  // rentrants, deux fois plus nombreux dans le pool, revenaient en double.
+  ajoute(x => pasLautre(x) && !prises.some(p => p.nom === x.nom));
+  while (prises.length < 4) ajoute(x => pasLautre(x));
+  for (let i = prises.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [prises[i], prises[j]] = [prises[j], prises[i]];
+  }
+  const labels = ['a)', 'b)', 'c)', 'd)'];
+  return {
+    multi: true,
+    introInTitle: true,
+    intro: "Estime la mesure de l'angle marqué en gris, puis donne son nom.",
+    _anglesHorloge: true,
+    questions: prises.slice(0, 4).map((x, i) => ({
+      label: labels[i],
+      figureName: heureTxt(x.h, x.m),
+      text: `<div class="perim-figure">${figHorloge(x.h, x.m, x.depuis)}</div>`,
+      layoutFigure: true,
+      dualPA: true,
+      layoutClass: 'layout-horloge',
+      labelP: 'Angle ≈',
+      labelA: 'Angle',
+      labelAPdf: 'Nom :',
+      placeholderP: 'mesure',
+      placeholderA: 'nom',
+      // Estimation : toute réponse à moins de 10° compte juste.
+      tolerance: 10,
+      answerP: fmt(x.angle),
+      // « angle obtus » et non « obtus » : c'est ce qui s'écrit au corrigé.
+      // La validation retire le mot « angle » des deux côtés, l'apprenant peut
+      // donc répondre de l'une ou l'autre façon.
+      answerA: `angle ${x.nom}`
+    }))
   };
 }
 
@@ -17713,7 +18020,7 @@ const ICONE_ENSEIGNANT = '<svg viewBox="0 0 24 24" width="21" height="21" fill="
 const ICONE_PDF = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJkAAACUCAMAAAC3HHtWAAAAk1BMVEXi5ef////xVkKwt73K0dji6OrxW0jyUDnG2eHlzczmgnrV2t/x8/T19vbxUTzwTDX4u7Xnvr28wsf+8/L84N3yYlD1jID1hXf1kYb4q6L4t7D96ujwQib1mY7++Pf70c3zcWHxSC/zeGn3pJv6ysX72dXy2Nbj1dXtgnfyaFf3sKj6w73UubvV4ebco6HkioPitLFLhhsqAAAElUlEQVR4nO3ca5eaOhQG4ICOtHUa7AAqIgiIbdVezv//dUcS7tlAXIYkq4v308xCzeNOCAEVZAzmKxKWj8Xi4324tVbQyGahsqdow7J3wbLFgp82LHsTLuOv2rBMIKyQ8dMGZQLHfyXjpsmX8dIUyDhpKmR8NCUyLpoa2eLjq64yjqqpko1XTZlstGrqZGM0hbIRmkrZME2pbJCmVjZEUywboKmW9dOUy3qnXPWyvqppIOupmg4yuGpayMCq6SGDqiZPthySAVWTJ1sPytiqyZMNdydbNYmykaJ1aRJlY0Xr0GTKnqNJlY3sn22aXBlaL4fr1qBJlpEsB/KmVDZEUywboKmW9dOUy3pp6mV9NA1kPTQdZDBNCxlI00MG0TSRATRdZCxNGxlD00fWpWkkQ/rKkL4ypK8M6StD+sqQvjKkrwzpK0P6ypC+MqSvDOkrQ/rKkL6ytbYyVF+tnWWiZW8T5jlZ4Lby/fN0+YFAGyxzw9hbyUoc/oBooOxi2tiUFmybEA2SRaklz5XH/slZs5PEgtGsPrNFg2R3W7YMf+OTbWbZLJtls2yWzbJWrORYJklaaxFs2WUsiznm1htpoIPySzK8PQVl3Oyc1gQrDX3/nMc/h/t0lbTb3vqthDGwkHlFhneO0YyTXYtHWdvWFsc9xA3b6m504nhs1V6R2QemhT192OrS3WJs4rLx7hvKcz8KlVkbpoWI9ovnMlsMN4ULSnJIJpA5gUNStL+qZRFN+RLBDvfJgpXY3qSy2zXOs/MpIbRLWeT/3OYJb0UFL7R9KnMOdXzRewCV+TYmsa8BKdqxku3oFsvGu4C+SFLL3MakwU4rgmTlv/u8ak5emEJWVcKOadmuuJYBmKlkmHpiQGZaMenrg61EZppknso9jMw8khnG9fSTWWletCjF9TizHnmMwsdInFqG6S4A9mY5keR7LpUFYRX4JFugLPHzf6OK0ZatTuWDmfnM2UO012XnI931zTMZ5KfGrNFsEGdkF0igmdaJgQ59XZaFZE1xO9GZlrx/QGYS2Q2UGdtJZO3c6+NmZ5yRg/wZ6k3j4rEvLlrm0h2NlRW7R17R4uh0qnIA1kCCZVF2pW2wMjvMH+BcG7MGmTbywBfmBMqcU2gWbQDzGSnZhfwpa6Y9nWn2qVm9d0ZGZxQyzOTJzkfaJc0+6cjwMSQ7bmRLrZkPbClkCSZoHG+iumQayIzs9lgV3g73YqYzsuJp6mWdXK7N1baMccYpy7xi2EmQ2ed8C3Q4Zs/qorA6CcFpLhu9WP7a1YNNFB3AdULqRjXKcU/bY+P5OHQiN51UhnG6gz/AsLxdndSz2s+249119IOPF68F9axHyZY6TzxNmGzCzLJZNstm2TSyTPpnwh7nZ8KBbBiOGVfPdw9u7DXeSWHHX785ZVGYJNV52ORJ8J/lmlP2WOv54b6VL5Pl73/LT0/Iunn/NF3yLzXyjjNAxvzkQWy0lQEwPWTAKOOXrScM5PoXvrM3y2bZLJtls+zfk3He90Do3TnFykTe0ZQr9Q8XRmTSi9a4zcyITOQNap+Djckk92fzbin/A8PQxx30Ei25AAAAAElFTkSuQmCC';
 
 // Numéro de version, affiché en pied de menu.
-const APP_VERSION = '483';
+const APP_VERSION = '492';
 
 const DOMAINS = [
   {
@@ -17827,7 +18134,13 @@ const DOMAINS = [
     icon: "△",
     color: "chip-violet",
     subdomains: [
-      { id: 'vocab',            title: "Connaître le vocabulaire relatif aux figures planes et aux solides", gen: genVocab, hasNiveau2: true, niveauLabels: ['Figures planes', 'Solides', 'Compléter', 'Cercle', 'Droites du triangle'], patrons: () => (typeof state !== 'undefined' && state.niveau === 5) ? [genTriangleAssoc, genTriangleAssoc2] : [genVocab],
+      { id: 'vocab',            title: "Connaître le vocabulaire relatif aux figures planes et aux solides", gen: genVocab, hasNiveau2: true, niveauLabels: ['Figures planes', 'Solides', 'Compléter', 'Cercle', 'Droites du triangle', 'Droites du triangle', 'Angles'],
+        // Le niveau 7 s'affiche entre « Compléter » et « Cercle » sans qu'aucun
+        // numéro ne bouge (voir niveauxMenu).
+        niveauMenu: [{ niveau: 1, label: 'Figures planes' }, { niveau: 2, label: 'Solides' },
+                     { niveau: 3, label: 'Compléter' }, { niveau: 7, label: 'Angles' },
+                     { niveau: 4, label: 'Cercle' }, { niveau: 5, label: 'Droites du triangle' }],
+        patrons: () => (typeof state !== 'undefined' && state.niveau === 5) ? [genTriangleAssoc, genTriangleAssoc2] : [genVocab],
         // « Droites du triangle » compte DEUX exercices (un triangle dont on
         // nomme les droites, puis quatre figures à nommer). L'atelier ne retient
         // qu'un exercice par sous-domaine et prenait toujours le premier.
@@ -24262,6 +24575,8 @@ function renderExercise(ex, num, exIdx) {
     // Réponses longues (factorisations : « −3b²x³(7bx + 5 + 2x) ») : le champ
     // standard de 140 px en cachait la fin.
     if (ex.champsLarges) gridClasses.push('multi-grid-larges');
+    // Angles : quatre horloges sur une ligne, champs sous chaque figure.
+    if (ex._anglesHorloge) gridClasses.push('multi-grid-horloges');
     content += `<div class="${gridClasses.join(' ')}">`;
     for (let qIdx = 0; qIdx < ex.questions.length; qIdx++) {
       const q = ex.questions[qIdx];
@@ -24467,12 +24782,17 @@ function renderExercise(ex, num, exIdx) {
         // Solutions affichées à côté de chaque champ (pas en dessous de la figure)
         const solP = showSol ? `<span class="inline-solution">→ ${q.answerP}</span>` : '';
         const solA = showSol ? `<span class="inline-solution">→ ${q.answerA}</span>` : '';
-        content += `<div class="multi-item layout-figure">`;
+        content += `<div class="multi-item layout-figure${q.layoutClass ? ' ' + q.layoutClass : ''}">`;
         content += `<div class="layout-figure-intro"><strong>${q.label}</strong> ${introTxt}</div>`;
         content += figureHtml;
         content += `<div class="perim-aire-fields">`;
-        content += `<span><strong>P =</strong> <input type="text" id="${inpP}" class="answer-input answer-input-cell no-print" placeholder="?" autocomplete="off"><span id="${fbP}" class="feedback"></span>${solP}</span>`;
-        content += `<span><strong>A =</strong> <input type="text" id="${inpA}" class="answer-input answer-input-cell no-print" placeholder="?" autocomplete="off"><span id="${fbA}" class="feedback"></span>${solA}</span>`;
+        const labF = dualLabels(q), labFp = dualLabels(q, true);
+        // Deux étiquettes dans le HTML, une seule visible : CSS `.pdf-mode`
+        // bascule de l'une à l'autre selon le contexte.
+        const etq = (ecran, pdf) => (ecran === pdf) ? ecran
+          : `<span class="etq-ecran">${ecran}</span><span class="etq-pdf">${pdf}</span>`;
+        content += `<span><strong>${etq(labF.p, labFp.p)}</strong> <input type="text" id="${inpP}" class="answer-input answer-input-cell no-print" placeholder="${q.placeholderP || '?'}" autocomplete="off"><span id="${fbP}" class="feedback"></span>${solP}</span>`;
+        content += `<span><strong>${etq(labF.a, labFp.a)}</strong> <input type="text" id="${inpA}" class="answer-input answer-input-cell no-print" placeholder="${q.placeholderA || '?'}" autocomplete="off"><span id="${fbA}" class="feedback"></span>${solA}</span>`;
         content += `</div>`;
         content += `</div>`;
         continue;
@@ -24527,18 +24847,27 @@ function renderExercise(ex, num, exIdx) {
         // Pour layoutFigure, les champs sont empilés (P au-dessus de A) ;
         // la mise en page est gérée par CSS (.layout-figure .perim-aire-fields).
         content += `<div class="perim-aire-fields">`;
-        content += `<span><strong>P =</strong> <input type="text" id="${inpP}" class="answer-input answer-input-cell no-print" placeholder="?" autocomplete="off"><span id="${fbP}" class="feedback"></span></span>`;
-        content += `<span><strong>A =</strong> <input type="text" id="${inpA}" class="answer-input answer-input-cell no-print" placeholder="?" autocomplete="off"><span id="${fbA}" class="feedback"></span></span>`;
+        const labI = dualLabels(q);
+        content += `<span><strong>${labI.p}</strong> <input type="text" id="${inpP}" class="answer-input answer-input-cell no-print" placeholder="?" autocomplete="off"><span id="${fbP}" class="feedback"></span></span>`;
+        content += `<span><strong>${labI.a}</strong> <input type="text" id="${inpA}" class="answer-input answer-input-cell no-print" placeholder="?" autocomplete="off"><span id="${fbA}" class="feedback"></span></span>`;
         content += `</div>`;
         if (showSol) {
-          content += ` <span class="inline-solution">→ P = ${q.answerP} ; A = ${q.answerA}</span>`;
+          content += ` <span class="inline-solution">→ ${labI.p} ${q.answerP} ; ${labI.a} ${q.answerA}</span>`;
         }
       } else {
         // Pas de bouton individuel : un seul bouton global en haut de l'exercice.
         content += renderInput(inputId, feedbackId, exIdx, qIdx, q, false);
+        // Division dont le quotient a plus de deux décimales : le résultat
+        // attendu reste celui à deux décimales (c'est la consigne), et le
+        // quotient complet suit en gris — il montre où la division se
+        // poursuivait sans passer pour la réponse demandée.
+        if (q.quotientComplet) {
+          content += showSol ? ` <span class="inline-solution">→ ${q.answer}</span>`
+            + `<span class="quotient-complet">(${q.quotientComplet})</span>` : '';
+        }
         // Si plusieurs réponses sont acceptables (unités mélangées : 1,5 m² OU
         // 15 000 cm²), on les affiche toutes séparées par " ou ".
-        if (q.acceptAlt && q.acceptAlt.length > 0) {
+        else if (q.acceptAlt && q.acceptAlt.length > 0) {
           const allAnswers = [q.answer, ...q.acceptAlt].join(' ou ');
           content += showSol ? ` <span class="inline-solution">→ ${allAnswers}</span>` : '';
         } else {
@@ -24922,6 +25251,18 @@ function toggleSolutions() {
 // Itère sur toutes les questions et valide chacune. Les champs vides sont
 // traités comme incorrects (marqués en rouge avec ✗).
 // ========================================
+// Libellés des deux champs d'une question `dualPA`. Par défaut « P = » et
+// « A = » (périmètre et aire, son premier usage) ; une question peut les
+// remplacer — « Angle ≈ » et « Nom : » pour les horloges.
+// `pourPdf` rend les libellés de la version imprimée quand la question en
+// propose : à l'écran le champ porte un texte gris qui dit quoi écrire, sur
+// papier il n'y a que l'étiquette — « Nom : » y est plus clair que « Angle ».
+function dualLabels(q, pourPdf) {
+  const p = (pourPdf && q && q.labelPPdf) || (q && q.labelP) || 'P =';
+  const a = (pourPdf && q && q.labelAPdf) || (q && q.labelA) || 'A =';
+  return { p, a };
+}
+
 function validateExercise(exIdx) {
   const ex = state.exercises[exIdx];
   if (!ex || (!ex.multi && !ex.tableMode)) return;
@@ -25007,8 +25348,21 @@ function validateExercise(exIdx) {
         const toNum = (s) => parseFloat(normalizeUserInput(s).replace(',', '.'));
         const got = toNum(val);
         const exp = toNum(expected);
-        // Tolérance pour arrondis (disque π)
-        const numOk = Number.isFinite(got) && Number.isFinite(exp) && Math.abs(got - exp) < 0.02;
+        // Réponse EN TOUTES LETTRES (le nom d'un angle) : comparaison de mots,
+        // sans accents ni casse, et « angle obtus » vaut « obtus ».
+        if (!Number.isFinite(exp)) {
+          const mot = (t) => String(t == null ? '' : t).normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+            .toLowerCase().replace(/[^a-z]+/g, ' ').replace(/\bangle\b/g, '').trim();
+          const okTexte = mot(val) !== '' && mot(val) === mot(expected);
+          fb.classList.add(okTexte ? 'correct' : 'incorrect');
+          input.classList.add(okTexte ? 'correct' : 'incorrect');
+          fb.innerHTML = okTexte ? '✓' : '✗';
+          return;
+        }
+        // Tolérance pour arrondis (disque π), ou celle que la question demande :
+        // une ESTIMATION d'angle se juge à ±10°, pas au degré près.
+        const marge = Number.isFinite(q.tolerance) ? q.tolerance : 0.02;
+        const numOk = Number.isFinite(got) && Number.isFinite(exp) && Math.abs(got - exp) <= marge;
         const ok = unitOk && numOk;
         fb.classList.add(ok ? 'correct' : 'incorrect');
         input.classList.add(ok ? 'correct' : 'incorrect');
@@ -28501,7 +28855,7 @@ async function exporterTest(opts) {
         if (q.answerType === 'truefalse' && q.answer === 'faux' && q.solution !== undefined) {
           brute = `faux (x = ${q.solution})`;
         }
-        if (q.dualPA) brute = `P = ${q.answerP} ; A = ${q.answerA}`;
+        if (q.dualPA) { const ld = dualLabels(q); brute = `${ld.p} ${q.answerP} ; ${ld.a} ${q.answerA}`; }
         if (q.answerType === 'transform-row' && Array.isArray(q.expected)) {
           brute = q.expected.map((v, k) => {
             const u = (q.outputs && q.outputs[k] && q.outputs[k].unit) || '';
@@ -29008,8 +29362,8 @@ function confirmFigPdf() {
 function openVocabPdfModal() {
   const cur = (typeof state !== 'undefined') ? state.niveau : 1;
   // Sous-rubrique active : niveaux 5/6 → « Droites du triangle » (5).
-  const active = (cur === 5 || cur === 6) ? 5 : ([1, 2, 3, 4].includes(cur) ? cur : 1);
-  [1, 2, 3, 4, 5].forEach(n => { const chk = document.getElementById('vocab-chk-' + n); if (chk) chk.checked = (n === active); });
+  const active = (cur === 5 || cur === 6) ? 5 : ([1, 2, 3, 4, 7].includes(cur) ? cur : 1);
+  [1, 2, 3, 4, 5, 7].forEach(n => { const chk = document.getElementById('vocab-chk-' + n); if (chk) chk.checked = (n === active); });
   document.getElementById('vocab-pdf-modal').style.display = 'flex';
 }
 function closeVocabPdfModal(ev) {
@@ -29017,7 +29371,9 @@ function closeVocabPdfModal(ev) {
   document.getElementById('vocab-pdf-modal').style.display = 'none';
 }
 function confirmVocabPdf() {
-  const sel = [1, 2, 3, 4, 5].filter(n => { const c = document.getElementById('vocab-chk-' + n); return c && c.checked; }).map(String);
+  // Ordre d'affichage, pas ordre des numéros : les horloges (7) s'intercalent
+  // entre « Compléter » (3) et « Cercle » (4).
+  const sel = [1, 2, 3, 7, 4, 5].filter(n => { const c = document.getElementById('vocab-chk-' + n); return c && c.checked; }).map(String);
   if (sel.length === 0) { alert('Sélectionne au moins une sous-rubrique.'); return; }
   closeVocabPdfModal();
   downloadPdf({ vocabRubriques: sel });
@@ -29573,14 +29929,26 @@ function espaceCorrigeInner(ex, opts) {
     ex.questions.forEach(q => {
       // Périmètre + aire : la réponse vit dans DEUX champs (`answerP` /
       // `answerA`) et non dans `answer` — la case verte restait vide.
+      const ldq = dualLabels(q, true);
+      // Deux réponses sur une seule ligne quand elles sont courtes (P et A) ;
+      // l'une SOUS l'autre pour les horloges, où « Angle ≈ 292,5° ; Nom :
+      // rentrant » se coupait n'importe où en quatre colonnes.
+      const sep = q.layoutClass ? '<br>' : ' ; ';
       const rep = (q.dualPA && (q.answerP != null || q.answerA != null))
-        ? [q.answerP != null ? `P = ${q.answerP}` : null,
-           q.answerA != null ? `A = ${q.answerA}` : null].filter(Boolean).join(' ; ')
+        ? [q.answerP != null ? `${ldq.p} ${q.answerP}` : null,
+           q.answerA != null ? `${ldq.a} ${q.answerA}` : null].filter(Boolean).join(sep)
         : ((q.answer != null) ? q.answer : (q.answerV != null ? q.answerV : ''));
+      // Le nom de la figure se met AU-DESSUS d'elle quand l'énoncé le fait —
+      // les horloges portent leur heure à côté de la lettre, corrigé compris.
+      const nomAuDessus = !!q.layoutClass;
+      const nomHtml = q.figureName
+        ? `<div style="font-size:12px; color:#6B7280;">${q.figureName}</div>` : '';
       html += `<div style="text-align:center;">`
-        + `<div style="font-weight:800; font-size:14px; text-align:left;">${q.label || ''}</div>`
+        + `<div style="font-weight:800; font-size:14px; text-align:left;">${q.label || ''}`
+        + (nomAuDessus && q.figureName ? ` <span style="font-weight:600; color:#6B7280;">${q.figureName}</span>` : '')
+        + `</div>`
         + (figureDe(q) || '')
-        + (q.figureName ? `<div style="font-size:12px; color:#6B7280;">${q.figureName}</div>` : '')
+        + (nomAuDessus ? '' : nomHtml)
         + `<div style="margin-top:2px; color:#16A34A; font-weight:800; font-size:15px;">${rep}</div>`
         + `</div>`;
     });
@@ -30741,6 +31109,8 @@ async function downloadDomainPdf(domainNum, compoImposee) {
         titre = `${sub.title} - % - rabais`;
       } else if (domainNum === 5 && sub.id === 'vocab' && niveau === 4) {
         titre = 'Vocabulaire du cercle';
+      } else if (domainNum === 5 && sub.id === 'vocab' && niveau === 7) {
+        titre = "Estime la mesure de l'angle marqué, puis donne son nom.";
       } else if (domainNum === 5 && sub.id === 'vocab' && niveau === 6) {
         titre = 'Associe chaque figure à son nom.';
       } else if (domainNum === 5 && sub.id === 'prop-figures' && niveau === 2) {
@@ -31029,7 +31399,8 @@ async function downloadDomainPdf(domainNum, compoImposee) {
         let ans = q.attenduExport || (isLong ? extractFinalResult(q.answer) : (q.answer || ''));
         // Cas spécial dualPA (perim-aire : P + A) : afficher les deux réponses
         if (q.dualPA && q.answerP !== undefined && q.answerA !== undefined) {
-          ans = `P = ${q.answerP} ; A = ${q.answerA}`;
+          const ld = dualLabels(q, true);
+          ans = `${ld.p} ${q.answerP} ; ${ld.a} ${q.answerA}`;
         }
         // Cas spécial singleV (volumes : V = ___) : afficher V = réponse
         else if (q.singleV && q.answerV !== undefined) {
@@ -31079,6 +31450,11 @@ async function downloadDomainPdf(domainNum, compoImposee) {
           ans = mf
             ? `x = ${mf[1] === '-' ? '−' : ''}<span style="display:inline-flex; flex-direction:column; text-align:center; vertical-align:middle; line-height:1.05; margin:0 1px;"><span style="border-bottom:1.5px solid currentColor; padding:0 4px;">${mf[2]}</span><span style="padding:0 4px;">${mf[3]}</span></span>`
             : `x = ${a.replace('-', '−')}`;
+        }
+        // Division à quotient long : la valeur complète suit la réponse
+        // attendue, en gris, dans le corrigé PDF comme à l'écran.
+        if (q.quotientComplet) {
+          ans = `${ans}<span style="color:#9CA3AF; font-weight:400; margin-left:5px;">(${q.quotientComplet})</span>`;
         }
         const item = document.createElement('span');
         // Étape intermédiaire (Vol-Cap) : affichée en plus petit sous la réponse.
@@ -31546,9 +31922,10 @@ async function downloadPdf(opts) {
       }
     } else if (found.sub.id === 'vocab') {
       // Sélection des sous-rubriques (Figures planes / Solides / Compléter /
-      // Cercle / Droites du triangle) – 1 planche par page.
+      // Angles / Cercle / Droites du triangle) – 1 planche par page.
+      // L'ordre de `sel` est celui du menu, pas celui des numéros.
       const sel = (Array.isArray(opts.vocabRubriques) && opts.vocabRubriques.length)
-        ? opts.vocabRubriques.map(String) : ['1', '2', '3', '4', '5'];
+        ? opts.vocabRubriques.map(String) : ['1', '2', '3', '7', '4', '5'];
       const savedNiveau = state.niveau;
       try {
         exercisesForPdf = [];
@@ -31564,6 +31941,7 @@ async function downloadPdf(opts) {
           exercisesForPdf.push(exS);                          // solides (ordre fixe)
         }
         if (sel.includes('3')) { state.niveau = 3; exercisesForPdf.push(genVocab()); }   // à compléter
+        if (sel.includes('7')) { state.niveau = 7; exercisesForPdf.push(genVocab()); }   // angles des horloges
         if (sel.includes('4')) { state.niveau = 4; exercisesForPdf.push(genVocab()); }   // cercle
         if (sel.includes('5')) {
           state.niveau = 5; exercisesForPdf.push(genVocab());  // triangle : 4 droites → nom
@@ -32700,7 +33078,8 @@ async function downloadPdf(opts) {
           }
           // Cas spécial dualPA (perim-aire : P + A) : afficher les deux réponses
           if (q.dualPA && q.answerP !== undefined && q.answerA !== undefined) {
-            ans = `P = ${q.answerP} ; A = ${q.answerA}`;
+            const ld = dualLabels(q);
+            ans = `${ld.p} ${q.answerP} ; ${ld.a} ${q.answerA}`;
           }
           // Cas spécial singleV (volumes : V = ___) : afficher uniquement V = réponse
           else if (q.singleV && q.answerV !== undefined) {
@@ -32744,6 +33123,12 @@ async function downloadPdf(opts) {
                 .map((v, i) => `<strong>${fmt(v)}</strong> ${q.outputs[i].unit}`).join(' ');
               ans = `${q.text} = ${right}`;
             }
+          }
+          // Division à quotient long : la valeur complète suit la réponse
+          // attendue, en gris. Ce corrigé-ci est celui du PDF de SOUS-DOMAINE ;
+          // celui du PDF de domaine est écrit à part et porte le même ajout.
+          if (q.quotientComplet) {
+            ans = `${ans}<span style="color:#9CA3AF; font-weight:400; margin-left:5px;">(${q.quotientComplet})</span>`;
           }
           // Étape intermédiaire (Vol-Cap) : affichée en plus petit sous la réponse.
           if (q.intermediateStep) {
