@@ -8,7 +8,7 @@ générant des exercices de mathématiques pour adultes (programme PAI, Suisse).
 Product owner : Aurelio (Onex/Genève). Répondre en FRANÇAIS.
 
 ───────────────────────────────────────────────────────────────────────────────
-0. OÙ ON EN EST (v492, 06.09.2026) — à lire en premier
+0. OÙ ON EN EST (v496, 07.09.2026) — à lire en premier
 ───────────────────────────────────────────────────────────────────────────────
 L'application est en ligne : https://aureliohub.github.io/eva_maths.html
 Les fichiers de série et de test (.json) sont déposés à côté d'elle, et s'ouvrent
@@ -24,6 +24,28 @@ titre, à gauche du titre ; le menu se déroule de haut en bas au survol. Voir �
 L'ATELIER (« Créer une série d'exercices à la carte ») est le cœur du travail
 récent. Une composition, TROIS sorties : PDF · Aperçu écran · Test. Il n'y a
 volontairement PAS d'espace « Créer un test » séparé.
+
+TRAVAIL RÉCENT (fin août – début septembre), les trois chantiers à connaître :
+· ÉNONCÉS PAR DOMAINE DE FORMATION (v483). Chaque ligne de la liste des prénoms
+  peut porter le métier de l'apprenant — « Daniel - employé de commerce ». Deux
+  des quatre questions des problèmes concrets prennent alors le CONTEXTE de son
+  métier (des classeurs, des pneus, des palettes) ; le métier lui-même n'est pas
+  nommé dans l'énoncé, sauf celui de l'assistante dentaire. L'accord suit la
+  COLONNE de saisie, jamais la forme tapée. Onze métiers, 34 générateurs.
+· INSTRUMENTS DE GÉOMÉTRIE (v493) : le PDF compte huit planches, dont trois
+  constructions à l'ÉCHELLE 1 (cercle, polygone à l'équerre, triangle au
+  compas). Voir v493 avant d'y toucher : le menu de l'écran, lui, reste à cinq
+  activités.
+· ANGLES DES HORLOGES (v485 à v492), rubrique « Angles » du vocabulaire, entre
+  « Compléter » et « Cercle ». Quatre horloges sur une ligne, l'angle marqué en
+  gris ; l'élève l'estime (jugé à ±10°) et le nomme. Réponses attendues :
+  « 157,5° » et « angle obtus ».
+· DIVISIONS DÉCIMALES (v484) : quand le quotient dépasse deux décimales, le
+  corrigé donne la réponse attendue puis la valeur complète en gris.
+LES PRIX DES ÉNONCÉS ont été relus avec Aurelio sur des références suisses
+(garage 140-160 CHF/h, électricien 110-130, sanitaire 120-140, contrôle dentaire
+110-130, nettoyage 55-65). NE PAS les rabaisser « pour simplifier » : c'est la
+première chose qu'il a corrigée.
 
 RETOUR DES RÉSULTATS — EN SERVICE, vérifié de bout en bout le 25.08
 Un test passé par un élève dépose son résultat dans le classeur d'Aurelio :
@@ -63,6 +85,11 @@ CE QU'IL A FALLU APPRENDRE POUR Y ARRIVER — à relire avant de toucher au scri
   quelqu'un qui ouvre le code source.
 
 PISTES ÉVOQUÉES, NON ENGAGÉES
+· Les énoncés de métier ne servent qu'au sous-domaine « problème concret ».
+  Les autres sous-domaines qui nomment quelqu'un (proportionnalité, mise en
+  équation) tirent toujours un prénom sans tenir compte du métier.
+· La planche du PDF de DOMAINE (Espace) garde sa composition fixe : la rubrique
+  « Angles » n'y figure pas, seul le PDF du sous-domaine la propose.
 · Liste de classe : elle vit dans le navigateur de l'enseignant. Elle s'exporte
   dans un fichier depuis la v472 ; à verser au tableur si elle doit suivre d'un
   poste à l'autre.
@@ -104,7 +131,12 @@ PISTES ÉVOQUÉES, NON ENGAGÉES
   garde l'exercice affiché – réutilisé comme 1er exercice des PDF.
 - Un exercice « multi » = { multi:true, intro, questions:[{label,text,answer,…}] }.
   Rendu en .multi-grid (2 colonnes par défaut ; -fullwidth, -stacked, -eqval,
-  -3cols-bycolumn, -propfig selon les cas).
+  -3cols-bycolumn, -propfig, -horloges selon les cas).
+  Une question peut porter `layoutClass` (classe posée sur son .multi-item) et,
+  si elle a deux champs (`dualPA`), ses propres étiquettes : `labelP` / `labelA`,
+  doublées de `labelPPdf` / `labelAPdf` pour la version imprimée, plus
+  `placeholderP` / `placeholderA` (le texte gris) et `tolerance` (marge admise à
+  la validation). Tout cela est générique : rien n'y nomme les horloges.
 - Navigation : pushHistoryState / applyHistoryState + popstate.
 - TROIS générateurs de PDF :
     downloadPdf(opts)        → PDF d'un sous-domaine. Options ajoutées, sans
@@ -508,6 +540,77 @@ PDF de domaine :
 ───────────────────────────────────────────────────────────────────────────────
 Cette section décrit l'ÉTAT, non l'historique. Les numéros de version ne sont
 cités que lorsqu'ils aident à retrouver un choix dans le fichier.
+
+v496 — ATELIER, VOCABULAIRE : choisir la rubrique « Angles » donnait les
+ DROITES DU TRIANGLE. L'atelier retrouvait la planche voulue par sa POSITION
+ dans la composition (`exs[niveau-1]`), faute de `_realNiveau`. Or l'ordre des
+ planches est celui du MENU — 1, 2, 3, 7, 4, 5, 6 — et non celui des numéros :
+ demander la rubrique 7 rendait la 7e planche, c'est-à-dire le niveau 6.
+ Chaque planche du vocabulaire emporte maintenant son numéro de rubrique
+ (helper `pousse(niv)` dans la composition), et l'atelier la retrouve par lui.
+ À RETENIR : tout sous-domaine dont l'ordre d'affichage ne suit pas les numéros
+ (`niveauMenu`) DOIT étiqueter ses exercices ainsi.
+
+v495 — LES INSTRUMENTS ENTRENT DANS L'ATELIER. Le sous-domaine apparaît dans le
+ menu de « Créer une série d'exercices à la carte » ; sélectionné, il pose UN
+ exercice de tracé, avec un menu déroulant qui donne le choix entre les huit
+ (parallèle, perpendiculaire, angle, médiatrice, bissectrice, cercle, polygone,
+ triangle).
+ · `gen: null` excluait le sous-domaine du menu (atelierSousDomaines filtrait
+   sur `typeof sub.gen === 'function'`). Nouveau drapeau `atelierComposable`,
+   et `atelierVariants` fournit la liste des huit tracés (INSTRUMENTS_TOUS()).
+ · atelierComposerSousDomaine COURT-CIRCUITE sa mécanique habituelle pour ce
+   sous-domaine : il appelle genInstrumentsExo directement. Passer par
+   downloadPdf({composerSeulement}) aurait fabriqué les huit planches pour n'en
+   garder qu'une, et le triangle serait revenu en pleine page.
+ · `_instrSerie` : dans une série, la planche NE PREND PAS les hauteurs fixes du
+   PDF du sous-domaine (elles servent à superposer énoncé et corrigé, ce qui n'a
+   plus de sens quand ils sont sur des pages différentes). Sans ce drapeau, le
+   corrigé du triangle était rogné aux deux tiers et la seconde figure de la
+   planche d'angles disparaissait purement et simplement. Vérifié sur un PDF de
+   série réel, corrigés compris.
+ · `sansChamp` : une construction n'a pas de réponse à écrire. Le PDF du
+   sous-domaine retirait le champ APRÈS COUP ; il reste maintenant absent à
+   l'écran et dans l'atelier, où un « ? » orphelin flottait à côté du dessin.
+ · L'en-tête de l'exercice, à l'atelier, affiche la consigne tirée — sans quoi
+   deux tracés différents portaient exactement le même titre.
+
+v494 — INSTRUMENTS, planches 6 à 8 : PLUS RIEN N'EST DONNÉ dans l'énoncé. Le
+ point O du cercle disparaît, ainsi que le segment AB du polygone et du triangle
+ au compas ; les consignes portent désormais TOUTES les mesures (« Trace le
+ carré ABCD de côté 5 cm », « … tel que AB = 7 cm, AC = 6 cm et BC = 5 cm »).
+ Le cadre de l'énoncé est donc vide : il ne sert plus qu'à réserver la place du
+ tracé, et c'est lui qui garantit que le corrigé tombe à la même hauteur. Au
+ corrigé, la figure entière est en vert (elle est tout entière la réponse) et
+ la croix du centre reste sur le cercle, pour montrer où se pique le compas.
+
+v493 — INSTRUMENTS DE GÉOMÉTRIE : trois planches de plus au PDF, et la
+ bissectrice corrigée.
+ · BISSECTRICE : les deux côtés de l'angle avaient la MÊME longueur, ce qui
+   laissait croire qu'il suffisait de joindre leurs extrémités. Le second côté
+   fait maintenant 58 à 74 % du premier. Le rayon de l'arc de construction est
+   plafonné à 78 % de la branche COURTE, sinon il coupait au-delà de son bout.
+ · TROIS NOUVELLES PLANCHES (6, 7, 8) : cercle de diamètre donné (le centre est
+   marqué d'une croix), carré / rectangle / triangle rectangle construit sur un
+   segment donné à l'équerre, triangle au compas (quelconque, isocèle ou
+   équilatéral) avec les arcs de construction au corrigé.
+ · ÉCHELLE 1 (INSTR.pxCm = 794/210*10 = 37,81 px/cm). Ces planches se posent à
+   la largeur exacte de leur viewBox dans un conteneur de 794 px pour 210 mm :
+   une unité du dessin vaut un pixel d'impression. C'est ce qui permet des
+   consignes en centimètres. IMPRIMER À 100 %, sans « ajuster à la page ».
+ · La CONSIGNE de ces planches est tirée AVEC la figure (le carré et le
+   rectangle ne se demandent pas de la même façon) : un fabricant peut rendre
+   `consigne`, que `genInstrumentsExo` place dans `_instrConsigne`.
+ · Elles vivent dans INSTRUMENTS_PDF_SUP, à part de INSTRUMENTS_ACTIVITES qui
+   pilote le MENU DES ACTIVITÉS à l'écran (chaque entrée y ouvre une iframe
+   Polypad, et ces trois-là n'en ont pas). Le menu reste à cinq entrées.
+ · Pages : [0,1] [2] [3,4] [5,6] [7]. Le triangle au compas occupe sa page à lui
+   seul (`pleinePage` → cadre INSTR.figPleine = 895 px) ; le drapeau
+   `_instrPleinePage` le fait traiter comme la planche d'angles des deux côtés,
+   énoncé et corrigé, sans quoi les hauteurs ne se correspondaient plus.
+ · Banc d'essai `tinstr.js` : 400 tirages par planche, bornes de tous les points
+   tracés comparées au cadre — aucun débordement ; le cercle mesure bien le
+   diamètre annoncé ; les branches de la bissectrice diffèrent toujours.
 
 v492 — HORLOGES : la réponse attendue du nom s'écrit « angle obtus » et non
  « obtus » — corrigé PDF comme solution à l'écran. Les deux formes restent
@@ -2166,9 +2269,9 @@ vers Exporter / Importer (.json), qui marche partout.
   l'atelier (8.2) est à reprendre telle quelle ; c'est la prochaine étape.
 · Atelier, non couvert : les familles interactives sans questions ni énoncés
   (appariements, sélections, clics sur figure) n'ont que le bouton d'exercice ;
-  « instruments » n'apparaît pas dans le menu (gen: null) ; les options des
-  fenêtres PDF (rubriques du vocabulaire, niveaux de factorisation, unités…)
-  prennent leurs valeurs par défaut.
+  les options des fenêtres PDF (rubriques du vocabulaire, niveaux de
+  factorisation, unités…) prennent leurs valeurs par défaut. « Instruments »,
+  lui, y est entré en v495.
 · Conservation des résultats sous un pseudo (choisi ou attribué) : conçue, non
   réalisée. Prévoir l'export en complément, localStorage étant refusé par
   Safari sur un fichier local.
@@ -18020,7 +18123,7 @@ const ICONE_ENSEIGNANT = '<svg viewBox="0 0 24 24" width="21" height="21" fill="
 const ICONE_PDF = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJkAAACUCAMAAAC3HHtWAAAAk1BMVEXi5ef////xVkKwt73K0dji6OrxW0jyUDnG2eHlzczmgnrV2t/x8/T19vbxUTzwTDX4u7Xnvr28wsf+8/L84N3yYlD1jID1hXf1kYb4q6L4t7D96ujwQib1mY7++Pf70c3zcWHxSC/zeGn3pJv6ysX72dXy2Nbj1dXtgnfyaFf3sKj6w73UubvV4ebco6HkioPitLFLhhsqAAAElUlEQVR4nO3ca5eaOhQG4ICOtHUa7AAqIgiIbdVezv//dUcS7tlAXIYkq4v308xCzeNOCAEVZAzmKxKWj8Xi4324tVbQyGahsqdow7J3wbLFgp82LHsTLuOv2rBMIKyQ8dMGZQLHfyXjpsmX8dIUyDhpKmR8NCUyLpoa2eLjq64yjqqpko1XTZlstGrqZGM0hbIRmkrZME2pbJCmVjZEUywboKmW9dOUy3qnXPWyvqppIOupmg4yuGpayMCq6SGDqiZPthySAVWTJ1sPytiqyZMNdydbNYmykaJ1aRJlY0Xr0GTKnqNJlY3sn22aXBlaL4fr1qBJlpEsB/KmVDZEUywboKmW9dOUy3pp6mV9NA1kPTQdZDBNCxlI00MG0TSRATRdZCxNGxlD00fWpWkkQ/rKkL4ypK8M6StD+sqQvjKkrwzpK0P6ypC+MqSvDOkrQ/rKkL6ytbYyVF+tnWWiZW8T5jlZ4Lby/fN0+YFAGyxzw9hbyUoc/oBooOxi2tiUFmybEA2SRaklz5XH/slZs5PEgtGsPrNFg2R3W7YMf+OTbWbZLJtls2yWzbJWrORYJklaaxFs2WUsiznm1htpoIPySzK8PQVl3Oyc1gQrDX3/nMc/h/t0lbTb3vqthDGwkHlFhneO0YyTXYtHWdvWFsc9xA3b6m504nhs1V6R2QemhT192OrS3WJs4rLx7hvKcz8KlVkbpoWI9ovnMlsMN4ULSnJIJpA5gUNStL+qZRFN+RLBDvfJgpXY3qSy2zXOs/MpIbRLWeT/3OYJb0UFL7R9KnMOdXzRewCV+TYmsa8BKdqxku3oFsvGu4C+SFLL3MakwU4rgmTlv/u8ak5emEJWVcKOadmuuJYBmKlkmHpiQGZaMenrg61EZppknso9jMw8khnG9fSTWWletCjF9TizHnmMwsdInFqG6S4A9mY5keR7LpUFYRX4JFugLPHzf6OK0ZatTuWDmfnM2UO012XnI931zTMZ5KfGrNFsEGdkF0igmdaJgQ59XZaFZE1xO9GZlrx/QGYS2Q2UGdtJZO3c6+NmZ5yRg/wZ6k3j4rEvLlrm0h2NlRW7R17R4uh0qnIA1kCCZVF2pW2wMjvMH+BcG7MGmTbywBfmBMqcU2gWbQDzGSnZhfwpa6Y9nWn2qVm9d0ZGZxQyzOTJzkfaJc0+6cjwMSQ7bmRLrZkPbClkCSZoHG+iumQayIzs9lgV3g73YqYzsuJp6mWdXK7N1baMccYpy7xi2EmQ2ed8C3Q4Zs/qorA6CcFpLhu9WP7a1YNNFB3AdULqRjXKcU/bY+P5OHQiN51UhnG6gz/AsLxdndSz2s+249119IOPF68F9axHyZY6TzxNmGzCzLJZNstm2TSyTPpnwh7nZ8KBbBiOGVfPdw9u7DXeSWHHX785ZVGYJNV52ORJ8J/lmlP2WOv54b6VL5Pl73/LT0/Iunn/NF3yLzXyjjNAxvzkQWy0lQEwPWTAKOOXrScM5PoXvrM3y2bZLJtls+zfk3He90Do3TnFykTe0ZQr9Q8XRmTSi9a4zcyITOQNap+Djckk92fzbin/A8PQxx30Ei25AAAAAElFTkSuQmCC';
 
 // Numéro de version, affiché en pied de menu.
-const APP_VERSION = '492';
+const APP_VERSION = '496';
 
 const DOMAINS = [
   {
@@ -18151,7 +18254,14 @@ const DOMAINS = [
           { key: 'figures', label: 'Figure → nom', rang: 5, trouver: ex => ex && ex.figure === 'cards' }
         ] : null },
       { id: 'prop-figures',     title: "Appliquer les propriétés des figures planes (triangles, cercles)",   gen: genPropFigures, hasNiveau2: true, niveauLabels: ["Déduction d'angle", 'Arc - secteur'], patrons: () => [genPropFigures] },
-      { id: 'instruments',      title: "Connaître l'utilisation des instruments de géométrie",               gen: null, embed: true },
+      { id: 'instruments',      title: "Connaître l'utilisation des instruments de géométrie",               gen: null, embed: true,
+        // `gen: null` : à l'écran ce sous-domaine n'affiche pas d'exercices mais
+        // des activités Polypad. Il a pourtant des planches à imprimer, d'où
+        // `atelierComposable` : l'atelier le montre malgré l'absence de gen, et
+        // `atelierVariants` donne le menu de ses huit tracés (voir
+        // atelierComposerSousDomaine, qui les fabrique directement).
+        atelierComposable: true,
+        atelierVariants: () => INSTRUMENTS_TOUS().map(a => ({ key: a.kind, label: a.label })) },
       { id: 'developpements',   title: "Identifier les développements de solides",                            gen: genDeveloppements, hasNiveau2: true, niveauLabels: ['Associer', 'Sélectionner'], patrons: () => state.niveau === 2 ? [genDevSelectPave, genDevSelectCube, genDevSelectPrismeTri] : [genDeveloppements],
         // L'écran du niveau 2 montre les TROIS solides à la suite ; l'atelier,
         // lui, ne retient qu'un exercice par sous-domaine et prenait toujours
@@ -18881,6 +18991,14 @@ INSTR.utile = 1123 - 72 - INSTR.entete - INSTR.ecart;          // 939
 INSTR.trancheDouble = Math.floor(INSTR.utile / 2);             // 469
 INSTR.figSeule = INSTR.trancheDouble - INSTR.titre - INSTR.sousTitre;   // 425
 INSTR.figAngle = Math.floor((INSTR.utile - INSTR.titre - INSTR.sousTitre - 2 * INSTR.libelle) / 2);  // 423
+INSTR.figPleine = INSTR.utile - INSTR.titre - INSTR.sousTitre;  // 895 : une planche seule sur sa page
+// ÉCHELLE 1. Le conteneur PDF fait 794 px pour 210 mm de large et la figure est
+// posée à la largeur exacte de son viewBox : une unité du dessin vaut donc un
+// pixel d'impression, et 1 cm vaut 37,8 px SUR LA FEUILLE. C'est ce qui autorise
+// des consignes en centimètres — « trace un cercle de diamètre 7 cm » — et un
+// corrigé qui se pose sur la construction de l'élève. À condition d'imprimer à
+// 100 %, sans « ajuster à la page ».
+INSTR.pxCm = 794 / 210 * 10;
 
 // `hCadre` : hauteur du cadre en pixels d'impression. Elle vaut la tranche de
 // page qui revient à la figure : le dessin est centré DANS le cadre, si bien que
@@ -19028,13 +19146,16 @@ function genInstrumentsExo(kind, consigne, hCadre) {
     const W = 430, H = HC;
     const val = R(8, 26) * 5;                        // 40°–130°
     const pen = R(-10, 10);
+    // Les deux côtés n'ont PAS la même longueur : à branches égales, l'élève
+    // croit que la bissectrice se trouve en joignant les deux extrémités.
+    const court = R(58, 74) / 100;
     const d1 = 90 - val / 2 + pen, d2 = 90 + val / 2 + pen;
     const u1 = [Math.cos(d1 * D), -Math.sin(d1 * D)], u2 = [Math.cos(d2 * D), -Math.sin(d2 * D)];
     // Les arcs de compas du corrigé se croisent au-delà des branches : ils
     // entrent dans le calcul d'encombrement, sinon ils sortiraient du cadre.
     const um = [Math.cos((d1 + d2) / 2 * D), -Math.sin((d1 + d2) / 2 * D)];
     const ptsDe = (L) => {
-      const r1 = L * 0.42, dm = val / 2 * D;
+      const r1 = Math.min(L * 0.42, L * court * 0.78), dm = val / 2 * D;
       const r2 = 1.3 * r1 * Math.sin(dm);
       const dI = r1 * Math.cos(dm) + Math.sqrt(Math.max(0, r2 * r2 - Math.pow(r1 * Math.sin(dm), 2)));
       const pp = [r1 * u1[0], r1 * u1[1]], qq = [r1 * u2[0], r1 * u2[1]];
@@ -19050,7 +19171,7 @@ function genInstrumentsExo(kind, consigne, hCadre) {
       // c'est possible : tracée sur toute la longueur, elle culminait bien plus
       // haut qu'elles et décentrait le dessin de l'énoncé.
       const Lb = Math.max(L * Math.cos(dm), dI + 22);
-      return [[0, 0], [L * u1[0], L * u1[1]], [L * u2[0], L * u2[1]],
+      return [[0, 0], [L * u1[0], L * u1[1]], [L * court * u2[0], L * court * u2[1]],
               [Lb * um[0], Lb * um[1]], ii,
               [r1 * Math.cos((d1 - 8) * D), -r1 * Math.sin((d1 - 8) * D)],
               [r1 * Math.cos((d2 + 8) * D), -r1 * Math.sin((d2 + 8) * D)], ...bouts];
@@ -19060,13 +19181,15 @@ function genInstrumentsExo(kind, consigne, hCadre) {
     // étirait ses branches sur toute la hauteur de la page.
     const L = Math.min(ajuste(W, H, 14, ptsDe), 300);
     const vx = W / 2, vy = H / 2;
-    const [ax, ay] = P(vx, vy, L, d1), [bx, by] = P(vx, vy, L, d2);
+    const [ax, ay] = P(vx, vy, L, d1), [bx, by] = P(vx, vy, L * court, d2);
     const base = seg(vx, vy, ax, ay) + seg(vx, vy, bx, by) + arc(vx, vy, 24, d1, d2);
 
     const mid = (d1 + d2) / 2;
     // Construction : un arc centré au sommet coupe les deux branches en P et Q ;
     // deux arcs de même rayon centrés en P et Q se croisent sur la bissectrice.
-    const r1 = L * 0.42;
+    // Le rayon reste plus court que la PLUS COURTE des deux branches, sans quoi
+    // l'arc couperait au-delà de son extrémité.
+    const r1 = Math.min(L * 0.42, L * court * 0.78);
     const p = P(vx, vy, r1, d1), q = P(vx, vy, r1, d2);
     const demi = val / 2 * D;
     const r2 = 1.3 * r1 * Math.sin(demi);
@@ -19118,18 +19241,160 @@ function genInstrumentsExo(kind, consigne, hCadre) {
     return { fig: wrap(W, H, base, dx, dy), sol: wrap(W, H, sol, dx, dy), answer: '' };
   }
 
+  // --- Cercle de diamètre donné : le centre est marqué, le reste est à tracer.
+  // Les longueurs sont à l'ÉCHELLE 1 sur la feuille (INSTR.pxCm), la consigne
+  // peut donc parler en centimètres.
+  function cercleDiametre() {
+    const W = 660, H = HC;
+    const K = INSTR.pxCm;
+    const d = R(5, 9);                       // diamètre en cm
+    const r = d / 2 * K;
+    const cx = W / 2, cy = H / 2;
+    // Rien n'est donné : l'élève choisit lui-même où planter la pointe du
+    // compas. Le cadre ne sert qu'à réserver la place du tracé.
+    const base = '';
+    const ang = R(-14, 14);                  // le diamètre du corrigé, à peine incliné
+    const [g1x, g1y] = P(cx, cy, r, ang + 180), [g2x, g2y] = P(cx, cy, r, ang);
+    // L'étiquette de longueur se pose à mi-rayon, à l'écart du centre : au
+    // milieu du diamètre elle se superposait au « O » et à la croix.
+    const [tm, tn] = P(cx, cy, r * 0.45, ang);
+    const [tx, ty] = P(tm, tn, 15, ang + 90);
+    const sol = croix(cx, cy)
+      + `<circle cx="${f(cx)}" cy="${f(cy)}" r="${f(r)}" fill="none" stroke="${SOL}" stroke-width="1.8"/>`
+      + seg(g1x, g1y, g2x, g2y, CONSTR, 1.2)
+      + txt(tx, ty, `${d} cm`, SOL, 14);
+    const pts = [[cx - r, cy - r], [cx + r, cy + r]];
+    const [dx, dy] = centrage(W, H, pts);
+    return {
+      fig: wrap(W, H, base, dx, dy), sol: wrap(W, H, sol, dx, dy), answer: '',
+      consigne: `Trace un cercle de diamètre ${d} cm.`
+    };
+  }
+
+  // --- Carré, rectangle ou triangle rectangle construits sur un côté donné.
+  // Le segment de départ est tracé à l'échelle 1 : l'élève reporte les mesures
+  // au double décimètre et pose l'équerre sur ce segment.
+  function polygoneEquerre() {
+    const W = 660, H = HC;
+    const K = INSTR.pxCm;
+    const type = choice(['carre', 'rectangle', 'triangle']);
+    const th = R(-5, 5);                     // base presque horizontale
+    const a = R(4, 6);                       // longueur de AB, en cm
+    // Un « rectangle » dont les deux côtés sont égaux est un carré : on impose
+    // au moins 1 cm d'écart pour que la figure porte bien son nom.
+    let b = a;
+    if (type !== 'carre') { do { b = R(3, 6); } while (Math.abs(b - a) < 1); }
+    const cote = Math.random() < 0.5 ? 1 : -1;   // au-dessus ou au-dessous
+    const nb = n => String(n).replace('.', ',');
+    const ax = W / 2 - a * K / 2, ay = H / 2 + (cote > 0 ? b * K / 2 : -b * K / 2);
+    const [bx, by] = P(ax, ay, a * K, th);
+    // Rien n'est donné : la consigne porte TOUTES les mesures et l'élève trace
+    // la figure entière. Le cadre ne réserve que la place du tracé.
+    const base = '';
+    const dir = th + 90 * cote;
+    const [cx2, cy2] = P(bx, by, b * K, dir);
+    const [dx2, dy2] = P(ax, ay, b * K, dir);
+    const cote_ab = seg(ax, ay, bx, by, SOL)
+      + txt(ax - 14, ay + 6, 'A', SOL) + txt(bx + 14, by + 6, 'B', SOL);
+    let sol, ptsSol, consigne;
+    if (type === 'triangle') {
+      sol = cote_ab + seg(bx, by, cx2, cy2, SOL) + seg(cx2, cy2, ax, ay, SOL)
+        + equerre(bx, by, th + 180, dir, SOL)
+        + txt(cx2 + 14 * cote, cy2 - 8 * cote, 'C', SOL);
+      ptsSol = [[cx2, cy2], ...boite(cx2, cy2, 16, 16)];
+      consigne = `Trace le triangle ABC rectangle en B, avec AB = ${nb(a)} cm et BC = ${nb(b)} cm.`;
+    } else {
+      sol = cote_ab + seg(bx, by, cx2, cy2, SOL) + seg(cx2, cy2, dx2, dy2, SOL) + seg(dx2, dy2, ax, ay, SOL)
+        + equerre(bx, by, th + 180, dir, SOL) + equerre(ax, ay, th, dir, SOL)
+        + txt(cx2 + 14, cy2 - 8 * cote, 'C', SOL) + txt(dx2 - 14, dy2 - 8 * cote, 'D', SOL);
+      if (type === 'carre') {
+        sol += tick(ax, ay, bx, by) + tick(bx, by, cx2, cy2)
+             + tick(cx2, cy2, dx2, dy2) + tick(dx2, dy2, ax, ay);
+        consigne = `Trace le carré ABCD de côté ${nb(a)} cm.`;
+      } else {
+        consigne = `Trace le rectangle ABCD tel que AB = ${nb(a)} cm et BC = ${nb(b)} cm.`;
+      }
+      ptsSol = [[cx2, cy2], [dx2, dy2], ...boite(cx2, cy2, 16, 16), ...boite(dx2, dy2, 16, 16)];
+    }
+    const pts = [...boite(ax - 14, ay, 12, 14), ...boite(bx + 14, by, 12, 14), ...ptsSol];
+    const [dx, dy] = centrage(W, H, pts);
+    return { fig: wrap(W, H, base, dx, dy), sol: wrap(W, H, sol, dx, dy), answer: '', consigne };
+  }
+
+  // --- Triangle au compas : le côté AB est donné, les deux autres longueurs
+  // sont dans la consigne. Le corrigé montre les deux arcs qui se croisent en C.
+  function triangleCompas() {
+    const W = 660, H = HC;
+    const K = INSTR.pxCm;
+    const type = choice(['quelconque', 'isocele', 'equilateral']);
+    let base_cm, ac, bc;
+    if (type === 'equilateral') {
+      base_cm = R(5, 7); ac = base_cm; bc = base_cm;
+    } else if (type === 'isocele') {
+      base_cm = R(4, 6); ac = base_cm + R(1, 3); bc = ac;
+    } else {
+      // Inégalité triangulaire, et un triangle qui ne soit pas presque plat.
+      do {
+        base_cm = R(6, 8); ac = R(4, 7); bc = R(4, 7);
+      } while (ac + bc < base_cm + 1.5 || Math.abs(ac - bc) > base_cm - 1.5
+               || (ac === bc && ac === base_cm));   // pas d'équilatéral déguisé
+    }
+    const th = R(-4, 4);
+    const ax = W / 2 - base_cm * K / 2, ay = H * 0.66;
+    const [bx, by] = P(ax, ay, base_cm * K, th);
+    // Sommet C : intersection des deux cercles, du côté opposé à la base.
+    const dAB = base_cm * K, rA = ac * K, rB = bc * K;
+    const xx = (dAB * dAB + rA * rA - rB * rB) / (2 * dAB);
+    const hh = Math.sqrt(Math.max(1, rA * rA - xx * xx));
+    const [px, py] = P(ax, ay, xx, th);
+    const [cx2, cy2] = P(px, py, hh, th + 90);
+    // Rien n'est donné : les trois longueurs sont dans la consigne, l'élève
+    // trace lui-même le côté AB avant d'ouvrir le compas.
+    const base = '';
+    let sol = seg(ax, ay, bx, by, SOL)
+      + txt(ax - 14, ay + 6, 'A', SOL) + txt(bx + 14, by + 6, 'B', SOL)
+      + compas(ax, ay, rA, [cx2, cy2], 18) + compas(bx, by, rB, [cx2, cy2], 18)
+      + seg(ax, ay, cx2, cy2, SOL) + seg(bx, by, cx2, cy2, SOL)
+      + txt(cx2, cy2 - 14, 'C', SOL);
+    if (type === 'equilateral') {
+      sol += tick(ax, ay, bx, by) + tick(ax, ay, cx2, cy2) + tick(bx, by, cx2, cy2);
+    } else if (type === 'isocele') {
+      sol += tick(ax, ay, cx2, cy2) + tick(bx, by, cx2, cy2);
+    }
+    const boutArc = (x, y, r) => {
+      const a2 = dirDeg(x, y, cx2, cy2);
+      return [P(x, y, r, a2 - 18), P(x, y, r, a2 + 18)];
+    };
+    const pts = [...boite(ax - 14, ay, 12, 14), ...boite(bx + 14, by, 12, 14),
+                 ...boite(cx2, cy2 - 14, 14, 16),
+                 ...boutArc(ax, ay, rA), ...boutArc(bx, by, rB)];
+    const [dx, dy] = centrage(W, H, pts);
+    const nb = n => String(n).replace('.', ',');
+    const consigne = type === 'equilateral'
+      ? `Trace le triangle équilatéral ABC de côté ${nb(base_cm)} cm, au compas.`
+      : type === 'isocele'
+      ? `Trace le triangle isocèle ABC tel que AB = ${nb(base_cm)} cm et AC = BC = ${nb(ac)} cm, au compas.`
+      : `Trace le triangle ABC tel que AB = ${nb(base_cm)} cm, AC = ${nb(ac)} cm et BC = ${nb(bc)} cm, au compas.`;
+    return { fig: wrap(W, H, base, dx, dy), sol: wrap(W, H, sol, dx, dy), answer: '', consigne };
+  }
+
   const plans = {
     parallele:       [() => droiteEtPoint('a', false)],
     perpendiculaire: [() => droiteEtPoint('b', true)],
     angle:           [() => angleMesure(false), () => angleMesure(true)],
     mediatrice:      [() => mediatrice()],
-    bissectrice:     [() => bissectrice()]
+    bissectrice:     [() => bissectrice()],
+    cercle:          [() => cercleDiametre()],
+    polygone:        [() => polygoneEquerre()],
+    triangle:        [() => triangleCompas()]
   };
   const plan = plans[kind];
   if (!Array.isArray(plan)) return null;
 
+  let consigneTiree = '';
   const questions = plan.map((fab, i) => {
     const q = fab();
+    if (q.consigne && !consigneTiree) consigneTiree = q.consigne;
     return {
       label: plan.length > 1 ? `${String.fromCharCode(97 + i)})` : '',
       text: '',
@@ -19137,11 +19402,13 @@ function genInstrumentsExo(kind, consigne, hCadre) {
       acceptAlt: [],
       solutionDetail: '',
       figureInline: true,
+      sansChamp: !q.answer,          // un tracé n'a pas de réponse à écrire
       figureSvg: q.fig,
       figureSvgSol: q.sol
     };
   });
-  return { multi: true, intro: '', questions, _instrKind: kind, _instrConsigne: consigne || '' };
+  return { multi: true, intro: '', questions, _instrKind: kind,
+           _instrConsigne: consigneTiree || consigne || '' };
 }
 
 // ========================================
@@ -19159,6 +19426,25 @@ const INSTRUMENTS_ACTIVITES = [
   { kind: 'angle',           label: 'Angle',           src: 'https://polypad.amplify.com/embed/cOte4uZpZIVejQ', consigne: "Mesure l'angle.", consignePdf: "Mesure les angles." },
   { kind: 'mediatrice',      label: 'Médiatrice',      src: 'https://polypad.amplify.com/embed/13nmA8bb6toiOg', consigne: "Trace la médiatrice du segment." },
   { kind: 'bissectrice',     label: 'Bissectrice',     src: 'https://polypad.amplify.com/embed/28w9RrrWnuJ3pw', consigne: "Trace la bissectrice de l'angle." }
+];
+
+// Planches SUPPLÉMENTAIRES du PDF, sans équivalent à l'écran : il n'existe pas
+// d'activité Polypad pour elles, et INSTRUMENTS_ACTIVITES pilote le menu des
+// activités (chaque entrée y ouvre une iframe). Elles vivent donc à part et ne
+// sont ajoutées qu'à la composition du PDF.
+// Leur consigne est TIRÉE AVEC LA FIGURE (le carré et le rectangle ne se
+// demandent pas de la même façon) : le champ `consigne` ci-dessous n'est qu'un
+// filet, `genInstrumentsExo` préfère celle du tirage.
+// `pleinePage` : la planche occupe sa page à elle seule, comme les angles —
+// le triangle au compas demande de la place pour les arcs.
+// Les huit tracés, dans l'ordre du PDF : c'est cette liste que l'atelier
+// propose dans son menu déroulant, et son rang qui désigne le tracé voulu.
+const INSTRUMENTS_TOUS = () => INSTRUMENTS_ACTIVITES.concat(INSTRUMENTS_PDF_SUP);
+
+const INSTRUMENTS_PDF_SUP = [
+  { kind: 'cercle',   label: 'Cercle',   consigne: "Trace le cercle demandé." },
+  { kind: 'polygone', label: 'Polygone', consigne: "Trace la figure demandée." },
+  { kind: 'triangle', label: 'Triangle', consigne: "Trace le triangle demandé.", pleinePage: true }
 ];
 
 // Changement d'activité : on NE reconstruit PAS l'écran. Chaque activité déjà
@@ -20260,7 +20546,7 @@ function quitterEspaceEnseignant() {
 function atelierSousDomaines(domainNum) {
   const d = DOMAINS.find(x => x.num === domainNum);
   if (!d) return [];
-  return d.subdomains.filter(sub => typeof sub.gen === 'function');
+  return d.subdomains.filter(sub => typeof sub.gen === 'function' || sub.atelierComposable);
 }
 
 // Composition d'UN sous-domaine, telle que downloadPdf l'aurait faite
@@ -20268,6 +20554,26 @@ function atelierSousDomaines(domainNum) {
 async function atelierComposerSousDomaine(subId, reglages) {
   const found = findSubdomain(subId);
   if (!found) return [];
+  // Instruments : les planches ne viennent pas d'un `gen` mais de
+  // genInstrumentsExo. On les fabrique ici, sans la chaîne PDF du
+  // sous-domaine — le tracé voulu est celui que désigne le menu déroulant.
+  // Cadre RÉDUIT au format d'une planche simple, y compris pour le triangle au
+  // compas : dans une série il partage la page avec d'autres exercices, il ne
+  // peut pas prendre la sienne à lui seul.
+  if (subId === 'instruments') {
+    const liste = INSTRUMENTS_TOUS();
+    const cle = (reglages && reglages.variant) || liste[0].kind;
+    const opt = liste.find(a => a.kind === cle) || liste[0];
+    const ex = genInstrumentsExo(opt.kind, opt.consignePdf || opt.consigne,
+                                 opt.kind === 'angle' ? INSTR.figAngle : INSTR.figSeule);
+    if (!ex) return [];
+    ex._realNiveau = 1;
+    // Dans une SÉRIE, la planche partage la page avec d'autres exercices : les
+    // hauteurs fixes du PDF du sous-domaine (qui servent à superposer énoncé et
+    // corrigé) n'ont plus lieu d'être et rognaient le bas des figures.
+    ex._instrSerie = true;
+    return [{ sub: found.sub, ex, niveau: 1 }];
+  }
   const savedSub = state.activeSubId, savedNiveau = state.niveau;
   const aVariantes = Array.isArray(found.sub.variants) && found.sub.variants.length > 0;
   const savedVariant = aVariantes ? state.variantParSubId[subId] : undefined;
@@ -21734,7 +22040,7 @@ function renderAtelier() {
         <div class="atelier-entete">
           <span class="atelier-poignee" draggable="true" title="Glisser pour déplacer cet exercice"
                 ondragstart="atelierGlisserDebut(event, ${i})" ondragend="atelierGlisserFin()">⠿</span>
-          <span class="atelier-titre">${i + 1}. ${titreDuSousDomaine(it.sub, nivCourant)}${(rub && !selNiveau) ? ' – ' + rub : ''}</span>${selNiveau}${selVariante}
+          <span class="atelier-titre">${i + 1}. ${titreDuSousDomaine(it.sub, nivCourant)}${(rub && !selNiveau) ? ' – ' + rub : ''}${(it.ex && it.ex._instrConsigne) ? ' – ' + it.ex._instrConsigne : ''}</span>${selNiveau}${selVariante}
           <button class="btn-action btn-icon-mini" onclick="atelierDeplacerExercice(${i}, -1)" title="Monter"${i === 0 ? ' disabled' : ''}>▲</button>
           <button class="btn-action btn-icon-mini" onclick="atelierDeplacerExercice(${i}, 1)" title="Descendre"${i === at.items.length - 1 ? ' disabled' : ''}>▼</button>
           ${fusionne ? '' : `<button class="btn-action" onclick="atelierRefaireExercice(${i})" title="Renouveler">${ICONE_RECHARGER}<span>${nbQ ? 'Toutes les questions' : "L'exercice"}</span></button>`}
@@ -24809,7 +25115,10 @@ function renderExercise(ex, num, exIdx) {
         // Le bloc de droite empile ses enfants : sans cette enveloppe, l'unité
         // et le retour de validation passaient SOUS le champ.
         content += `<div class="prop-fig-answer">`;
-        content += renderInput(inputId, feedbackId, exIdx, qIdx, q, false);
+        // Une construction n'a pas de réponse à écrire : le tracé EST la
+        // réponse. Le PDF du sous-domaine retirait ce champ après coup ; il ne
+        // faut pas non plus qu'il apparaisse à l'écran ni dans l'atelier.
+        if (!q.sansChamp) content += renderInput(inputId, feedbackId, exIdx, qIdx, q, false);
         if (q.acceptAlt && q.acceptAlt.length > 0) {
           const allAnswers = [q.answer, ...q.acceptAlt].join(' ou ');
           content += showSol ? ` <span class="inline-solution">→ ${allAnswers}</span>` : '';
@@ -31929,7 +32238,15 @@ async function downloadPdf(opts) {
       const savedNiveau = state.niveau;
       try {
         exercisesForPdf = [];
-        if (sel.includes('1')) { state.niveau = 1; exercisesForPdf.push(genVocab()); }   // figures planes (quadrilatères)
+        // CHAQUE planche emporte son numéro de rubrique (`_realNiveau`). Sans
+        // lui, l'atelier retrouvait la sienne par sa POSITION dans la liste :
+        // l'ordre étant 1, 2, 3, 7, 4, 5, 6, demander les horloges (7) rendait
+        // la 7e planche, c'est-à-dire les droites du triangle.
+        const pousse = (niv, ex) => {
+          const e = ex || genVocab();
+          if (e) { e._realNiveau = niv; exercisesForPdf.push(e); }
+        };
+        if (sel.includes('1')) { state.niveau = 1; pousse(1); }   // figures planes (quadrilatères)
         if (sel.includes('2')) {
           state.niveau = 2;
           const exS = genVocab();
@@ -31938,14 +32255,14 @@ async function downloadPdf(opts) {
             const reordonne = ordreSolides.map(n => exS.solids.find(s => s.nom === n)).filter(Boolean);
             if (reordonne.length === exS.solids.length) exS.solids = reordonne;
           }
-          exercisesForPdf.push(exS);                          // solides (ordre fixe)
+          pousse(2, exS);                                     // solides (ordre fixe)
         }
-        if (sel.includes('3')) { state.niveau = 3; exercisesForPdf.push(genVocab()); }   // à compléter
-        if (sel.includes('7')) { state.niveau = 7; exercisesForPdf.push(genVocab()); }   // angles des horloges
-        if (sel.includes('4')) { state.niveau = 4; exercisesForPdf.push(genVocab()); }   // cercle
+        if (sel.includes('3')) { state.niveau = 3; pousse(3); }   // à compléter
+        if (sel.includes('7')) { state.niveau = 7; pousse(7); }   // angles des horloges
+        if (sel.includes('4')) { state.niveau = 4; pousse(4); }   // cercle
         if (sel.includes('5')) {
-          state.niveau = 5; exercisesForPdf.push(genVocab());  // triangle : 4 droites → nom
-          state.niveau = 6; exercisesForPdf.push(genVocab());  // triangle : 4 figures → nom
+          state.niveau = 5; pousse(5);   // triangle : 4 droites → nom
+          state.niveau = 6; pousse(6);   // triangle : 4 figures → nom
         }
       } finally {
         state.niveau = savedNiveau;
@@ -31955,9 +32272,14 @@ async function downloadPdf(opts) {
       // porte 2 tirages différents de la même construction.
       // Hauteur de cadre = la tranche de page qui revient à la figure. Deux
       // planches par page, sauf les angles qui occupent leur page à eux seuls.
-      exercisesForPdf = INSTRUMENTS_ACTIVITES
-        .map(a => genInstrumentsExo(a.kind, a.consignePdf || a.consigne,
-                                    a.kind === 'angle' ? INSTR.figAngle : INSTR.figSeule))
+      exercisesForPdf = INSTRUMENTS_ACTIVITES.concat(INSTRUMENTS_PDF_SUP)
+        .map(a => {
+          const h = a.pleinePage ? INSTR.figPleine
+                  : (a.kind === 'angle' ? INSTR.figAngle : INSTR.figSeule);
+          const ex = genInstrumentsExo(a.kind, a.consignePdf || a.consigne, h);
+          if (ex && a.pleinePage) ex._instrPleinePage = true;
+          return ex;
+        })
         .filter(Boolean);
     } else if (found.sub.id === 'prop-concret' && typeof found.sub.gen === 'function') {
       // Le PDF doit correspondre aux exercices AFFICHÉS À L'ÉCRAN : pour chaque
@@ -32511,8 +32833,10 @@ async function downloadPdf(opts) {
         // Mise en page entièrement explicite : hauteurs imposées, aucun
         // centrage confié à flex ou grid (la rasterisation ne les honore pas de
         // façon fiable, ce qui décalait les figures sur la page).
-        const solo = (ex._instrKind === 'angle');
-        exoDiv.style.cssText = `height:${solo ? INSTR.utile : INSTR.trancheDouble}px; margin:0; padding:0; box-sizing:border-box; overflow:hidden;`;
+        const solo = (ex._instrKind === 'angle' || ex._instrPleinePage);
+        exoDiv.style.cssText = ex._instrSerie
+          ? 'margin:0 0 8px 0; padding:0; box-sizing:border-box;'
+          : `height:${solo ? INSTR.utile : INSTR.trancheDouble}px; margin:0; padding:0; box-sizing:border-box; overflow:hidden;`;
         const numDiv0 = exoDiv.querySelector('.exercise-num');
         if (numDiv0) numDiv0.style.cssText += `;height:${INSTR.titre}px; line-height:${INSTR.titre}px; margin:0; padding:0;`;
         exoDiv.querySelectorAll('.prop-fig-item').forEach(item => {
@@ -32985,10 +33309,12 @@ async function downloadPdf(opts) {
         // Structure au pixel près celle de l'énoncé : mêmes hauteurs de titre,
         // de libellé et de cadre, mêmes marges. Une page de corrigé glissée
         // sous une page d'énoncé fait apparaître la correction à sa place.
-        const solo = (ex._instrKind === 'angle');
+        const solo = (ex._instrKind === 'angle' || ex._instrPleinePage);
         const vbCor = ((ex.questions[0].figureSvgSol || '').match(/viewBox="0 0 ([\d.]+) ([\d.]+)"/) || [0, 430, 250]);
         const wSol = +vbCor[1];
-        exDiv.style.cssText = `height:${solo ? INSTR.utile : INSTR.trancheDouble}px; margin:0; padding:0; box-sizing:border-box; overflow:hidden;`;
+        exDiv.style.cssText = ex._instrSerie
+          ? 'margin:0 0 8px 0; padding:0; box-sizing:border-box;'
+          : `height:${solo ? INSTR.utile : INSTR.trancheDouble}px; margin:0; padding:0; box-sizing:border-box; overflow:hidden;`;
         inner = `<div style="height:${INSTR.titre}px; line-height:${INSTR.titre}px; margin:0; padding:0; font-size:15px; font-weight:800;">Exercice ${exIdx + 1}.</div>`;
         inner += `<div style="margin:${INSTR.sousTitre}px 0 0 0; padding:0;">`;
         ex.questions.forEach(q => {
@@ -33543,7 +33869,11 @@ async function downloadPdf(opts) {
     //   - perim-aire / volumes / décimaux / prop-figures : 1 exercice par page ;
     //   - developper avec 3 variantes : ex 1 et 2 en page 1, ex 3 en page 2.
     let pageGroups = null;
-    if (found.sub.id === 'instruments' && exercisesForPdf.length === 5) {
+    if (found.sub.id === 'instruments' && exercisesForPdf.length === 8) {
+      // Parallèle + perpendiculaire | angles (2 figures) | médiatrice +
+      // bissectrice | cercle + polygone | triangle au compas (pleine page).
+      pageGroups = [[0, 1], [2], [3, 4], [5, 6], [7]];
+    } else if (found.sub.id === 'instruments' && exercisesForPdf.length === 5) {
       // Parallèle + perpendiculaire | angles (2 figures) | médiatrice + bissectrice
       pageGroups = [[0, 1], [2], [3, 4]];
     } else if ((found.sub.id === 'perim-aire' || found.sub.id === 'volumes' || found.sub.id === 'decimaux' || found.sub.id === 'prop-figures') && exercicesEnonce.length >= 2) {
