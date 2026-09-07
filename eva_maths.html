@@ -8,7 +8,7 @@ générant des exercices de mathématiques pour adultes (programme PAI, Suisse).
 Product owner : Aurelio (Onex/Genève). Répondre en FRANÇAIS.
 
 ───────────────────────────────────────────────────────────────────────────────
-0. OÙ ON EN EST (v496, 07.09.2026) — à lire en premier
+0. OÙ ON EN EST (v497, 07.09.2026) — à lire en premier
 ───────────────────────────────────────────────────────────────────────────────
 L'application est en ligne : https://aureliohub.github.io/eva_maths.html
 Les fichiers de série et de test (.json) sont déposés à côté d'elle, et s'ouvrent
@@ -540,6 +540,19 @@ PDF de domaine :
 ───────────────────────────────────────────────────────────────────────────────
 Cette section décrit l'ÉTAT, non l'historique. Les numéros de version ne sont
 cités que lorsqu'ils aident à retrouver un choix dans le fichier.
+
+v497 — ATELIER, BOUTON « TEST » : une série qui ne contient QUE des
+ constructions produisait un fichier .json vide, illisible à l'import — le
+ défaut ne se voyait qu'au moment de le donner aux élèves. Trois garde-fous :
+ · à l'ouverture de la fenêtre, si rien n'est corrigeable à l'écran, un message
+   l'explique et la fenêtre ne s'ouvre pas (l'aperçu écran le faisait déjà) ;
+ · en cas de MÉLANGE, un bandeau orange (`.modal-avertissement`) dit combien
+   d'exercices ne partiront pas et sur combien portera le test — le récapitulatif
+   le mentionnait, mais noyé dans la ligne grise des effectifs ;
+ · à l'import, un fichier sans aucun exercice est nommé pour ce qu'il est, au
+   lieu d'ouvrir une composition vide. Vaut pour les tests déjà exportés.
+ `testExporter` porte le même contrôle : la composition peut changer entre
+ l'ouverture de la fenêtre et le clic.
 
 v496 — ATELIER, VOCABULAIRE : choisir la rubrique « Angles » donnait les
  DROITES DU TRIANGLE. L'atelier retrouvait la planche voulue par sa POSITION
@@ -2994,6 +3007,19 @@ ainsi (une remarque prise pour une consigne, une sélection ambiguë).
     font-weight: 700;
     color: var(--text);
   }
+  /* Avertissement d'une fenêtre : plus visible qu'une indication, sans être une
+     erreur — ce qui va partir n'est pas tout à fait ce qui est à l'écran. */
+  .modal-avertissement {
+    margin: 8px 0 0;
+    padding: 8px 10px;
+    border-left: 3px solid #D97706;
+    background: #FEF3C7;
+    border-radius: 4px;
+    font-size: 13px;
+    color: #7C2D12;
+    line-height: 1.45;
+  }
+
   .modal-hint {
     font-size: 12px;
     color: var(--muted);
@@ -5235,6 +5261,7 @@ ainsi (une remarque prise pour une consigne, une sélection ambiguë).
     </div>
 
     <p class="modal-hint" id="test-recap"></p>
+    <p class="modal-avertissement" id="test-avertissement" style="display:none;"></p>
 
     <div class="modal-foot" style="gap:8px;">
       <button class="btn-action" onclick="testCopierLien()">Copier le lien</button>
@@ -18123,7 +18150,7 @@ const ICONE_ENSEIGNANT = '<svg viewBox="0 0 24 24" width="21" height="21" fill="
 const ICONE_PDF = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJkAAACUCAMAAAC3HHtWAAAAk1BMVEXi5ef////xVkKwt73K0dji6OrxW0jyUDnG2eHlzczmgnrV2t/x8/T19vbxUTzwTDX4u7Xnvr28wsf+8/L84N3yYlD1jID1hXf1kYb4q6L4t7D96ujwQib1mY7++Pf70c3zcWHxSC/zeGn3pJv6ysX72dXy2Nbj1dXtgnfyaFf3sKj6w73UubvV4ebco6HkioPitLFLhhsqAAAElUlEQVR4nO3ca5eaOhQG4ICOtHUa7AAqIgiIbdVezv//dUcS7tlAXIYkq4v308xCzeNOCAEVZAzmKxKWj8Xi4324tVbQyGahsqdow7J3wbLFgp82LHsTLuOv2rBMIKyQ8dMGZQLHfyXjpsmX8dIUyDhpKmR8NCUyLpoa2eLjq64yjqqpko1XTZlstGrqZGM0hbIRmkrZME2pbJCmVjZEUywboKmW9dOUy3qnXPWyvqppIOupmg4yuGpayMCq6SGDqiZPthySAVWTJ1sPytiqyZMNdydbNYmykaJ1aRJlY0Xr0GTKnqNJlY3sn22aXBlaL4fr1qBJlpEsB/KmVDZEUywboKmW9dOUy3pp6mV9NA1kPTQdZDBNCxlI00MG0TSRATRdZCxNGxlD00fWpWkkQ/rKkL4ypK8M6StD+sqQvjKkrwzpK0P6ypC+MqSvDOkrQ/rKkL6ytbYyVF+tnWWiZW8T5jlZ4Lby/fN0+YFAGyxzw9hbyUoc/oBooOxi2tiUFmybEA2SRaklz5XH/slZs5PEgtGsPrNFg2R3W7YMf+OTbWbZLJtls2yWzbJWrORYJklaaxFs2WUsiznm1htpoIPySzK8PQVl3Oyc1gQrDX3/nMc/h/t0lbTb3vqthDGwkHlFhneO0YyTXYtHWdvWFsc9xA3b6m504nhs1V6R2QemhT192OrS3WJs4rLx7hvKcz8KlVkbpoWI9ovnMlsMN4ULSnJIJpA5gUNStL+qZRFN+RLBDvfJgpXY3qSy2zXOs/MpIbRLWeT/3OYJb0UFL7R9KnMOdXzRewCV+TYmsa8BKdqxku3oFsvGu4C+SFLL3MakwU4rgmTlv/u8ak5emEJWVcKOadmuuJYBmKlkmHpiQGZaMenrg61EZppknso9jMw8khnG9fSTWWletCjF9TizHnmMwsdInFqG6S4A9mY5keR7LpUFYRX4JFugLPHzf6OK0ZatTuWDmfnM2UO012XnI931zTMZ5KfGrNFsEGdkF0igmdaJgQ59XZaFZE1xO9GZlrx/QGYS2Q2UGdtJZO3c6+NmZ5yRg/wZ6k3j4rEvLlrm0h2NlRW7R17R4uh0qnIA1kCCZVF2pW2wMjvMH+BcG7MGmTbywBfmBMqcU2gWbQDzGSnZhfwpa6Y9nWn2qVm9d0ZGZxQyzOTJzkfaJc0+6cjwMSQ7bmRLrZkPbClkCSZoHG+iumQayIzs9lgV3g73YqYzsuJp6mWdXK7N1baMccYpy7xi2EmQ2ed8C3Q4Zs/qorA6CcFpLhu9WP7a1YNNFB3AdULqRjXKcU/bY+P5OHQiN51UhnG6gz/AsLxdndSz2s+249119IOPF68F9axHyZY6TzxNmGzCzLJZNstm2TSyTPpnwh7nZ8KBbBiOGVfPdw9u7DXeSWHHX785ZVGYJNV52ORJ8J/lmlP2WOv54b6VL5Pl73/LT0/Iunn/NF3yLzXyjjNAxvzkQWy0lQEwPWTAKOOXrScM5PoXvrM3y2bZLJtls+zfk3He90Do3TnFykTe0ZQr9Q8XRmTSi9a4zcyITOQNap+Djckk92fzbin/A8PQxx30Ei25AAAAAElFTkSuQmCC';
 
 // Numéro de version, affiché en pied de menu.
-const APP_VERSION = '496';
+const APP_VERSION = '497';
 
 const DOMAINS = [
   {
@@ -21908,8 +21935,21 @@ function atelierImporter(input) {
   if (!f) return;
   const lecteur = new FileReader();
   lecteur.onload = () => {
+    let brut = null;
+    try { brut = JSON.parse(lecteur.result); } catch (e) { brut = null; }
+    // Un test exporté avant la v497 pouvait être VIDE : les constructions en
+    // étaient retirées, et s'il n'y avait qu'elles il ne restait rien.
+    // `compositionRestaurer` rend alors null, et le message générique laissait
+    // croire à un fichier abîmé. On distingue les deux cas.
+    if (brut && Array.isArray(brut.items) && !brut.items.length) {
+      alert("Ce fichier ne contient aucun exercice.\n\n"
+        + "S'il vient d'un test, c'est que la série ne comportait que des"
+        + " constructions à la règle et au compas : elles ne se corrigent pas à"
+        + " l'écran et n'entrent donc pas dans un test.");
+      return;
+    }
     let at = null;
-    try { at = compositionRestaurer(JSON.parse(lecteur.result)); } catch (e) { at = null; }
+    try { at = compositionRestaurer(brut); } catch (e) { at = null; }
     if (!at) { alert("Ce fichier n'est pas une composition lisible."); return; }
     at.nom = f.name.replace(/\.json$/i, '');
     state.atelier = at;
@@ -29529,13 +29569,35 @@ function ouvrirReglagesTest() {
         ? avant : String(classeCourante);
     }
   }
+  const items = atelierItemsPourTest();
+  const ecartes = atelierItemsPourPdf().length - items.length;
+  // AUCUN exercice testable : le fichier produit était vide et illisible à
+  // l'import. Mieux vaut le dire ici que laisser l'enseignant le découvrir
+  // devant sa classe.
+  if (!items.length) {
+    alert("Cette série ne peut pas devenir un test.\n\n"
+      + "Une construction à la règle et au compas ne se corrige pas à l'écran :"
+      + " il n'y a rien à valider ni à compter.\n"
+      + "Ces exercices se distribuent en PDF, ou en ajoutant à la série des"
+      + " notions qui, elles, se corrigent.");
+    return;
+  }
   const recap = document.getElementById('test-recap');
   if (recap) {
-    const items = atelierItemsPourTest();
-    const ecartes = atelierItemsPourPdf().length - items.length;
     const nbQ = items.reduce((n, it) => n + ((it.ex.questions || []).length || 1), 0);
-    recap.textContent = `${items.length} exercice${items.length > 1 ? 's' : ''}, ${nbQ} question${nbQ > 1 ? 's' : ''}.`
-      + (ecartes ? ` ${ecartes} exercice${ecartes > 1 ? 's' : ''} écarté${ecartes > 1 ? 's' : ''} : une construction à la règle et au compas ne se corrige pas à l'écran.` : '');
+    recap.textContent = `${items.length} exercice${items.length > 1 ? 's' : ''}, ${nbQ} question${nbQ > 1 ? 's' : ''}.`;
+  }
+  // Mélange : le test partira AMPUTÉ des constructions. C'est dit en clair,
+  // avec le compte, avant de produire le fichier.
+  const avert = document.getElementById('test-avertissement');
+  if (avert) {
+    avert.style.display = ecartes ? '' : 'none';
+    avert.textContent = ecartes
+      ? `⚠ ${ecartes} exercice${ecartes > 1 ? 's ne partiront pas' : ' ne partira pas'} dans ce test : `
+        + `une construction à la règle et au compas ne se corrige pas à l'écran. `
+        + `Le test en comptera ${items.length} sur ${items.length + ecartes}. `
+        + `Pour donner aussi les constructions, il faut le PDF de la série.`
+      : '';
   }
   m.style.display = 'flex';
   if (champ) champ.focus();
@@ -29589,6 +29651,12 @@ function testFichier() {
 function testExporter() {
   const at = state.atelier;
   if (!at || !at.items.length) return;
+  // Filet : la composition a pu changer depuis l'ouverture de la fenêtre.
+  if (!atelierItemsPourTest().length) {
+    alert("Cette série ne peut pas devenir un test : il n'y reste aucun exercice"
+      + " qui se corrige à l'écran.");
+    return;
+  }
   const { fichier, reglages } = testFichier();
   let texte;
   try { texte = JSON.stringify(fichier, null, 1); }
