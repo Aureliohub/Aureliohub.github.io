@@ -737,7 +737,7 @@ const RE_MODELE = /^C.V.B.N\s?7\s?\/?\s?9[,.]?$/i;
 /* =========================================================
    4. Analyse
    ========================================================= */
-function analyser(paragraphes, tableaux, police){
+function analyser(paragraphes, tableaux, police, page){
   const P = paragraphes.map((p, i) => ({...p, i, n: norm(p.texte)}));
   const pleins = P.filter(p => p.n !== "");
   const corrections = [], remarques = [], diffs = [], marques = {};
@@ -754,6 +754,49 @@ function analyser(paragraphes, tableaux, police){
   const rem  = (titre, comment) => remarques.push({ titre, comment });
   const idxDe = re => { const t = P.find(x => re.test(x.n)); return t ? t.i : null; };
   const estLigneDest = t => /fust|cornavin|1201/i.test(sansAccent(norm(t)));
+
+  /* ---- géométrie : où le texte tombe réellement sur le papier ----
+     Le nombre de tabulations ne veut rien dire par lui-même : il dépend de ce qui
+     précède sur la ligne. Ce qui compte est la colonne d'arrivée. On rejoue donc
+     l'avance des tabulations comme Word, avec la police du document. */
+  const G = page || {};
+  const TW = 56.6929;                                    // twips par mm
+  const pas = (G.taquet || 708) / TW;                    // taquet par défaut, en mm
+  const zone = ((G.pgW || 11906) - (G.gauche || 1417) - (G.droite || 1417)) / TW;
+  const cv = (() => { try { return document.createElement("canvas").getContext("2d"); }
+                      catch(e){ return null; } })();
+  const pileMesure = (() => {
+    const n = (police && (police.nomBase || police.nom)) || "Arial";
+    if(/times|garamond|georgia|cambria/i.test(n)) return `"${n}",Cambria,Georgia,serif`;
+    if(/courier|consolas|mono/i.test(n))          return `"${n}",Menlo,Consolas,monospace`;
+    if(/calibri|carlito/i.test(n))                return `"${n}",Carlito,"Segoe UI",sans-serif`;
+    return `"${n}",Arial,"Liberation Sans",Helvetica,sans-serif`;
+  })();
+  const corpsPt = (police && (police.tailleBase || police.taille)) || 11;
+  const largeur = txt => {
+    if(!cv || !txt) return 0;
+    cv.font = corpsPt + "pt " + pileMesure;
+    return cv.measureText(txt).width / 96 * 25.4;        // px 96 dpi → mm
+  };
+  /* colonne de départ du dernier segment de la ligne, et sa fin, en mm depuis la marge */
+  const geometrie = (ligne, p) => {
+    if(!cv) return null;
+    const perso = ((p && p.taquets) || []).map(t => t.pos / TW).filter(v => v > 0).sort((a, b) => a - b);
+    const suivant = x => {
+      const c = perso.find(v => v > x + .01);
+      if(c !== undefined) return c;
+      return (Math.floor(x / pas + 1e-6) + 1) * pas;
+    };
+    let x = ((p && p.ind) || 0) / TW, debut = x;
+    const bouts = ligne.split("\t");
+    for(let k = 0; k < bouts.length; k++){
+      if(k > 0) x = suivant(x);
+      debut = x;
+      x += largeur(bouts[k]);
+    }
+    return { debut, fin: x, deborde: x > zone + .5 };
+  };
+  const cm = v => (Math.round(v / 10 * 10) / 10).toString().replace(".", ",");
   /* au-delà de trois écarts dans un même paragraphe, la liste devient illisible */
   const resume = items => items.length <= 3
     ? majuscule(items.join(" ; ")) + "."
@@ -1106,12 +1149,39 @@ function analyser(paragraphes, tableaux, police){
     corr("Adresse du destinataire non alignée",
          "Amenez chaque ligne de l’adresse vers la droite avec la touche Tab.", pDest ? pDest.i : null);
   }
-  if(tabsDest.length >= 2 && tabsDest.every(t => t > 0 && t === tabsDest[0])){ ptsD += 0.75; comD.push("Nombre de tabulations identique sur les 3 lignes."); }
-  else if(tabsDest.some(t => t > 0) && new Set(tabsDest).size > 1) corr("Tabulations irrégulières",
-    "Les lignes du destinataire n’ont pas le même nombre de tabulations (" + tabsDest.join(", ") + ") : elles ne sont donc pas alignées.", pDest.i);
-  if(pDate && /\t/.test(pDate.texte)){ ptsD += 0.75; comD.push("Date alignée par tabulations."); }
-  else if(pDate && pDate.ind > 400){ ptsD += 0.75; comD.push("Date alignée par un retrait."); }
-  else if(pDate) corr("Date non alignée par tabulations",
+  /* alignement réel : les lignes du destinataire et la date doivent partir de la
+     même colonne, et aucune ligne ne doit passer à la suivante. Le nombre de
+     tabulations qui y mène n'est pas un critère. */
+  const mesures = [];
+  for(const bloc of entete)
+    for(const l of bloc.lignes)
+      if(estLigneDest(l)){
+        const g = geometrie(l, bloc);
+        if(g) mesures.push({ quoi: "destinataire", i: bloc.i, ...g });
+      }
+  if(pDate){
+    const lg = pDate.lignes.find(l => /\ble\s/i.test(norm(l)));
+    const g = lg && geometrie(lg, pDate);
+    if(g) mesures.push({ quoi: "date", i: pDate.i, ...g });
+  }
+  const alignables = mesures.filter(m => m.debut > 5);   // une ligne à la marge n'est pas alignée
+  const debordent = mesures.filter(m => m.deborde);
+  if(alignables.length >= 2){
+    const cols = alignables.map(m => m.debut);
+    const ecart = Math.max(...cols) - Math.min(...cols);
+    if(ecart <= 2){ ptsD += 0.75; comD.push("Date et destinataire à la même colonne (" + cm(cols[0]) + " cm)."); }
+    else corr("Colonnes non alignées",
+      "Le lieu et la date, et les lignes du destinataire, doivent partir de la même colonne. "
+      + "Ils démarrent aujourd’hui entre " + cm(Math.min(...cols)) + " et " + cm(Math.max(...cols))
+      + " cm de la marge. Ajoutez ou retirez une tabulation sur la ligne la plus décalée : "
+      + "le nombre de tabulations dépend de ce qui la précède.", alignables[0].i);
+    if(!debordent.length){ ptsD += 0.75; comD.push("Aucune ligne ne déborde."); }
+  }
+  if(debordent.length) corr("Ligne trop poussée vers la droite",
+    debordent.length + " ligne(s) dépassent la marge de droite et se coupent en deux. "
+    + "Retirez une tabulation : le texte qui précède est plus long que dans le modèle.", debordent[0].i);
+
+  if(pDate && !/\t/.test(pDate.texte) && !(pDate.ind > 400)) corr("Date non alignée par tabulations",
     "Placez le curseur avant « Genève, le … » et appuyez sur Tab jusqu’à l’alignement voulu.", pDate.i);
   note("D", "Alignement par tabulations", 3, ptsD, comD.join(" ") || "Alignement à reprendre.");
 
@@ -1548,7 +1618,7 @@ async function traiter(file){
       return;
     }
     const police = lirePolice(xml, styles, theme);
-    const r = analyser(paragraphes, tableaux, police);
+    const r = analyser(paragraphes, tableaux, police, page);
     if(!r){ erreur("<b>Document vide.</b> Aucun texte n’a été trouvé dans ce fichier."); return; }
     afficher(r, file.name, { ...page, police, tableaux });
   }catch(err){
