@@ -158,7 +158,7 @@ ol.corrections li.remarque.vise{box-shadow:0 0 0 2px var(--filet)}
 .fac-wrap{position:relative;overflow:hidden;background:var(--gris-fond);border-radius:18px;padding:20px}
 .fac-scale{transform-origin:top left}
 .fac-page{font-variant-ligatures:none;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.08),0 12px 32px rgba(0,0,0,.10);color:var(--encre);text-align:left;letter-spacing:normal;word-spacing:normal}
-.fac-p{position:relative;white-space:pre-wrap;overflow-wrap:break-word;min-height:1em}
+.fac-p{position:relative;white-space:break-spaces;overflow-wrap:break-word;min-height:1em}
 .fac-tab{display:inline-block;overflow:hidden;white-space:pre;min-width:2px;vertical-align:baseline}
 .mk{color:var(--marque);font-weight:400}
 .mk.fin{display:inline-block;width:0;overflow:visible;white-space:pre}
@@ -604,7 +604,9 @@ function lirePolice(xmlDoc, xmlStyles, xmlTheme){
 const APOS = /[\u2018\u2019\u201B\u02BC\u0060\u00B4]/g;
 const INSEC = /[\u00A0\u202F\u2007\u2009]/g;
 
-const TOLERANCES = t => t.replace(/correctement,\s+et\b/i, "correctement et");
+const TOLERANCES = t => t
+  .replace(/correctement,\s+et\b/i, "correctement et")
+  .replace(/sporadiquement,\s+ce\b/i, "sporadiquement ce");
 function norm(s){
   return (s || "").normalize("NFC")
     .replace(APOS, "'")
