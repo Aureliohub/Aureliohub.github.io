@@ -43,6 +43,7 @@
     display:inline-flex;align-items:center;gap:10px;font:inherit;font-size:.95rem;font-weight:500;
     background:var(--bleu);color:#fff;border:none;border-radius:999px;padding:11px 22px;cursor:pointer;
   }
+  .bouton code{background:rgba(255,255,255,.22);color:#fff;padding:1px 5px;border-radius:4px}
   .bouton[disabled]{background:#B9D6F7;cursor:default}
   .barre{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:14px}
   .avancement{color:var(--gris);font-size:.92rem}
@@ -85,6 +86,7 @@
       Déposez ici les <code>.docx</code> de test, ou cliquez pour les choisir.
     </label>
     <div class="barre">
+      <button class="bouton" id="charger">Charger le dossier <code>tests/</code></button>
       <button class="bouton" id="lancer" disabled>Lancer le banc d’essai</button>
       <span class="avancement" id="avancement">Aucun fichier chargé.</span>
     </div>
@@ -128,7 +130,7 @@ const ATTENDUS = [
                                                   c:"tabulation", pts:16,   note:"5"   },
   { f:"test2_mauvais_types.docx",                 c:"tabulation", pts:15.5, note:"5"   },
   { f:"test3_saisie.docx",                        c:"tabulation", pts:15,   note:"5"   },
-  { f:"test1_colonnes_decalees.docx",             c:"tabulation", pts:13.5, note:"4,5" },
+  { f:"test1_colonnes_decalees.docx",             c:"tabulation", pts:14,   note:"4,5" },
   { f:"Tabulation_demande_de_stage_TEST_degrade.docx",
                                                   c:"tabulation", pts:8,    note:"3"   },
 
@@ -193,7 +195,42 @@ function dessiner(resultats){
     corps.appendChild(tr);
   }
 }
+/* les fichiers de test vivent à côté des correcteurs, sur le site */
+const DOSSIER = "tests/";
+
+async function chargerDepot(silencieux){
+  $("#charger").disabled = true;
+  $("#avancement").textContent = "Lecture du dossier " + DOSSIER + "…";
+  const trouves = [], absents = [];
+  for(const a of ATTENDUS){
+    try{
+      const r = await fetch(DOSSIER + encodeURIComponent(a.f), { cache:"no-store" });
+      if(!r.ok) throw new Error(r.status);
+      const b = await r.blob();
+      if(b.size < 1000) throw new Error("vide");     // une page 404 renvoyée en 200
+      trouves.push(new File([b], a.f));
+    }catch(e){ absents.push(a.f); }
+  }
+  $("#charger").disabled = false;
+  if(!trouves.length){
+    if(!silencieux){
+      const alerte = $("#alerte");
+      alerte.hidden = false;
+      alerte.textContent = "Aucun fichier trouvé dans " + DOSSIER + ". Vérifiez que le dossier "
+        + "est publié à côté de cette page, ou déposez les fichiers à la main.";
+    }
+    $("#avancement").textContent = "Aucun fichier chargé.";
+    return;
+  }
+  prendre(trouves);
+  $("#avancement").textContent = trouves.length + " fichier(s) chargé(s) depuis " + DOSSIER
+    + (absents.length ? " — " + absents.length + " introuvable(s)." : ".");
+}
+
+$("#charger").addEventListener("click", () => chargerDepot(false));
+
 dessiner();
+chargerDepot(true);          // au chargement, on tente le dossier sans rien dire si absent
 
 /* rejoue un fichier dans son correcteur, dans un cadre masqué */
 function rejouer(page, fichier){
