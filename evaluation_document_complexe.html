@@ -18,6 +18,7 @@
   --jaune:#FBE38E;         /* surligneur */
   --sans:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
   --lettre:Arial,"Liberation Sans",Helvetica,sans-serif;
+  --np:#9BA3B4;            /* caractères non imprimables */
 }
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
@@ -284,17 +285,32 @@ kbd{
   box-shadow:0 1px 3px rgba(0,0,0,.08),0 12px 32px rgba(0,0,0,.10);
   padding:20mm 20mm 16mm;width:210mm;
 }
-.ap-l{position:relative;margin:0 0 2.2mm}
-.ap-l .puce{position:absolute;left:-7mm;width:6mm;text-align:right;color:var(--encre);pointer-events:none}
+.ap-l{position:relative;margin:0 0 2.2mm;white-space:break-spaces;overflow-wrap:break-word;tab-size:8;-moz-tab-size:8}
+.ap-l .puce{display:inline-block;text-align:left;color:var(--encre);pointer-events:none}
+/* caractères non imprimables, toujours affichés comme dans Word */
+.np,.np-esp,.np-tab{color:var(--np);-webkit-user-select:none;user-select:none;
+  print-color-adjust:exact;-webkit-print-color-adjust:exact}
+.np{font-weight:400;font-style:normal;font-family:var(--sans)}
+.np-esp,.np-tab{position:relative}
+.np-esp::after,.np-tab::after{
+  position:absolute;top:0;color:var(--np);font-weight:400;font-style:normal;
+  text-decoration:none;pointer-events:none;
+  print-color-adjust:exact;-webkit-print-color-adjust:exact;
+}
+.np-esp::after{content:"·";left:0;right:0;text-align:center}
+.np-insec::after{content:"°";font-size:.8em}
+.legende-apercu .np-leg{color:var(--gris)}
+.legende-apercu .np-leg b{color:var(--np);font-weight:600}
+.np-tab::after{content:"→";left:0;font-family:var(--sans)}
 .ap-img{
   display:inline-flex;align-items:center;justify-content:center;border-radius:1mm;
   background:#ECECF0;color:var(--gris);font-family:var(--sans);font-size:3mm;margin:3mm 0;
   min-width:20mm;min-height:12mm;
 }
-.ap-tab{border-collapse:collapse;margin:3mm 0;width:100%}
-.ap-tab td{border:.3mm solid var(--encre);padding:.8mm 1.6mm;vertical-align:top}
+.ap-tab{border-collapse:collapse;margin:0 0 3mm;width:100%;table-layout:fixed}
+.ap-tab td{border:.3mm solid var(--encre);padding:0 1.9mm;vertical-align:top}
 .ap-num{
-  position:absolute;left:-19mm;top:-.4mm;width:18mm;display:flex;justify-content:flex-end;gap:.7mm;
+  position:absolute;left:calc(0mm - var(--gouttiere,19mm));top:-.4mm;width:18mm;display:flex;justify-content:flex-end;gap:.7mm;
   font-family:var(--sans);font-size:3.2mm;color:var(--revision);font-weight:600;line-height:1;z-index:3;
 }
 .ap-num span{
@@ -637,6 +653,21 @@ function lireParagraphes(xml, defaultTab){
         if(!e) return null;
         return { l: (+e.getAttribute("cx") || 0) / 36000, h: (+e.getAttribute("cy") || 0) / 36000 };
       })(),
+      ancre: (() => {                       // image ancrée : position posée à la main
+        const WP = "http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing";
+        const a = p.getElementsByTagNameNS(WP, "anchor")[0];
+        if(!a) return null;
+        const pos = nom => {
+          const e = a.getElementsByTagNameNS(WP, nom)[0];
+          if(!e) return null;
+          const off = e.getElementsByTagNameNS(WP, "posOffset")[0];
+          const al  = e.getElementsByTagNameNS(WP, "align")[0];
+          return { mm: off ? (parseInt(off.textContent, 10) || 0) / 36000 : null,
+                   align: al ? (al.textContent || "").trim() : null,
+                   depuis: e.getAttribute("relativeFrom") || "" };
+        };
+        return { h: pos("positionH"), v: pos("positionV") };
+      })(),
       cellule: ancetres(p, body).includes("tc"),
       place: (() => {                       // position dans le tableau : ligne / colonne
         let tc = p.parentNode;
@@ -645,8 +676,13 @@ function lireParagraphes(xml, defaultTab){
         const tr = tc.parentNode, tbl = tr.parentNode;
         const lignes = [...tbl.children].filter(x => x.localName === "tr");
         const cases  = [...tr.children].filter(x => x.localName === "tc");
+        const grille = tbl.getElementsByTagNameNS(W, "tblGrid")[0];
+        const largeurs = grille
+          ? [...grille.children].filter(c => c.localName === "gridCol").map(c => num(c, "w", 0))
+          : null;
         return { ligne: lignes.indexOf(tr), colonne: cases.indexOf(tc),
-                 nbLignes: lignes.length, nbColonnes: cases.length };
+                 nbLignes: lignes.length, nbColonnes: cases.length,
+                 largeurs: (largeurs && largeurs.some(x => x > 0)) ? largeurs : null };
       })()
     });
   }
@@ -1151,7 +1187,7 @@ function analyser(paras, page, police, formats){
   corr.sort((a, b) => (a.cible ? rang.get(a.cible) : 1e6) - (b.cible ? rang.get(b.cible) : 1e6));
 
   const total = BAREME.reduce((s, x) => s + res[x.c], 0);
-  return { res, total, corr, remarques, lignes, page, police, formats };
+  return { res, total, corr, remarques, lignes, tous: paras, page, police, formats };
 }
 
 /* =========================================================
@@ -1160,22 +1196,85 @@ function analyser(paras, page, police, formats){
 const $ = id => document.getElementById(id);
 const echapper = s => s.replace(/[&<>]/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;" }[c]));
 
+/* marques de Word pour les caractères non imprimables : un seul passage,
+   sinon la deuxième substitution frappe les espaces du balisage produit */
+const marquerBlancs = h => h.replace(/[ \t\n\u00A0]/g, c =>
+    c === " "  ? '<span class="np-esp"> </span>'
+  : c === "\t" ? '<span class="np-tab">\t</span>'
+  : c === "\n" ? '<span class="np">\u21B5</span>\n'
+  :              '<span class="np-esp np-insec">\u00A0</span>');
+
 const texteMarque = p => {
-  if(!p.marques) return echapper(p.texte);
+  if(!p.marques) return marquerBlancs(echapper(p.texte));
   let h = "";
   for(const o of p.marques){
-    if(o.t === "=")                          h += echapper(o.c);
-    else if(o.t === "+" || o.t === "sub")    h += '<span class="ap-faux">' + echapper(o.c) + '</span>';
+    if(o.t === "=")                          h += marquerBlancs(echapper(o.c));
+    else if(o.t === "+" || o.t === "sub")    h += '<span class="ap-faux">' + marquerBlancs(echapper(o.c)) + '</span>';
     else if(!estBlanc(o.c))                  h += '<span class="caret"></span>';
   }
   return h;
 };
 
+/* ---------- géométrie : le document tel qu'il est, pas un gabarit ---------- */
+const PT_MM = 0.35278, TW_MM = 56.6929;          // point et twip, en millimètres
+const pileFont = nom => {
+  const n = (nom || "").toLowerCase();
+  const q = (nom || "Arial").replace(/['"\\]/g, "");     // le style est un attribut HTML
+  if(/times|garamond|georgia|cambria|serif/.test(n)) return `'${q}',Cambria,Georgia,serif`;
+  if(/courier|consolas|mono/.test(n))               return `'${q}',Menlo,Consolas,monospace`;
+  if(/calibri|carlito/.test(n))                     return `'${q}',Carlito,'Segoe UI',-apple-system,sans-serif`;
+  return `'${q}',Arial,'Liberation Sans',Helvetica,sans-serif`;
+};
+
 function apercu(r){
-  const ptmm = 0.35278;
+  const ptmm = PT_MM;
+  const pg = r.page || {};
+  const lgPage = (pg.pgW || 11906) / TW_MM;
+  const mg = { g:(pg.gauche || 1417) / TW_MM, d:(pg.droite || 1417) / TW_MM,
+               h:(pg.haut || 1417) / TW_MM,   b:(pg.bas || 1417) / TW_MM };
+  const pol = r.police || {};
+  const apresDefaut = (pol.apres == null ? 160 : pol.apres) / 20 * ptmm;   // en mm
+  const interDefaut = pol.interligne || 1.15;
+  const tailleDefaut = pol.tailleBase || 11;
+
+  /* un paragraphe, cellule ou non : mêmes règles de rendu */
+  const paraHTML = (p, dedans) => {
+    const s = styleP(p);
+    const f = r.formats.get(p.numero ? p.numero.id : null);
+    const taille = s.taille || tailleDefaut;
+    const avant = (p.avant || 0) / 20 * ptmm;
+    const apres = (p.apres == null ? (dedans ? 0 : apresDefaut) : p.apres / 20 * ptmm);
+    const inter = p.interligne || interDefaut;
+    let retrait = (p.ind || 0) / TW_MM;
+    let premiere = (p.indP || 0) / TW_MM;
+    if(p.numero && !p.ind){ retrait = 12.7; premiere = -6.35; }   // liste sans retrait déclaré
+    const largeurPuce = premiere < 0 ? -premiere : 6;
+    let puce = "";
+    if(p.numero){
+      if(f === "bullet") puce = "\u2022";
+      else { const k = p.numero.id; compteurs[k] = (compteurs[k] || 0) + 1; puce = compteurs[k] + "."; }
+    }
+    if(p.marques) aFaux = true;
+    return `<p class="ap-l" style="`
+      + (s.couleur ? `color:#${s.couleur};` : "")
+      + `font-family:${pileFont(s.police || pol.nomBase)};`
+      + `font-size:${(taille * ptmm).toFixed(3)}mm;`
+      + `line-height:${inter};`
+      + `font-weight:${s.gras ? 700 : 400};`
+      + `font-style:${s.ital ? "italic" : "normal"};`
+      + `text-decoration:${s.souligne ? "underline" : "none"};`
+      + `text-align:${p.jc === "center" ? "center" : (p.jc === "right" ? "right" : (p.jc === "both" ? "justify" : "left"))};`
+      + `margin:${avant.toFixed(2)}mm 0 ${apres.toFixed(2)}mm ${retrait.toFixed(2)}mm;`
+      + `text-indent:${premiere.toFixed(2)}mm">`
+      + (p.numeros && p.numeros.length ? `<i class="ap-num">${p.numeros.map(n=>'<span data-n="'+n+'">'+n+"</span>").join("")}</i>` : "")
+      + (puce ? `<span class="puce" style="width:${largeurPuce.toFixed(2)}mm">${puce}</span>` : "")
+      + texteMarque(p)
+      + `<span class="np">\u00B6</span></p>`;
+  };
+
   let html = "", aFaux = false, i = 0;
   const compteurs = {};
-  const lignes = r.lignes;
+  const lignes = r.tous || r.lignes;
 
   while(i < lignes.length){
     const p = lignes[i];
@@ -1190,24 +1289,15 @@ function apercu(r){
         const l = c.place ? c.place.ligne : 0, k = c.place ? c.place.colonne : 0;
         if(cases[l] && cases[l][k]) cases[l][k].push(c);
       }
-      let t = '<table class="ap-tab">';
+      const lg = bloc[0].place && bloc[0].place.largeurs;
+      const totalmm = lg ? lg.reduce((a, b) => a + b, 0) / TW_MM : 0;
+      let t = `<table class="ap-tab" style="width:${totalmm ? totalmm.toFixed(2) + "mm" : "100%"}">`;
+      if(lg) t += "<colgroup>" + lg.map(w => `<col style="width:${(w / TW_MM).toFixed(2)}mm">`).join("") + "</colgroup>";
       for(const ligne of cases){
         t += "<tr>";
         for(const contenu of ligne){
           t += "<td>";
-          for(const c of contenu){
-            const s = styleP(c);
-            const f = r.formats.get(c.numero ? c.numero.id : null);
-            if(c.marques) aFaux = true;
-            t += `<p class="ap-l" style="margin:0 0 .6mm ${c.numero ? 5 : 0}mm;`
-               + (s.couleur ? `color:#${s.couleur};` : "")
-               + `font-size:${(s.taille || 11) * ptmm}mm;font-weight:${s.gras ? 700 : 400};`
-               + `font-style:${s.ital ? "italic" : "normal"};`
-               + `text-decoration:${s.souligne ? "underline" : "none"}">`
-               + (c.numeros && c.numeros.length ? `<i class="ap-num">${c.numeros.map(n=>'<span data-n="'+n+'">'+n+"</span>").join("")}</i>` : "")
-               + (f === "bullet" ? '<span class="puce">•</span>' : "")
-               + texteMarque(c) + `</p>`;
-          }
+          for(const c of contenu) t += paraHTML(c, true);
           t += "</td>";
         }
         t += "</tr>";
@@ -1222,38 +1312,35 @@ function apercu(r){
       const dedans = r.imageURL
         ? `<img src="${r.imageURL}" alt="" style="width:${t.l}mm;height:${t.h}mm">`
         : "image insérée";
-      html += `<div class="ap-l" style="text-align:${p.jc === "center" ? "center" : "left"}">`
+      const a = p.ancre;
+      let cale = 0, haut = 0;
+      let cadrage = p.jc === "center" ? "center" : (p.jc === "right" ? "right" : "left");
+      if(a && a.h){
+        if(a.h.align) cadrage = a.h.align === "center" ? "center" : (a.h.align === "right" ? "right" : "left");
+        else if(a.h.mm != null){ cale = a.h.mm - (a.h.depuis === "page" ? mg.g : 0); cadrage = "left"; }
+      }
+      if(a && a.v && a.v.mm != null) haut = Math.max(0, a.v.mm);
+      html += `<div class="ap-l" style="margin:${haut.toFixed(2)}mm 0 ${apresDefaut.toFixed(2)}mm ${Math.max(0, cale).toFixed(2)}mm;`
+            + `text-align:${cadrage}">`
             + (p.numeros && p.numeros.length ? `<i class="ap-num">${p.numeros.map(n=>'<span data-n="'+n+'">'+n+"</span>").join("")}</i>` : "")
-            + `<span class="ap-img">${dedans}</span></div>`;
+            + `<span class="ap-img">${dedans}</span><span class="np">\u00B6</span></div>`;
       continue;
     }
 
-    const s = styleP(p);
-    const f = r.formats.get(p.numero ? p.numero.id : null);
-    if(p.marques) aFaux = true;
-    let puce = "";
-    if(p.numero){
-      if(f === "bullet") puce = "•";
-      else { const k = p.numero.id; compteurs[k] = (compteurs[k] || 0) + 1; puce = compteurs[k] + "."; }
-    }
-    html += `<p class="ap-l" style="`
-          + (s.couleur ? `color:#${s.couleur};` : "")
-          + `font-size:${(s.taille || 11) * ptmm}mm;`
-          + `line-height:1.35;`
-          + `font-weight:${s.gras ? 700 : 400};`
-          + `font-style:${s.ital ? "italic" : "normal"};`
-          + `text-decoration:${s.souligne ? "underline" : "none"};`
-          + `text-align:${p.jc === "center" ? "center" : (p.jc === "right" ? "right" : "left")};`
-          + `margin-left:${p.numero ? 8 : 0}mm">`
-          + (p.numeros && p.numeros.length ? `<i class="ap-num">${p.numeros.map(n=>'<span data-n="'+n+'">'+n+"</span>").join("")}</i>` : "")
-          + (puce ? `<span class="puce">${puce}</span>` : "")
-          + (texteMarque(p) || "&nbsp;") + `</p>`;
+    html += paraHTML(p, false);
   }
 
   const legende = '<span>Ce qui est à corriger est <span class="ex">surligné</span> ; '
                 + 'un <span class="cr">V</span> marque un mot ou un signe oublié ; '
-                + 'les numéros en marge renvoient aux corrections numérotées.</span>';
-  return { html: `<div class="apercu-page">${html}</div>`, legende };
+                + 'les numéros en marge renvoient aux corrections numérotées.</span>'
+                + ' <span class="np-leg">Les caractères non imprimables sont affichés : '
+                + '<b>¶</b> paragraphe, <b>·</b> espace, <b>→</b> tabulation.</span>';
+  const style = `--gouttiere:${Math.min(19, Math.max(5, mg.g - 3)).toFixed(1)}mm;`
+              + `width:${lgPage.toFixed(1)}mm;`
+              + `padding:${mg.h.toFixed(1)}mm ${mg.d.toFixed(1)}mm ${mg.b.toFixed(1)}mm ${mg.g.toFixed(1)}mm;`
+              + `font-family:${pileFont(pol.nomBase)};`
+              + `font-size:${(tailleDefaut * ptmm).toFixed(3)}mm;line-height:${interDefaut}`;
+  return { html: `<div class="apercu-page" style="${style}">${html}</div>`, legende };
 }
 
 function ajusterEchelle(){
@@ -1270,8 +1357,8 @@ window.addEventListener("resize", ajusterEchelle);
 
 function reglesImpression(largeurPx, hauteurPx){
   const mmPx = v => v * 96 / 25.4;
-  const paliers = [[null, 170, 138], [200, 160, 131], [190, 150, 124],
-                   [180, 140, 118], [170, 130, 111], [160, 120, 104]];
+  const paliers = [[null, 170, 120], [200, 160, 114], [190, 150, 108],
+                   [180, 140, 102], [170, 130,  96], [160, 120,  90]];
   return paliers.map(([lim, lmm, hmm]) => {
     const f = Math.min(mmPx(lmm) / largeurPx, mmPx(hmm) / hauteurPx);
     return "@media print" + (lim ? " and (max-width:" + lim + "mm)" : "") + "{" +
