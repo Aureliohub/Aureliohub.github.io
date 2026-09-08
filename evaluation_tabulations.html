@@ -284,7 +284,18 @@ kbd{
   box-shadow:0 1px 3px rgba(0,0,0,.08),0 12px 32px rgba(0,0,0,.10);
 }
 .apercu-ligne{position:relative}
-.apercu-ligne.plein{white-space:normal;position:relative}
+.apercu-ligne.plein{white-space:break-spaces;overflow-wrap:break-word;position:relative}
+/* marques de mise en forme, toujours affichées comme dans Word */
+.mk{color:var(--marque);font-weight:400;font-style:normal;
+  -webkit-user-select:none;user-select:none;
+  print-color-adjust:exact;-webkit-print-color-adjust:exact}
+.mk-pos{position:absolute;top:0}
+.mk-esp{position:relative}
+.mk-esp::after{
+  content:"·";position:absolute;left:0;right:0;top:0;text-align:center;
+  color:var(--marque);pointer-events:none;
+  print-color-adjust:exact;-webkit-print-color-adjust:exact;
+}
 .seg{position:absolute;top:0;white-space:pre}
 .suite{position:absolute;top:0;overflow:hidden;white-space:nowrap;color:var(--encre)}
 .suite.absente{
@@ -929,10 +940,21 @@ function apercu(r){
   const defTab = (page.taquet || 708) / TW;
 
   const cv = document.createElement("canvas").getContext("2d");
+  const famille = (() => {                       // la police du document, pas Arial en dur
+    const n = (r.police.nomBase || r.police.nom || "Arial");
+    const b = n.toLowerCase();
+    if(/times|garamond|georgia|cambria/.test(b)) return `"${n}",Cambria,Georgia,serif`;
+    if(/courier|consolas|mono/.test(b))          return `"${n}",Menlo,Consolas,monospace`;
+    if(/calibri|carlito/.test(b))                return `"${n}",Carlito,"Segoe UI",sans-serif`;
+    return `"${n}",Arial,"Liberation Sans",Helvetica,sans-serif`;
+  })();
   const mesure = (txt, gras) => {
-    cv.font = (gras ? "bold " : "") + (corps / ptmm) + "pt Arial";
+    cv.font = (gras ? "bold " : "") + (corps / ptmm) + "pt " + famille;
     return cv.measureText(txt).width / 3.7795;          // px (96 dpi) → mm
   };
+
+  /* un seul passage : sinon la deuxième substitution frappe le balisage produit */
+  const marquerBlancs = h => h.replace(/[ \u00A0]/g, () => '<span class="mk-esp"> </span>');
 
   let html = "", y = 0, aOK = false, aKO = false, aSuite = false;
   const hauteurLigne = corps * 1.25;
@@ -967,12 +989,13 @@ function apercu(r){
       const marge = (p.apres === null || p.apres === undefined ? 0 : p.apres / 20 * ptmm);
       html += `<div class="apercu-ligne plein" style="margin-left:${mgG}mm;width:${zone}mm;`
             + `margin-bottom:${marge}mm;font-size:${corps}mm;line-height:${hauteurLigne}mm;`
-            + `font-weight:${gras ? 600 : 400}">${num}${echapper(p.texte)}</div>`;
+            + `font-weight:${gras ? 600 : 400}">${num}${marquerBlancs(echapper(p.texte))}`
+            + `<span class="mk">\u00B6</span></div>`;
       y += hauteurLigne * Math.max(1, Math.ceil(mesure(p.texte, gras) / zone)) + marge;
       continue;
     }
     let x = 0, ligne = "", marques = "";
-    ligne += `<span class="seg" style="left:0">${echapper(segs[0])}</span>`;
+    ligne += `<span class="seg" style="left:0">${marquerBlancs(echapper(segs[0]))}</span>`;
     x = mesure(segs[0], gras);
 
     for(let i = 1; i < segs.length; i++){
@@ -1011,11 +1034,13 @@ function apercu(r){
           ligne += `<span class="suite absente" style="left:${x}mm;width:${larg}mm">&nbsp;</span>`;
         }
       }
-      ligne += `<span class="seg" style="left:${debut}mm">${echapper(s)}</span>`;
+      ligne += `<span class="mk mk-pos" style="left:${x}mm">\u2192</span>`;
+      ligne += `<span class="seg" style="left:${debut}mm">${marquerBlancs(echapper(s))}</span>`;
       if(poseOK) aOK = true; else aKO = true;
       marques += `<i class="marque-taquet ${poseOK ? "ok" : "ko"}" style="left:${cible}mm"></i>`;
       x = debut + l;
     }
+    ligne += `<span class="mk mk-pos" style="left:${x}mm">\u00B6</span>`;
 
     const h = hauteurLigne + (p.apres === null || p.apres === undefined ? 0 : p.apres / 20 * ptmm);
     html += `<div class="apercu-ligne" style="margin-left:${mgG}mm;width:${zone}mm;height:${h}mm;`
@@ -1024,14 +1049,16 @@ function apercu(r){
     y += h;
   }
 
-  const hautPage = Math.max(297, mgH + y + 20);
+  const hautPage = Math.min(297, Math.max(120, mgH + y + 20));
   const legende = [];
   if(aOK)    legende.push('<span><i class="ok">▏</i> taquet correct</span>');
   if(aKO)    legende.push('<span><i class="ko">▏</i> taquet erroné, absent ou par défaut</span>');
   if(aSuite) legende.push('<span><i class="jn">points</i> points de suite manquants</span>');
+  legende.push('<span><i style="color:var(--marque)">¶ · →</i> marques de mise en forme, toujours affichées</span>');
   return {
     legende: legende.join(""),
-    html: `<div class="apercu-page" style="width:${largeur}mm;height:${hautPage}mm;padding-top:${mgH}mm">${regle}${html}</div>`
+    html: `<div class="apercu-page" style="width:${largeur}mm;height:${hautPage}mm;padding-top:${mgH}mm;`
+        + `font-family:${famille.replace(/"/g, "'")}">${regle}${html}</div>`
   };
 }
 

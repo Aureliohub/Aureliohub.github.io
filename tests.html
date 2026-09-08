@@ -112,7 +112,7 @@
    note = note sur 6 ; points = points sur 20. */
 const CORRECTEURS = {
   complexe:   { page:"evaluation_document_complexe.html",     lib:"Document complexe" },
-  tabulation: { page:"evaluation_formulaire_tabulations.html", lib:"Formulaire à taquets" },
+  tabulation: { page:"evaluation_tabulations.html",           lib:"Formulaire à taquets" },
   lettre:     { page:"evaluation_lettre_reclamation.html",     lib:"Lettre de réclamation" }
 };
 
@@ -210,7 +210,7 @@ function rejouer(page, fichier){
       try { d = cadre.contentDocument; }
       catch(e){ clearTimeout(minuteur); return rendre({ erreur:"cadre inaccessible" }); }
       const entree = d.getElementById("fichier");
-      if(!entree){ clearTimeout(minuteur); return rendre({ erreur:"page inattendue" }); }
+      if(!entree){ clearTimeout(minuteur); return rendre({ erreur:"page absente : " + page }); }
 
       const dt = new DataTransfer();
       dt.items.add(fichier);
@@ -226,8 +226,9 @@ function rejouer(page, fichier){
         const m = p.textContent.match(/([\d,\.]+)\s*\/\s*20/);
         if(!m) return null;
         const n = d.querySelector(".note");
+        const mn = n && n.textContent.match(/\d+(?:[,.]\d+)?/);
         return { pts: parseFloat(m[1].replace(",", ".")),
-                 note: n ? n.textContent.trim().split(/\s/)[0] : "?" };
+                 note: mn ? mn[0] : "?" };
       };
       const debut = Date.now();
       const guet = setInterval(() => {
