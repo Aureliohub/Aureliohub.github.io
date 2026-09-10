@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="fr-CH">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vrai ou faux ? Repérer un message frauduleux</title>
+<style>
+:root{
+  --bleu:#1b3a6b;
+  --bleu-clair:#e8eef7;
+  --magenta:#b5007a;
+  --vert:#1f7a45;
+  --vert-clair:#e6f4ec;
+  --rouge:#b3261e;
+  --rouge-clair:#fbeae9;
+  --gris:#6b7280;
+  --gris-clair:#f4f5f7;
+  --trait:#d5d9e0;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;
+  font-family:"Avenir Next","Segoe UI",Corbel,"Helvetica Neue",Arial,sans-serif;
+  font-size:17px;
+  line-height:1.5;
+  color:#1a1a1a;
+  background:#fff;
+}
+.wrap{max-width:940px;margin:0 auto;padding:0 20px 60px}
+
+/* ---------- en-tête ---------- */
+header{background:var(--bleu);color:#fff;padding:26px 0 22px;margin-bottom:26px}
+header .wrap{padding-bottom:0}
+h1{margin:0 0 6px;font-size:28px;letter-spacing:.2px}
+.sstitre{margin:0;font-size:16px;color:#c9d4e6}
+.consigne{
+  background:var(--bleu-clair);
+  border-left:6px solid var(--bleu);
+  padding:14px 18px;margin:0 0 28px;border-radius:0 6px 6px 0;
+}
+.consigne p{margin:0 0 8px}
+.consigne p:last-child{margin:0}
+
+/* ---------- barre de score ---------- */
+.barre{
+  position:sticky;top:0;z-index:20;
+  background:#fff;border-bottom:2px solid var(--trait);
+  padding:10px 0;margin-bottom:22px;
+}
+.barre .wrap{padding-bottom:0;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.jauge{flex:1 1 200px;height:12px;background:var(--gris-clair);border-radius:6px;overflow:hidden;min-width:140px}
+.jauge span{display:block;height:100%;width:0;background:var(--bleu);transition:width .3s}
+.score{font-weight:700;color:var(--bleu);white-space:nowrap}
+.score small{font-weight:400;color:var(--gris)}
+
+/* ---------- carte message ---------- */
+.carte{border:2px solid var(--trait);border-radius:10px;padding:18px 20px 20px;margin-bottom:26px;background:#fff}
+.carte.repondu{border-color:var(--bleu)}
+.entete{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.num{
+  width:34px;height:34px;flex:0 0 34px;border-radius:4px;background:var(--bleu);
+  color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center;font-size:17px;
+}
+.canal{
+  font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;
+  color:var(--bleu);background:var(--bleu-clair);padding:4px 10px;border-radius:12px;
+}
+
+/* ---------- rendu des messages ---------- */
+.msg{background:var(--gris-clair);border:1px solid var(--trait);border-radius:8px;padding:14px 16px;font-size:16px}
+.msg .champ{display:flex;gap:8px;padding:3px 0;border-bottom:1px solid var(--trait)}
+.msg .champ:last-of-type{border-bottom:0;margin-bottom:8px}
+.msg .cle{color:var(--gris);min-width:78px;flex:0 0 78px}
+.msg .val{word-break:break-word}
+.msg .corps{white-space:pre-line;padding-top:10px;border-top:1px solid var(--trait)}
+.msg .lien{color:#1a55b0;text-decoration:underline;word-break:break-all}
+.masque{position:relative;display:inline-block}
+.masque .decl{
+  font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer;
+  border-bottom:1px dotted var(--gris);
+}
+.masque .decl .chev{
+  display:inline-block;margin-left:5px;font-size:11px;color:#fff;background:var(--gris);
+  border-radius:3px;padding:0 4px;line-height:15px;vertical-align:2px;
+}
+.masque .decl.lien-txt{color:#1a55b0;text-decoration:underline;border-bottom:0}
+.masque .infobulle{
+  display:none;position:absolute;z-index:30;left:0;top:100%;margin-top:5px;
+  background:#333;color:#fff;font-size:14px;line-height:1.35;padding:8px 11px;border-radius:6px;
+  width:max-content;max-width:min(330px, calc(100vw - 24px));word-break:break-all;
+  box-shadow:0 3px 10px rgba(0,0,0,.28);
+}
+.masque.ouvert .infobulle{display:block}
+.msg.sms,.msg.wa{background:#fff;border:0;padding:0}
+.msg.sms .bulle,.msg.wa .bulle{
+  background:var(--bleu-clair);border-radius:14px 14px 14px 4px;padding:12px 14px;
+  max-width:600px;white-space:pre-line;
+}
+.msg.wa .bulle{background:#e7f3e2}
+.msg .exp{font-size:14px;color:var(--gris);margin-bottom:6px}
+
+/* ---------- réponses ---------- */
+.question{margin:18px 0 8px;font-weight:600}
+.verdicts{display:flex;gap:12px;flex-wrap:wrap}
+.verdicts button{
+  flex:1 1 220px;padding:14px 16px;font-size:17px;font-family:inherit;font-weight:600;
+  border:2px solid var(--trait);background:#fff;border-radius:8px;cursor:pointer;color:#1a1a1a;
+}
+.verdicts button:hover{border-color:var(--bleu);background:var(--bleu-clair)}
+.verdicts button.choisi{border-color:var(--bleu);background:var(--bleu);color:#fff}
+.verdicts button[disabled]{cursor:default;opacity:.55}
+.verdicts button.choisi[disabled]{opacity:1}
+
+.indices{margin-top:16px}
+.indices .titre{font-size:15px;color:var(--gris);margin-bottom:8px}
+.puces{display:flex;flex-wrap:wrap;gap:8px}
+.puce{
+  padding:9px 14px;border:2px solid var(--trait);border-radius:20px;background:#fff;
+  font-size:15px;font-family:inherit;cursor:pointer;color:#1a1a1a;
+}
+.puce:hover{border-color:var(--bleu)}
+.puce.on{background:var(--bleu-clair);border-color:var(--bleu);color:var(--bleu);font-weight:600}
+.puce[disabled]{cursor:default}
+.puce.juste{background:var(--vert-clair);border-color:var(--vert);color:var(--vert);font-weight:600}
+.puce.manque{border-color:var(--magenta);color:var(--magenta);background:#fff;font-weight:400}
+.puce.trop{border-color:var(--rouge);color:var(--rouge);background:var(--rouge-clair);font-weight:400}
+.puce.discutable{border-color:var(--gris);color:var(--gris);background:var(--gris-clair);font-weight:400}
+
+.valider{
+  margin-top:16px;padding:12px 26px;font-size:16px;font-family:inherit;font-weight:600;
+  background:var(--bleu);color:#fff;border:0;border-radius:8px;cursor:pointer;
+}
+.valider[disabled]{background:var(--trait);color:var(--gris);cursor:default}
+
+.retour{margin-top:16px;padding:14px 16px;border-radius:8px;display:none}
+.retour.vu{display:block}
+.retour.juste{background:var(--vert-clair);border-left:6px solid var(--vert)}
+.retour.faux{background:var(--rouge-clair);border-left:6px solid var(--rouge)}
+.retour .verdict{font-weight:700;margin-bottom:6px}
+.retour.juste .verdict{color:var(--vert)}
+.retour.faux .verdict{color:var(--rouge)}
+.retour p{margin:0 0 6px}
+.retour .cles{font-size:15px;color:var(--magenta);margin:0}
+
+/* ---------- bilan ---------- */
+.bilan{display:none;border:3px solid var(--bleu);border-radius:10px;padding:22px 24px;margin-top:34px}
+.bilan.vu{display:block}
+.bilan h2{margin:0 0 10px;color:var(--bleu);font-size:22px}
+.gros{font-size:34px;font-weight:700;color:var(--bleu);margin-right:10px}
+.rappel{background:var(--bleu-clair);border-radius:10px;padding:20px 24px;margin-top:34px}
+.rappel h2{margin:0 0 12px;color:var(--bleu);font-size:20px}
+.rappel ol{margin:0;padding-left:22px}
+.rappel li{margin-bottom:6px}
+.rappel li b{color:var(--bleu)}
+.recommencer{
+  margin-top:18px;padding:11px 22px;font-size:16px;font-family:inherit;
+  background:#fff;color:var(--bleu);border:2px solid var(--bleu);border-radius:8px;cursor:pointer;
+}
+footer{margin-top:40px;padding-top:14px;border-top:1px solid var(--trait);font-size:14px;color:var(--gris);display:flex;justify-content:space-between}
+
+/* enveloppe d'impression : neutre à l'écran */
+.feuille,.feuille thead,.feuille tbody,.feuille tfoot,.feuille tr,.feuille td{display:block;width:auto}
+.marge{display:none}
+
+/* ---------- écrans étroits ---------- */
+@media (max-width:600px){
+  body{font-size:16px}
+  .wrap{padding:0 14px 40px}
+  h1{font-size:22px}
+  .carte{padding:14px 14px 16px}
+  .msg{padding:12px}
+  .msg .cle{min-width:62px;flex:0 0 62px}
+  .verdicts button{flex:1 1 100%;padding:16px}
+  .puce{width:100%;text-align:left}
+  .outils button{flex:1 1 100%}
+}
+
+/* ---------- outils d'impression ---------- */
+.outils{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
+.outils button{
+  font-family:inherit;font-size:14px;padding:8px 14px;border-radius:6px;cursor:pointer;
+  background:transparent;color:#fff;border:1px solid rgba(255,255,255,.55);
+}
+.outils button:hover{background:rgba(255,255,255,.15)}
+.papier-ref,.corrige{display:none}
+
+</style>
+<style id="css-papier" media="print">
+/* ---------- version papier ---------- */
+
+/* marges portées par le document : le rendu ne dépend plus du menu
+   « Marges » du navigateur, « Aucune » et « Par défaut » donnent la même page */
+@page{size:A4;margin:0}
+body{padding:0 12mm 0 20mm}
+.feuille{display:table;width:100%}
+.feuille thead{display:table-header-group}
+.feuille tfoot{display:table-footer-group}
+.feuille tbody{display:table-row-group}
+.feuille tr{display:table-row}
+.feuille td{display:table-cell;padding:0}
+.marge{display:block;height:14mm}
+header{margin-top:14mm}
+body{font-size:11pt;line-height:1.35}
+header{background:#fff;color:#000;border-bottom:2px solid var(--bleu);padding:0 0 6px;margin-bottom:10px}
+h1{font-size:17pt;color:var(--bleu)}
+.sstitre{color:#444}
+.barre,.verdicts,.valider,.retour,.bilan,.recommencer,.indices,footer{display:none !important}
+.wrap{max-width:none;padding:0}
+.consigne{margin-bottom:10px;padding:8px 12px}
+.carte{break-inside:avoid;page-break-inside:avoid;border:1px solid #999;margin-bottom:8px;padding:8px 12px}
+.entete{margin-bottom:8px}
+.num{background:#fff;color:var(--bleu);border:2px solid var(--bleu);width:28px;height:28px;flex:0 0 28px;font-size:14px}
+.msg{background:#fff;padding:8px 12px}
+.msg .corps{padding-top:6px}
+.msg.sms .bulle,.msg.wa .bulle{background:#fff;border:1px solid #999;max-width:none}
+.masque .decl .chev{display:none}
+.masque .infobulle{
+  display:inline;position:static;background:#fff;color:#000;box-shadow:none;
+  padding:0 0 0 5px;font-size:9.5pt;max-width:none;width:auto;
+}
+.masque .infobulle::before{content:"< "}
+.masque .infobulle::after{content:" >"}
+.question{margin:10px 0 0}
+.question::after{white-space:pre;content:"\00a0\00a0☐ Légitime\00a0\00a0\00a0☐ Frauduleux\00a0\00a0\00a0Indices n° : ..........................";font-weight:400}
+.rappel{background:#fff;border:1px solid #999;break-before:page}
+.outils,.ecran-seul{display:none !important}
+.papier-ref{display:block;border:1px solid #999;border-left:4px solid var(--bleu);padding:8px 12px;margin-bottom:10px;font-size:9.5pt}
+.papier-ref p{margin:0 0 5px}
+.papier-ref p:last-child{margin:0}
+.nom-date{font-size:10.5pt}
+body.avec-corrige .consigne,
+body.avec-corrige .papier-ref,
+body.avec-corrige #cartes,
+body.avec-corrige .rappel{display:none !important}
+body.avec-corrige .corrige{display:block}
+.corrige h2{font-size:14pt;color:var(--bleu);margin:0 0 4px}
+.corrige .intro{font-size:9.5pt;margin:0 0 10px}
+.corrige table{width:100%;border-collapse:collapse;font-size:9pt}
+.corrige th,.corrige td{border:1px solid #999;padding:4px 6px;text-align:left;vertical-align:top}
+.corrige th{background:#eee}
+.corrige tr{break-inside:avoid}
+.corrige .v-f{color:var(--rouge);font-weight:700}
+.corrige .v-l{color:var(--vert);font-weight:700}
+.corrige .cache{font-size:8pt;word-break:break-all;color:#333}
+/* ---------- pagination pilotée par les boutons ---------- */
+body.pagine{padding:0}
+body.pagine .marge{display:none}
+body.pagine > header,body.pagine > .barre,body.pagine > .wrap{display:none}
+body.pagine .rappel{break-before:auto;page-break-before:auto}
+.page{
+  position:relative;height:296mm;overflow:hidden;box-sizing:border-box;
+  padding:15mm 12mm 16mm 20mm;break-after:page;page-break-after:always;
+}
+.page:last-child{break-after:auto;page-break-after:auto}
+.page > header{margin-top:0;margin-bottom:8px}
+.page > *:last-child{margin-bottom:0}
+.numero{
+  position:absolute;left:20mm;right:12mm;bottom:8mm;
+  border-top:1px solid #d5d9e0;padding-top:2mm;
+  font-size:8.5pt;color:#6b7280;display:flex;justify-content:space-between;
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <h1>Vrai ou faux&nbsp;? La boîte mail piégée</h1>
+    <p class="sstitre">Sécurité digitale — séance 5 · Éviter les fraudes · PAI</p>
+    <div class="outils">
+      <button onclick="imprimer(false)">Imprimer la fiche élève</button>
+      <button id="btnCorrige" hidden onclick="imprimer(true)">Imprimer le corrigé</button>
+    </div>
+  </div>
+</header>
+
+<div class="barre">
+  <div class="wrap">
+    <div class="jauge"><span id="jauge"></span></div>
+    <div class="score" id="score">0 / 10 <small>· 0 message traité</small></div>
+  </div>
+</div>
+
+<div class="wrap">
+<table class="feuille"><thead><tr><td><span class="marge"></span></td></tr></thead>
+<tfoot><tr><td><span class="marge"></span></td></tr></tfoot>
+<tbody><tr><td>
+
+  <div class="consigne">
+    <p><b>À deux.</b> Pour chaque message&nbsp;: décidez s'il est <b>légitime</b> (on peut lui faire confiance) ou <b>frauduleux</b> (quelqu'un cherche à nous tromper).</p>
+    <p class="ecran-seul"><b>Le nom affiché n'est pas l'adresse, et le texte d'un lien n'est pas son adresse.</b> Le nom de l'expéditeur, souligné en pointillé avec son petit chevron, et les liens bleus cachent tous les deux une adresse&nbsp;: survolez-les avec la souris, ou touchez-les sur l'écran, <i>avant</i> de décider.</p>
+    <p>Avant de valider, cochez les <b>indices</b> qui vous ont fait décider. Un message frauduleux en montre presque toujours plusieurs&nbsp;; un message légitime n'en montre aucun.</p>
+  </div>
+
+  <div class="papier-ref">
+    <p class="nom-date">Nom&nbsp;: ..................................................&nbsp;&nbsp;&nbsp;Date&nbsp;: ....................</p>
+    <p><b>Les six signaux</b> — reportez leur numéro sur la ligne « Indices n° ».<br>
+    <b>1</b> Urgence ou menace &nbsp;·&nbsp; <b>2</b> Expéditeur inhabituel &nbsp;·&nbsp; <b>3</b> Adresse du lien douteuse &nbsp;·&nbsp;
+    <b>4</b> Fautes ou formulation étrange &nbsp;·&nbsp; <b>5</b> Demande de code, de données ou d'argent &nbsp;·&nbsp; <b>6</b> Trop beau pour être vrai</p>
+    <p><i>Sur papier, ce qui se cache derrière le nom de l'expéditeur et derrière un lien est écrit entre chevrons&nbsp;: à l'écran, il faut le faire apparaître soi-même en survolant.</i></p>
+  </div>
+
+  <div id="cartes"></div>
+
+  <div class="bilan" id="bilan">
+    <h2>Bilan</h2>
+    <p><span class="gros" id="bilanScore">0 / 10</span> messages correctement identifiés.</p>
+    <p id="bilanTexte"></p>
+    <p id="bilanIndices"></p>
+    <button class="recommencer" onclick="reset()">Tout recommencer</button>
+  </div>
+
+  <div class="rappel">
+    <h2>Les 6 signaux à retenir</h2>
+    <ol>
+      <li><b>Urgence ou menace</b> — « dans 24 heures », « votre compte sera fermé ». On veut vous empêcher de réfléchir.</li>
+      <li><b>Expéditeur inhabituel</b> — numéro inconnu, numéro étranger, adresse qui ressemble sans être la bonne.</li>
+      <li><b>Adresse du lien douteuse</b> — trois choses à regarder : le nom du site juste avant le premier «&nbsp;/&nbsp;» (poste-ch-livraison.info n'est pas poste.ch), la fin de l'adresse (.info, .co, .net à la place de .ch), et <b>http</b> au lieu de <b>https</b>. Dans un courriel, il faut d'abord faire apparaître l'adresse&nbsp;: le texte du lien peut dire tout autre chose. Attention&nbsp;: https ne prouve rien à lui seul, les sites frauduleux l'utilisent aussi.</li>
+      <li><b>Fautes ou formulation étrange</b> — accents manquants, « Chèr client », traduction bizarre.</li>
+      <li><b>Demande de code, de données ou d'argent</b> — mot de passe, code SMS, IBAN, copie de permis, paiement.</li>
+      <li><b>Trop beau pour être vrai</b> — un remboursement, un gain, un emploi facile que vous n'avez pas demandés.</li>
+    </ol>
+  </div>
+
+  <div class="corrige" id="corrige"></div>
+
+  <footer>
+    <span>Sécurité digitale — séance 5 — PAI</span>
+    <span>Aucune donnée n'est enregistrée&nbsp;: la page se remet à zéro si vous la rechargez.</span>
+  </footer>
+
+</td></tr></tbody></table>
+</div>
+
+<script>
+const INDICES = [
+  ["urgence","Urgence ou menace"],
+  ["expediteur","Expéditeur inhabituel"],
+  ["lien","Adresse du lien douteuse"],
+  ["langue","Fautes ou formulation étrange"],
+  ["demande","Demande de code, de données ou d'argent"],
+  ["beau","Trop beau pour être vrai"]
+];
+
+const MESSAGES = [
+  {
+    canal:"SMS", type:"sms",
+    exp:"+41 76 812 44 09 · aujourd'hui 09:12",
+    corps:"Votre colis n'a pas pu etre livre. Des frais de douane de CHF 2.90 restent a regler sous 24h, sinon le colis sera retourne a l'expediteur.\nhttp://poste-ch-livraison.info/paiement",
+    fraude:true,
+    indices:["urgence","expediteur","lien","langue","demande"],
+    expli:"La Poste n'envoie pas de demande de paiement par SMS depuis un numéro de portable, et ne réclame jamais CHF 2.90 en 24 heures. Le petit montant est justement là pour vous faire donner votre carte sans hésiter. Dans un SMS, l'adresse est écrite en clair : il n'y a rien à faire apparaître, mais deux choses à lire. Elle commence par http et non https, et le vrai nom du site, juste avant le premier « / », est poste-ch-livraison.info — un site en .info qui imite le mot « poste », pas poste.ch."
+  },
+  {
+    canal:"E-mail", type:"mail",
+    deNom:"Google", de:"no-reply@accounts.google.com",
+    objet:"Nouvelle connexion sur votre compte Google",
+    date:"8 septembre 2026, 14:12",
+    corps:"Bonjour,\nVotre compte Google vient d'être utilisé pour se connecter depuis un appareil Windows, à Genève (Suisse).\nSi c'était bien vous, vous n'avez rien à faire.\nSi ce n'était pas vous, ouvrez vous-même votre compte et consultez l'activité récente.",
+    fraude:false, indices:[],
+    expli:"Un message qui inquiète n'est pas forcément un piège. Derrière le nom « Google » se trouve bien une adresse en accounts.google.com. Et surtout : aucun lien, aucun délai, aucun mot de passe demandé — on vous invite à ouvrir votre compte vous-même. C'est exactement ce que fait un vrai service."
+  },
+  {
+    canal:"E-mail", type:"mail",
+    deNom:"Administration fédérale des contributions", de:"remboursement@admin-impots-ch.net",
+    objet:"Remboursement d'impôt CHF 384.50",
+    date:"7 septembre 2026, 03:41",
+    corps:"Chèr client,\nAprés le calcul de votre déclaration, vous avez le droit a un remboursement de CHF 384.50.\nMerci de confirmer vos coordonnées bancaires dans les 48 heures, sinon le remboursement sera annulé.\n[[Recevoir mon remboursement|http://admin-impots-ch.net/remboursement]]",
+    fraude:true,
+    indices:["urgence","expediteur","lien","langue","demande","beau"],
+    expli:"Le nom affiché est celui d'une vraie administration ; l'adresse derrière ne l'est pas. Les sites de la Confédération se terminent par .admin.ch, jamais par -ch.net. Le lien conduit d'ailleurs au même faux domaine. Et l'administration fiscale écrit par courrier postal : elle verse sur un compte qu'elle connaît déjà et n'a jamais besoin que vous « confirmiez » un IBAN."
+  },
+  {
+    canal:"SMS", type:"sms",
+    exp:"TPG · hier 16:30",
+    corps:"Votre abonnement annuel arrive à échéance le 30.09.2026. Vous pouvez le renouveler dans un point de vente TPG ou depuis votre compte habituel. Aucune donnée personnelle n'est demandée par SMS.",
+    fraude:false, indices:[],
+    expli:"Information, pas action urgente : pas de lien, pas de délai de 24 heures, rien à saisir. Le message vous renvoie vers un guichet et vers un compte que vous ouvrez vous-même."
+  },
+  {
+    canal:"E-mail", type:"mail",
+    deNom:"Support Informatique", de:"supp0rt-informatique@mail-securite.com",
+    objet:"URGENT : votre boîte mail sera désactivée",
+    date:"9 septembre 2026, 23:58",
+    corps:"Votre espace de stockage est plein.\nVotre compte sera fermé dans 24 heures et tous vos messages seront définitivement supprimés.\nConfirmez votre adresse et votre mot de passe :\n[[Réactiver ma boîte mail|http://webmail-verify.com/login]]",
+    fraude:true,
+    indices:["urgence","expediteur","lien","demande"],
+    expli:"« Support Informatique » : le nom rassure, l'adresse trahit. Un vrai service informatique écrit depuis le domaine de votre école ou de votre entreprise, et le zéro à la place du « o » dans supp0rt est le genre de détail qui ne se voit qu'en regardant. Reste la règle qui tranche seule : aucun service au monde ne demande votre mot de passe par courriel."
+  },
+  {
+    canal:"WhatsApp", type:"wa",
+    exp:"+41 79 604 21 88 (numéro inconnu) · 18:47",
+    corps:"Bonjour maman, c'est moi 🙂 J'ai cassé mon téléphone, voici mon nouveau numéro.\nTu peux m'aider ? Je dois payer une facture aujourd'hui et mon e-banking ne marche pas encore. Je te rembourse demain.",
+    fraude:true,
+    indices:["urgence","expediteur","demande"],
+    expli:"L'arnaque au faux proche. Elle fonctionne parce qu'elle vise l'affection, pas la naïveté. Le réflexe : appeler son enfant sur son ancien numéro avant de payer quoi que ce soit. Un vrai proche comprendra qu'on vérifie."
+  },
+  {
+    canal:"E-mail", type:"mail",
+    deNom:"e-assura", de:"e-assura@assura.ch",
+    objet:"Votre décompte de prestations est disponible",
+    date:"5 septembre 2026, 08:20",
+    corps:"Madame, Monsieur,\nUn nouveau décompte de prestations est disponible dans votre espace assuré.\n[[→ Consulter mes documents|https://www.e-assura.ch/Deeplink?goToPage=/Financials?item=invoices&id={B6637696-04A2-46C8-A669-01D5595BC13B}]]\nCe message ne demande aucune réponse.",
+    fraude:false, indices:[], tolere:["lien"],
+    notePuces:"Aucun indice n'était attendu — mais si vous avez coché « adresse du lien douteuse », votre doute est raisonnable : le lien part sur e-assura.ch et pas sur assura.ch, avec une longue suite de caractères. C'est bien le portail client d'Assura, et l'adresse de l'expéditeur, elle, correspond. Le https est correct, mais il ne prouve rien à lui seul.",
+    expli:"Le cas le plus délicat de la série, et il est authentique. Un lien long et bizarre n'est pas une preuve de fraude : beaucoup de portails officiels en produisent. Mais il n'est pas non plus une preuve d'honnêteté. La bonne réaction n'est jamais « je clique quand même » ni « je supprime » : c'est d'ouvrir soi-même son espace assuré par le chemin habituel, et de voir si le décompte y est."
+  },
+  {
+    canal:"E-mail", type:"mail",
+    de:"recrutement@job-suisse-express.com",
+    objet:"Poste à domicile — CHF 2'800.— par mois",
+    date:"6 septembre 2026, 21:05",
+    corps:"Bonjour,\nNous cherchons des agents financiers. Votre travail : recevoir des paiements sur votre compte bancaire et les transférer le jour même. 3 heures par jour, aucune expérience nécessaire, aucun entretien.\nEnvoyez une copie de votre permis de séjour et votre IBAN pour commencer dès lundi.",
+    fraude:true,
+    indices:["expediteur","demande","beau"],
+    expli:"Ce n'est pas seulement une arnaque : c'est un recrutement de « mule ». L'argent qui transite est volé, et c'est le titulaire du compte qui répond devant la justice. Aucun employeur sérieux ne demande un IBAN et une copie de permis avant un entretien. Ici l'expéditeur ne se cache derrière aucun nom : l'adresse est visible, et elle ne correspond à aucune entreprise identifiable."
+  },
+  {
+    canal:"SMS", type:"sms",
+    exp:"+33 7 55 20 18 44 · 02:14",
+    corps:"ALERTE SECURITE : une transaction de CHF 1'450.00 a ete effectuee depuis votre compte. Si ce n'est pas vous, annulez immediatement :\nhttp://securite-banque-ch.co/annuler",
+    fraude:true,
+    indices:["urgence","expediteur","lien","langue"],
+    expli:"La peur de perdre 1'450 francs fait cliquer avant de réfléchir. Le SMS montre l'adresse en clair : http, et un nom de site en .co qui n'est celui d'aucune banque suisse. S'ajoutent le numéro français et les accents absents. En cas de doute réel, on n'utilise jamais le lien du message — on appelle le numéro figurant au dos de sa carte."
+  },
+  {
+    canal:"E-mail", type:"mail",
+    deNom:"République et canton de Genève", de:"no-reply@etat.ge.ch",
+    objet:"Votre demande a bien été enregistrée",
+    date:"8 septembre 2026, 11:03",
+    corps:"Bonjour,\nVotre demande n° 2026-114872 a été enregistrée le 08.09.2026.\n[[Suivre ma demande|https://ge.ch/e-demarches/suivi]]\nAucun document ne vous est demandé par courriel.",
+    fraude:false, indices:[],
+    expli:"Ici tout concorde : le nom affiché, l'adresse en etat.ge.ch et le lien en ge.ch appartiennent à la même maison. Le message accuse réception d'une démarche que vous avez faite vous-même : il est attendu, il ne demande rien, et il précise qu'aucun document ne sera réclamé par courriel."
+  }
+];
+
+const etat = MESSAGES.map(() => ({verdict:null, puces:new Set(), valide:false, juste:false}));
+
+function html(m, i){
+  let bloc;
+  if(m.type === "mail"){
+    bloc = `<div class="msg">
+      <div class="champ"><span class="cle">De</span><span class="val">${m.deNom ? masque(m.deNom, m.de, false) : m.de}</span></div>
+      <div class="champ"><span class="cle">Objet</span><span class="val"><b>${m.objet}</b></span></div>
+      <div class="champ"><span class="cle">Reçu le</span><span class="val">${m.date}</span></div>
+      <div class="corps">${lienise(m.corps)}</div>
+    </div>`;
+  } else {
+    bloc = `<div class="msg ${m.type}">
+      <div class="exp">${m.exp}</div>
+      <div class="bulle">${lienise(m.corps)}</div>
+    </div>`;
+  }
+  const puces = INDICES.map(([cle,txt]) =>
+    `<button class="puce" data-i="${i}" data-cle="${cle}">${txt}</button>`).join("");
+  return `<div class="carte" id="carte${i}">
+    <div class="entete"><div class="num">${i+1}</div><span class="canal">${m.canal}</span></div>
+    ${bloc}
+    <p class="question">Ce message est&nbsp;:</p>
+    <div class="verdicts">
+      <button data-i="${i}" data-v="0">Légitime</button>
+      <button data-i="${i}" data-v="1">Frauduleux</button>
+    </div>
+    <div class="indices">
+      <div class="titre">Indices repérés (plusieurs possibles, aucun si le message est légitime)&nbsp;:</div>
+      <div class="puces">${puces}</div>
+    </div>
+    <button class="valider" data-i="${i}" disabled>Vérifier</button>
+    <div class="retour" id="retour${i}"></div>
+  </div>`;
+}
+
+function masque(visible, cache, estLien){
+  return `<span class="masque"><button class="decl${estLien ? " lien-txt" : ""}">${visible}`
+       + `${estLien ? "" : '<span class="chev">⌄</span>'}</button>`
+       + `<span class="infobulle">${cache}</span></span>`;
+}
+
+// [[texte affiché|adresse]] => lien habillé ; une adresse brute reste visible telle quelle
+function lienise(t){
+  const mis = [];
+  let out = t.replace(/\[\[([^|\]]+)\|([^\]]+)\]\]/g, (m, txt, url) => {
+    mis.push(masque(txt, url, true));
+    return "\u0000" + (mis.length - 1) + "\u0000";
+  });
+  out = out.replace(/(https?:\/\/[^\s<]+)/g, '<span class="lien">$1</span>');
+  return out.replace(/\u0000(\d+)\u0000/g, (m, n) => mis[n]);
+}
+
+document.getElementById("cartes").innerHTML = MESSAGES.map(html).join("");
+
+const zone = document.getElementById("cartes");
+
+// survol (souris) et appui (écran tactile) sur un élément masqué
+zone.addEventListener("mouseover", e => {
+  const m = e.target.closest(".masque");
+  if(m) ouvrir(m);
+});
+zone.addEventListener("mouseout", e => {
+  const m = e.target.closest(".masque");
+  if(m && !m.classList.contains("fixe")) m.classList.remove("ouvert");
+});
+
+function ouvrir(m){
+  // largeur mesurée avant affichage : une infobulle déjà ouverte fausserait le calcul
+  const bulle = m.querySelector(".infobulle"), marge = 10;
+  const dispo = document.documentElement.clientWidth;
+  bulle.style.left = "0px";
+  bulle.style.maxWidth = (dispo - 2 * marge) + "px";
+  m.classList.add("ouvert");
+  m.dataset.vu = "1";
+  const r = bulle.getBoundingClientRect();
+  const trop = r.right - (dispo - marge);
+  if(trop > 0) bulle.style.left = -Math.min(trop, r.left - marge) + "px";
+}
+function toutFermer(sauf){
+  document.querySelectorAll(".masque.ouvert").forEach(m => {
+    if(m !== sauf) m.classList.remove("ouvert", "fixe");
+  });
+}
+// un clic n'importe où ailleurs referme l'infobulle restée affichée
+document.addEventListener("click", e => {
+  if(!e.target.closest(".masque")) toutFermer(null);
+});
+
+zone.addEventListener("click", e => {
+  const dec = e.target.closest(".decl");
+  if(dec){
+    const m = dec.parentElement;
+    if(m.classList.contains("fixe")){
+      m.classList.remove("fixe", "ouvert");
+    } else {
+      toutFermer(m);
+      m.classList.add("fixe");
+      ouvrir(m);
+    }
+    return;
+  }
+  const b = e.target.closest("button");
+  if(!b || b.disabled) return;
+  const i = +b.dataset.i;
+  if(etat[i].valide) return;
+
+  if(b.dataset.v !== undefined){
+    etat[i].verdict = +b.dataset.v;
+    b.parentElement.querySelectorAll("button").forEach(x => x.classList.remove("choisi"));
+    b.classList.add("choisi");
+    document.querySelector(`.valider[data-i="${i}"]`).disabled = false;
+  } else if(b.dataset.cle){
+    const c = b.dataset.cle;
+    etat[i].puces.has(c) ? etat[i].puces.delete(c) : etat[i].puces.add(c);
+    b.classList.toggle("on");
+  } else if(b.classList.contains("valider")){
+    valider(i);
+  }
+});
+
+function valider(i){
+  const m = MESSAGES[i], s = etat[i];
+  s.valide = true;
+  s.juste = (s.verdict === 1) === m.fraude;
+
+  const carte = document.getElementById("carte" + i);
+  carte.classList.add("repondu");
+  carte.querySelectorAll(".verdicts button, .valider").forEach(b => b.disabled = true);
+  carte.querySelectorAll(".puce").forEach(b => {
+    b.disabled = true;
+    const c = b.dataset.cle, attendu = m.indices.includes(c), coche = s.puces.has(c);
+    if(attendu && coche) b.classList.add("juste");
+    else if(attendu) b.classList.add("manque");
+    else if(coche) b.classList.add((m.tolere || []).includes(c) ? "discutable" : "trop");
+  });
+
+  const trouves = m.indices.filter(c => s.puces.has(c));
+  let cles = "";
+  if(m.indices.length){
+    cles = `Indices attendus : ${trouves.length} / ${m.indices.length} repéré${trouves.length > 1 ? "s" : ""} (en vert)`
+         + `${trouves.length < m.indices.length ? ", les manquants sont en magenta" : ""}.`;
+  } else if(m.notePuces && s.puces.size){
+    cles = m.notePuces;
+  } else if(s.puces.size){
+    cles = "Aucun indice n'était attendu ici : ce message ne présente aucun des six signaux.";
+  }
+
+  const masques = [...carte.querySelectorAll(".masque")];
+  const fermes = masques.filter(x => !x.dataset.vu);
+  const nomme = x => x.querySelector(".decl").classList.contains("lien-txt")
+                     ? "le lien" : "le nom de l'expéditeur";
+  const geste = fermes.length
+    ? `<p class="cles">Vous avez répondu sans faire apparaître ce qui se cache derrière ${[...new Set(fermes.map(nomme))].join(" ni derrière ")}. ${fermes.length > 1 ? "C'est pourtant là que se trouvent les indices" : "C'est pourtant là que se trouve l'indice"} : ${fermes.map(x => x.querySelector(".infobulle").textContent).join(" — ")}</p>`
+    : "";
+
+  const r = document.getElementById("retour" + i);
+  r.className = "retour vu " + (s.juste ? "juste" : "faux");
+  r.innerHTML = `<div class="verdict">${s.juste ? "Correct" : "Non"} — ce message est ${m.fraude ? "frauduleux" : "légitime"}.</div>
+    <p>${m.expli}</p>${cles ? `<p class="cles">${cles}</p>` : ""}${geste}`;
+
+  majScore();
+}
+
+function majScore(){
+  const faits = etat.filter(s => s.valide).length;
+  const pts = etat.filter(s => s.juste).length;
+  document.getElementById("score").innerHTML =
+    `${pts} / 10 <small>· ${faits} message${faits > 1 ? "s" : ""} traité${faits > 1 ? "s" : ""}</small>`;
+  document.getElementById("jauge").style.width = (faits * 10) + "%";
+
+  if(faits === 10){
+    const bil = document.getElementById("bilan");
+    bil.classList.add("vu");
+    document.getElementById("bilanScore").textContent = pts + " / 10";
+    let t;
+    if(pts === 10) t = "Sans faute. Vous pouvez maintenant expliquer à quelqu'un d'autre comment vous avez fait — c'est la meilleure façon de vérifier que c'est acquis.";
+    else if(pts >= 8) t = "Solide. Reprenez les messages manqués et cherchez le signal que vous n'aviez pas vu.";
+    else if(pts >= 5) t = "Vous repérez les cas les plus visibles. Le point à travailler : les messages légitimes qui inquiètent, et les messages frauduleux très polis.";
+    else t = "Reprenez les six signaux ci-dessous, puis refaites l'exercice. Personne ne les voit du premier coup.";
+    document.getElementById("bilanTexte").textContent = t;
+
+    const totAtt = MESSAGES.reduce((n,m) => n + m.indices.length, 0);
+    const totTrv = MESSAGES.reduce((n,m,i) => n + m.indices.filter(c => etat[i].puces.has(c)).length, 0);
+    document.getElementById("bilanIndices").textContent =
+      `Indices repérés sur l'ensemble : ${totTrv} / ${totAtt}.`;
+    bil.scrollIntoView({behavior:"smooth", block:"nearest"});
+  }
+}
+
+// ---------- corrigé enseignant (impression seule) ----------
+function extraitCache(m){
+  const bouts = [];
+  if(m.deNom) bouts.push(m.de);
+  const l = m.corps.match(/\[\[[^|\]]+\|([^\]]+)\]\]/);
+  if(l) bouts.push(l[1]);
+  return bouts.join("<br>") || "—";
+}
+function construireCorrige(){
+document.getElementById("corrige").innerHTML =
+  `<h2>Corrigé — Vrai ou faux ? La boîte mail piégée</h2>
+   <p class="intro">Indices : <b>1</b> urgence ou menace · <b>2</b> expéditeur inhabituel · <b>3</b> adresse du lien douteuse ·
+   <b>4</b> fautes ou formulation étrange · <b>5</b> demande de code, de données ou d'argent · <b>6</b> trop beau pour être vrai.
+   La colonne « caché » donne ce qui n'apparaît qu'au survol dans la version à l'écran.</p>
+   <table>
+     <thead><tr><th style="width:4%">N°</th><th style="width:20%">Message</th><th style="width:11%">Réponse</th>
+     <th style="width:10%">Indices</th><th style="width:27%">Caché derrière le nom ou le lien</th><th>Point à faire dire</th></tr></thead>
+     <tbody>${MESSAGES.map((m,i) => {
+       const nums = m.indices.map(c => INDICES.findIndex(x => x[0] === c) + 1).sort().join(" ") || "aucun";
+       const titre = m.objet || (m.exp || "").split(" · ")[0];
+       const cle = m.expli.split(". ").slice(0,2).join(". ").replace(/\.*$/, ".");
+       return `<tr><td>${i+1}</td><td>${m.canal}<br>${titre}</td>
+         <td class="${m.fraude ? "v-f" : "v-l"}">${m.fraude ? "Frauduleux" : "Légitime"}</td>
+         <td>${nums}</td><td class="cache">${extraitCache(m)}</td><td>${cle}</td></tr>`;
+     }).join("")}</tbody>
+   </table>`;
+}
+construireCorrige();
+
+if(/(\?|&)prof\b/.test(location.search)) document.getElementById("btnCorrige").hidden = false;
+
+// ---------- pagination pour l'impression ----------
+let retour = null;   // mémoire des positions d'origine des blocs
+
+function mm(){
+  const d = document.createElement("div");
+  d.style.cssText = "position:absolute;visibility:hidden;width:100mm";
+  document.body.appendChild(d);
+  const v = d.offsetWidth / 100;
+  d.remove();
+  return v;
+}
+
+function haut(el){
+  const st = getComputedStyle(el);
+  return el.getBoundingClientRect().height
+       + parseFloat(st.marginTop) + parseFloat(st.marginBottom);
+}
+
+function paginer(avecCorrige){
+  const un = mm();
+  const dispo = (296 - 15 - 16) * un;   // hauteur utile d'une page
+  const blocs = avecCorrige
+    ? [...document.querySelectorAll(".corrige > *")]
+    : [document.querySelector("header"),
+       ...document.querySelectorAll(".consigne, .papier-ref, .carte, .rappel")];
+
+  retour = blocs.map(b => ({el:b, parent:b.parentNode, avant:b.nextSibling}));
+
+  const pages = document.createElement("div");
+  pages.id = "pages";
+  document.body.appendChild(pages);
+  document.body.classList.add("pagine");
+
+  let page = null, reste = 0;
+  const nouvelle = () => { page = document.createElement("div"); page.className = "page";
+                           if(avecCorrige) page.classList.add("corrige");
+                           pages.appendChild(page); reste = dispo; };
+  nouvelle();
+
+  blocs.forEach(b => {
+    if(b.classList.contains("rappel") && page.childElementCount) nouvelle();
+    page.appendChild(b);
+
+    // un tableau se remplit jusqu'au bas de page, le surplus passe à la suivante
+    if(b.tagName === "TABLE"){
+      let t = b;
+      while(t){
+        let suite = null;
+        const tb = t.querySelector("tbody");
+        while(haut(t) > reste && tb.rows.length > 1){
+          if(!suite){ suite = t.cloneNode(true); suite.querySelector("tbody").innerHTML = ""; }
+          suite.querySelector("tbody").prepend(tb.rows[tb.rows.length - 1]);
+        }
+        reste -= haut(t);
+        if(suite){ nouvelle(); page.appendChild(suite); t = suite; } else t = null;
+      }
+      return;
+    }
+
+    if(haut(b) > reste && page.childElementCount > 1){ nouvelle(); page.appendChild(b); }
+    reste -= haut(b);
+  });
+
+  const total = pages.children.length;
+  [...pages.children].forEach((p, i) => {
+    const n = document.createElement("div");
+    n.className = "numero";
+    n.innerHTML = `<span>Sécurité digitale — séance 5 · Éviter les fraudes · PAI</span>`
+                + `<span>page ${i + 1} / ${total}</span>`;
+    p.appendChild(n);
+  });
+}
+
+function depaginer(){
+  if(!retour) return;
+  [...retour].reverse().forEach(({el, parent, avant}) => {
+    if(avant && avant.parentNode === parent) parent.insertBefore(el, avant);
+    else parent.appendChild(el);
+  });
+  document.getElementById("pages")?.remove();
+  document.body.classList.remove("pagine");
+  retour = null;
+  construireCorrige();   // le tableau a pu être scindé pour la mise en pages
+}
+
+function imprimer(avecCorrige){
+  const css = document.getElementById("css-papier");
+  document.body.classList.toggle("avec-corrige", avecCorrige);
+  css.media = "all";              // mise en page papier appliquée pour mesurer
+  document.body.style.width = "210mm";
+  paginer(avecCorrige);
+  document.body.style.width = "";
+  css.media = "print";
+  window.print();
+  setTimeout(() => { depaginer(); document.body.classList.remove("avec-corrige"); }, 400);
+}
+
+function reset(){ location.reload(); }
+</script>
+</body>
+</html>
