@@ -1220,7 +1220,51 @@ function analyser(paragraphes, tableaux, police){
   if(restes.length) corr("Coordonnées de l’expéditeur non personnalisées",
     "Remplacez « " + restes.join(" », « ") + " » par vos propres données (ou des données réalistes).", pExp ? pExp.i : null);
   else gPerso += 0.5;
-  if(!/\b\d{4}\s+\p{L}/u.test(enteteBrut)) rem("NPA et localité", "L’en-tête devrait comporter un NPA à quatre chiffres suivi de la localité, par exemple 1213 Onex.");
+  /* le bloc du destinataire porte lui aussi un NPA (1201 Genève) : sans ce filtre,
+     il valide le contrôle à la place de l'expéditeur, dont la localité peut manquer */
+  const lgExp = [].concat(...entete.map(p => p.lignes)).map(l => norm(l)).filter(Boolean)
+    .filter(l => !estLigneDest(l) && !l.includes("@") && !/,\s*le\s/i.test(l)
+                 && (l.match(/\d/g) || []).length <= 5);
+  let iNpa = -1;
+  for(let k = lgExp.length - 1; k >= 0; k--) if(/\b\d{4}\b/.test(lgExp[k])){ iNpa = k; break; }
+  const apresNpa = iNpa < 0 ? "" : ((lgExp[iNpa].match(/\b\d{4}\b\s*(.*)$/) || ["", ""])[1] || "").trim();
+  const ligneSuivante = iNpa < 0 ? "" : (lgExp[iNpa + 1] || "");
+  /* l'adresse de l'expéditeur : NPA et localité, sur une seule ligne. Chacun des
+     trois défauts coûte 1 point, une seule fois (barème convenu pour ce critère) */
+  const motsExp = [];
+  if(pExp) pExp.lignes.forEach((ligne, li) =>
+    norm(ligne).split(" ").filter(Boolean).forEach(m => motsExp.push({ li, m, k: motsExp.length })));
+  const npaTexte = iNpa < 0 ? "" : (lgExp[iNpa].match(/\b\d{4}\b/) || [""])[0];
+  const eNpa = npaTexte ? [...motsExp].reverse().find(x => x.m === npaTexte) : null;
+  let penaliteAdresse = 0;
+  if(iNpa < 0){
+    penaliteAdresse = 1;
+    aRevoir.push("NPA et localité de l’expéditeur");
+    corr("Numéro postal et localité manquants",
+      "L’adresse de l’expéditeur doit comporter un NPA à quatre chiffres suivi de la localité, par exemple 1213 Onex.",
+      pExp ? pExp.i : null);
+  }
+  else if(!apresNpa && /^[\p{L}][\p{L}\s'’-]*$/u.test(ligneSuivante)){
+    penaliteAdresse = 1;
+    aRevoir.push("NPA et localité sur deux lignes");
+    const cDeux = corr("Numéro postal et localité sur deux lignes",
+      "Vous avez écrit « " + lgExp[iNpa] + " » puis « " + ligneSuivante + " » sur deux lignes : le numéro postal et la localité s’écrivent l’un à la suite de l’autre, sur la même ligne.",
+      pExp ? pExp.i : null);
+    if(eNpa){
+      const cE = mq(pExp.i);
+      [eNpa, ...motsExp.filter(x => x.li === eNpa.li + 1)].forEach(x =>
+        cE.err[x.k] = { type: "mot", titre: "à écrire sur une seule ligne : " + npaTexte + " " + ligneSuivante, corr: cDeux });
+    }
+  }
+  else if(!apresNpa){
+    penaliteAdresse = 1;
+    aRevoir.push("localité de l’expéditeur");
+    const cLoc = corr("Localité manquante",
+      "Votre adresse s’arrête au numéro postal (« " + lgExp[iNpa] + " ») : le NPA est toujours suivi du nom de la localité, par exemple 1213 Onex.",
+      pExp ? pExp.i : null);
+    // V après le numéro postal, dans le bloc de l'expéditeur
+    if(eNpa) (mq(pExp.i).manque[eNpa.k] = mq(pExp.i).manque[eNpa.k] || []).push({ texte: "la localité", corr: cLoc });
+  }
   if(!/@/.test(enteteBrut)) rem("Adresse e-mail", "L’en-tête devrait comporter une adresse e-mail complète.");
 
   // majuscules des noms propres et format du téléphone
@@ -1304,7 +1348,7 @@ function analyser(paragraphes, tableaux, police){
     corr("Date d’achat introuvable", "Le premier paragraphe doit se terminer par « … dans votre enseigne Fust SA le [date d’achat] », le champ étant remplacé par une date réelle.");
   }
   if(!dateOK) aRevoir.push("date d’achat");
-  ptsG += gPerso;
+  ptsG += gPerso - penaliteAdresse;
   note("G", "Champs personnalisés", 2, ptsG,
        (comG.join(" ") + (aRevoir.length ? " À revoir : " + aRevoir.join(", ") + "." : "")).trim()
        || "Champs à compléter.");
