@@ -8,7 +8,7 @@ générant des exercices de mathématiques pour adultes (programme PAI, Suisse).
 Product owner : Aurelio (Onex/Genève). Répondre en FRANÇAIS.
 
 ───────────────────────────────────────────────────────────────────────────────
-0. OÙ ON EN EST (v497, 07.09.2026) — à lire en premier
+0. OÙ ON EN EST (v498, 18.09.2026) — à lire en premier
 ───────────────────────────────────────────────────────────────────────────────
 L'application est en ligne : https://aureliohub.github.io/eva_maths.html
 Les fichiers de série et de test (.json) sont déposés à côté d'elle, et s'ouvrent
@@ -35,7 +35,9 @@ TRAVAIL RÉCENT (fin août – début septembre), les trois chantiers à connaî
 · INSTRUMENTS DE GÉOMÉTRIE (v493) : le PDF compte huit planches, dont trois
   constructions à l'ÉCHELLE 1 (cercle, polygone à l'équerre, triangle au
   compas). Voir v493 avant d'y toucher : le menu de l'écran, lui, reste à cinq
-  activités.
+  activités. TROIS LISTES DEPUIS LA v498, et elles ne se recouvrent pas :
+  l'écran (5 activités Polypad), le PDF du sous-domaine (8 planches) et le
+  MENU DE L'ATELIER (9 tracés, INSTRUMENTS_TOUS).
 · ANGLES DES HORLOGES (v485 à v492), rubrique « Angles » du vocabulaire, entre
   « Compléter » et « Cercle ». Quatre horloges sur une ligne, l'angle marqué en
   gris ; l'élève l'estime (jugé à ±10°) et le nomme. Réponses attendues :
@@ -540,6 +542,25 @@ PDF de domaine :
 ───────────────────────────────────────────────────────────────────────────────
 Cette section décrit l'ÉTAT, non l'historique. Les numéros de version ne sont
 cités que lorsqu'ils aident à retrouver un choix dans le fichier.
+
+v498 — INSTRUMENTS, PLANCHE MIXTE « ⊥ - // », en TROISIÈME position du menu de
+ l'atelier : une droite d et DEUX points, la parallèle par a et la
+ perpendiculaire par b sur la même figure.
+ · Elle ne vit ni dans INSTRUMENTS_ACTIVITES (pas d'activité Polypad : le menu
+   de l'écran reste à cinq) ni dans INSTRUMENTS_PDF_SUP (le PDF du sous-domaine
+   garde ses huit planches et sa pagination [0,1] [2] [3,4] [5,6] [7]), mais
+   dans INSTRUMENTS_ATELIER_SUP. INSTRUMENTS_TOUS n'est donc PLUS une simple
+   concaténation : il insère cette liste après les deux tracés simples. C'est
+   lui, et lui seul, qui pilote le menu déroulant de l'atelier.
+ · Points de part et d'autre de la droite et écartés le long d'elle
+   (alongA ∈ [-72,-34], alongB ∈ [34,72]) ; la parallèle est raccourcie à 138
+   et la perpendiculaire ne dépasse la droite que de 26 px, pour que les DEUX
+   TRACÉS VERTS NE SE CROISENT PAS — sinon on ne lit plus lequel répond à quoi.
+ · Mêmes lettres que sur les planches simples : a pour la parallèle, b pour la
+   perpendiculaire.
+ · Vérifié : 400 tirages sans débordement du cadre (largeur maxi dessinée 416
+   pour 430, hauteur 285 pour 425), banc saboté pour prouver qu'il détecte ;
+   PDF de série réel produit au vrai navigateur, énoncé et corrigé regardés.
 
 v497 — ATELIER, BOUTON « TEST » : une série qui ne contient QUE des
  constructions produisait un fichier .json vide, illisible à l'import — le
@@ -18150,7 +18171,7 @@ const ICONE_ENSEIGNANT = '<svg viewBox="0 0 24 24" width="21" height="21" fill="
 const ICONE_PDF = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJkAAACUCAMAAAC3HHtWAAAAk1BMVEXi5ef////xVkKwt73K0dji6OrxW0jyUDnG2eHlzczmgnrV2t/x8/T19vbxUTzwTDX4u7Xnvr28wsf+8/L84N3yYlD1jID1hXf1kYb4q6L4t7D96ujwQib1mY7++Pf70c3zcWHxSC/zeGn3pJv6ysX72dXy2Nbj1dXtgnfyaFf3sKj6w73UubvV4ebco6HkioPitLFLhhsqAAAElUlEQVR4nO3ca5eaOhQG4ICOtHUa7AAqIgiIbdVezv//dUcS7tlAXIYkq4v308xCzeNOCAEVZAzmKxKWj8Xi4324tVbQyGahsqdow7J3wbLFgp82LHsTLuOv2rBMIKyQ8dMGZQLHfyXjpsmX8dIUyDhpKmR8NCUyLpoa2eLjq64yjqqpko1XTZlstGrqZGM0hbIRmkrZME2pbJCmVjZEUywboKmW9dOUy3qnXPWyvqppIOupmg4yuGpayMCq6SGDqiZPthySAVWTJ1sPytiqyZMNdydbNYmykaJ1aRJlY0Xr0GTKnqNJlY3sn22aXBlaL4fr1qBJlpEsB/KmVDZEUywboKmW9dOUy3pp6mV9NA1kPTQdZDBNCxlI00MG0TSRATRdZCxNGxlD00fWpWkkQ/rKkL4ypK8M6StD+sqQvjKkrwzpK0P6ypC+MqSvDOkrQ/rKkL6ytbYyVF+tnWWiZW8T5jlZ4Lby/fN0+YFAGyxzw9hbyUoc/oBooOxi2tiUFmybEA2SRaklz5XH/slZs5PEgtGsPrNFg2R3W7YMf+OTbWbZLJtls2yWzbJWrORYJklaaxFs2WUsiznm1htpoIPySzK8PQVl3Oyc1gQrDX3/nMc/h/t0lbTb3vqthDGwkHlFhneO0YyTXYtHWdvWFsc9xA3b6m504nhs1V6R2QemhT192OrS3WJs4rLx7hvKcz8KlVkbpoWI9ovnMlsMN4ULSnJIJpA5gUNStL+qZRFN+RLBDvfJgpXY3qSy2zXOs/MpIbRLWeT/3OYJb0UFL7R9KnMOdXzRewCV+TYmsa8BKdqxku3oFsvGu4C+SFLL3MakwU4rgmTlv/u8ak5emEJWVcKOadmuuJYBmKlkmHpiQGZaMenrg61EZppknso9jMw8khnG9fSTWWletCjF9TizHnmMwsdInFqG6S4A9mY5keR7LpUFYRX4JFugLPHzf6OK0ZatTuWDmfnM2UO012XnI931zTMZ5KfGrNFsEGdkF0igmdaJgQ59XZaFZE1xO9GZlrx/QGYS2Q2UGdtJZO3c6+NmZ5yRg/wZ6k3j4rEvLlrm0h2NlRW7R17R4uh0qnIA1kCCZVF2pW2wMjvMH+BcG7MGmTbywBfmBMqcU2gWbQDzGSnZhfwpa6Y9nWn2qVm9d0ZGZxQyzOTJzkfaJc0+6cjwMSQ7bmRLrZkPbClkCSZoHG+iumQayIzs9lgV3g73YqYzsuJp6mWdXK7N1baMccYpy7xi2EmQ2ed8C3Q4Zs/qorA6CcFpLhu9WP7a1YNNFB3AdULqRjXKcU/bY+P5OHQiN51UhnG6gz/AsLxdndSz2s+249119IOPF68F9axHyZY6TzxNmGzCzLJZNstm2TSyTPpnwh7nZ8KBbBiOGVfPdw9u7DXeSWHHX785ZVGYJNV52ORJ8J/lmlP2WOv54b6VL5Pl73/LT0/Iunn/NF3yLzXyjjNAxvzkQWy0lQEwPWTAKOOXrScM5PoXvrM3y2bZLJtls+zfk3He90Do3TnFykTe0ZQr9Q8XRmTSi9a4zcyITOQNap+Djckk92fzbin/A8PQxx30Ei25AAAAAElFTkSuQmCC';
 
 // Numéro de version, affiché en pied de menu.
-const APP_VERSION = '497';
+const APP_VERSION = '498';
 
 const DOMAINS = [
   {
@@ -18285,8 +18306,9 @@ const DOMAINS = [
         // `gen: null` : à l'écran ce sous-domaine n'affiche pas d'exercices mais
         // des activités Polypad. Il a pourtant des planches à imprimer, d'où
         // `atelierComposable` : l'atelier le montre malgré l'absence de gen, et
-        // `atelierVariants` donne le menu de ses huit tracés (voir
-        // atelierComposerSousDomaine, qui les fabrique directement).
+        // `atelierVariants` donne le menu de ses neuf tracés (voir
+        // atelierComposerSousDomaine, qui les fabrique directement) : huit
+        // planches du PDF + la planche mixte « ⊥ - // », propre à l'atelier.
         atelierComposable: true,
         atelierVariants: () => INSTRUMENTS_TOUS().map(a => ({ key: a.kind, label: a.label })) },
       { id: 'developpements',   title: "Identifier les développements de solides",                            gen: genDeveloppements, hasNiveau2: true, niveauLabels: ['Associer', 'Sélectionner'], patrons: () => state.niveau === 2 ? [genDevSelectPave, genDevSelectCube, genDevSelectPrismeTri] : [genDeveloppements],
@@ -19136,6 +19158,51 @@ function genInstrumentsExo(kind, consigne, hCadre) {
     return { fig: wrap(W, H, base, dx, dy), sol: wrap(W, H, sol, dx, dy), answer: '' };
   }
 
+  // --- Perpendiculaire ET parallèle sur la même droite (planche « ⊥ - // ») :
+  //     une droite d et DEUX points, écartés l'un de l'autre le long de la
+  //     droite et posés de part et d'autre. La parallèle passe par a, la
+  //     perpendiculaire par b — mêmes lettres que sur les deux planches
+  //     simples, pour que l'élève y retrouve ses repères.
+  function perpEtPara() {
+    const W = 430, H = HC;
+    const th = R(-11, 11);
+    const cx = W / 2, cy = H / 2;
+    const [x1, y1] = P(cx, cy, 196, th + 180), [x2, y2] = P(cx, cy, 196, th);
+    const coteA = Math.random() < 0.5 ? 1 : -1;      // côté de a ; b est en face
+    const coteB = -coteA;
+    const alongA = R(-72, -34), alongB = R(34, 72);
+    // Écart des points à la droite : borné par la hauteur du cadre, qui n'est
+    // pas la même dans le PDF du sous-domaine et dans une série.
+    const dmax = Math.max(56, Math.min(106, Math.floor(H / 2) - 54));
+    const dA = R(Math.round(dmax * 0.8), dmax), dB = R(Math.round(dmax * 0.8), dmax);
+    const [fax, fay] = P(cx, cy, alongA, th);        // pieds des deux points
+    const [fbx, fby] = P(cx, cy, alongB, th);
+    const [pax, pay] = P(fax, fay, dA, th + 90 * coteA);
+    const [pbx, pby] = P(fbx, fby, dB, th + 90 * coteB);
+    const [ex2, ey2] = P(cx, cy, 162, th);
+    const [dlx, dly] = P(ex2, ey2, 16, th + 90);
+    const [lax, lay] = P(pax, pay, 18, th + 90 * coteA);
+    const [lbx, lby] = P(pbx, pby, 18, th + 90 * coteB);
+
+    const base = seg(x1, y1, x2, y2) + txt(dlx, dly + 5, 'd')
+               + croix(pax, pay) + txt(lax + 9, lay + (coteA > 0 ? 3 : 11), 'a', PT)
+               + croix(pbx, pby) + txt(lbx + 9, lby + (coteB > 0 ? 3 : 11), 'b', PT);
+    // La parallèle est un peu plus courte que sur la planche simple et la
+    // perpendiculaire ne dépasse la droite que de 26 px : les deux tracés du
+    // corrigé ne se croisent pas, sinon on ne lit plus lequel répond à quoi.
+    const [q1x, q1y] = P(pax, pay, 138, th + 180), [q2x, q2y] = P(pax, pay, 138, th);
+    const [s1x, s1y] = P(pbx, pby, dB + 26, th + 90 * coteA);
+    const [s2x, s2y] = P(pbx, pby, 24, th + 90 * coteB);
+    const sol = base + seg(q1x, q1y, q2x, q2y, SOL)
+              + seg(s1x, s1y, s2x, s2y, SOL) + equerre(fbx, fby, th, th + 90 * coteB, SOL);
+    const pts = [[x1, y1], [x2, y2], ...boite(dlx, dly, 10, 16),
+                 ...boite(pax, pay, 8, 8), ...boite(pbx, pby, 8, 8),
+                 ...boite(lax + 9, lay, 11, 16), ...boite(lbx + 9, lby, 11, 16),
+                 [q1x, q1y], [q2x, q2y], [s1x, s1y], [s2x, s2y]];
+    const [dx, dy] = centrage(W, H, pts);
+    return { fig: wrap(W, H, base, dx, dy), sol: wrap(W, H, sol, dx, dy), answer: '' };
+  }
+
   // --- Angles à mesurer (exercice 3) : basculés d'un quart de tour, ouverture
   //     à droite ou à gauche, figure agrandie au maximum et centrée.
   function angleMesure(rentrant) {
@@ -19408,6 +19475,7 @@ function genInstrumentsExo(kind, consigne, hCadre) {
   const plans = {
     parallele:       [() => droiteEtPoint('a', false)],
     perpendiculaire: [() => droiteEtPoint('b', true)],
+    perp_para:       [() => perpEtPara()],
     angle:           [() => angleMesure(false), () => angleMesure(true)],
     mediatrice:      [() => mediatrice()],
     bissectrice:     [() => bissectrice()],
@@ -19464,9 +19532,20 @@ const INSTRUMENTS_ACTIVITES = [
 // filet, `genInstrumentsExo` préfère celle du tirage.
 // `pleinePage` : la planche occupe sa page à elle seule, comme les angles —
 // le triangle au compas demande de la place pour les arcs.
-// Les huit tracés, dans l'ordre du PDF : c'est cette liste que l'atelier
-// propose dans son menu déroulant, et son rang qui désigne le tracé voulu.
-const INSTRUMENTS_TOUS = () => INSTRUMENTS_ACTIVITES.concat(INSTRUMENTS_PDF_SUP);
+// Planche MIXTE, proposée par l'atelier seul (v498) : elle n'a ni activité
+// Polypad à l'écran, ni place dans le PDF du sous-domaine, dont la pagination
+// est réglée sur huit planches.
+const INSTRUMENTS_ATELIER_SUP = [
+  { kind: 'perp_para', label: '\u22A5 - //',
+    consigne: "Trace une parallèle passant par le point a et une perpendiculaire passant par le point b." }
+];
+
+// La liste du MENU DÉROULANT DE L'ATELIER, et son rang désigne le tracé voulu :
+// les deux tracés simples, la planche mixte en troisième position, puis le
+// reste dans l'ordre du PDF. Le PDF du sous-domaine, lui, garde ses huit
+// planches (INSTRUMENTS_ACTIVITES.concat(INSTRUMENTS_PDF_SUP)).
+const INSTRUMENTS_TOUS = () => INSTRUMENTS_ACTIVITES.slice(0, 2)
+  .concat(INSTRUMENTS_ATELIER_SUP, INSTRUMENTS_ACTIVITES.slice(2), INSTRUMENTS_PDF_SUP);
 
 const INSTRUMENTS_PDF_SUP = [
   { kind: 'cercle',   label: 'Cercle',   consigne: "Trace le cercle demandé." },
