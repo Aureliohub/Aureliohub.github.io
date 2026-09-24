@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nombres et opérations – Les 4 opérations</title>
+
+<style>
+:root{
+  --encre:#1a1a1a;--navy:#1F3A5F;--bleu:#2E75B6;--magenta:#E6007E;--filet:#c9c9c9;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:#e9e9e9;color:var(--encre);
+  font-family:"Avenir Next","Avenir","Segoe UI","Trebuchet MS",Verdana,sans-serif;
+  font-size:0;line-height:1.5;
+}
+.barre{
+  position:sticky;top:0;z-index:10;
+  display:flex;gap:10px;align-items:center;justify-content:center;
+  padding:8px;background:var(--navy);color:#fff;font-size:10pt;
+}
+.barre button{font:inherit;font-weight:600;cursor:pointer;background:#fff;color:var(--navy);border:none;border-radius:3px;
+  padding:0;width:30px;height:30px;line-height:1;display:inline-flex;align-items:center;justify-content:center;font-size:13pt}
+.barre button svg{display:block}
+.barre button:focus-visible{outline:2px solid var(--magenta);outline-offset:2px}
+.barre span{opacity:.8}
+.barre .zoom-outils{opacity:1}
+.zoom-outils{display:flex;gap:6px;align-items:center}
+.zoom-taux{font-variant-numeric:tabular-nums;min-width:44px;text-align:center;opacity:.9}
+
+.page{
+  position:relative;zoom:var(--z,1);width:210mm;height:292mm;
+  margin:14px auto;padding:12mm 12mm 18mm 20mm;
+  background:#fff;overflow:hidden;font-size:11.5pt;
+}
+h1{font-size:15pt;font-weight:700;text-align:center;margin:0 0 1mm;letter-spacing:.1px}
+.sur-titre{text-align:center;font-size:11.5pt;margin:0 0 6mm}
+.etiquette-corrige{
+  display:none;position:absolute;top:13mm;right:12mm;margin:0;
+  color:var(--magenta);font-weight:700;font-size:11pt;letter-spacing:1px;
+}
+body.corrige .etiquette-corrige{display:block}
+p{margin:0 0 4mm}
+
+.exo-titre{display:flex;gap:3mm;align-items:flex-start;margin-bottom:2mm}
+.exo-titre .consigne{font-weight:700}
+.pastille{flex:0 0 auto;width:15px;height:15px;margin-top:2px}
+.item{margin:0 0 2mm 8mm}
+
+.fig{display:block;margin:2mm auto 0;width:170mm;height:auto}
+.sol{visibility:hidden}
+body.corrige .sol{visibility:visible}
+
+.pied{
+  position:absolute;left:20mm;right:12mm;bottom:10mm;
+  padding-top:2.5mm;border-top:1px solid var(--filet);
+  display:flex;justify-content:space-between;font-size:9.5pt;color:#333;
+}
+
+@page{size:A4;margin:0}
+@media print{
+  html,body{width:210mm;margin:0;padding:0;overflow:hidden}
+  body{background:#fff}
+  .barre{display:none}
+  .page{zoom:1;margin:0;page-break-after:always}
+  .page:last-of-type{page-break-after:auto}
+}
+@media screen{ .page{box-shadow:0 1px 6px rgba(0,0,0,.18)} }
+
+.page-corrige{display:none}
+@media print{
+  body.corrige .page:not(.page-corrige) .etiquette-corrige{display:none}
+  body.corrige .page:not(.page-corrige) .sol{visibility:hidden}
+  .page-corrige{display:block}
+  .page-corrige .etiquette-corrige{display:block}
+  .page-corrige .sol{visibility:visible}
+}
+</style>
+<style>
+/* propre à la fiche : tableau des 4 opérations */
+.ops{width:100%;border-collapse:collapse;margin-top:4mm;table-layout:fixed}
+.ops col.c{width:15mm}
+.ops th,.ops td{border:0.75pt solid var(--encre);padding:1mm 2.4mm;vertical-align:middle}
+.ops th{font-weight:700;text-align:center;font-size:13pt;padding:0.8mm}
+.ops td:not(.enonce){text-align:center;padding:0}
+.ops td.enonce{line-height:1.3}
+.croix{width:6mm;height:6mm;display:block;margin:auto}
+</style>
+</head>
+<body>
+
+<div class="barre">
+  <button id="btn" type="button" title="Afficher le corrigé" aria-label="Afficher le corrigé"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.3 8S3.6 3.8 8 3.8 14.7 8 14.7 8 12.4 12.2 8 12.2 1.3 8 1.3 8z"></path><circle cx="8" cy="8" r="2.1"></circle></svg></button>
+  <span class="zoom-outils">
+    <button id="zoom-moins" type="button" title="Réduire">−</button>
+    <span class="zoom-taux" id="zoom-taux">100 %</span>
+    <button id="zoom-plus" type="button" title="Agrandir">+</button>
+    <button id="zoom-page" type="button" title="Page entière" aria-label="Page entière"><svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3.2" y="1.6" width="9.6" height="12.8" rx="1.2"></rect><path d="M8 4.6v6.8"></path><path d="M6.3 6.3L8 4.6l1.7 1.7"></path><path d="M6.3 9.7L8 11.4l1.7-1.7"></path></svg></button>
+    <button id="plein-ecran" type="button" title="Plein écran" aria-label="Plein écran"><svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6V2h4"></path><path d="M10 2h4v4"></path><path d="M14 10v4h-4"></path><path d="M6 14H2v-4"></path></svg></button>
+  </span>
+</div>
+
+<!-- ══════════════════ PAGE 1 ══════════════════ -->
+<section class="page" data-corrige="">
+  <h1>Nombres et opérations</h1>
+  <p class="sur-titre">Les 4 opérations</p>
+  <p class="etiquette-corrige">CORRIGÉ</p>
+
+  <div class="exo-titre">
+    <svg class="pastille" viewBox="0 0 16 16" aria-hidden="true"><rect width="16" height="16" rx="2" fill="#1F3A5F"></rect><text x="8" y="12" text-anchor="middle" fill="#fff" font-size="11" font-weight="700" font-family="Verdana,sans-serif">1</text></svg>
+    <span class="consigne">Quelle est l'opération nécessaire pour résoudre le problème&nbsp;?</span>
+  </div>
+
+  <table class="ops">
+    <colgroup><col><col class="c"><col class="c"><col class="c"><col class="c"></colgroup>
+    <thead><tr><th></th><th>+</th><th>−</th><th>×</th><th>:</th></tr></thead>
+    <tbody>
+      <tr><td class="enonce">J'achète des fruits, du lait et du pain. Pour savoir quel montant je dois payer, je fais une…</td><td><svg class="croix sol" viewBox="0 0 10 10" aria-hidden="true"><path d="M2 2L8 8M8 2L2 8" stroke="#E6007E" stroke-width="1.3" stroke-linecap="round" fill="none"/></svg></td><td></td><td></td><td></td></tr>
+      <tr><td class="enonce">Je dois payer 55&nbsp;CHF et je donne un billet de 100&nbsp;CHF. Pour savoir combien on doit me rendre, je fais…</td><td></td><td><svg class="croix sol" viewBox="0 0 10 10" aria-hidden="true"><path d="M2 2L8 8M8 2L2 8" stroke="#E6007E" stroke-width="1.3" stroke-linecap="round" fill="none"/></svg></td><td></td><td></td></tr>
+      <tr><td class="enonce">Elle mesure 1,65&nbsp;m et son frère 1,80&nbsp;m. Pour savoir quelle est la différence de taille entre eux, ils font…</td><td></td><td><svg class="croix sol" viewBox="0 0 10 10" aria-hidden="true"><path d="M2 2L8 8M8 2L2 8" stroke="#E6007E" stroke-width="1.3" stroke-linecap="round" fill="none"/></svg></td><td></td><td></td></tr>
+      <tr><td class="enonce">Un classeur coûte 3,50&nbsp;CHF. Le bureau en commande 25. Pour savoir combien il faut payer, nous faisons…</td><td></td><td></td><td><svg class="croix sol" viewBox="0 0 10 10" aria-hidden="true"><path d="M2 2L8 8M8 2L2 8" stroke="#E6007E" stroke-width="1.3" stroke-linecap="round" fill="none"/></svg></td><td></td></tr>
+      <tr><td class="enonce">4 enfants reçoivent une boîte de 48 chocolats. Pour savoir combien chacun peut en manger, ils font…</td><td></td><td></td><td></td><td><svg class="croix sol" viewBox="0 0 10 10" aria-hidden="true"><path d="M2 2L8 8M8 2L2 8" stroke="#E6007E" stroke-width="1.3" stroke-linecap="round" fill="none"/></svg></td></tr>
+      <tr><td class="enonce">J'achète une robe en solde, on me fait un rabais de 22,50&nbsp;CHF. Pour savoir combien je vais payer, je fais…</td><td></td><td><svg class="croix sol" viewBox="0 0 10 10" aria-hidden="true"><path d="M2 2L8 8M8 2L2 8" stroke="#E6007E" stroke-width="1.3" stroke-linecap="round" fill="none"/></svg></td><td></td><td></td></tr>
+      <tr><td class="enonce">Je connais mon salaire brut et le montant des déductions (AVS, chômage…). Pour calculer mon salaire net, je dois faire une…</td><td></td><td><svg class="croix sol" viewBox="0 0 10 10" aria-hidden="true"><path d="M2 2L8 8M8 2L2 8" stroke="#E6007E" stroke-width="1.3" stroke-linecap="round" fill="none"/></svg></td><td></td><td></td></tr>
+      <tr><td class="enonce">Votre loyer est de 1700&nbsp;CHF par mois, pour calculer le loyer annuel, vous faites une…</td><td></td><td></td><td><svg class="croix sol" viewBox="0 0 10 10" aria-hidden="true"><path d="M2 2L8 8M8 2L2 8" stroke="#E6007E" stroke-width="1.3" stroke-linecap="round" fill="none"/></svg></td><td></td></tr>
+      <tr><td class="enonce">Elle gagne 200&nbsp;CHF pour 8 heures de travail. Pour savoir quel est son salaire horaire, elle fait…</td><td></td><td></td><td></td><td><svg class="croix sol" viewBox="0 0 10 10" aria-hidden="true"><path d="M2 2L8 8M8 2L2 8" stroke="#E6007E" stroke-width="1.3" stroke-linecap="round" fill="none"/></svg></td></tr>
+      <tr><td class="enonce">Un kilo d'entrecôte de bœuf coûte 25,50&nbsp;CHF. Pour connaître le prix d'un demi-kilo, je fais…</td><td></td><td></td><td></td><td><svg class="croix sol" viewBox="0 0 10 10" aria-hidden="true"><path d="M2 2L8 8M8 2L2 8" stroke="#E6007E" stroke-width="1.3" stroke-linecap="round" fill="none"/></svg></td></tr>
+      <tr><td class="enonce">Un lapin en chocolat coûte 5,20&nbsp;CHF. Je veux en offrir un à chacun de mes 5 neveux. Pour savoir ce que je vais dépenser, je fais…</td><td></td><td></td><td><svg class="croix sol" viewBox="0 0 10 10" aria-hidden="true"><path d="M2 2L8 8M8 2L2 8" stroke="#E6007E" stroke-width="1.3" stroke-linecap="round" fill="none"/></svg></td><td></td></tr>
+      <tr><td class="enonce">Une boîte de 6 œufs coûte 3,50&nbsp;CHF. Je voudrais savoir à combien revient un œuf. Je fais…</td><td></td><td></td><td></td><td><svg class="croix sol" viewBox="0 0 10 10" aria-hidden="true"><path d="M2 2L8 8M8 2L2 8" stroke="#E6007E" stroke-width="1.3" stroke-linecap="round" fill="none"/></svg></td></tr>
+      <tr><td class="enonce">Par an et par habitant, la ville de Genève dépense, dans le domaine social, 3133&nbsp;CHF. Pour savoir quel est le budget social pour les 180&nbsp;000 habitants, je fais…</td><td></td><td></td><td><svg class="croix sol" viewBox="0 0 10 10" aria-hidden="true"><path d="M2 2L8 8M8 2L2 8" stroke="#E6007E" stroke-width="1.3" stroke-linecap="round" fill="none"/></svg></td><td></td></tr>
+      <tr><td class="enonce">Les tomates en grappe coûtent 3,70&nbsp;CHF le kilo. Pour savoir ce que me coûtent 500 grammes, je fais…</td><td></td><td></td><td></td><td><svg class="croix sol" viewBox="0 0 10 10" aria-hidden="true"><path d="M2 2L8 8M8 2L2 8" stroke="#E6007E" stroke-width="1.3" stroke-linecap="round" fill="none"/></svg></td></tr>
+    </tbody>
+  </table>
+
+  <div class="pied"><span>Nombres et opérations - 4 opérations - UOG/AM</span><span>1</span></div>
+</section>
+
+<script>
+document.querySelectorAll('.page[data-corrige]').forEach(p => {
+  const c = p.cloneNode(true);          /* le corrigé garde le numéro de la page d'origine */
+  c.removeAttribute('data-corrige');
+  c.classList.add('page-corrige');
+  document.body.appendChild(c);
+});
+
+const btn = document.getElementById('btn');
+const OEIL = '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.3 8S3.6 3.8 8 3.8 14.7 8 14.7 8 12.4 12.2 8 12.2 1.3 8 1.3 8z"/><circle cx="8" cy="8" r="2.1"/></svg>';
+const OEIL_B = '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.3 8S3.6 3.8 8 3.8 14.7 8 14.7 8 12.4 12.2 8 12.2 1.3 8 1.3 8z"/><circle cx="8" cy="8" r="2.1"/><path d="M2.5 13.5L13.5 2.5"/></svg>';
+btn.addEventListener('click', () => {
+  const on = document.body.classList.toggle('corrige');
+  btn.innerHTML = on ? OEIL_B : OEIL;
+  btn.title = on ? 'Masquer le corrigé' : 'Afficher le corrigé';
+  btn.setAttribute('aria-label', btn.title);
+});
+
+(function(){
+  const racine = document.documentElement;
+  const barre = document.querySelector('.barre');
+  const taux = document.getElementById('zoom-taux');
+  let z = 1;
+  function applique(v){
+    z = Math.max(0.15, Math.min(v, 4));
+    racine.style.setProperty('--z', z);
+    if (taux) taux.textContent = Math.round(z * 100) + ' %';
+  }
+  function pageEntiere(){
+    racine.style.setProperty('--z', 1);
+    const p = document.querySelector('.page');
+    if (!p) return;
+    const r = p.getBoundingClientRect();
+    const hBarre = barre ? barre.getBoundingClientRect().height : 0;
+    applique(Math.min((window.innerWidth - 36) / r.width,
+                      (window.innerHeight - hBarre - 36) / r.height));
+  }
+  document.getElementById('zoom-moins').addEventListener('click', () => applique(z / 1.15));
+  document.getElementById('zoom-plus').addEventListener('click', () => applique(z * 1.15));
+  document.getElementById('zoom-page').addEventListener('click', pageEntiere);
+  let t; window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(pageEntiere, 150); });
+  pageEntiere();
+
+  const bpe = document.getElementById('plein-ecran');
+  if (bpe) {
+    bpe.addEventListener('click', () => {
+      if (document.fullscreenElement) document.exitFullscreen();
+      else document.documentElement.requestFullscreen();
+    });
+    document.addEventListener('fullscreenchange', () => {
+      const plein = !!document.fullscreenElement;
+      bpe.innerHTML = plein
+        ? '<svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2v4H2"/><path d="M14 6h-4V2"/><path d="M10 14v-4h4"/><path d="M2 10h4v4"/></svg>'
+        : '<svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6V2h4"/><path d="M10 2h4v4"/><path d="M14 10v4h-4"/><path d="M6 14H2v-4"/></svg>';
+      bpe.title = plein ? 'Quitter le plein écran' : 'Plein écran';
+      setTimeout(pageEntiere, 120);
+    });
+  }
+})();
+</script>
+</body>
+</html>
