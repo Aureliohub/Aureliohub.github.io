@@ -8,7 +8,7 @@ générant des exercices de mathématiques pour adultes (programme PAI, Suisse).
 Product owner : Aurelio (Onex/Genève). Répondre en FRANÇAIS.
 
 ───────────────────────────────────────────────────────────────────────────────
-0. OÙ ON EN EST (v498, 18.09.2026) — à lire en premier
+0. OÙ ON EN EST (v503, 24.09.2026) — à lire en premier
 ───────────────────────────────────────────────────────────────────────────────
 L'application est en ligne : https://aureliohub.github.io/eva_maths.html
 Les fichiers de série et de test (.json) sont déposés à côté d'elle, et s'ouvrent
@@ -543,6 +543,111 @@ PDF de domaine :
 Cette section décrit l'ÉTAT, non l'historique. Les numéros de version ne sont
 cités que lorsqu'ils aident à retrouver un choix dans le fichier.
 
+v503 — UN SEUL VOILE D'ATTENTE POUR TOUS LES PDF. Celui de l'atelier
+ (ouvrirVoilePdf : rond qui tourne, « Génération du PDF… », « N exercices — cela
+ prend quelques secondes. ») sert désormais à downloadPdf, downloadDomainPdf,
+ downloadCartePdf et exporterTest, enveloppés par `avecAttentePdf` juste après
+ fermerVoilePdf. Il ne paraît qu'après VOILE_PDF_DELAI (400 ms) et reste au
+ moins VOILE_PDF_MINI (500 ms). Les appels s'emboîtent : un compteur laisse
+ l'appel extérieur seul maître du texte et de la fermeture. Supprimés : le
+ « ⏳ Génération… » du bouton PDF, le « ⏳ Export… » et la fenêtre
+ « Construction du document… » de l'export (les boutons restent désactivés).
+ `downloadPdf({ composerSeulement })` ne pose pas de voile. Mesuré au vrai
+ navigateur : sous-domaine, domaine, atelier, export de série, emboîtement.
+ Aussi : BISSECTRICE sans arc au sommet (énoncé et corrigé).
+
+v502 — INSTRUMENTS : LIGNE BLANCHE SOUS LE TITRE SUPPRIMÉE (énoncé ET corrigé).
+ INSTR.entete 96 → 72 px ; les deux en-têtes restent forcés à la MÊME hauteur
+ (condition de la superposition par transparence) et leur texte est calé en bas
+ (flex, justify-content: flex-end) : l'énoncé, plus court que le corrigé de
+ 11 px, ne garde pas de blanc sous son titre. Les 24 px rendus vont aux cadres
+ des figures (figSeule 437, figAngle 435, figPleine 919). Toujours 5+5 pages.
+
+v501 — MÉDIATRICE ET BISSECTRICE : LE PDF DIT « À L'AIDE DU COMPAS ». Ajout
+ d'un `consignePdf` à ces deux entrées de INSTRUMENTS_ACTIVITES (même mécanisme
+ que les angles) ; l'écran garde sa consigne Polypad. Touche le PDF du
+ sous-domaine, celui de l'atelier et le titre de la ligne dans l'atelier.
+
+v500 — LE MODÈLE « ARTICLE À PRIX MANQUANT » SORTAIT TROP RAREMENT. Mesuré
+ après la v499 : 6 % des exercices seulement. Le calcul l'explique — seule la
+ question d) est au palier 3, elle est « métier » une fois sur deux, il faut
+ ensuite tomber sur l'un des deux métiers équipés (2 sur 11) puis sur le
+ nouveau générateur plutôt que l'ancien. Deux corrections :
+ · PATRON NEUTRE (PROBLEME_PATRONS n° 10, palier 3), le vrai levier : la
+   question d) est neutre une fois sur deux et le palier 3 neutre ne comptait
+   que DEUX patrons (excursion, chalet), qui revenaient donc sans cesse. Deux
+   contextes tirés à pile ou face : club de sport (maillots, ballons) et fête
+   de quartier (paquets d'assiettes, paquets de gobelets). Ne pas oublier
+   PROBLEME_TIERS : il s'aligne sur l'INDEX des patrons, un patron ajouté sans
+   son palier retombe en 2 par défaut.
+ · QUATRE MÉTIERS DE PLUS au palier 3b : électricien (spots + interrupteurs),
+   sanitaire (robinets + flexibles), gestionnaire du commerce de détail (café +
+   chocolats, recette de la journée), pharmacie (comprimés + sirop).
+ Résultat mesuré sur 1 000 exercices : 29 à 31 % en contiennent un, soit environ
+ un tirage sur trois et demi. ATTENTION, l'écran trompe : re-sélectionner le
+ sous-domaine dans le menu REDONNE LE MÊME EXERCICE (il est en cache), seul le
+ bouton ↻ « Nouveaux exercices » retire — c'est ce qui a fait croire à une
+ panne.
+ · PIÈGE RENCONTRÉ : aucun article du catalogue ne doit porter le nom d'une des
+   deux lignes CONNUES. « 7 ballons à 25 CHF et 9 ballons » est sorti au
+   contrôle navigateur ; les ballons ont quitté ARTICLES_CLUB (remplacés par
+   des chasubles) et le banc vérifie désormais que le nom de l'article
+   n'apparaît qu'UNE fois dans l'énoncé.
+ · PIÈGE RENCONTRÉ (bis) : si les deux lignes connues sont trop lourdes, la
+   ligne inconnue ne pèse jamais les 15 % demandés et la valeur de secours sort
+   à chaque tirage. C'est ce qui est arrivé au sanitaire avec des lavabos à
+   210 CHF ; il pose maintenant des robinets et des flexibles. Le banc mesure
+   le taux de recours au secours (énoncés distincts / tirages) : il doit rester
+   sous 1 %.
+ Banc d'essai : 2 100 tirages métier + 600 tirages neutres, zéro défaut ;
+ 3 sabotages détectés ; 300 exercices complets sans défaut. Vrai navigateur :
+ écran regardé, PDF du sous-domaine (2 pages) et PDF du domaine 1 (5 pages)
+ produits avec le patron neutre forcé partout — l'énoncé tient sur deux lignes
+ dans les deux mises en page, l'espace de réponse est intact.
+
+v499 — ARTICLE À PRIX MANQUANT : un DEUXIÈME modèle de palier 3, pour
+ l'employé·e de commerce et le mécanicien. Deux lignes chiffrées, une troisième
+ dont le prix unitaire manque, le total donné : l'élève retire ce qu'il connaît
+ puis divise (×, ×, +, −, ÷). « … 14 rames de papier à 8 CHF, 8 cartouches
+ d'encre à 42 CHF et 6 agrafeuses. Le montant total est de 568 CHF. Combien
+ coûte une agrafeuse ? »
+ · POURQUOI CES DEUX MÉTIERS. C'est un RETOUR À L'UNITÉ, pas un partage : les
+   dix autres paliers 3 répartissent une dépense (entre des services, des mois,
+   des locataires). Seul l'agent·e de propreté fait déjà un retour à l'unité
+   (facture − produits ÷ heures) : NE PAS lui ajouter ce modèle, ce serait un
+   doublon. Le mécanicien, lui, n'avait aucune division à son palier 3.
+ · PLAUSIBILITÉ (le défaut qui a lancé ce chantier) : un classeur fédéral vaut
+   6 CHF, pas 30 — une fourchette de prix unique pour tous les articles ne tient
+   pas. Chaque article porte donc SA fourchette de prix ET sa quantité crédible
+   (ARTICLES_BUREAU, ARTICLES_GARAGE). Un destructeur de documents (70-250 CHF,
+   acheté à l'unité) ne peut pas être l'article cherché ; un classeur, un
+   bloc-notes ou une ramette non plus, ils sont trop bon marché — ils restent
+   des lignes à prix DONNÉ. Ne pas allonger ces listes sans vérifier les deux.
+ · `tirerArticleManquant` tire le PRIX D'ABORD, la quantité ensuite, et calcule
+   le total : la division tombe juste par construction, pas par rattrapage. La
+   ligne inconnue doit peser de 15 à 50 % du total — en dessous l'énoncé se joue
+   sans elle, au-dessus il ne reste que la division.
+ · `sansEcho` écarte les tirages où le prix cherché est écrit dans l'énoncé
+   (« 12 rames … 12 CHF la clé USB ») : 4 % des tirages bruts. isTrivial le
+   faisait déjà après coup, mais y consommait les 20 essais de genProbleme.
+ · `_marque(fn, 'b')` pose `_tag` sur ces générateurs et genProbleme étiquette
+   la question `metier-<x>-3b` : sans quoi l'anti-répétition de l'atelier
+   (v413) confondait les deux paliers 3 d'un même métier.
+ · POUR ÉTENDRE À UN AUTRE MÉTIER : deux lignes chiffrées tirées de son palier 2
+   + un catalogue d'articles. La variante ASE (« coût du transport par enfant »)
+   divise par un nombre de participants et non par une quantité d'articles :
+   c'est un modèle à part, pas celui-ci.
+ Banc d'essai (t499.js) : 1 200 tirages directs → division toujours entière,
+ prix toujours dans la fourchette de son article, quantité toujours crédible,
+ ligne entre 15 et 50 %, jamais de résultat visible dans l'énoncé ; banc saboté
+ sur trois défauts (prix hors fourchette, division non entière, ligne trop
+ lourde) pour prouver qu'il détecte ; 300 exercices complets sans défaut, les
+ deux étiquettes « 3b » sortent. PDF du sous-domaine produit au VRAI NAVIGATEUR
+ (Chromium + jsPDF, capté par le téléchargement — l'enveloppe du constructeur ne
+ prend pas, `save` est une propriété propre de l'instance) : 8 tirages, toujours
+ 2 pages (énoncé + corrigé), l'énoncé du nouveau modèle tient sur deux lignes
+ sans manger l'espace de réponse, corrigé du PDF conforme.
+
 v498 — INSTRUMENTS, PLANCHE MIXTE « ⊥ - // », en TROISIÈME position du menu de
  l'atelier : une droite d et DEUX points, la parallèle par a et la
  perpendiculaire par b sur la même figure.
@@ -639,7 +744,7 @@ v493 — INSTRUMENTS DE GÉOMÉTRIE : trois planches de plus au PDF, et la
    pilote le MENU DES ACTIVITÉS à l'écran (chaque entrée y ouvre une iframe
    Polypad, et ces trois-là n'en ont pas). Le menu reste à cinq entrées.
  · Pages : [0,1] [2] [3,4] [5,6] [7]. Le triangle au compas occupe sa page à lui
-   seul (`pleinePage` → cadre INSTR.figPleine = 895 px) ; le drapeau
+   seul (`pleinePage` → cadre INSTR.figPleine = 919 px depuis la v502) ; le drapeau
    `_instrPleinePage` le fait traiter comme la planche d'angles des deux côtés,
    énoncé et corrigé, sans quoi les hauteurs ne se correspondaient plus.
  · Banc d'essai `tinstr.js` : 400 tirages par planche, bornes de tous les points
@@ -761,9 +866,11 @@ v483 — ÉNONCÉS PAR DOMAINE DE FORMATION. Chaque ligne de l'éditeur des pré
    connu : « Anne-Sophie » reste un prénom. `prenomsLire` découpe désormais
    d'abord par LIGNES (une ligne à métier reste entière), puis aux espaces et
    virgules comme avant pour une liste collée d'un coup.
- · ENONCES_METIER : 34 générateurs, 3 par métier (4 pour l'ASE : deux faciles,
-   l'un avec des enfants, l'autre avec des résidents), aux mêmes paliers que
-   les patrons neutres. Le métier n'est PAS nommé dans l'énoncé — seule
+ · ENONCES_METIER : 40 générateurs (v500), 3 par métier (4 pour l'ASE : deux
+   faciles, l'un avec des enfants, l'autre avec des résidents ; 4 pour les SIX
+   métiers qui ont deux paliers 3 — employé·e de commerce, mécanicien,
+   électricien, sanitaire, gestionnaire du commerce de détail, pharmacie :
+   voir v499 et v500), aux mêmes paliers que les patrons neutres. Le métier n'est PAS nommé dans l'énoncé — seule
    exception, l'assistante dentaire — c'est le contexte qui le porte.
    Les paliers 3 tirent jusqu'à ce que la division tombe juste (`_essais`,
    60 essais puis une valeur de secours : ne JAMAIS rendre null).
@@ -1413,7 +1520,8 @@ v452 — Retouches sur la sortie Test.
  · « (sans calculatrice) » ajouté aux sous-titres du TEST : la mention suit le
    DOMAINE (`mentionSansCalc(it.domainNum)`), le PDF la portait déjà, l'écran
    non.
- · FENÊTRE D'ATTENTE pendant l'export (`ouvrirAttenteExport` /
+ · [REMPLACÉE en v503 par le voile commun des PDF, voir v503]
+   FENÊTRE D'ATTENTE pendant l'export (`ouvrirAttenteExport` /
    `majAttenteExport` / `fermerAttenteExport`, fermée dans le `finally`). Sans
    elle, la page restait figée plusieurs secondes sans rien dire et l'on
    recliquait — d'où l'impression d'un export en panne. Deux points à retenir :
@@ -6081,6 +6189,31 @@ const PROBLEME_PATRONS = [
       text: `Un groupe de ${n} amis loue un chalet pour ${nuits} nuits. Le chalet est loué ${prixNuit} CHF par nuit pour tout le groupe. Les amis ajoutent ${menage} CHF de frais de ménage et partagent la dépense totale équitablement. Combien chaque personne doit-elle payer ?`,
       answer: `Location : ${prixNuit}×${nuits} = ${prixNuit * nuits} CHF. Coût total : ${prixNuit * nuits}+${menage} = ${total} CHF. Par personne : ${total}÷${n} = ${perP} CHF.`
     };
+  },
+  // Patron 10 (v500) : ARTICLE À PRIX MANQUANT, version neutre — deux lignes
+  // chiffrées, une troisième dont le prix manque, le total donné (×, ×, +, −, ÷).
+  // Il tient la place que les deux seuls patrons difficiles laissaient vide :
+  // la question d) était l'excursion ou le chalet une fois sur deux.
+  () => {
+    const club = Math.random() < 0.5;
+    for (let i = 0; i < 80; i++) {
+      const a = club ? rand(18, 30) : rand(15, 30);
+      const pa = club ? choice([22, 25, 28, 32, 35]) : choice([3, 4, 5]);
+      const b = club ? rand(6, 14) : rand(12, 25);
+      const pb = club ? choice([25, 30, 35, 40, 45]) : choice([4, 5, 6]);
+      const sous = a * pa + b * pb;
+      const r = tirerArticleManquant(sous, club ? ARTICLES_CLUB : ARTICLES_FETE);
+      if (!r) continue;
+      const txt = club
+        ? `Un club de sport commande ${a} maillots à ${pa} CHF, ${b} ballons à ${pb} CHF et ${r.q} ${r.a.plur}. La facture totale s'élève à ${r.total} CHF. Combien coûte ${r.a.sing} ?`
+        : `Pour une fête de quartier, on achète ${a} paquets d'assiettes à ${pa} CHF, ${b} paquets de gobelets à ${pb} CHF et ${r.q} ${r.a.plur}. La dépense totale s'élève à ${r.total} CHF. Combien coûte ${r.a.sing} ?`;
+      if (!sansEcho(txt, r.prix)) continue;
+      const l1 = club ? 'Maillots' : 'Assiettes', l2 = club ? 'Ballons' : 'Gobelets';
+      return { text: txt,
+        answer: `${l1} : ${a}×${pa} = ${a * pa} CHF. ${l2} : ${b}×${pb} = ${b * pb} CHF. Sous-total : ${a * pa}+${b * pb} = ${sous} CHF. ${r.a.maj} : ${r.total}−${sous} = ${r.ligne} CHF. Prix à l'unité : ${r.ligne}÷${r.q} = ${r.prix} CHF.` };
+    }
+    return { text: `Un club de sport commande 24 maillots à 28 CHF, 10 ballons à 30 CHF et 8 gourdes. La facture totale s'élève à 1132 CHF. Combien coûte une gourde ?`,
+      answer: `Maillots : 24×28 = 672 CHF. Ballons : 10×30 = 300 CHF. Sous-total : 672+300 = 972 CHF. Gourdes : 1132−972 = 160 CHF. Prix à l'unité : 160÷8 = 20 CHF.` };
   }
 ];
 
@@ -6104,6 +6237,92 @@ const _essais = (fn, secours) => {
   for (let i = 0; i < 60; i++) { const r = fn(); if (r) return r; }
   return secours();
 };
+
+// ----------------------------------------------------------------------------
+// ARTICLE À PRIX MANQUANT (v499) — deuxième modèle de palier 3.
+// Deux lignes chiffrées, une troisième dont le prix unitaire MANQUE, le total
+// donné : l'élève retire ce qu'il connaît, puis divise (×, ×, +, −, ÷).
+// C'est un RETOUR À L'UNITÉ, pas un partage : les dix autres paliers 3
+// répartissent une dépense entre des services, des mois, des locataires.
+// `_marque` étiquette ces générateurs (`_tag = 'b'`) pour que l'anti-répétition
+// de l'atelier les distingue du palier 3 déjà en place du même métier.
+const _marque = (fn, tag) => { fn._tag = tag; return fn; };
+
+// Prix relevés dans les catalogues suisses. Les DEUX bornes comptent : une
+// agrafeuse vaut 12 à 35 CHF (un classeur fédéral, lui, en vaut 6 — il ne peut
+// donc PAS être l'article cherché), et la quantité doit rester crédible pour
+// l'article (4 bougies oui, 4 destructeurs de documents non). Ne pas allonger
+// ces listes sans vérifier le prix ET la quantité.
+const ARTICLES_BUREAU = [
+  { plur: 'agrafeuses',      maj: 'Agrafeuses',      sing: 'une agrafeuse',      q: [3, 8],  prix: [12, 15, 18, 20, 25, 30, 35] },
+  { plur: 'perforateurs',    maj: 'Perforateurs',    sing: 'un perforateur',     q: [3, 8],  prix: [15, 20, 24, 28, 30, 35, 40] },
+  { plur: 'calculatrices',   maj: 'Calculatrices',   sing: 'une calculatrice',   q: [3, 8],  prix: [20, 25, 30, 35, 40, 45, 50] },
+  { plur: 'tampons dateurs', maj: 'Tampons dateurs', sing: 'un tampon dateur',   q: [3, 6],  prix: [25, 28, 30, 35, 40, 45] },
+  { plur: 'clés USB',        maj: 'Clés USB',        sing: 'une clé USB',        q: [4, 10], prix: [12, 15, 18, 20, 25] }
+];
+// Catalogues neutres (patron 10) et des quatre métiers ajoutés en v500. Même
+// règle partout : le prix doit être celui du commerce ET la quantité crédible.
+const ARTICLES_CLUB = [
+  { plur: 'sifflets',       maj: 'Sifflets',       sing: 'un sifflet',        q: [6, 12], prix: [8, 10, 12, 15] },
+  { plur: 'gourdes',        maj: 'Gourdes',        sing: 'une gourde',        q: [5, 12], prix: [12, 15, 18, 20, 25] },
+  { plur: 'sacs de sport',  maj: 'Sacs de sport',  sing: 'un sac de sport',   q: [4, 10], prix: [25, 30, 35, 40, 45] },
+  { plur: 'chasubles',      maj: 'Chasubles',      sing: 'une chasuble',      q: [6, 12], prix: [12, 15, 18, 20, 25] }
+];
+// ATTENTION : aucun article du catalogue ne doit porter le nom d'une des deux
+// lignes CONNUES de l'énoncé — « 7 ballons à 25 CHF et 9 ballons » est sorti
+// une fois au contrôle navigateur. Le banc le vérifie (l'article n'apparaît
+// qu'une seule fois dans le texte).
+const ARTICLES_FETE = [
+  { plur: 'nappes',         maj: 'Nappes',         sing: 'une nappe',         q: [5, 12], prix: [8, 10, 12, 15, 18] },
+  { plur: 'guirlandes',     maj: 'Guirlandes',     sing: 'une guirlande',     q: [5, 12], prix: [6, 8, 10, 12, 15] },
+  { plur: 'plateaux',       maj: 'Plateaux',       sing: 'un plateau',        q: [4, 10], prix: [12, 15, 18, 20, 25] }
+];
+const ARTICLES_ELECTRICIEN = [
+  { plur: 'disjoncteurs',   maj: 'Disjoncteurs',   sing: 'un disjoncteur',    q: [3, 8],  prix: [15, 18, 20, 25, 30, 35] },
+  { plur: 'variateurs',     maj: 'Variateurs',     sing: 'un variateur',      q: [3, 6],  prix: [25, 30, 35, 40, 45] },
+  { plur: 'détecteurs de mouvement', maj: 'Détecteurs', sing: 'un détecteur de mouvement', q: [2, 5], prix: [30, 35, 40, 45, 50] }
+];
+const ARTICLES_SANITAIRE = [
+  { plur: 'siphons',        maj: 'Siphons',        sing: 'un siphon',         q: [4, 10], prix: [20, 25, 30, 35, 40] },
+  { plur: 'vannes d\'arrêt', maj: 'Vannes',       sing: 'une vanne d\'arrêt', q: [4, 10], prix: [15, 18, 20, 25, 30] },
+  { plur: 'bondes',         maj: 'Bondes',         sing: 'une bonde',         q: [5, 10], prix: [12, 15, 18, 20, 25] }
+];
+const ARTICLES_DETAIL = [
+  { plur: 'paquets de biscuits', maj: 'Biscuits',  sing: 'un paquet de biscuits', q: [10, 20], prix: [5, 6, 7, 8, 10, 12] },
+  { plur: 'bouteilles de sirop', maj: 'Sirop',     sing: 'une bouteille de sirop', q: [8, 18], prix: [6, 8, 9, 10, 12] },
+  { plur: 'bocaux de miel', maj: 'Miel',           sing: 'un bocal de miel',  q: [8, 15], prix: [10, 12, 14, 15, 18] }
+];
+const ARTICLES_PHARMACIE = [
+  { plur: 'thermomètres',   maj: 'Thermomètres',   sing: 'un thermomètre',    q: [4, 10], prix: [12, 15, 18, 20, 25] },
+  { plur: 'boîtes de pansements', maj: 'Pansements', sing: 'une boîte de pansements', q: [8, 15], prix: [6, 8, 9, 10, 12] },
+  { plur: 'sprays nasaux',  maj: 'Sprays nasaux',  sing: 'un spray nasal',    q: [6, 12], prix: [9, 10, 12, 15, 18] }
+];
+const ARTICLES_GARAGE = [
+  { plur: 'bougies',              maj: 'Bougies',              sing: 'une bougie',              q: [4, 8], prix: [15, 18, 20, 22, 25, 28] },
+  { plur: 'balais d\'essuie-glace', maj: 'Balais',             sing: 'un balai d\'essuie-glace', q: [2, 4], prix: [18, 22, 25, 30, 35] },
+  { plur: 'filtres à air',        maj: 'Filtres à air',        sing: 'un filtre à air',         q: [2, 4], prix: [25, 30, 35, 40, 45] },
+  { plur: 'plaquettes de frein',  maj: 'Plaquettes de frein',  sing: 'une plaquette de frein',  q: [4, 4], prix: [20, 25, 30, 35, 40, 45] }
+];
+
+// Tire l'article manquant À PARTIR DU PRIX : prix unitaire d'abord, quantité
+// ensuite, total calculé — la division tombe donc juste par construction, sans
+// rattrapage. La ligne inconnue doit peser de 15 à 50 % du total : en dessous
+// l'énoncé se joue sans elle, au-dessus il ne reste plus que la division.
+// Renvoie null si le tirage sort de la fenêtre ; l'appelant passe par _essais.
+// Le prix cherché ne doit pas non plus être ÉCRIT dans l'énoncé (« 12 rames de
+// papier … la clé USB coûte 12 CHF » : l'élève lit la réponse au lieu de la
+// calculer). genProbleme rejette déjà ces questions après coup (isTrivial),
+// mais les écarter ici évite d'y consommer ses 20 essais — mesuré : 4 % des
+// tirages bruts étaient dans ce cas.
+const sansEcho = (texte, val) => !new RegExp('(?<![\\d.,])' + val + '(?![\\d.,])').test(texte);
+
+function tirerArticleManquant(sousTotal, articles) {
+  const a = choice(articles);
+  const prix = choice(a.prix), q = rand(a.q[0], a.q[1]);
+  const ligne = prix * q, total = sousTotal + ligne;
+  if (ligne < total * 0.15 || ligne > total * 0.5) return null;
+  return { a, prix, q, ligne, total };
+}
 const ENONCES_METIER = {
   'employe-commerce': {
     1: [(p) => {
@@ -6123,7 +6342,18 @@ const ENONCES_METIER = {
       return { text: `${p.prenom} répartit une facture entre ${s} services : ${n} classeurs à ${pr} CHF, plus ${port} CHF de frais de port. Combien chaque service paie-t-il ?`,
         answer: `Classeurs : ${n}×${pr} = ${n * pr} CHF. Total : ${n * pr}+${port} = ${t} CHF. Par service : ${t}÷${s} = ${t / s} CHF.` };
     }, () => ({ text: `${p.prenom} répartit une facture entre 4 services : 12 classeurs à 15 CHF, plus 12 CHF de frais de port. Combien chaque service paie-t-il ?`,
-      answer: `Classeurs : 12×15 = 180 CHF. Total : 180+12 = 192 CHF. Par service : 192÷4 = 48 CHF.` }))]
+      answer: `Classeurs : 12×15 = 180 CHF. Total : 180+12 = 192 CHF. Par service : 192÷4 = 48 CHF.` })),
+    _marque((p) => _essais(() => {
+      const a = rand(10, 20), pa = choice([6, 7, 8, 9]), b = rand(5, 10), pb = choice([38, 42, 45, 48]);
+      const sous = a * pa + b * pb;
+      const r = tirerArticleManquant(sous, ARTICLES_BUREAU);
+      if (!r) return null;
+      const txt = `${p.prenom} commande ${a} rames de papier à ${pa} CHF, ${b} cartouches d'encre à ${pb} CHF et ${r.q} ${r.a.plur}. Le montant total de la commande est de ${r.total} CHF. Combien coûte ${r.a.sing} ?`;
+      if (!sansEcho(txt, r.prix)) return null;
+      return { text: txt,
+        answer: `Papier : ${a}×${pa} = ${a * pa} CHF. Encre : ${b}×${pb} = ${b * pb} CHF. Sous-total : ${a * pa}+${b * pb} = ${sous} CHF. ${r.a.maj} : ${r.total}−${sous} = ${r.ligne} CHF. Prix à l'unité : ${r.ligne}÷${r.q} = ${r.prix} CHF.` };
+    }, () => ({ text: `${p.prenom} commande 14 rames de papier à 8 CHF, 8 cartouches d'encre à 42 CHF et 6 agrafeuses. Le montant total de la commande est de 568 CHF. Combien coûte une agrafeuse ?`,
+      answer: `Papier : 14×8 = 112 CHF. Encre : 8×42 = 336 CHF. Sous-total : 112+336 = 448 CHF. Agrafeuses : 568−448 = 120 CHF. Prix à l'unité : 120÷6 = 20 CHF.` })), 'b')]
   },
 
   'mecanicien': {
@@ -6142,7 +6372,18 @@ const ENONCES_METIER = {
         l = choice([4, 5, 6]), pl = choice([20, 22, 24]);
       return { text: `${p.prenom} facture ${h} heures de main-d'œuvre à ${t} CHF, 1 filtre à huile à ${fi} CHF et ${l} litres d'huile à ${pl} CHF le litre. Quel est le montant de la facture ?`,
         answer: `Main-d'œuvre : ${h}×${t} = ${h * t} CHF. Huile : ${l}×${pl} = ${l * pl} CHF. Facture : ${h * t}+${fi}+${l * pl} = ${h * t + fi + l * pl} CHF.` };
-    }]
+    },
+    _marque((p) => _essais(() => {
+      const h = rand(2, 4), t = choice([140, 150, 160]), l = choice([4, 5, 6]), pl = choice([20, 22, 24]);
+      const sous = h * t + l * pl;
+      const r = tirerArticleManquant(sous, ARTICLES_GARAGE);
+      if (!r) return null;
+      const txt = `${p.prenom} facture ${h} heures de main-d'œuvre à ${t} CHF, ${l} litres d'huile à ${pl} CHF le litre et ${r.q} ${r.a.plur}. La facture totale s'élève à ${r.total} CHF. Combien coûte ${r.a.sing} ?`;
+      if (!sansEcho(txt, r.prix)) return null;
+      return { text: txt,
+        answer: `Main-d'œuvre : ${h}×${t} = ${h * t} CHF. Huile : ${l}×${pl} = ${l * pl} CHF. Sous-total : ${h * t}+${l * pl} = ${sous} CHF. ${r.a.maj} : ${r.total}−${sous} = ${r.ligne} CHF. Prix à l'unité : ${r.ligne}÷${r.q} = ${r.prix} CHF.` };
+    }, () => ({ text: `${p.prenom} facture 3 heures de main-d'œuvre à 150 CHF, 5 litres d'huile à 20 CHF le litre et 4 bougies. La facture totale s'élève à 650 CHF. Combien coûte une bougie ?`,
+      answer: `Main-d'œuvre : 3×150 = 450 CHF. Huile : 5×20 = 100 CHF. Sous-total : 450+100 = 550 CHF. Bougies : 650−550 = 100 CHF. Prix à l'unité : 100÷4 = 25 CHF.` })), 'b')]
   },
 
   'electricien': {
@@ -6165,7 +6406,18 @@ const ENONCES_METIER = {
       return { text: `Un immeuble de ${ap} appartements reçoit ${tb} tableaux électriques à ${pt} CHF pièce. ${p.prenom} s'occupe de leur installation et travaille pendant ${h} heures, au tarif de ${th} CHF par heure. Les frais sont répartis équitablement entre les ${ap} appartements. Combien chaque appartement doit-il payer ?`,
         answer: `Tableaux : ${tb}×${pt} = ${tb * pt} CHF. Pose : ${h}×${th} = ${h * th} CHF. Total : ${tb * pt}+${h * th} = ${t} CHF. Par appartement : ${t}÷${ap} = ${t / ap} CHF.` };
     }, () => ({ text: `Un immeuble de 4 appartements reçoit 5 tableaux électriques à 320 CHF pièce. ${p.prenom} s'occupe de leur installation et travaille pendant 6 heures, au tarif de 120 CHF par heure. Les frais sont répartis équitablement entre les 4 appartements. Combien chaque appartement doit-il payer ?`,
-      answer: `Tableaux : 5×320 = 1600 CHF. Pose : 6×120 = 720 CHF. Total : 1600+720 = 2320 CHF. Par appartement : 2320÷4 = 580 CHF.` }))]
+      answer: `Tableaux : 5×320 = 1600 CHF. Pose : 6×120 = 720 CHF. Total : 1600+720 = 2320 CHF. Par appartement : 2320÷4 = 580 CHF.` })),
+    _marque((p) => _essais(() => {
+      const sp = rand(8, 16), ps = choice([18, 22, 25, 28]), it = rand(4, 10), pi = choice([12, 14, 16, 18]);
+      const sous = sp * ps + it * pi;
+      const r = tirerArticleManquant(sous, ARTICLES_ELECTRICIEN);
+      if (!r) return null;
+      const txt = `${p.prenom} pose ${sp} spots à ${ps} CHF pièce, ${it} interrupteurs à ${pi} CHF pièce et ${r.q} ${r.a.plur}. Le matériel revient à ${r.total} CHF en tout. Combien coûte ${r.a.sing} ?`;
+      if (!sansEcho(txt, r.prix)) return null;
+      return { text: txt,
+        answer: `Spots : ${sp}×${ps} = ${sp * ps} CHF. Interrupteurs : ${it}×${pi} = ${it * pi} CHF. Sous-total : ${sp * ps}+${it * pi} = ${sous} CHF. ${r.a.maj} : ${r.total}−${sous} = ${r.ligne} CHF. Prix à l'unité : ${r.ligne}÷${r.q} = ${r.prix} CHF.` };
+    }, () => ({ text: `${p.prenom} pose 12 spots à 25 CHF pièce, 8 interrupteurs à 15 CHF pièce et 4 disjoncteurs. Le matériel revient à 520 CHF en tout. Combien coûte un disjoncteur ?`,
+      answer: `Spots : 12×25 = 300 CHF. Interrupteurs : 8×15 = 120 CHF. Sous-total : 300+120 = 420 CHF. Disjoncteurs : 520−420 = 100 CHF. Prix à l'unité : 100÷4 = 25 CHF.` })), 'b')]
   },
 
   'gestionnaire-detail': {
@@ -6189,7 +6441,18 @@ const ENONCES_METIER = {
       return { text: `${p.prenom} commande ${c} cartons de ${v} vestes à ${pv} CHF pièce et obtient ${rem} CHF de remise. ${il} règle la facture en ${ver} versements égaux. Quel est le montant d'un versement ?`,
         answer: `Vestes : ${c}×${v} = ${c * v}. Prix : ${c * v}×${pv} = ${c * v * pv} CHF. Après remise : ${c * v * pv}−${rem} = ${t} CHF. Par versement : ${t}÷${ver} = ${t / ver} CHF.` };
     }, () => ({ text: `${p.prenom} commande 9 cartons de 12 vestes à 45 CHF pièce et obtient 180 CHF de remise. La facture est réglée en 3 versements égaux. Quel est le montant d'un versement ?`,
-      answer: `Vestes : 9×12 = 108. Prix : 108×45 = 4860 CHF. Après remise : 4860−180 = 4680 CHF. Par versement : 4680÷3 = 1560 CHF.` }))]
+      answer: `Vestes : 9×12 = 108. Prix : 108×45 = 4860 CHF. Après remise : 4860−180 = 4680 CHF. Par versement : 4680÷3 = 1560 CHF.` })),
+    _marque((p) => _essais(() => {
+      const ca = rand(12, 25), pca = choice([7, 8, 9, 11]), ch = rand(8, 18), pch = choice([12, 14, 15, 18]);
+      const sous = ca * pca + ch * pch;
+      const r = tirerArticleManquant(sous, ARTICLES_DETAIL);
+      if (!r) return null;
+      const txt = `${p.prenom} vend ${ca} paquets de café à ${pca} CHF, ${ch} boîtes de chocolats à ${pch} CHF et ${r.q} ${r.a.plur}. La recette de la journée est de ${r.total} CHF. Combien coûte ${r.a.sing} ?`;
+      if (!sansEcho(txt, r.prix)) return null;
+      return { text: txt,
+        answer: `Café : ${ca}×${pca} = ${ca * pca} CHF. Chocolats : ${ch}×${pch} = ${ch * pch} CHF. Sous-total : ${ca * pca}+${ch * pch} = ${sous} CHF. ${r.a.maj} : ${r.total}−${sous} = ${r.ligne} CHF. Prix à l'unité : ${r.ligne}÷${r.q} = ${r.prix} CHF.` };
+    }, () => ({ text: `${p.prenom} vend 20 paquets de café à 9 CHF, 12 boîtes de chocolats à 15 CHF et 15 paquets de biscuits. La recette de la journée est de 480 CHF. Combien coûte un paquet de biscuits ?`,
+      answer: `Café : 20×9 = 180 CHF. Chocolats : 12×15 = 180 CHF. Sous-total : 180+180 = 360 CHF. Biscuits : 480−360 = 120 CHF. Prix à l'unité : 120÷15 = 8 CHF.` })), 'b')]
   },
 
   'sanitaire': {
@@ -6212,7 +6475,18 @@ const ENONCES_METIER = {
       return { text: `${p.prenom} équipe ${s} salles de bains identiques : 2 robinets à ${rb} CHF et 1 siphon à ${si} CHF par salle. ${il} travaille ${h} heures au tarif de ${th} CHF par heure. Les ${s} locataires se partagent la dépense. Combien chacun doit-il payer ?`,
         answer: `Par salle : 2×${rb}+${si} = ${parSalle} CHF. Matériel : ${s}×${parSalle} = ${s * parSalle} CHF. Main-d'œuvre : ${h}×${th} = ${h * th} CHF. Total : ${s * parSalle}+${h * th} = ${t} CHF. Par locataire : ${t}÷${s} = ${t / s} CHF.` };
     }, () => ({ text: `${p.prenom} équipe 4 salles de bains identiques : 2 robinets à 85 CHF et 1 siphon à 30 CHF par salle, et travaille 4 heures au tarif de 130 CHF par heure. Les 4 locataires se partagent la dépense. Combien chacun doit-il payer ?`,
-      answer: `Par salle : 2×85+30 = 200 CHF. Matériel : 4×200 = 800 CHF. Main-d'œuvre : 4×130 = 520 CHF. Total : 800+520 = 1320 CHF. Par locataire : 1320÷4 = 330 CHF.` }))]
+      answer: `Par salle : 2×85+30 = 200 CHF. Matériel : 4×200 = 800 CHF. Main-d'œuvre : 4×130 = 520 CHF. Total : 800+520 = 1320 CHF. Par locataire : 1320÷4 = 330 CHF.` })),
+    _marque((p) => _essais(() => {
+      const ro = rand(3, 6), pro = choice([75, 85, 95, 110]), fl = rand(4, 8), pfl = choice([18, 22, 25, 30]);
+      const sous = ro * pro + fl * pfl;
+      const r = tirerArticleManquant(sous, ARTICLES_SANITAIRE);
+      if (!r) return null;
+      const txt = `${p.prenom} pose ${ro} robinets à ${pro} CHF pièce, ${fl} flexibles de douche à ${pfl} CHF pièce et ${r.q} ${r.a.plur}. Le matériel revient à ${r.total} CHF en tout. Combien coûte ${r.a.sing} ?`;
+      if (!sansEcho(txt, r.prix)) return null;
+      return { text: txt,
+        answer: `Robinets : ${ro}×${pro} = ${ro * pro} CHF. Flexibles : ${fl}×${pfl} = ${fl * pfl} CHF. Sous-total : ${ro * pro}+${fl * pfl} = ${sous} CHF. ${r.a.maj} : ${r.total}−${sous} = ${r.ligne} CHF. Prix à l'unité : ${r.ligne}÷${r.q} = ${r.prix} CHF.` };
+    }, () => ({ text: `${p.prenom} pose 4 robinets à 85 CHF pièce, 6 flexibles de douche à 25 CHF pièce et 5 siphons. Le matériel revient à 640 CHF en tout. Combien coûte un siphon ?`,
+      answer: `Robinets : 4×85 = 340 CHF. Flexibles : 6×25 = 150 CHF. Sous-total : 340+150 = 490 CHF. Siphons : 640−490 = 150 CHF. Prix à l'unité : 150÷5 = 30 CHF.` })), 'b')]
   },
 
   'dentaire': {
@@ -6284,7 +6558,18 @@ const ENONCES_METIER = {
       return { text: `${p.prenom} réceptionne ${c} cartons de ${b} boîtes de vitamines à ${pb} CHF la boîte. La pharmacie bénéficie de ${rem} CHF de remise et règle la facture en ${me} mensualités. Combien paie-t-elle chaque mois ?`,
         answer: `Boîtes : ${c}×${b} = ${c * b}. Prix : ${c * b}×${pb} = ${c * b * pb} CHF. Après remise : ${c * b * pb}−${rem} = ${t} CHF. Par mois : ${t}÷${me} = ${t / me} CHF.` };
     }, () => ({ text: `${p.prenom} réceptionne 6 cartons de 25 boîtes de vitamines à 15 CHF la boîte. La pharmacie bénéficie de 90 CHF de remise et règle la facture en 4 mensualités. Combien paie-t-elle chaque mois ?`,
-      answer: `Boîtes : 6×25 = 150. Prix : 150×15 = 2250 CHF. Après remise : 2250−90 = 2160 CHF. Par mois : 2160÷4 = 540 CHF.` }))]
+      answer: `Boîtes : 6×25 = 150. Prix : 150×15 = 2250 CHF. Après remise : 2250−90 = 2160 CHF. Par mois : 2160÷4 = 540 CHF.` })),
+    _marque((p) => _essais(() => {
+      const co = rand(8, 16), pco = choice([12, 14, 15, 18]), si = rand(5, 12), psi = choice([9, 11, 12, 14]);
+      const sous = co * pco + si * psi;
+      const r = tirerArticleManquant(sous, ARTICLES_PHARMACIE);
+      if (!r) return null;
+      const txt = `${p.prenom} range ${co} boîtes de comprimés à ${pco} CHF, ${si} flacons de sirop à ${psi} CHF et ${r.q} ${r.a.plur}. La livraison est facturée ${r.total} CHF en tout. Combien coûte ${r.a.sing} ?`;
+      if (!sansEcho(txt, r.prix)) return null;
+      return { text: txt,
+        answer: `Comprimés : ${co}×${pco} = ${co * pco} CHF. Sirop : ${si}×${psi} = ${si * psi} CHF. Sous-total : ${co * pco}+${si * psi} = ${sous} CHF. ${r.a.maj} : ${r.total}−${sous} = ${r.ligne} CHF. Prix à l'unité : ${r.ligne}÷${r.q} = ${r.prix} CHF.` };
+    }, () => ({ text: `${p.prenom} range 12 boîtes de comprimés à 15 CHF, 8 flacons de sirop à 12 CHF et 6 thermomètres. La livraison est facturée 396 CHF en tout. Combien coûte un thermomètre ?`,
+      answer: `Comprimés : 12×15 = 180 CHF. Sirop : 8×12 = 96 CHF. Sous-total : 180+96 = 276 CHF. Thermomètres : 396−276 = 120 CHF. Prix à l'unité : 120÷6 = 20 CHF.` })), 'b')]
   },
 
   'assc': {
@@ -6352,8 +6637,8 @@ const ENONCES_METIER = {
 
 // Palier de difficulté de chaque patron (même ordre que PROBLEME_PATRONS) :
 // 1 = facile (2 opérations), 2 = moyen (3 opérations), 3 = difficile (4 op. / division).
-//          excursion verres enseign. restau. boulang. salaire spect. épargne chalet
-const PROBLEME_TIERS = [   3,      2,      2,      1,      1,      1,      2,      2,    3 ];
+//        excursion verres enseign. restau. boulang. salaire spect. épargne chalet article
+const PROBLEME_TIERS = [   3,      2,      2,      1,      1,      1,      2,      2,    3,     3 ];
 
 function genProbleme() {
   // UN exercice de 4 questions (a, b, c, d) empilées, tirées avec un équilibrage
@@ -6416,7 +6701,7 @@ function genProbleme() {
     let q, safety = 20, modele;
     if (metierPar[i]) {
       const { c, gen } = metierPar[i];
-      modele = `metier-${c.metier}-${t}`;
+      modele = `metier-${c.metier}-${t}${gen._tag || ''}`;
       do { q = gen({ prenom: c.prenom, genre: c.genre }); } while (isTrivial(q) && --safety > 0);
     } else {
       const idx = patronPour(t);
@@ -19029,18 +19314,19 @@ function setNiveau(n) {
 // tout est calculé ici.
 //   hauteur utile = 1123 (A4) − 72 (marges haut/bas) − entete − ecart
 const INSTR = {
-  entete: 96,        // en-tête forcé à la même hauteur des deux côtés
+  entete: 72,        // en-tête forcé à la même hauteur des deux côtés (v502 : 96 → 72,
+                     // la ligne blanche sous le titre supprimée ; texte calé en bas)
   ecart: 16,         // espace sous l'en-tête
   titre: 30,         // ligne « Exercice N. » (hauteur imposée)
   sousTitre: 14,     // espace entre le titre et la figure
   libelle: 24,       // ligne « a) » / « b) » des planches à deux figures
   bas: 0
 };
-INSTR.utile = 1123 - 72 - INSTR.entete - INSTR.ecart;          // 939
-INSTR.trancheDouble = Math.floor(INSTR.utile / 2);             // 469
-INSTR.figSeule = INSTR.trancheDouble - INSTR.titre - INSTR.sousTitre;   // 425
-INSTR.figAngle = Math.floor((INSTR.utile - INSTR.titre - INSTR.sousTitre - 2 * INSTR.libelle) / 2);  // 423
-INSTR.figPleine = INSTR.utile - INSTR.titre - INSTR.sousTitre;  // 895 : une planche seule sur sa page
+INSTR.utile = 1123 - 72 - INSTR.entete - INSTR.ecart;          // 963
+INSTR.trancheDouble = Math.floor(INSTR.utile / 2);             // 481
+INSTR.figSeule = INSTR.trancheDouble - INSTR.titre - INSTR.sousTitre;   // 437
+INSTR.figAngle = Math.floor((INSTR.utile - INSTR.titre - INSTR.sousTitre - 2 * INSTR.libelle) / 2);  // 435
+INSTR.figPleine = INSTR.utile - INSTR.titre - INSTR.sousTitre;  // 919 : une planche seule sur sa page
 // ÉCHELLE 1. Le conteneur PDF fait 794 px pour 210 mm de large et la figure est
 // posée à la largeur exacte de son viewBox : une unité du dessin vaut donc un
 // pixel d'impression, et 1 cm vaut 37,8 px SUR LA FEUILLE. C'est ce qui autorise
@@ -19276,7 +19562,8 @@ function genInstrumentsExo(kind, consigne, hCadre) {
     const L = Math.min(ajuste(W, H, 14, ptsDe), 300);
     const vx = W / 2, vy = H / 2;
     const [ax, ay] = P(vx, vy, L, d1), [bx, by] = P(vx, vy, L * court, d2);
-    const base = seg(vx, vy, ax, ay) + seg(vx, vy, bx, by) + arc(vx, vy, 24, d1, d2);
+    // Sans arc au sommet (v503) : l'angle est présenté nu.
+    const base = seg(vx, vy, ax, ay) + seg(vx, vy, bx, by);
 
     const mid = (d1 + d2) / 2;
     // Construction : un arc centré au sommet coupe les deux branches en P et Q ;
@@ -19517,10 +19804,11 @@ const INSTRUMENTS_ACTIVITES = [
   { kind: 'parallele',       label: 'Parallèle',       src: 'https://polypad.amplify.com/embed/QkmacuQdiXApFw', consigne: "Trace une parallèle passant par le point a" },
   { kind: 'perpendiculaire', label: 'Perpendiculaire', src: 'https://polypad.amplify.com/embed/2xERiiiGdmddw', consigne: "Trace une perpendiculaire passant par le point b" },
   // consignePdf : la planche imprimée porte DEUX angles, l'activité à l'écran
-  // un seul – d'où une consigne au pluriel pour le seul PDF.
+  // un seul – d'où une consigne au pluriel pour le seul PDF. Médiatrice et
+  // bissectrice : le PDF précise « à l'aide du compas » (v501).
   { kind: 'angle',           label: 'Angle',           src: 'https://polypad.amplify.com/embed/cOte4uZpZIVejQ', consigne: "Mesure l'angle.", consignePdf: "Mesure les angles." },
-  { kind: 'mediatrice',      label: 'Médiatrice',      src: 'https://polypad.amplify.com/embed/13nmA8bb6toiOg', consigne: "Trace la médiatrice du segment." },
-  { kind: 'bissectrice',     label: 'Bissectrice',     src: 'https://polypad.amplify.com/embed/28w9RrrWnuJ3pw', consigne: "Trace la bissectrice de l'angle." }
+  { kind: 'mediatrice',      label: 'Médiatrice',      src: 'https://polypad.amplify.com/embed/13nmA8bb6toiOg', consigne: "Trace la médiatrice du segment.", consignePdf: "Trace la médiatrice du segment à l'aide du compas." },
+  { kind: 'bissectrice',     label: 'Bissectrice',     src: 'https://polypad.amplify.com/embed/28w9RrrWnuJ3pw', consigne: "Trace la bissectrice de l'angle.", consignePdf: "Trace la bissectrice de l'angle à l'aide du compas." }
 ];
 
 // Planches SUPPLÉMENTAIRES du PDF, sans équivalent à l'écran : il n'existe pas
@@ -21367,6 +21655,58 @@ function fermerVoilePdf() {
   if (v) v.remove();
 }
 
+// UN SEUL VOILE D'ATTENTE POUR TOUS LES PDF (v503). Avant : ce voile dans
+// l'atelier, « ⏳ Génération… » dans le bouton du sous-domaine, une fenêtre
+// « Construction du document… » à l'export d'un test, et rien du tout pour le
+// PDF d'un domaine. Le voile ne paraît qu'au-delà de VOILE_PDF_DELAI : un PDF
+// rapide ne clignote pas. Les appels s'EMBOÎTENT (l'atelier appelle
+// downloadCartePdf, qui appelle downloadPdf…) : un compteur fait que seul
+// l'appel le plus extérieur ouvre et referme, avec SON texte.
+const VOILE_PDF_DELAI = 400;   // ms
+const VOILE_PDF_MINI = 500;    // ms : une fois paru, il reste au moins ce temps (pas d'éclair)
+let voilePdfNiveau = 0, voilePdfMinuteur = null, voilePdfDepuis = 0, voilePdfFermeture = null;
+function debutAttentePdf(texte) {
+  if (voilePdfNiveau++ > 0) return;
+  if (voilePdfFermeture) { clearTimeout(voilePdfFermeture); voilePdfFermeture = null; fermerVoilePdf(); }
+  voilePdfMinuteur = setTimeout(() => {
+    voilePdfMinuteur = null;
+    if (voilePdfNiveau > 0) { ouvrirVoilePdf(texte || 'Cela prend quelques secondes.'); voilePdfDepuis = Date.now(); }
+  }, VOILE_PDF_DELAI);
+}
+function finAttentePdf() {
+  if (voilePdfNiveau === 0) return;
+  if (--voilePdfNiveau > 0) return;
+  if (voilePdfMinuteur) { clearTimeout(voilePdfMinuteur); voilePdfMinuteur = null; return; }
+  const reste = VOILE_PDF_MINI - (Date.now() - voilePdfDepuis);
+  if (reste <= 0) { fermerVoilePdf(); return; }
+  voilePdfFermeture = setTimeout(() => { voilePdfFermeture = null; fermerVoilePdf(); }, reste);
+}
+const texteAttentePdf = n => (n > 0)
+  ? `${n} exercice${n > 1 ? 's' : ''} — cela prend quelques secondes.`
+  : 'Cela prend quelques secondes.';
+// Enveloppe les QUATRE fabriques de PDF. Les appels internes passent aussi par
+// l'enveloppe (liaison globale) : c'est voulu, le compteur les absorbe.
+function avecAttentePdf(fn, texteDe) {
+  return async function (...args) {
+    const texte = texteDe ? texteDe(...args) : null;
+    if (texte === false) return fn.apply(this, args);   // pas de voile
+    debutAttentePdf(texte);
+    try { return await fn.apply(this, args); }
+    finally { finAttentePdf(); }
+  };
+}
+downloadPdf = avecAttentePdf(downloadPdf, opts => {
+  // Composition seule (atelier) : aucun PDF n'est produit, pas de voile.
+  if (opts && opts.composerSeulement) return false;
+  return texteAttentePdf(opts && Array.isArray(opts.exercicesImposes) ? opts.exercicesImposes.length : 0);
+});
+downloadDomainPdf = avecAttentePdf(downloadDomainPdf,
+  (n, compo) => texteAttentePdf(compo && Array.isArray(compo.items) ? compo.items.length : 0));
+downloadCartePdf = avecAttentePdf(downloadCartePdf,
+  items => texteAttentePdf(Array.isArray(items) ? items.length : 0));
+exporterTest = avecAttentePdf(exporterTest,
+  () => texteAttentePdf(state.test && Array.isArray(state.test.items) ? state.test.items.length : 0));
+
 // ----------------------------------------------------------------------------
 // TRAVAIL À L'ÉCRAN : la série composée est jouée comme un test, avec saisie,
 // correction et score — au lieu d'être imprimée. On réutilise entièrement la
@@ -21409,7 +21749,7 @@ async function atelierGenererPdf() {
   }
   const items = atelierItemsPourPdf();
   const nb = items.length;
-  await ouvrirVoilePdf(`${nb} exercice${nb > 1 ? 's' : ''} — cela prend quelques secondes.`);
+  debutAttentePdf(texteAttentePdf(nb));
   try {
     await atelierGenererPdfInterne(at, items);
   } catch (e) {
@@ -21417,7 +21757,7 @@ async function atelierGenererPdf() {
     console.error(e);
     alert("La génération du PDF a échoué :\n" + (e && e.message ? e.message : e));
   } finally {
-    fermerVoilePdf();
+    finAttentePdf();
   }
 }
 
@@ -29023,10 +29363,9 @@ function ouvrirAttenteExport(nbExercices) {
   m.style.display = 'flex';
 }
 
-function majAttenteExport(fait, total) {
-  const e = document.getElementById('export-attente-etat');
-  if (e) e.textContent = `Exercice ${Math.min(fait, total)} sur ${total}`;
-}
+// (v503) Plus d'avancement affiché : le voile commun garde son texte, comme
+// partout ailleurs (le compte « sur N » ne portait pas sur les mêmes unités).
+function majAttenteExport(fait, total) {}
 
 function fermerAttenteExport() {
   const m = document.getElementById('export-attente-modal');
@@ -29046,13 +29385,14 @@ async function exporterTest(opts) {
   // sortie – passent en attente pendant la fabrication du document.
   const btns = [...document.querySelectorAll('#btn-export-test, #btn-export, #btn-export-serie')];
   const libelles = btns.map(b => b.innerHTML);
-  btns.forEach(b => { b.innerHTML = '⏳ Export…'; b.disabled = true; });
+  btns.forEach(b => { b.disabled = true; });   // attente : voile commun (v503)
   // Un document met plusieurs secondes à se fabriquer, exercice par exercice.
   // Sans rien à l'écran, la page paraît figée et l'on reclique — d'où des
   // exports qui « buguent ». Une fenêtre d'attente le dit, et empêche de
   // cliquer ailleurs pendant ce temps.
-  ouvrirAttenteExport(t.items.length);
-  await new Promise(r => setTimeout(r, 30));   // laisse la fenêtre s'afficher
+  // (v503) La fenêtre « Construction du document… » est remplacée par le voile
+  // commun, posé par l'enveloppe avecAttentePdf ; l'avancement s'y écrit.
+  await new Promise(r => setTimeout(r, 30));
 
   const { obtenus, total } = t.score || { obtenus: 0, total: 0 };
   const pct = total > 0 ? Math.round(obtenus / total * 100) : 0;
@@ -32272,7 +32612,7 @@ async function downloadPdf(opts) {
 
   const btn = document.getElementById('btn-pdf');
   const origLabel = btn ? btn.innerHTML : '';
-  if (btn) { btn.innerHTML = '⏳ Génération…'; btn.disabled = true; }
+  if (btn) btn.disabled = true;   // l'attente est dite par le voile commun (v503)
 
   try {
     const found = findSubdomain(state.activeSubId);
@@ -32348,6 +32688,9 @@ async function downloadPdf(opts) {
     if (found.sub.id === 'instruments') {
       headerExo.style.height = INSTR.entete + 'px';
       headerExo.style.boxSizing = 'border-box';
+      headerExo.style.display = 'flex';
+      headerExo.style.flexDirection = 'column';
+      headerExo.style.justifyContent = 'flex-end';
     }
     cExo.appendChild(headerExo);
 
@@ -33330,6 +33673,9 @@ async function downloadPdf(opts) {
     if (found.sub.id === 'instruments') {
       headerCor.style.height = INSTR.entete + 'px';
       headerCor.style.boxSizing = 'border-box';
+      headerCor.style.display = 'flex';
+      headerCor.style.flexDirection = 'column';
+      headerCor.style.justifyContent = 'flex-end';
       headerCor.style.marginBottom = '0';
     }
     cCor.appendChild(headerCor);
