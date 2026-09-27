@@ -109,6 +109,7 @@ html{
   display:flex;flex-direction:column;justify-content:flex-start;
 }
 #blocConsignes{display:block;padding-top:calc(var(--h-illu) - 52px);overflow:hidden}
+#blocRappel{min-height:calc(100vh - var(--h-entete, 58px))}
 #blocFin{display:block}
 .bloc.impair::before{          /* fond très légèrement grisé, sur toute la largeur */
   content:"";position:absolute;inset:0;left:50%;transform:translateX(-50%);
@@ -351,11 +352,11 @@ html{
 .note-survol{color:var(--rouge);margin:0 0 6px}
 .note-survol:empty{display:none}
 .gros{font-size:34px;font-weight:700;color:var(--bleu);margin-right:10px}
-.rappel{background:var(--bleu-clair);border-radius:10px;padding:20px 24px;margin-top:0}
-.rappel h2{margin:0 0 12px;color:var(--bleu);font-size:20px}
+.rappel{background:var(--bleu-clair);border-radius:10px;padding:14px 22px;margin-top:0}
+.rappel h2{margin:0 0 9px;color:var(--bleu);font-size:20px}
 .rappel ol{margin:0;padding-left:22px}
 .rappel li::marker{color:var(--bleu)}
-.rappel li{margin-bottom:6px}
+.rappel li{margin-bottom:5px}
 .rappel li b{color:var(--bleu)}
 .reflexe{margin:12px 0 0;padding-top:11px;border-top:1px solid rgba(27,58,107,.2);font-weight:600;color:var(--bleu)}
 .recommencer{
@@ -422,7 +423,7 @@ footer{margin-top:40px;padding-top:14px;border-top:1px solid var(--trait);font-s
 .menu .titre-menu{font-size:12px;letter-spacing:.8px;text-transform:uppercase;color:var(--gris);
   padding:8px 12px 4px}
 .menu hr{border:0;border-top:1px solid var(--trait);margin:6px 8px}
-.suite{text-align:center;margin-top:auto;padding-top:26px}
+.suite{text-align:center;margin-top:auto;padding-top:20px}
 #ex0 .suite,#blocFin .suite{margin-top:auto}
 .suite button{
   display:inline-flex;align-items:center;gap:10px;
@@ -842,7 +843,7 @@ body.pagine .rappel{break-before:auto;page-break-before:auto}
   <div class="papier-ref">
     <p><b>Les sept indices</b> — reportez leur numéro sur la ligne « Indices n° ».<br>
     <b>1</b> Urgence ou menace &nbsp;·&nbsp; <b>2</b> Expéditeur inhabituel &nbsp;·&nbsp; <b>3</b> Fautes ou formulation étrange &nbsp;·&nbsp;
-    <b>4</b> Demande de code, de données ou d'argent &nbsp;·&nbsp; <b>5</b> Adresse du lien douteuse &nbsp;·&nbsp;
+    <b>4</b> Demande de code, de données ou d'argent &nbsp;·&nbsp; <b>5</b> Lien douteux &nbsp;·&nbsp;
     <b>6</b> Pièce jointe inattendue &nbsp;·&nbsp; <b>7</b> Trop beau pour être vrai</p>
   </div>
 
@@ -874,7 +875,7 @@ body.pagine .rappel{break-before:auto;page-break-before:auto}
       <li><b>Expéditeur inhabituel</b> — numéro inconnu, numéro étranger, adresse qui ressemble sans être la bonne.</li>
       <li><b>Fautes ou formulation étrange</b> — accents manquants, « Chèr client », traduction bizarre. Attention&nbsp;: avec l'intelligence artificielle, ces fautes sont devenues beaucoup plus rares.</li>
       <li><b>Demande de code, de données ou d'argent</b> — mot de passe, code SMS, IBAN, copie de permis, paiement.</li>
-      <li><b>Adresse du lien douteuse</b> — ne vous fiez pas au nom affiché de l'expéditeur mais examinez attentivement l'adresse e-mail. Survolez un lien sans cliquer pour vérifier sa vraie destination. Soyez vigilant sur le nom du domaine, sur son extension (.info, .co, .net à la place de .ch), et sur le protocole (http au lieu de https). Préférez toujours vous connecter directement sur le site officiel de l'organisme.</li>
+      <li><b>Lien douteux</b> — ne vous fiez pas au nom affiché de l'expéditeur mais survolez le nom et examinez attentivement l'adresse e-mail. Dans le corps du message, survolez un lien sans cliquer pour vérifier sa vraie destination. Soyez vigilant sur le nom du domaine, sur son extension (.info, .co, .net à la place de .ch), et sur le protocole (http au lieu de https). Préférez toujours vous connecter directement sur le site officiel de l'organisme.</li>
       <li><b>Pièce jointe inattendue</b> — n'ouvrez jamais une pièce jointe inattendue, même d'un proche, et vérifiez son authenticité par un autre canal (téléphone, SMS). Les extensions suivantes sont à risque&nbsp;: .exe, .scr, .zip ou .docm.</li>
       <li><b>Trop beau pour être vrai</b> — un remboursement, un gain, un emploi facile que vous n'avez pas demandés. Gardez un esprit critique.</li>
     </ol>
@@ -934,7 +935,7 @@ const INDICES = [
   ["expediteur","Expéditeur","Expéditeur inhabituel"],
   ["langue","Langue",        "Fautes ou formulation étrange"],
   ["demande","Demande",      "Demande de code, de données ou d'argent"],
-  ["lien","Lien",            "Adresse du lien douteuse"],
+  ["lien","Lien",            "Lien douteux"],
   ["piece","Pièce jointe",   "Pièce jointe inattendue"],
   ["beau","Trop beau",       "Trop beau pour être vrai"]
 ];
@@ -989,11 +990,11 @@ const MESSAGES = [
     deNom:"Comptabilité", de:"compta@rappel-facture-ch.com",
     objet:"Rappel : facture impayée n° 40928",
     date:"9 septembre 2026, 06:14",
-    corps:"Madame, Monsieur,\nMalgré nos précédents rappels, votre facture reste impayée. Vous en trouverez le détail en pièce jointe.\nSans règlement sous 5 jours, le dossier sera transmis à notre service de recouvrement.",
+    corps:"Madame, Monsieur,\nMalgré nos précédents rappels, votre facture reste impayée. Vous en trouverez le détail en pièce jointe.\nMerci de régler votre facture dans les plus brefs délais à l'aide du bulletin annexé.",
     piece:{nom:"Rappel_facture_40928.pdf", vrai:"Rappel_facture_40928.pdf.exe — programme Windows, 780 Ko"},
     fraude:true,
-    indices:["urgence","expediteur","demande","piece"],
-    expli:"Le fichier annoncé comme une facture est en réalité un programme : son nom complet se termine par .exe, et Windows masque souvent cette dernière extension. L'ouvrir installerait un logiciel, pas un document. Une facture véritable arrive en .pdf, d'un expéditeur qu'on connaît, et sans menace de recouvrement en cinq jours. Dans le doute, on n'ouvre pas : on appelle l'entreprise au numéro qui figure sur une facture précédente."
+    indices:["urgence","expediteur","demande","lien","piece"],
+    expli:"Le fichier annoncé comme une facture est en réalité un programme : son nom complet se termine par .exe, et Windows masque souvent cette dernière extension. L'ouvrir installerait un logiciel, pas un document. Une facture véritable arrive en .pdf, d'un expéditeur qu'on connaît, et n'exige pas un règlement immédiat. Dans le doute, on n'ouvre pas : on appelle l'entreprise au numéro qui figure sur une facture précédente."
   },
   {
     canal:"E-mail", type:"mail",
@@ -1251,13 +1252,19 @@ function valider(i){
     cles = "Aucun indice n'était attendu ici : ce message ne présente aucun des sept indices.";
   }
 
-  const masques = [...carte.querySelectorAll(".masque")];
+  const masques = [...carte.querySelectorAll(".msg:not(.papier-seulement) .masque")];
   const fermes = masques.filter(x => !x.dataset.vu);
-  const nomme = x => x.querySelector(".decl").classList.contains("lien-txt")
-                     ? "le lien" : "le nom de l'expéditeur";
-  const geste = fermes.length
-    ? `<p class="cles">Vous avez répondu sans faire apparaître ce qui se cache derrière ${[...new Set(fermes.map(nomme))].join(" ni derrière ")}. ${fermes.length > 1 ? "C'est pourtant là que se trouvent les indices" : "C'est pourtant là que se trouve l'indice"} : ${fermes.map(x => x.querySelector(".infobulle").textContent).join(" — ")}</p>`
-    : "";
+  const nomme = x => x.closest(".pj") ? "le nom du fichier joint"
+                   : x.querySelector(".decl").classList.contains("lien-txt") ? "le lien"
+                   : "le nom de l'expéditeur";
+  const quoi = [...new Set(fermes.map(nomme))].join(" ni derrière ");
+  const geste = !fermes.length ? ""
+    : m.fraude
+      ? `<p class="cles">Vous avez répondu sans faire apparaître ce qui se cache derrière ${quoi}. `
+        + `${fermes.length > 1 ? "C'est pourtant là que se trouvent les indices" : "C'est pourtant là que se trouve l'indice"} : `
+        + `${fermes.map(x => x.querySelector(".infobulle").textContent).join(" — ")}</p>`
+      : `<p class="cles">Vous avez répondu sans faire apparaître ce qui se cache derrière ${quoi}. `
+        + `Le message était légitime, mais le geste reste à faire avant de décider&nbsp;: c'est lui qui vous protégera la prochaine fois.</p>`;
 
   const r = document.getElementById("retour" + i);
   r.className = "retour vu " + (s.juste ? "juste" : "faux");
