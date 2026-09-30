@@ -8,7 +8,7 @@ générant des exercices de mathématiques pour adultes (programme PAI, Suisse).
 Product owner : Aurelio (Onex/Genève). Répondre en FRANÇAIS.
 
 ───────────────────────────────────────────────────────────────────────────────
-0. OÙ ON EN EST (v504, 30.09.2026) — à lire en premier
+0. OÙ ON EN EST (v505, 30.09.2026) — à lire en premier
 ───────────────────────────────────────────────────────────────────────────────
 L'application est en ligne : https://aureliohub.github.io/eva_maths.html
 Les fichiers de série et de test (.json) sont déposés à côté d'elle, et s'ouvrent
@@ -542,6 +542,14 @@ PDF de domaine :
 ───────────────────────────────────────────────────────────────────────────────
 Cette section décrit l'ÉTAT, non l'historique. Les numéros de version ne sont
 cités que lorsqu'ils aident à retrouver un choix dans le fichier.
+
+v505 — ATELIER : SÉRIE DE TRACÉS SEULS. Une composition faite uniquement
+ d'instruments allait au PDF de sous-domaine (downloadPdf + exercicesImposes),
+ dont la pagination instruments ne connaît que 8 ou 5 planches : avec 7 tracés,
+ tout était posé sur UNE page à hauteur fixe → 2 exercices, le reste coupé.
+ Défaut présent déjà en v500. Elle passe désormais par downloadCartePdf (flux),
+ comme une série mixte : 7 tracés → 5 pages d'énoncé + 5 de corrigé, tout
+ présent. Mesuré au vrai navigateur sur la composition d'Aurelio.
 
 v504 — PROP-CONCRET : l'unité d'aide à la saisie (« g », « CHF », « heures »)
  apparaissait après l'énoncé dans le PDF du sous-domaine : sa branche
@@ -22096,7 +22104,11 @@ async function atelierGenererPdfInterne(at, items) {
   // page). Dès que la composition en mélange plusieurs, on passe par le PDF de
   // domaine, qui sait enchaîner des exercices d'origines différentes.
   const ids = [...new Set(items.map(it => it.sub.id))];
-  if (ids.length > 1) {
+  // (v505) Une série faite UNIQUEMENT de tracés (instruments) passe aussi par la
+  // chaîne en flux : le PDF de sous-domaine n'a de pages prévues que pour ses
+  // planches complètes (8 ou 5 exercices) ; toute autre série tenait sur UNE
+  // page à hauteur fixe et le reste était coupé sans erreur.
+  if (ids.length > 1 || ids[0] === 'instruments') {
     await downloadCartePdf(items);
     return;
   }
