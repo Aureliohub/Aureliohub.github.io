@@ -8,7 +8,7 @@ générant des exercices de mathématiques pour adultes (programme PAI, Suisse).
 Product owner : Aurelio (Onex/Genève). Répondre en FRANÇAIS.
 
 ───────────────────────────────────────────────────────────────────────────────
-0. OÙ ON EN EST (v503, 24.09.2026) — à lire en premier
+0. OÙ ON EN EST (v504, 30.09.2026) — à lire en premier
 ───────────────────────────────────────────────────────────────────────────────
 L'application est en ligne : https://aureliohub.github.io/eva_maths.html
 Les fichiers de série et de test (.json) sont déposés à côté d'elle, et s'ouvrent
@@ -542,6 +542,12 @@ PDF de domaine :
 ───────────────────────────────────────────────────────────────────────────────
 Cette section décrit l'ÉTAT, non l'historique. Les numéros de version ne sont
 cités que lorsqu'ils aident à retrouver un choix dans le fichier.
+
+v504 — PROP-CONCRET : l'unité d'aide à la saisie (« g », « CHF », « heures »)
+ apparaissait après l'énoncé dans le PDF du sous-domaine : sa branche
+ multi-pages (anti-orphelin) ne retirait pas `.answer-unite`, contrairement aux
+ trois chaînes. Retrait ajouté. Toute branche qui refait son propre
+ renderExercise doit reprendre CE nettoyage.
 
 v503 — UN SEUL VOILE D'ATTENTE POUR TOUS LES PDF. Celui de l'atelier
  (ouvrirVoilePdf : rond qui tourne, « Génération du PDF… », « N exercices — cela
@@ -34146,6 +34152,9 @@ async function downloadPdf(opts) {
           else el.remove();
         });
         exoDiv.querySelectorAll('.feedback, .inline-solution, .exo-tip, .frac-sol-detail').forEach(el => el.remove());
+        // Unité d'aide à la saisie : écran seulement. Cette branche (v504) avait
+        // échappé au retrait fait dans les trois chaînes.
+        exoDiv.querySelectorAll('.answer-unite').forEach(el => el.remove());
         exoDiv.querySelectorAll('input.answer-input, input.answer-input-cell, input.answer-input-inline').forEach(inp => {
           replaceInputBlank(inp, inp.classList.contains('answer-input-inline'));
         });
