@@ -195,6 +195,7 @@ body[data-tone="ko"]{background:var(--ko);color:#fff}
   .grid td.ok,.grid td.ko{-webkit-print-color-adjust:exact;print-color-adjust:exact}
 }
 .pcard:has(#af){justify-content:flex-start;padding-top:.6em}
+#pend{margin-top:.8em}
 </style>
 <script>
 /* ============================================================
@@ -2645,7 +2646,7 @@ function fatal(msg) {
 /* =====================================================================
    ANIMATEUR
    ===================================================================== */
-const H = { peer: null, code: '', ready: false, err: '', players: new Map(), kicked: new Set(),
+const H = { pending: new Set(), failed: 0, peer: null, code: '', ready: false, err: '', players: new Map(), kicked: new Set(),
   phase: 'lobby', idx: -1, dur: DUREE_PAR_DEFAUT * 1000, qStart: 0, qEnd: 0, timer: null };
 
 function joinURL() { return location.origin + location.pathname + '?p=' + H.code; }
@@ -2681,9 +2682,17 @@ function openHostPeer() {
   H.peer = peer;
   peer.on('open', () => { H.ready = true; H.err = ''; if (H.phase === 'lobby') render(); });
   peer.on('connection', conn => {
-    conn.on('data', d => hostData(conn, d));
-    conn.on('close', () => hostClose(conn));
-    conn.on('error', () => hostClose(conn));
+    H.pending.add(conn); refresh();
+    const done = () => { if (H.pending.delete(conn)) refresh(); };
+    const w = setInterval(() => {
+      const st = conn.peerConnection && conn.peerConnection.iceConnectionState;
+      if (st === 'failed') { conn._failed = true; done(); H.failed++; refresh(); }
+      if (st === 'failed' || conn._pid || !H.pending.has(conn)) clearInterval(w);
+    }, 500);
+    setTimeout(() => { if (H.pending.has(conn) && !conn.open) { done(); H.failed++; refresh(); } }, 25000);
+    conn.on('data', d => { done(); hostData(conn, d); });
+    conn.on('close', () => { done(); hostClose(conn); });
+    conn.on('error', () => { done(); hostClose(conn); });
   });
   peer.on('disconnected', () => {
     setTimeout(() => { if (!peer.destroyed && peer.disconnected) { try { peer.reconnect(); } catch (e) {} } }, 2000);
@@ -2890,6 +2899,13 @@ function renderChips() {
     });
   }
   if (go) go.disabled = !ps.length;
+  const pe = $('#pend');
+  if (pe) {
+    const n = H.pending.size;
+    pe.textContent = (n ? `${plural(n, 'téléphone', 'téléphones')} en cours de connexion… ` : '') +
+      (H.failed ? 'Au moins une liaison a échoué : le réseau bloque probablement la connexion directe entre téléphone et écran.' : '');
+    pe.classList.toggle('err', !!H.failed);
+  }
 }
 
 function qrSVG(text) {
@@ -2914,6 +2930,7 @@ function render() {
         ${H.err ? `<p class="err">${esc(H.err)}</p>${H.peer || IN_PREVIEW ? '' : '<button class="btn ghost" id="retry">Réessayer</button>'}` : ''}
         <h2 class="ppl-h" id="pcount"></h2>
         <div class="chips" id="chips"></div>
+        <p class="hint" id="pend" role="status"></p>
       </div></div>`;
     foot.innerHTML = `<span>Temps par question</span><div class="seg" id="seg">${[10, 20, 30, 60].map(s =>
       `<button data-s="${s}" aria-pressed="${H.dur === s * 1000}">${s}\u00a0s</button>`).join('')}</div>
@@ -3083,6 +3100,7 @@ function connect() {
     const peer = makePeer(undefined);
     if (!peer) { P.blocked = true; pRender(); return; }
     P.peer = peer;
+    if (!P.fail) setDiag('Connexion au serveur…');
     peer.on('open', openConn);
     peer.on('error', e => {
       if (isBlocked(e)) { P.blocked = true; pRender(); return; }
@@ -3093,19 +3111,35 @@ function connect() {
   } else if (P.peer.disconnected) { try { P.peer.reconnect(); } catch (e) { P.peer.destroy(); scheduleRetry(); } }
   else if (P.peer.open) openConn();
 }
-function scheduleRetry() {
+function scheduleRetry(ms) {
   if (P.retry || P.kicked) return;
   setBanner();
-  P.retry = setTimeout(() => { P.retry = null; connect(); }, 2500);
+  P.retry = setTimeout(() => { P.retry = null; connect(); }, ms || 2500);
 }
 function ensureConn() { if (P.joined && !P.kicked && !(P.conn && P.conn.open)) connect(); }
 
+const ICE_TXT = { new: 'Liaison avec l’écran…', checking: 'Liaison avec l’écran…', connected: 'Liaison établie, inscription…', completed: 'Liaison établie, inscription…',
+  disconnected: 'Liaison interrompue…', failed: 'Liaison impossible' };
+const FAIL_MSG = 'Le réseau empêche la liaison directe entre ce téléphone et l’écran. Essaie avec le téléphone sur le même wifi que l’ordinateur (ou sur les données mobiles s’il y était déjà). Nouvel essai automatique…';
+function setDiag(t, fail) {
+  P.diag = t; P.fail = !!fail;
+  const d = $('#diag'); if (d) { d.textContent = t; d.classList.toggle('err', !!fail); }
+}
 function openConn() {
   if (P.conn && P.conn.open) return;
   if (P.conn) { try { P.conn.close(); } catch (e) {} }
+  setDiag('Recherche de l’écran…');
   const c = P.peer.connect(PREFIX + P.code, CONN_OPTS);
   P.conn = c;
-  c.on('open', () => { P.connected = true; P.everConnected = true; P.notFound = false; c.send({ t: 'hello', pid: P.pid, name: P.name }); setBanner(); });
+  const t0 = Date.now();
+  const watch = setInterval(() => {
+    if (P.conn !== c || c.open) { clearInterval(watch); return; }
+    const st = c.peerConnection && c.peerConnection.iceConnectionState;
+    if (st === 'failed') { clearInterval(watch); setDiag(FAIL_MSG, true); try { c.close(); } catch (e) {} if (P.conn === c) { P.conn = null; scheduleRetry(6000); } return; }
+    if (st && ICE_TXT[st]) setDiag(ICE_TXT[st] + ' (' + Math.round((Date.now() - t0) / 1000) + '\u00a0s)');
+    if (Date.now() - t0 > 20000) { clearInterval(watch); setDiag(FAIL_MSG, true); try { c.close(); } catch (e) {} if (P.conn === c) { P.conn = null; scheduleRetry(4000); } }
+  }, 500);
+  c.on('open', () => { clearInterval(watch); P.connected = true; P.everConnected = true; P.notFound = false; c.send({ t: 'hello', pid: P.pid, name: P.name }); setBanner(); });
   c.on('data', onMsg);
   const lost = () => { if (P.conn !== c) return; P.connected = false; setBanner(); scheduleRetry(); };
   c.on('close', lost); c.on('error', lost);
@@ -3150,7 +3184,7 @@ function pRender() {
   if (!st) {
     pShell(P.blocked ? `<h1>Connexion bloquée</h1><p class="pmuted">${esc(BLOCKED_MSG)}</p>` : P.notFound
       ? `<h1>Partie introuvable</h1><p class="pmuted">Vérifie que l’écran affiche bien la partie ${esc(P.code)}. Nouvel essai automatique…</p>`
-      : `<h1>Connexion…</h1><p class="pmuted">Partie ${esc(P.code)}</p>`);
+      : `<h1>Connexion…</h1><p class="pmuted">Partie ${esc(P.code)}</p><p id="diag" class="${P.fail ? 'err' : 'pmuted'}">${esc(P.diag || '')}</p>`);
     return;
   }
   switch (st.ph) {
