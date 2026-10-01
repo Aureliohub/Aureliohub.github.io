@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nombres et opérations – Introduction aux fractions</title>
+
+<style>
+:root{
+  --encre:#1a1a1a;--navy:#1F3A5F;--bleu:#2E75B6;--magenta:#E6007E;--filet:#c9c9c9;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:#e9e9e9;color:var(--encre);
+  font-family:"Avenir Next","Avenir","Segoe UI","Trebuchet MS",Verdana,sans-serif;
+  font-size:0;line-height:1.5;
+}
+.barre{
+  position:sticky;top:0;z-index:10;
+  display:flex;gap:10px;align-items:center;justify-content:center;
+  padding:8px;background:var(--navy);color:#fff;font-size:10pt;
+}
+.barre button{font:inherit;font-weight:600;cursor:pointer;background:#fff;color:var(--navy);border:none;border-radius:3px;
+  padding:0;width:30px;height:30px;line-height:1;display:inline-flex;align-items:center;justify-content:center;font-size:13pt}
+.barre button svg{display:block}
+.barre button:focus-visible{outline:2px solid var(--magenta);outline-offset:2px}
+.barre span{opacity:.8}
+.barre .zoom-outils{opacity:1}
+.zoom-outils{display:flex;gap:6px;align-items:center}
+.zoom-taux{font-variant-numeric:tabular-nums;min-width:44px;text-align:center;opacity:.9}
+
+.page{
+  position:relative;zoom:var(--z,1);width:210mm;height:292mm;
+  margin:14px auto;padding:12mm 12mm 18mm 20mm;
+  background:#fff;overflow:hidden;font-size:11.5pt;
+}
+h1{font-size:15pt;font-weight:700;text-align:center;margin:0 0 1mm;letter-spacing:.1px}
+.sur-titre{text-align:center;font-size:11.5pt;margin:0 0 6mm}
+.etiquette-corrige{
+  display:none;position:absolute;top:13mm;right:12mm;margin:0;
+  color:var(--magenta);font-weight:700;font-size:11pt;letter-spacing:1px;
+}
+body.corrige .etiquette-corrige{display:block}
+p{margin:0 0 4mm}
+
+.exo-titre{display:flex;gap:3mm;align-items:flex-start;margin-bottom:2mm}
+.exo-titre .consigne{font-weight:700}
+.pastille{flex:0 0 auto;width:15px;height:15px;margin-top:2px}
+.item{margin:0 0 2mm 8mm}
+
+.fig{display:block;margin:2mm auto 0;width:170mm;height:auto}
+.sol{visibility:hidden}
+body.corrige .sol{visibility:visible}
+
+.pied{
+  position:absolute;left:20mm;right:12mm;bottom:10mm;
+  padding-top:2.5mm;border-top:1px solid var(--filet);
+  display:flex;justify-content:space-between;font-size:9.5pt;color:#333;
+}
+
+@page{size:A4;margin:0}
+@media print{
+  html,body{width:210mm;margin:0;padding:0;overflow:hidden}
+  body{background:#fff}
+  .barre{display:none}
+  .page{zoom:1;margin:0;page-break-after:always}
+  .page:last-of-type{page-break-after:auto}
+}
+@media screen{ .page{box-shadow:0 1px 6px rgba(0,0,0,.18)} }
+
+.page-corrige{display:none}
+@media print{
+  body.corrige .page:not(.page-corrige) .etiquette-corrige{display:none}
+  body.corrige .page:not(.page-corrige) .sol{visibility:hidden}
+  .page-corrige{display:block}
+  .page-corrige .etiquette-corrige{display:block}
+  .page-corrige .sol{visibility:visible}
+}
+</style>
+<style>
+/* propre à la fiche – introduction aux fractions */
+.fig text{font-family:"Avenir Next","Avenir","Segoe UI","Trebuchet MS",Verdana,sans-serif}
+.fig{margin-top:6mm}
+.credit{position:absolute;left:20mm;bottom:22mm;margin:0;font-size:8.5pt;line-height:1.3;color:#2E75B6}
+</style>
+</head>
+<body>
+
+<div class="barre">
+  <button id="btn" type="button" title="Afficher le corrigé" aria-label="Afficher le corrigé"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.3 8S3.6 3.8 8 3.8 14.7 8 14.7 8 12.4 12.2 8 12.2 1.3 8 1.3 8z"></path><circle cx="8" cy="8" r="2.1"></circle></svg></button>
+  <span class="zoom-outils">
+    <button id="zoom-moins" type="button" title="Réduire">−</button>
+    <span class="zoom-taux" id="zoom-taux">100 %</span>
+    <button id="zoom-plus" type="button" title="Agrandir">+</button>
+    <button id="zoom-page" type="button" title="Page entière" aria-label="Page entière"><svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3.2" y="1.6" width="9.6" height="12.8" rx="1.2"></rect><path d="M8 4.6v6.8"></path><path d="M6.3 6.3L8 4.6l1.7 1.7"></path><path d="M6.3 9.7L8 11.4l1.7-1.7"></path></svg></button>
+    <button id="plein-ecran" type="button" title="Plein écran" aria-label="Plein écran"><svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6V2h4"></path><path d="M10 2h4v4"></path><path d="M14 10v4h-4"></path><path d="M6 14H2v-4"></path></svg></button>
+  </span>
+</div>
+
+<!-- ══════════════════ PAGE 1 ══════════════════ -->
+<section class="page" data-corrige="">
+  <h1>Nombres et opérations</h1>
+  <p class="sur-titre">Introduction aux fractions</p>
+  <p class="etiquette-corrige">CORRIGÉ</p>
+
+  <div class="exo-titre">
+    <svg class="pastille" viewBox="0 0 16 16" aria-hidden="true"><rect width="16" height="16" rx="2" fill="#1F3A5F"></rect><text x="8" y="12" text-anchor="middle" fill="#fff" font-size="11" font-weight="700" font-family="Verdana,sans-serif">1</text></svg>
+    <span class="consigne">Représenter sous forme d’un dessin puis écrire les fractions en langage mathématique</span>
+  </div>
+  <svg class="fig" viewBox="0 0 170 210" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Trois cercles à partager : un demi, un tiers, un quart"><text x="36" y="32" text-anchor="middle" font-size="4.6">Un demi</text><g class="sol"><path d="M36 63L36 35A28 28 0 0 0 36 91Z" fill="#E6007E" stroke="none" fill-opacity="0.18"/><line x1="36" y1="63" x2="36" y2="35" stroke="#E6007E" stroke-width="0.5"/><line x1="36" y1="63" x2="36" y2="91" stroke="#E6007E" stroke-width="0.5"/><text x="76" y="62.7" text-anchor="middle" font-size="5.2" font-weight="700" fill="#E6007E">1</text><line x1="73.59" y1="64" x2="78.41" y2="64" stroke="#E6007E" stroke-width="0.45"/><text x="76" y="68.94" text-anchor="middle" font-size="5.2" font-weight="700" fill="#E6007E">2</text></g><circle cx="36" cy="63" r="28" fill="none" stroke="#1a1a1a" stroke-width="0.5"/><text x="122" y="32" text-anchor="middle" font-size="4.6">un tiers</text><g class="sol"><path d="M122 63L122 35A28 28 0 0 0 97.75 77Z" fill="#E6007E" stroke="none" fill-opacity="0.18"/><line x1="122" y1="63" x2="122" y2="35" stroke="#E6007E" stroke-width="0.5"/><line x1="122" y1="63" x2="97.75" y2="77" stroke="#E6007E" stroke-width="0.5"/><line x1="122" y1="63" x2="146.25" y2="77" stroke="#E6007E" stroke-width="0.5"/><text x="162" y="62.7" text-anchor="middle" font-size="5.2" font-weight="700" fill="#E6007E">1</text><line x1="159.59" y1="64" x2="164.41" y2="64" stroke="#E6007E" stroke-width="0.45"/><text x="162" y="68.94" text-anchor="middle" font-size="5.2" font-weight="700" fill="#E6007E">3</text></g><circle cx="122" cy="63" r="28" fill="none" stroke="#1a1a1a" stroke-width="0.5"/><text x="36" y="123" text-anchor="middle" font-size="4.6">un quart</text><g class="sol"><path d="M36 154L36 126A28 28 0 0 0 8 154Z" fill="#E6007E" stroke="none" fill-opacity="0.18"/><line x1="36" y1="154" x2="36" y2="126" stroke="#E6007E" stroke-width="0.5"/><line x1="36" y1="154" x2="8" y2="154" stroke="#E6007E" stroke-width="0.5"/><line x1="36" y1="154" x2="36" y2="182" stroke="#E6007E" stroke-width="0.5"/><line x1="36" y1="154" x2="64" y2="154" stroke="#E6007E" stroke-width="0.5"/><text x="76" y="153.7" text-anchor="middle" font-size="5.2" font-weight="700" fill="#E6007E">1</text><line x1="73.59" y1="155" x2="78.41" y2="155" stroke="#E6007E" stroke-width="0.45"/><text x="76" y="159.94" text-anchor="middle" font-size="5.2" font-weight="700" fill="#E6007E">4</text></g><circle cx="36" cy="154" r="28" fill="none" stroke="#1a1a1a" stroke-width="0.5"/></svg>
+  <p class="credit">Laboratoire Lausannois Lesson Study<br>www.hepl.ch/3LS</p>
+
+  <div class="pied"><span>Nombres et opérations - nombres rationnels (fractions) - UOG/AM</span><span>1</span></div>
+</section>
+
+<!-- ══════════════════ PAGE 2 ══════════════════ -->
+<section class="page" data-corrige="">
+  <h1>Nombres et opérations</h1>
+  <p class="sur-titre">Introduction aux fractions</p>
+  <p class="etiquette-corrige">CORRIGÉ</p>
+
+  <div class="exo-titre">
+    <svg class="pastille" viewBox="0 0 16 16" aria-hidden="true"><rect width="16" height="16" rx="2" fill="#1F3A5F"></rect><text x="8" y="12" text-anchor="middle" fill="#fff" font-size="11" font-weight="700" font-family="Verdana,sans-serif">2</text></svg>
+    <span class="consigne">Représenter un cinquième, un sixième, un huitième, un douzième</span>
+  </div>
+  <svg class="fig" viewBox="0 0 170 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Quatre cercles à partager"><g class="sol"><path d="M38 62.7L38 30.7A32 32 0 0 0 7.57 52.81Z" fill="#E6007E" stroke="none" fill-opacity="0.18"/><line x1="38" y1="62.7" x2="38" y2="30.7" stroke="#E6007E" stroke-width="0.5"/><line x1="38" y1="62.7" x2="7.57" y2="52.81" stroke="#E6007E" stroke-width="0.5"/><line x1="38" y1="62.7" x2="19.19" y2="88.59" stroke="#E6007E" stroke-width="0.5"/><line x1="38" y1="62.7" x2="56.81" y2="88.59" stroke="#E6007E" stroke-width="0.5"/><line x1="38" y1="62.7" x2="68.43" y2="52.81" stroke="#E6007E" stroke-width="0.5"/><text x="81" y="62.4" text-anchor="middle" font-size="5.2" font-weight="700" fill="#E6007E">1</text><line x1="78.59" y1="63.7" x2="83.41" y2="63.7" stroke="#E6007E" stroke-width="0.45"/><text x="81" y="68.64" text-anchor="middle" font-size="5.2" font-weight="700" fill="#E6007E">5</text></g><circle cx="38" cy="62.7" r="32" fill="none" stroke="#1a1a1a" stroke-width="0.5"/><g class="sol"><path d="M124 62.7L124 30.7A32 32 0 0 0 96.29 46.7Z" fill="#E6007E" stroke="none" fill-opacity="0.18"/><line x1="124" y1="62.7" x2="124" y2="30.7" stroke="#E6007E" stroke-width="0.5"/><line x1="124" y1="62.7" x2="96.29" y2="46.7" stroke="#E6007E" stroke-width="0.5"/><line x1="124" y1="62.7" x2="96.29" y2="78.7" stroke="#E6007E" stroke-width="0.5"/><line x1="124" y1="62.7" x2="124" y2="94.7" stroke="#E6007E" stroke-width="0.5"/><line x1="124" y1="62.7" x2="151.71" y2="78.7" stroke="#E6007E" stroke-width="0.5"/><line x1="124" y1="62.7" x2="151.71" y2="46.7" stroke="#E6007E" stroke-width="0.5"/><text x="167" y="62.4" text-anchor="middle" font-size="5.2" font-weight="700" fill="#E6007E">1</text><line x1="164.59" y1="63.7" x2="169.41" y2="63.7" stroke="#E6007E" stroke-width="0.45"/><text x="167" y="68.64" text-anchor="middle" font-size="5.2" font-weight="700" fill="#E6007E">6</text></g><circle cx="124" cy="62.7" r="32" fill="none" stroke="#1a1a1a" stroke-width="0.5"/><g class="sol"><path d="M38 157.3L38 125.3A32 32 0 0 0 15.37 134.67Z" fill="#E6007E" stroke="none" fill-opacity="0.18"/><line x1="38" y1="157.3" x2="38" y2="125.3" stroke="#E6007E" stroke-width="0.5"/><line x1="38" y1="157.3" x2="15.37" y2="134.67" stroke="#E6007E" stroke-width="0.5"/><line x1="38" y1="157.3" x2="6" y2="157.3" stroke="#E6007E" stroke-width="0.5"/><line x1="38" y1="157.3" x2="15.37" y2="179.93" stroke="#E6007E" stroke-width="0.5"/><line x1="38" y1="157.3" x2="38" y2="189.3" stroke="#E6007E" stroke-width="0.5"/><line x1="38" y1="157.3" x2="60.63" y2="179.93" stroke="#E6007E" stroke-width="0.5"/><line x1="38" y1="157.3" x2="70" y2="157.3" stroke="#E6007E" stroke-width="0.5"/><line x1="38" y1="157.3" x2="60.63" y2="134.67" stroke="#E6007E" stroke-width="0.5"/><text x="81" y="157" text-anchor="middle" font-size="5.2" font-weight="700" fill="#E6007E">1</text><line x1="78.59" y1="158.3" x2="83.41" y2="158.3" stroke="#E6007E" stroke-width="0.45"/><text x="81" y="163.24" text-anchor="middle" font-size="5.2" font-weight="700" fill="#E6007E">8</text></g><circle cx="38" cy="157.3" r="32" fill="none" stroke="#1a1a1a" stroke-width="0.5"/><g class="sol"><path d="M124 157.3L124 125.3A32 32 0 0 0 108 129.59Z" fill="#E6007E" stroke="none" fill-opacity="0.18"/><line x1="124" y1="157.3" x2="124" y2="125.3" stroke="#E6007E" stroke-width="0.5"/><line x1="124" y1="157.3" x2="108" y2="129.59" stroke="#E6007E" stroke-width="0.5"/><line x1="124" y1="157.3" x2="96.29" y2="141.3" stroke="#E6007E" stroke-width="0.5"/><line x1="124" y1="157.3" x2="92" y2="157.3" stroke="#E6007E" stroke-width="0.5"/><line x1="124" y1="157.3" x2="96.29" y2="173.3" stroke="#E6007E" stroke-width="0.5"/><line x1="124" y1="157.3" x2="108" y2="185.01" stroke="#E6007E" stroke-width="0.5"/><line x1="124" y1="157.3" x2="124" y2="189.3" stroke="#E6007E" stroke-width="0.5"/><line x1="124" y1="157.3" x2="140" y2="185.01" stroke="#E6007E" stroke-width="0.5"/><line x1="124" y1="157.3" x2="151.71" y2="173.3" stroke="#E6007E" stroke-width="0.5"/><line x1="124" y1="157.3" x2="156" y2="157.3" stroke="#E6007E" stroke-width="0.5"/><line x1="124" y1="157.3" x2="151.71" y2="141.3" stroke="#E6007E" stroke-width="0.5"/><line x1="124" y1="157.3" x2="140" y2="129.59" stroke="#E6007E" stroke-width="0.5"/><text x="167" y="157" text-anchor="middle" font-size="5.2" font-weight="700" fill="#E6007E">1</text><line x1="162.98" y1="158.3" x2="171.02" y2="158.3" stroke="#E6007E" stroke-width="0.45"/><text x="167" y="163.24" text-anchor="middle" font-size="5.2" font-weight="700" fill="#E6007E">12</text></g><circle cx="124" cy="157.3" r="32" fill="none" stroke="#1a1a1a" stroke-width="0.5"/></svg>
+
+  <div class="pied"><span>Nombres et opérations - nombres rationnels (fractions) - UOG/AM</span><span>2</span></div>
+</section>
+
+<!-- ══════════════════ PAGE 3 ══════════════════ -->
+<section class="page" data-corrige="">
+  <h1>Nombres et opérations</h1>
+  <p class="sur-titre">Introduction aux fractions</p>
+  <p class="etiquette-corrige">CORRIGÉ</p>
+
+  <div class="exo-titre">
+    <svg class="pastille" viewBox="0 0 16 16" aria-hidden="true"><rect width="16" height="16" rx="2" fill="#1F3A5F"></rect><text x="8" y="12" text-anchor="middle" fill="#fff" font-size="11" font-weight="700" font-family="Verdana,sans-serif">3</text></svg>
+    <span class="consigne">Quelle est la fraction représentée&#160;?</span>
+  </div>
+  <svg class="fig" viewBox="0 0 170 210" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Fractions représentées par des disques a à k"><text x="8" y="21.8" text-anchor="end" font-size="5.2" font-weight="700" fill="#1F3A5F">a.</text><path d="M26 20L42 20A16 16 0 0 0 37.31 8.69Z" fill="#F7941D" stroke="none"/><path d="M26 20L37.31 8.69A16 16 0 0 0 26 4Z" fill="#F7941D" stroke="none"/><path d="M26 20L26 4A16 16 0 0 0 14.69 8.69Z" fill="#F7941D" stroke="none"/><path d="M26 20L14.69 31.31A16 16 0 0 0 26 36Z" fill="#F7941D" stroke="none"/><path d="M26 20L26 36A16 16 0 0 0 37.31 31.31Z" fill="#F7941D" stroke="none"/><path d="M26 20L37.31 31.31A16 16 0 0 0 42 20Z" fill="#F7941D" stroke="none"/><circle cx="26" cy="20" r="16" fill="none" stroke="#1a1a1a" stroke-width="0.55"/><line x1="26" y1="20" x2="42" y2="20" stroke="#1a1a1a" stroke-width="0.55"/><line x1="26" y1="20" x2="37.31" y2="8.69" stroke="#1a1a1a" stroke-width="0.55"/><line x1="26" y1="20" x2="26" y2="4" stroke="#1a1a1a" stroke-width="0.55"/><line x1="26" y1="20" x2="14.69" y2="8.69" stroke="#1a1a1a" stroke-width="0.55"/><line x1="26" y1="20" x2="10" y2="20" stroke="#1a1a1a" stroke-width="0.55"/><line x1="26" y1="20" x2="14.69" y2="31.31" stroke="#1a1a1a" stroke-width="0.55"/><line x1="26" y1="20" x2="26" y2="36" stroke="#1a1a1a" stroke-width="0.55"/><line x1="26" y1="20" x2="37.31" y2="31.31" stroke="#1a1a1a" stroke-width="0.55"/><circle cx="26" cy="20" r="0.7" fill="#1a1a1a"/><g class="sol"><text x="50" y="19.7" text-anchor="middle" font-size="5.2" font-weight="700" fill="#E6007E">6</text><line x1="47.59" y1="21" x2="52.41" y2="21" stroke="#E6007E" stroke-width="0.45"/><text x="50" y="25.94" text-anchor="middle" font-size="5.2" font-weight="700" fill="#E6007E">8</text></g><text x="8" y="63.8" text-anchor="end" font-size="5.2" font-weight="700" fill="#1F3A5F">b.</text><path d="M26 62L12.14 54A16 16 0 0 0 12.14 70Z" fill="#FCEBD2" stroke="none"/><path d="M26 62L12.14 70A16 16 0 0 0 26 78Z" fill="#FCEBD2" stroke="none"/><path d="M26 62L26 78A16 16 0 0 0 39.86 70Z" fill="#FCEBD2" stroke="none"/><circle cx="26" cy="62" r="16" fill="none" stroke="#1a1a1a" stroke-width="0.55"/><line x1="26" y1="62" x2="39.86" y2="54" stroke="#1a1a1a" stroke-width="0.55"/><line x1="26" y1="62" x2="26" y2="46" stroke="#1a1a1a" stroke-width="0.55"/><line x1="26" y1="62" x2="12.14" y2="54" stroke="#1a1a1a" stroke-width="0.55"/><line x1="26" y1="62" x2="12.14" y2="70" stroke="#1a1a1a" stroke-width="0.55"/><line x1="26" y1="62" x2="26" y2="78" stroke="#1a1a1a" stroke-width="0.55"/><line x1="26" y1="62" x2="39.86" y2="70" stroke="#1a1a1a" stroke-width="0.55"/><g class="sol"><text x="50" y="61.7" text-anchor="middle" font-size="5.2" font-weight="700" fill="#E6007E">3</text><line x1="47.59" y1="63" x2="52.41" y2="63" stroke="#E6007E" stroke-width="0.45"/><text x="50" y="67.94" text-anchor="middle" font-size="5.2" font-weight="700" fill="#E6007E">6</text></g><text x="8" y="105.8" text-anchor="end" font-size="5.2" font-weight="700" fill="#1F3A5F">c.</text><path d="M26 104L42 104A16 16 0 0 0 26 88Z" fill="#9B6BB5" stroke="none"/><path d="M26 104L26 88A16 16 0 0 0 10 104Z" fill="#9B6BB5" stroke="none"/><path d="M26 104L10 104A16 16 0 0 0 26 120Z" fill="#9B6BB5" stroke="none"/><circle cx="26" cy="104" r="16" fill="none" stroke="#1a1a1a" stroke-width="0.55"/><line x1="26" y1="104" x2="42" y2="104" stroke="#1a1a1a" stroke-width="0.55"/><line x1="26" y1="104" x2="26" y2="88" stroke="#1a1a1a" stroke-width="0.55"/><line x1="26" y1="104" x2="10" y2="104" stroke="#1a1a1a" stroke-width="0.55"/><line x1="26" y1="104" x2="26" y2="120" stroke="#1a1a1a" stroke-width="0.55"/><g class="sol"><text x="50" y="103.7" text-anchor="middle" font-size="5.2" font-weight="700" fill="#E6007E">3</text><line x1="47.59" y1="105" x2="52.41" y2="105" stroke="#E6007E" stroke-width="0.45"/><text x="50" y="109.94" text-anchor="middle" font-size="5.2" font-weight="700" fill="#E6007E">4</text></g><text x="65" y="21.8" text-anchor="end" font-size="5.2" font-weight="700" fill="#1F3A5F">d.</text><path d="M83 20L99 20A16 16 0 0 0 95.94 10.6Z" fill="#A9DB7F" stroke="none"/><path d="M83 20L95.94 10.6A16 16 0 0 0 87.94 4.78Z" fill="#A9DB7F" stroke="none"/><path d="M83 20L70.06 29.4A16 16 0 0 0 78.06 35.22Z" fill="#A9DB7F" stroke="none"/><path d="M83 20L78.06 35.22A16 16 0 0 0 87.94 35.22Z" fill="#A9DB7F" stroke="none"/><path d="M83 20L87.94 35.22A16 16 0 0 0 95.94 29.4Z" fill="#A9DB7F" stroke="none"/><path d="M83 20L95.94 29.4A16 16 0 0 0 99 20Z" fill="#A9DB7F" stroke="none"/><circle cx="83" cy="20" r="16" fill="none" stroke="#1a1a1a" stroke-width="0.55"/><line x1="83" y1="20" x2="99" y2="20" stroke="#1a1a1a" stroke-width="0.55"/><line x1="83" y1="20" x2="95.94" y2="10.6" stroke="#1a1a1a" stroke-width="0.55"/><line x1="83" y1="20" x2="87.94" y2="4.78" stroke="#1a1a1a" stroke-width="0.55"/><line x1="83" y1="20" x2="78.06" y2="4.78" stroke="#1a1a1a" stroke-width="0.55"/><line x1="83" y1="20" x2="70.06" y2="10.6" stroke="#1a1a1a" stroke-width="0.55"/><line x1="83" y1="20" x2="67" y2="20" stroke="#1a1a1a" stroke-width="0.55"/><line x1="83" y1="20" x2="70.06" y2="29.4" stroke="#1a1a1a" stroke-width="0.55"/><line x1="83" y1="20" x2="78.06" y2="35.22" stroke="#1a1a1a" stroke-width="0.55"/><line x1="83" y1="20" x2="87.94" y2="35.22" stroke="#1a1a1a" stroke-width="0.55"/><line x1="83" y1="20" x2="95.94" y2="29.4" stroke="#1a1a1a" stroke-width="0.55"/><circle cx="83" cy="20" r="0.7" fill="#1a1a1a"/><g class="sol"><text x="107" y="19.7" text-anchor="middle" font-size="5.2" font-weight="700" fill="#E6007E">6</text><line x1="102.98" y1="21" x2="111.02" y2="21" stroke="#E6007E" stroke-width="0.45"/><text x="107" y="25.94" text-anchor="middle" font-size="5.2" font-weight="700" fill="#E6007E">10</text></g><text x="65" y="63.8" text-anchor="end" font-size="5.2" font-weight="700" fill="#1F3A5F">e.</text><path d="M83 62L83 46A16 16 0 0 0 83 78Z" fill="#D4EAF7" stroke="none"/><circle cx="83" cy="62" r="16" fill="none" stroke="#1a1a1a" stroke-width="0.55"/><line x1="83" y1="62" x2="83" y2="46" stroke="#1a1a1a" stroke-width="0.55"/><line x1="83" y1="62" x2="83" y2="78" stroke="#1a1a1a" stroke-width="0.55"/><g class="sol"><text x="107" y="61.7" text-anchor="middle" font-size="5.2" font-weight="700" fill="#E6007E">1</text><line x1="104.59" y1="63" x2="109.41" y2="63" stroke="#E6007E" stroke-width="0.45"/><text x="107" y="67.94" text-anchor="middle" font-size="5.2" font-weight="700" fill="#E6007E">2</text></g><text x="65" y="105.8" text-anchor="end" font-size="5.2" font-weight="700" fill="#1F3A5F">f.</text><path d="M83 104L99 104A16 16 0 0 0 96.86 96Z" fill="#FCD98A" stroke="none"/><path d="M83 104L69.14 96A16 16 0 0 0 67 104Z" fill="#FCD98A" stroke="none"/><path d="M83 104L67 104A16 16 0 0 0 69.14 112Z" fill="#FCD98A" stroke="none"/><path d="M83 104L69.14 112A16 16 0 0 0 75 117.86Z" fill="#FCD98A" stroke="none"/><path d="M83 104L75 117.86A16 16 0 0 0 83 120Z" fill="#FCD98A" stroke="none"/><path d="M83 104L83 120A16 16 0 0 0 91 117.86Z" fill="#FCD98A" stroke="none"/><path d="M83 104L91 117.86A16 16 0 0 0 96.86 112Z" fill="#FCD98A" stroke="none"/><path d="M83 104L96.86 112A16 16 0 0 0 99 104Z" fill="#FCD98A" stroke="none"/><circle cx="83" cy="104" r="16" fill="none" stroke="#1a1a1a" stroke-width="0.55"/><line x1="83" y1="104" x2="99" y2="104" stroke="#1a1a1a" stroke-width="0.55"/><line x1="83" y1="104" x2="96.86" y2="96" stroke="#1a1a1a" stroke-width="0.55"/><line x1="83" y1="104" x2="91" y2="90.14" stroke="#1a1a1a" stroke-width="0.55"/><line x1="83" y1="104" x2="83" y2="88" stroke="#1a1a1a" stroke-width="0.55"/><line x1="83" y1="104" x2="75" y2="90.14" stroke="#1a1a1a" stroke-width="0.55"/><line x1="83" y1="104" x2="69.14" y2="96" stroke="#1a1a1a" stroke-width="0.55"/><line x1="83" y1="104" x2="67" y2="104" stroke="#1a1a1a" stroke-width="0.55"/><line x1="83" y1="104" x2="69.14" y2="112" stroke="#1a1a1a" stroke-width="0.55"/><line x1="83" y1="104" x2="75" y2="117.86" stroke="#1a1a1a" stroke-width="0.55"/><line x1="83" y1="104" x2="83" y2="120" stroke="#1a1a1a" stroke-width="0.55"/><line x1="83" y1="104" x2="91" y2="117.86" stroke="#1a1a1a" stroke-width="0.55"/><line x1="83" y1="104" x2="96.86" y2="112" stroke="#1a1a1a" stroke-width="0.55"/><circle cx="83" cy="104" r="0.7" fill="#1a1a1a"/><g class="sol"><text x="107" y="103.7" text-anchor="middle" font-size="5.2" font-weight="700" fill="#E6007E">8</text><line x1="102.98" y1="105" x2="111.02" y2="105" stroke="#E6007E" stroke-width="0.45"/><text x="107" y="109.94" text-anchor="middle" font-size="5.2" font-weight="700" fill="#E6007E">12</text></g><text x="122" y="21.8" text-anchor="end" font-size="5.2" font-weight="700" fill="#1F3A5F">g.</text><path d="M140 20L156 20A16 16 0 0 0 153.86 12Z" fill="#FBDDEF" stroke="none"/><path d="M140 20L153.86 12A16 16 0 0 0 148 6.14Z" fill="#FBDDEF" stroke="none"/><path d="M140 20L148 6.14A16 16 0 0 0 140 4Z" fill="#FBDDEF" stroke="none"/><path d="M140 20L140 4A16 16 0 0 0 132 6.14Z" fill="#FBDDEF" stroke="none"/><path d="M140 20L132 6.14A16 16 0 0 0 126.14 12Z" fill="#FBDDEF" stroke="none"/><path d="M140 20L126.14 12A16 16 0 0 0 124 20Z" fill="#FBDDEF" stroke="none"/><path d="M140 20L124 20A16 16 0 0 0 126.14 28Z" fill="#FBDDEF" stroke="none"/><path d="M140 20L148 33.86A16 16 0 0 0 153.86 28Z" fill="#FBDDEF" stroke="none"/><path d="M140 20L153.86 28A16 16 0 0 0 156 20Z" fill="#FBDDEF" stroke="none"/><circle cx="140" cy="20" r="16" fill="none" stroke="#1a1a1a" stroke-width="0.55"/><line x1="140" y1="20" x2="156" y2="20" stroke="#1a1a1a" stroke-width="0.55"/><line x1="140" y1="20" x2="153.86" y2="12" stroke="#1a1a1a" stroke-width="0.55"/><line x1="140" y1="20" x2="148" y2="6.14" stroke="#1a1a1a" stroke-width="0.55"/><line x1="140" y1="20" x2="140" y2="4" stroke="#1a1a1a" stroke-width="0.55"/><line x1="140" y1="20" x2="132" y2="6.14" stroke="#1a1a1a" stroke-width="0.55"/><line x1="140" y1="20" x2="126.14" y2="12" stroke="#1a1a1a" stroke-width="0.55"/><line x1="140" y1="20" x2="124" y2="20" stroke="#1a1a1a" stroke-width="0.55"/><line x1="140" y1="20" x2="126.14" y2="28" stroke="#1a1a1a" stroke-width="0.55"/><line x1="140" y1="20" x2="132" y2="33.86" stroke="#1a1a1a" stroke-width="0.55"/><line x1="140" y1="20" x2="140" y2="36" stroke="#1a1a1a" stroke-width="0.55"/><line x1="140" y1="20" x2="148" y2="33.86" stroke="#1a1a1a" stroke-width="0.55"/><line x1="140" y1="20" x2="153.86" y2="28" stroke="#1a1a1a" stroke-width="0.55"/><circle cx="140" cy="20" r="0.7" fill="#1a1a1a"/><g class="sol"><text x="164" y="19.7" text-anchor="middle" font-size="5.2" font-weight="700" fill="#E6007E">9</text><line x1="159.98" y1="21" x2="168.02" y2="21" stroke="#E6007E" stroke-width="0.45"/><text x="164" y="25.94" text-anchor="middle" font-size="5.2" font-weight="700" fill="#E6007E">12</text></g><text x="122" y="63.8" text-anchor="end" font-size="5.2" font-weight="700" fill="#1F3A5F">h.</text><path d="M140 62L132 48.14A16 16 0 0 0 132 75.86Z" fill="#63A800" stroke="none"/><path d="M140 62L132 75.86A16 16 0 0 0 156 62Z" fill="#63A800" stroke="none"/><circle cx="140" cy="62" r="16" fill="none" stroke="#1a1a1a" stroke-width="0.55"/><line x1="140" y1="62" x2="156" y2="62" stroke="#1a1a1a" stroke-width="0.55"/><line x1="140" y1="62" x2="132" y2="48.14" stroke="#1a1a1a" stroke-width="0.55"/><line x1="140" y1="62" x2="132" y2="75.86" stroke="#1a1a1a" stroke-width="0.55"/><g class="sol"><text x="164" y="61.7" text-anchor="middle" font-size="5.2" font-weight="700" fill="#E6007E">2</text><line x1="161.59" y1="63" x2="166.41" y2="63" stroke="#E6007E" stroke-width="0.45"/><text x="164" y="67.94" text-anchor="middle" font-size="5.2" font-weight="700" fill="#E6007E">3</text></g><text x="122" y="105.8" text-anchor="end" font-size="5.2" font-weight="700" fill="#1F3A5F">i.</text><path d="M140 104L144.94 88.78A16 16 0 0 0 127.06 94.6Z" fill="#00A6DC" stroke="none"/><path d="M140 104L127.06 94.6A16 16 0 0 0 127.06 113.4Z" fill="#00A6DC" stroke="none"/><path d="M140 104L127.06 113.4A16 16 0 0 0 144.94 119.22Z" fill="#00A6DC" stroke="none"/><circle cx="140" cy="104" r="16" fill="none" stroke="#1a1a1a" stroke-width="0.55"/><line x1="140" y1="104" x2="156" y2="104" stroke="#1a1a1a" stroke-width="0.55"/><line x1="140" y1="104" x2="144.94" y2="88.78" stroke="#1a1a1a" stroke-width="0.55"/><line x1="140" y1="104" x2="127.06" y2="94.6" stroke="#1a1a1a" stroke-width="0.55"/><line x1="140" y1="104" x2="127.06" y2="113.4" stroke="#1a1a1a" stroke-width="0.55"/><line x1="140" y1="104" x2="144.94" y2="119.22" stroke="#1a1a1a" stroke-width="0.55"/><g class="sol"><text x="164" y="103.7" text-anchor="middle" font-size="5.2" font-weight="700" fill="#E6007E">3</text><line x1="161.59" y1="105" x2="166.41" y2="105" stroke="#E6007E" stroke-width="0.45"/><text x="164" y="109.94" text-anchor="middle" font-size="5.2" font-weight="700" fill="#E6007E">5</text></g><text x="35" y="151.8" text-anchor="end" font-size="5.2" font-weight="700" fill="#1F3A5F">j.</text><circle cx="56" cy="150" r="16" fill="#C2C2F8" stroke="#3B3BD0" stroke-width="0.35"/><line x1="56" y1="150" x2="72" y2="150" stroke="#3B3BD0" stroke-width="0.3"/><line x1="56" y1="150" x2="48" y2="136.14" stroke="#3B3BD0" stroke-width="0.3"/><line x1="56" y1="150" x2="48" y2="163.86" stroke="#3B3BD0" stroke-width="0.3"/><path d="M55.2 149.2l1.6 1.6M56.8 149.2l-1.6 1.6" stroke="#E02020" stroke-width="0.3"/><path d="M96 150L112 150A16 16 0 0 0 88 136.14Z" fill="#C2C2F8" stroke="none"/><path d="M96 150L88 136.14A16 16 0 0 0 88 163.86Z" fill="#C2C2F8" stroke="none"/><circle cx="96" cy="150" r="16" fill="none" stroke="#3B3BD0" stroke-width="0.35"/><line x1="96" y1="150" x2="112" y2="150" stroke="#3B3BD0" stroke-width="0.3"/><line x1="96" y1="150" x2="88" y2="136.14" stroke="#3B3BD0" stroke-width="0.3"/><line x1="96" y1="150" x2="88" y2="163.86" stroke="#3B3BD0" stroke-width="0.3"/><g class="sol"><text x="121" y="152" font-size="5.2" font-weight="700" fill="#E6007E">1  +</text><text x="134" y="149.7" text-anchor="middle" font-size="5.2" font-weight="700" fill="#E6007E">2</text><line x1="131.59" y1="151" x2="136.41" y2="151" stroke="#E6007E" stroke-width="0.45"/><text x="134" y="155.94" text-anchor="middle" font-size="5.2" font-weight="700" fill="#E6007E">3</text><text x="141" y="152" font-size="5.2" font-weight="700" fill="#E6007E">=</text><text x="151" y="149.7" text-anchor="middle" font-size="5.2" font-weight="700" fill="#E6007E">5</text><line x1="148.59" y1="151" x2="153.41" y2="151" stroke="#E6007E" stroke-width="0.45"/><text x="151" y="155.94" text-anchor="middle" font-size="5.2" font-weight="700" fill="#E6007E">3</text></g><text x="35" y="193.8" text-anchor="end" font-size="5.2" font-weight="700" fill="#1F3A5F">k.</text><circle cx="56" cy="192" r="16" fill="#C2C2F8" stroke="#3B3BD0" stroke-width="0.35"/><line x1="56" y1="192" x2="72" y2="192" stroke="#3B3BD0" stroke-width="0.3"/><line x1="56" y1="192" x2="68.94" y2="182.6" stroke="#3B3BD0" stroke-width="0.3"/><line x1="56" y1="192" x2="60.94" y2="176.78" stroke="#3B3BD0" stroke-width="0.3"/><line x1="56" y1="192" x2="51.06" y2="176.78" stroke="#3B3BD0" stroke-width="0.3"/><line x1="56" y1="192" x2="43.06" y2="182.6" stroke="#3B3BD0" stroke-width="0.3"/><line x1="56" y1="192" x2="40" y2="192" stroke="#3B3BD0" stroke-width="0.3"/><line x1="56" y1="192" x2="43.06" y2="201.4" stroke="#3B3BD0" stroke-width="0.3"/><line x1="56" y1="192" x2="51.06" y2="207.22" stroke="#3B3BD0" stroke-width="0.3"/><line x1="56" y1="192" x2="60.94" y2="207.22" stroke="#3B3BD0" stroke-width="0.3"/><line x1="56" y1="192" x2="68.94" y2="201.4" stroke="#3B3BD0" stroke-width="0.3"/><path d="M55.2 191.2l1.6 1.6M56.8 191.2l-1.6 1.6" stroke="#E02020" stroke-width="0.3"/><path d="M96 192L112 192A16 16 0 0 0 108.94 182.6Z" fill="#C2C2F8" stroke="none"/><path d="M96 192L108.94 182.6A16 16 0 0 0 100.94 176.78Z" fill="#C2C2F8" stroke="none"/><path d="M96 192L100.94 176.78A16 16 0 0 0 91.06 176.78Z" fill="#C2C2F8" stroke="none"/><path d="M96 192L91.06 176.78A16 16 0 0 0 83.06 182.6Z" fill="#C2C2F8" stroke="none"/><circle cx="96" cy="192" r="16" fill="none" stroke="#3B3BD0" stroke-width="0.35"/><line x1="96" y1="192" x2="112" y2="192" stroke="#3B3BD0" stroke-width="0.3"/><line x1="96" y1="192" x2="108.94" y2="182.6" stroke="#3B3BD0" stroke-width="0.3"/><line x1="96" y1="192" x2="100.94" y2="176.78" stroke="#3B3BD0" stroke-width="0.3"/><line x1="96" y1="192" x2="91.06" y2="176.78" stroke="#3B3BD0" stroke-width="0.3"/><line x1="96" y1="192" x2="83.06" y2="182.6" stroke="#3B3BD0" stroke-width="0.3"/><g class="sol"><text x="121" y="194" font-size="5.2" font-weight="700" fill="#E6007E">1  +</text><text x="134" y="191.7" text-anchor="middle" font-size="5.2" font-weight="700" fill="#E6007E">4</text><line x1="129.98" y1="193" x2="138.02" y2="193" stroke="#E6007E" stroke-width="0.45"/><text x="134" y="197.94" text-anchor="middle" font-size="5.2" font-weight="700" fill="#E6007E">10</text><text x="141" y="194" font-size="5.2" font-weight="700" fill="#E6007E">=</text><text x="151" y="191.7" text-anchor="middle" font-size="5.2" font-weight="700" fill="#E6007E">14</text><line x1="146.98" y1="193" x2="155.02" y2="193" stroke="#E6007E" stroke-width="0.45"/><text x="151" y="197.94" text-anchor="middle" font-size="5.2" font-weight="700" fill="#E6007E">10</text></g></svg>
+
+  <div class="pied"><span>Nombres et opérations - nombres rationnels (fractions) - UOG/AM</span><span>3</span></div>
+</section>
+
+<script>
+document.querySelectorAll('.page[data-corrige]').forEach(p => {
+  const c = p.cloneNode(true);          /* le corrigé garde le numéro de la page d'origine */
+  c.removeAttribute('data-corrige');
+  c.classList.add('page-corrige');
+  document.body.appendChild(c);
+});
+
+const btn = document.getElementById('btn');
+const OEIL = '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.3 8S3.6 3.8 8 3.8 14.7 8 14.7 8 12.4 12.2 8 12.2 1.3 8 1.3 8z"/><circle cx="8" cy="8" r="2.1"/></svg>';
+const OEIL_B = '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.3 8S3.6 3.8 8 3.8 14.7 8 14.7 8 12.4 12.2 8 12.2 1.3 8 1.3 8z"/><circle cx="8" cy="8" r="2.1"/><path d="M2.5 13.5L13.5 2.5"/></svg>';
+btn.addEventListener('click', () => {
+  const on = document.body.classList.toggle('corrige');
+  btn.innerHTML = on ? OEIL_B : OEIL;
+  btn.title = on ? 'Masquer le corrigé' : 'Afficher le corrigé';
+  btn.setAttribute('aria-label', btn.title);
+});
+
+(function(){
+  const racine = document.documentElement;
+  const barre = document.querySelector('.barre');
+  const taux = document.getElementById('zoom-taux');
+  let z = 1;
+  function applique(v){
+    z = Math.max(0.15, Math.min(v, 4));
+    racine.style.setProperty('--z', z);
+    if (taux) taux.textContent = Math.round(z * 100) + ' %';
+  }
+  function pageEntiere(){
+    racine.style.setProperty('--z', 1);
+    const p = document.querySelector('.page');
+    if (!p) return;
+    const r = p.getBoundingClientRect();
+    const hBarre = barre ? barre.getBoundingClientRect().height : 0;
+    applique(Math.min((window.innerWidth - 36) / r.width,
+                      (window.innerHeight - hBarre - 36) / r.height));
+  }
+  /* auto = la page suit la taille de la fenêtre ; un zoom manuel coupe ce suivi
+     jusqu'au prochain clic sur « Page entière » ou au passage en plein écran */
+  let auto = true, lw = window.innerWidth, lh = window.innerHeight;
+  document.getElementById('zoom-moins').addEventListener('click', () => { auto = false; applique(z / 1.15); });
+  document.getElementById('zoom-plus').addEventListener('click', () => { auto = false; applique(z * 1.15); });
+  document.getElementById('zoom-page').addEventListener('click', () => { auto = true; pageEntiere(); });
+  let t; window.addEventListener('resize', () => {
+    clearTimeout(t);
+    t = setTimeout(() => {
+      const w = window.innerWidth, h = window.innerHeight;
+      /* le défilement tactile fait apparaître ou disparaître des barres du navigateur :
+         seule la hauteur bouge un peu, ce n'est pas un vrai redimensionnement */
+      const vrai = Math.abs(w - lw) > 2 || Math.abs(h - lh) > 150;
+      lw = w; lh = h;
+      if (auto && vrai) pageEntiere();
+    }, 150);
+  });
+  pageEntiere();
+
+  const bpe = document.getElementById('plein-ecran');
+  if (bpe) {
+    bpe.addEventListener('click', () => {
+      if (document.fullscreenElement) document.exitFullscreen();
+      else document.documentElement.requestFullscreen();
+    });
+    document.addEventListener('fullscreenchange', () => {
+      const plein = !!document.fullscreenElement;
+      bpe.innerHTML = plein
+        ? '<svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2v4H2"/><path d="M14 6h-4V2"/><path d="M10 14v-4h4"/><path d="M2 10h4v4"/></svg>'
+        : '<svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6V2h4"/><path d="M10 2h4v4"/><path d="M14 10v4h-4"/><path d="M6 14H2v-4"/></svg>';
+      bpe.title = plein ? 'Quitter le plein écran' : 'Plein écran';
+      auto = true;
+      setTimeout(() => { lw = window.innerWidth; lh = window.innerHeight; pageEntiere(); }, 120);
+    });
+  }
+})();
+</script>
+</body>
+</html>
