@@ -445,6 +445,20 @@ body:not(.prof) #ex0,body:not(.prof) #menu [data-vue="ex0"]{display:none}
 .consigne-vote .grande{margin:0;font-size:clamp(28px, 3.4vw, 46px);font-weight:700;color:var(--bleu)}
 .consigne-vote .petite{margin:10px 0 0;font-size:clamp(15px, 1.3vw, 19px);color:var(--gris)}
 
+#barre-impression{
+  position:fixed;left:0;right:0;bottom:0;z-index:300;
+  display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:14px;
+  padding:12px 18px;background:#fff;border-top:3px solid var(--bleu);
+  box-shadow:0 -4px 16px rgba(0,0,0,.14);font-size:15px;color:var(--bleu);
+}
+#barre-impression button{
+  font-family:inherit;font-size:15px;font-weight:600;padding:9px 18px;border-radius:8px;cursor:pointer;
+  border:1px solid var(--bleu);background:var(--bleu);color:#fff;
+}
+#barre-impression .fermer{background:#fff;color:var(--bleu)}
+#barre-impression .aide{font-size:13.5px;color:var(--gris);font-weight:400}
+@media print{ #barre-impression{display:none !important} }
+
 .pas-a-pas{
   position:fixed;left:0;right:0;bottom:18px;z-index:40;
   display:flex;align-items:center;justify-content:center;gap:14px;
@@ -716,7 +730,7 @@ body.avec-corrige .corrige{display:block}
 /* ---------- pagination pilotée par les boutons ---------- */
 body.pagine{padding:0}
 body.pagine .marge{display:none}
-body.pagine > *:not(#pages){display:none !important}
+body.pagine > *:not(#pages):not(#barre-impression){display:none !important}
 .legende,.position,.fond-illu,.depart,.menu,.menu-btn,.suite,.fleches{display:none !important}
 #ex1{display:block !important}
 #ex2{display:none !important}
@@ -1347,9 +1361,8 @@ function imprimerIntro(){
     <div class="numero"><span>UOG - Internet en toute sécurité - Emails &amp; SMS</span><span>page 1 / 1</span></div></div>`;
   document.body.appendChild(pages);
   document.body.classList.add("pagine");
-  css.media = "print";
+  barreImpression(() => { pages.remove(); document.body.classList.remove("pagine"); });
   window.print();
-  setTimeout(() => { pages.remove(); document.body.classList.remove("pagine"); }, 500);
 }
 
 /* ---------- plan de séance, mis en pages comme les autres impressions ---------- */
@@ -1411,9 +1424,8 @@ function imprimerPlan(){
     <div class="numero"><span>${pied}</span><span>page 1 / 1</span></div></div>`;
   document.body.appendChild(pages);
   document.body.classList.add("pagine");
-  css.media = "print";
+  barreImpression(() => { pages.remove(); document.body.classList.remove("pagine"); });
   window.print();
-  setTimeout(() => { pages.remove(); document.body.classList.remove("pagine"); }, 500);
 }
 
 /* ---------- plan de séance : document Word intégré au fichier ---------- */
@@ -1699,6 +1711,26 @@ function depaginer(){
   construireCorrige();   // le tableau a pu être scindé pour la mise en pages
 }
 
+// Certains navigateurs d'écran interactif ignorent l'ordre d'impression.
+// La mise en pages reste donc affichée, avec une barre qui permet de relancer
+// l'impression ou de passer par le menu du navigateur.
+function barreImpression(fermeture){
+  document.getElementById("barre-impression")?.remove();
+  const css = document.getElementById("css-papier");
+  css.media = "all";                       // l'aperçu reste visible à l'écran
+  const barre = document.createElement("div");
+  barre.id = "barre-impression";
+  barre.innerHTML = `<span>Aperçu avant impression</span>
+    <button class="relancer">Imprimer</button>
+    <button class="fermer">Fermer l'aperçu</button>
+    <span class="aide">Si rien ne s'ouvre, utilisez le menu du navigateur, puis Imprimer ou Partager.</span>`;
+  document.body.appendChild(barre);
+  barre.querySelector(".relancer").addEventListener("click", () => window.print());
+  barre.querySelector(".fermer").addEventListener("click", () => {
+    barre.remove(); css.media = "print"; fermeture();
+  });
+}
+
 function imprimer(avecCorrige){
   const css = document.getElementById("css-papier");
   document.body.classList.toggle("avec-corrige", avecCorrige);
@@ -1706,9 +1738,8 @@ function imprimer(avecCorrige){
   document.body.style.width = "210mm";
   paginer(avecCorrige);
   document.body.style.width = "";
-  css.media = "print";
+  barreImpression(() => { depaginer(); document.body.classList.remove("avec-corrige"); });
   window.print();
-  setTimeout(() => { depaginer(); document.body.classList.remove("avec-corrige"); }, 400);
 }
 
 // ---------- repères, progression, récapitulatif ----------
@@ -2171,9 +2202,8 @@ window.imprimerCartes = function(){
   pages.innerHTML = pageCartes(1, 3, p1) + pageCartes(2, 3, p2) + pageCartes(3, 3, p3);
   document.body.appendChild(pages);
   document.body.classList.add("pagine");
-  css.media = "print";
+  barreImpression(() => { pages.remove(); document.body.classList.remove("pagine"); });
   window.print();
-  setTimeout(() => { pages.remove(); document.body.classList.remove("pagine"); }, 500);
 };
 
 })();
