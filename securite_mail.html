@@ -105,7 +105,7 @@ html{
   position:relative;padding:34px 0;
   scroll-snap-align:start;
   /* la plage remplit l'écran et sa hauteur est réservée : elle ne bouge pas à la validation */
-  min-height:max(calc(100vh - var(--h-entete, 58px)), 720px);
+  min-height:calc(100vh - var(--h-entete, 58px));
   display:flex;flex-direction:column;justify-content:flex-start;
 }
 #blocConsignes{display:block;padding-top:calc(var(--h-illu) - 52px);overflow:hidden}
@@ -334,8 +334,8 @@ html{
   display:flex;align-items:center;justify-content:center;
   font-size:13px;font-weight:700;color:#6b7280;
 }
-.recap{margin-top:6px;border:2px solid var(--trait);border-radius:10px;padding:16px 18px}
-.recap h3{margin:0 0 12px;font-size:17px;color:var(--bleu)}
+.recap{margin-top:4px;border:2px solid var(--trait);border-radius:10px;padding:12px 16px}
+.recap h3{margin:0 0 9px;font-size:17px;color:var(--bleu)}
 .tuiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px}
 .tuile{
   border:2px solid var(--trait);border-radius:8px;background:#fff;padding:8px 6px;
@@ -347,8 +347,8 @@ html{
 .tuile.encours{border-color:var(--bleu);color:var(--bleu)}
 
 /* ---------- bilan ---------- */
-.bilan{border:3px solid var(--bleu);border-radius:10px;padding:22px 24px;margin-top:34px}
-.bilan h2{margin:0 0 10px;color:var(--bleu);font-size:22px}
+.bilan{border:3px solid var(--bleu);border-radius:10px;padding:18px 22px;margin-top:20px}
+.bilan h2{margin:0 0 8px;color:var(--bleu);font-size:22px}
 .note-survol{color:var(--rouge);margin:0 0 6px}
 .note-survol:empty{display:none}
 .gros{font-size:34px;font-weight:700;color:var(--bleu);margin-right:10px}
@@ -1503,18 +1503,21 @@ function majSection(){
 // disposition validée dans l'application d'écran, en % de la plage
 const POSE_ECRAN = {
   parking:{x:4.27,  y:29.57, l:22.66, z:2, r:0.1},
-  sig:    {x:25.54, y:25.99, l:56, z:1, r:1.5},
+  sig:    {x:25.54, y:24, l:70, z:1, r:1.5},
   twint:  {x:68.06, y:20.76, l:22.43, z:3, r:2.5}
 };
 
 let ordreIntro = [], montres = 0;
 
 function prepareIntro(){
-  ordreIntro = [...document.querySelectorAll("#ex0 .carton")];
-  for(let i = ordreIntro.length - 1; i > 0; i--){          // tirage sans biais
+  const cartons = [...document.querySelectorAll("#ex0 .carton")];
+  const dernier = cartons.find(c => c.dataset.cle === "twint");
+  const debut = cartons.filter(c => c !== dernier);
+  for(let i = debut.length - 1; i > 0; i--){               // les deux premiers au hasard
     const j = Math.floor(Math.random() * (i + 1));
-    [ordreIntro[i], ordreIntro[j]] = [ordreIntro[j], ordreIntro[i]];
+    [debut[i], debut[j]] = [debut[j], debut[i]];
   }
+  ordreIntro = dernier ? [...debut, dernier] : debut;      // le SMS TWINT vient toujours en dernier
   montres = 0;
   ordreIntro.forEach(c => c.classList.remove("montre"));
   const bt = document.getElementById("btnMessage");
@@ -1875,7 +1878,7 @@ const CARTES = [
   n:"Utile mais limité : les escrocs changent de numéro en permanence."},
  {t:"Rappeler le numéro indiqué dans le message.", z:"jamais",
   n:"C'est l'escroc au bout du fil. Toujours appeler un numéro officiel pris au dos de votre carte, sur une facture ou sur le site de l'organisme."},
- {t:"Changer le même mot de passe partout où je l'utilisais.", z:"clic",
+ {t:"Changer le mot de passe partout où j'utilisais le même.", z:"clic",
   n:"Le point très souvent oublié : un mot de passe volé ouvre tous les comptes qui l'utilisent."},
  {t:"En parler autour de moi.", z:"rep",
   n:"De vive voix, sans transférer le message."},
