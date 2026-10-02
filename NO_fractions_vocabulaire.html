@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fractions – Vocabulaire</title>
+
+<style>
+:root{
+  --encre:#1a1a1a;--navy:#1F3A5F;--bleu:#2E75B6;--magenta:#E6007E;--filet:#c9c9c9;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:#e9e9e9;color:var(--encre);
+  font-family:"Avenir Next","Avenir","Segoe UI","Trebuchet MS",Verdana,sans-serif;
+  font-size:0;line-height:1.5;
+}
+.barre{
+  position:sticky;top:0;z-index:10;
+  display:flex;gap:10px;align-items:center;justify-content:center;
+  padding:8px;background:var(--navy);color:#fff;font-size:10pt;
+}
+.barre button{font:inherit;font-weight:600;cursor:pointer;background:#fff;color:var(--navy);border:none;border-radius:3px;
+  padding:0;width:30px;height:30px;line-height:1;display:inline-flex;align-items:center;justify-content:center;font-size:13pt}
+.barre button svg{display:block}
+.barre button:focus-visible{outline:2px solid var(--magenta);outline-offset:2px}
+.barre span{opacity:.8}
+.barre .zoom-outils{opacity:1}
+.zoom-outils{display:flex;gap:6px;align-items:center}
+.zoom-taux{font-variant-numeric:tabular-nums;min-width:44px;text-align:center;opacity:.9}
+
+.page{
+  position:relative;zoom:var(--z,1);width:210mm;height:292mm;
+  margin:14px auto;padding:12mm 12mm 18mm 20mm;
+  background:#fff;overflow:hidden;font-size:11.5pt;
+}
+h1{font-size:15pt;font-weight:700;text-align:center;margin:0 0 1mm;letter-spacing:.1px}
+.sur-titre{text-align:center;font-size:11.5pt;margin:0 0 6mm}
+.etiquette-corrige{
+  display:none;position:absolute;top:13mm;right:12mm;margin:0;
+  color:var(--magenta);font-weight:700;font-size:11pt;letter-spacing:1px;
+}
+body.corrige .etiquette-corrige{display:block}
+p{margin:0 0 4mm}
+
+.exo-titre{display:flex;gap:3mm;align-items:flex-start;margin-bottom:2mm}
+.exo-titre .consigne{font-weight:700}
+.pastille{flex:0 0 auto;width:15px;height:15px;margin-top:2px}
+.item{margin:0 0 2mm 8mm}
+
+.fig{display:block;margin:2mm auto 0;width:170mm;height:auto}
+.sol{visibility:hidden}
+body.corrige .sol{visibility:visible}
+
+.pied{
+  position:absolute;left:20mm;right:12mm;bottom:10mm;
+  padding-top:2.5mm;border-top:1px solid var(--filet);
+  display:flex;justify-content:space-between;font-size:9.5pt;color:#333;
+}
+
+@page{size:A4;margin:0}
+@media print{
+  html,body{width:210mm;margin:0;padding:0;overflow:hidden}
+  body{background:#fff}
+  .barre{display:none}
+  .page{zoom:1;margin:0;page-break-after:always}
+  .page:last-of-type{page-break-after:auto}
+}
+@media screen{ .page{box-shadow:0 1px 6px rgba(0,0,0,.18)} }
+
+.page-corrige{display:none}
+@media print{
+  body.corrige .page:not(.page-corrige) .etiquette-corrige{display:none}
+  body.corrige .page:not(.page-corrige) .sol{visibility:hidden}
+  .page-corrige{display:block}
+  .page-corrige .etiquette-corrige{display:block}
+  .page-corrige .sol{visibility:visible}
+}
+</style>
+<style>
+/* propre à la fiche – fractions, vocabulaire (pas de corrigé : bouton œil masqué) */
+#btn{display:none}
+.voc{width:164mm;margin:0 auto;border-collapse:separate;border-spacing:0;border:1px solid #1a1a1a;border-radius:4mm}
+.voc tr{height:25.5mm}
+.voc tr:not(:last-child) td{border-bottom:1px solid #1a1a1a}
+.voc td{padding:0;vertical-align:middle;text-align:center}
+.c-fr{width:15%}.c-di{width:25%}.c-mo{width:37%;font-size:14.5pt}.c-de{width:23%;font-weight:700;font-size:13pt}
+.fr{display:inline-flex;flex-direction:column;align-items:center;font-weight:700;font-size:15pt;line-height:1.25}
+.fr span:first-child{border-bottom:2px solid #1a1a1a;padding:0 1px}
+.disque{width:20mm;height:20mm;display:block;margin:0 auto}
+.schema{display:block;width:110mm;height:22mm;margin:3mm 0 1mm 14mm}
+.texte{font-size:13pt;margin:5mm 0 2mm 7mm}
+.equiv{display:flex;align-items:center;gap:4.5mm;margin:0 0 0 12mm;font-family:Cambria,"Cambria Math","Times New Roman",serif;font-size:12.5pt}
+.fe{display:inline-flex;flex-direction:column;align-items:center;line-height:1.3}
+.fe span:first-child{border-bottom:1px solid #1a1a1a;padding:0 3px}
+.eg{font-size:14pt}
+.pts{font-size:14pt}
+</style>
+</head>
+<body>
+
+<div class="barre">
+  <button id="btn" type="button" title="Afficher le corrigé" aria-label="Afficher le corrigé"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.3 8S3.6 3.8 8 3.8 14.7 8 14.7 8 12.4 12.2 8 12.2 1.3 8 1.3 8z"></path><circle cx="8" cy="8" r="2.1"></circle></svg></button>
+  <span class="zoom-outils">
+    <button id="zoom-moins" type="button" title="Réduire">−</button>
+    <span class="zoom-taux" id="zoom-taux">100 %</span>
+    <button id="zoom-plus" type="button" title="Agrandir">+</button>
+    <button id="zoom-page" type="button" title="Page entière" aria-label="Page entière"><svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3.2" y="1.6" width="9.6" height="12.8" rx="1.2"></rect><path d="M8 4.6v6.8"></path><path d="M6.3 6.3L8 4.6l1.7 1.7"></path><path d="M6.3 9.7L8 11.4l1.7-1.7"></path></svg></button>
+    <button id="plein-ecran" type="button" title="Plein écran" aria-label="Plein écran"><svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6V2h4"></path><path d="M10 2h4v4"></path><path d="M14 10v4h-4"></path><path d="M6 14H2v-4"></path></svg></button>
+  </span>
+</div>
+
+<!-- ══════════════════ PAGE 1 ══════════════════ -->
+<section class="page">
+  <h1>Fractions</h1>
+  <p class="sur-titre">Vocabulaire</p>
+  <p class="etiquette-corrige">CORRIGÉ</p>
+
+  <table class="voc">
+    <tr><td class="c-fr"><span class="fr"><span>1</span><span>2</span></span></td><td class="c-di"><svg class="disque" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 10L10 19.6A9.6 9.6 0 0 0 10 0.4Z" fill="#A9D4F2"/><line x1="10" y1="10" x2="10" y2="0.4" stroke="#1a1a1a" stroke-width="0.35"/><line x1="10" y1="10" x2="10" y2="19.6" stroke="#1a1a1a" stroke-width="0.35"/><circle cx="10" cy="10" r="9.6" fill="none" stroke="#1a1a1a" stroke-width="0.4"/></svg></td><td class="c-mo">«&#8239;un demi&#8239;»</td><td class="c-de">0,5</td></tr>
+    <tr><td class="c-fr"><span class="fr"><span>1</span><span>3</span></span></td><td class="c-di"><svg class="disque" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 10L18.31 14.8A9.6 9.6 0 0 0 10 0.4Z" fill="#A9D4F2"/><line x1="10" y1="10" x2="10" y2="0.4" stroke="#1a1a1a" stroke-width="0.35"/><line x1="10" y1="10" x2="1.69" y2="14.8" stroke="#1a1a1a" stroke-width="0.35"/><line x1="10" y1="10" x2="18.31" y2="14.8" stroke="#1a1a1a" stroke-width="0.35"/><circle cx="10" cy="10" r="9.6" fill="none" stroke="#1a1a1a" stroke-width="0.4"/></svg></td><td class="c-mo">«&#8239;un tiers&#8239;»</td><td class="c-de">0,3333…</td></tr>
+    <tr><td class="c-fr"><span class="fr"><span>1</span><span>4</span></span></td><td class="c-di"><svg class="disque" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 10L19.6 10A9.6 9.6 0 0 0 10 0.4Z" fill="#A9D4F2"/><line x1="10" y1="10" x2="19.6" y2="10" stroke="#1a1a1a" stroke-width="0.35"/><line x1="10" y1="10" x2="10" y2="0.4" stroke="#1a1a1a" stroke-width="0.35"/><line x1="10" y1="10" x2="0.4" y2="10" stroke="#1a1a1a" stroke-width="0.35"/><line x1="10" y1="10" x2="10" y2="19.6" stroke="#1a1a1a" stroke-width="0.35"/><circle cx="10" cy="10" r="9.6" fill="none" stroke="#1a1a1a" stroke-width="0.4"/></svg></td><td class="c-mo">«&#8239;un quart&#8239;»</td><td class="c-de">0,25</td></tr>
+    <tr><td class="c-fr"><span class="fr"><span>2</span><span>3</span></span></td><td class="c-di"><svg class="disque" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 10L1.69 14.8A9.6 9.6 0 0 0 18.31 14.8Z" fill="#A9D4F2"/><path d="M10 10L18.31 14.8A9.6 9.6 0 0 0 10 0.4Z" fill="#A9D4F2"/><line x1="10" y1="10" x2="10" y2="0.4" stroke="#1a1a1a" stroke-width="0.35"/><line x1="10" y1="10" x2="1.69" y2="14.8" stroke="#1a1a1a" stroke-width="0.35"/><line x1="10" y1="10" x2="18.31" y2="14.8" stroke="#1a1a1a" stroke-width="0.35"/><circle cx="10" cy="10" r="9.6" fill="none" stroke="#1a1a1a" stroke-width="0.4"/></svg></td><td class="c-mo">«&#8239;deux tiers&#8239;»</td><td class="c-de">0,6666…</td></tr>
+    <tr><td class="c-fr"><span class="fr"><span>3</span><span>4</span></span></td><td class="c-di"><svg class="disque" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 10L19.6 10A9.6 9.6 0 0 0 10 0.4Z" fill="#A9D4F2"/><path d="M10 10L0.4 10A9.6 9.6 0 0 0 10 19.6Z" fill="#A9D4F2"/><path d="M10 10L10 19.6A9.6 9.6 0 0 0 19.6 10Z" fill="#A9D4F2"/><line x1="10" y1="10" x2="19.6" y2="10" stroke="#1a1a1a" stroke-width="0.35"/><line x1="10" y1="10" x2="10" y2="0.4" stroke="#1a1a1a" stroke-width="0.35"/><line x1="10" y1="10" x2="0.4" y2="10" stroke="#1a1a1a" stroke-width="0.35"/><line x1="10" y1="10" x2="10" y2="19.6" stroke="#1a1a1a" stroke-width="0.35"/><circle cx="10" cy="10" r="9.6" fill="none" stroke="#1a1a1a" stroke-width="0.4"/></svg></td><td class="c-mo">«&#8239;trois quarts&#8239;»</td><td class="c-de">0,75</td></tr>
+    <tr><td class="c-fr"><span class="fr"><span>2</span><span>5</span></span></td><td class="c-di"><svg class="disque" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 10L12.97 0.87A9.6 9.6 0 0 0 2.23 4.36Z" fill="#A9D4F2"/><path d="M10 10L2.23 15.64A9.6 9.6 0 0 0 12.97 19.13Z" fill="#A9D4F2"/><line x1="10" y1="10" x2="19.6" y2="10" stroke="#1a1a1a" stroke-width="0.35"/><line x1="10" y1="10" x2="12.97" y2="0.87" stroke="#1a1a1a" stroke-width="0.35"/><line x1="10" y1="10" x2="2.23" y2="4.36" stroke="#1a1a1a" stroke-width="0.35"/><line x1="10" y1="10" x2="2.23" y2="15.64" stroke="#1a1a1a" stroke-width="0.35"/><line x1="10" y1="10" x2="12.97" y2="19.13" stroke="#1a1a1a" stroke-width="0.35"/><circle cx="10" cy="10" r="9.6" fill="none" stroke="#1a1a1a" stroke-width="0.4"/></svg></td><td class="c-mo">«&#8239;deux cinquièmes&#8239;»</td><td class="c-de">0,4</td></tr>
+    <tr><td class="c-fr"><span class="fr"><span>1</span><span>6</span></span></td><td class="c-di"><svg class="disque" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 10L18.31 5.2A9.6 9.6 0 0 0 10 0.4Z" fill="#A9D4F2"/><line x1="10" y1="10" x2="18.31" y2="5.2" stroke="#1a1a1a" stroke-width="0.35"/><line x1="10" y1="10" x2="10" y2="0.4" stroke="#1a1a1a" stroke-width="0.35"/><line x1="10" y1="10" x2="1.69" y2="5.2" stroke="#1a1a1a" stroke-width="0.35"/><line x1="10" y1="10" x2="1.69" y2="14.8" stroke="#1a1a1a" stroke-width="0.35"/><line x1="10" y1="10" x2="10" y2="19.6" stroke="#1a1a1a" stroke-width="0.35"/><line x1="10" y1="10" x2="18.31" y2="14.8" stroke="#1a1a1a" stroke-width="0.35"/><circle cx="10" cy="10" r="9.6" fill="none" stroke="#1a1a1a" stroke-width="0.4"/></svg></td><td class="c-mo">«&#8239;un sixième&#8239;»</td><td class="c-de">0,1666…</td></tr>
+  </table>
+
+  <svg class="schema" viewBox="0 0 110 22" role="img" aria-label="3 sur 4 : numérateur, barre de fraction, dénominateur">
+    <g font-family="inherit" fill="#1a1a1a">
+      <text x="6" y="8.2" text-anchor="middle" font-size="9">3</text>
+      <text x="6" y="20.6" text-anchor="middle" font-size="9">4</text>
+    </g>
+    <line x1="2" y1="11" x2="10" y2="11" stroke="#1a1a1a" stroke-width="0.45"/>
+    <g stroke="#1E9BD7" stroke-width="0.35" fill="#1E9BD7">
+      <line x1="14" y1="5.2" x2="24" y2="5.2"/><path d="M13 5.2l2.2-1.1v2.2z" stroke="none"/>
+      <line x1="14" y1="11" x2="24" y2="11"/><path d="M13 11l2.2-1.1v2.2z" stroke="none"/>
+      <line x1="14" y1="17" x2="24" y2="17"/><path d="M13 17l2.2-1.1v2.2z" stroke="none"/>
+    </g>
+    <g fill="#1E9BD7" font-family="inherit" font-size="4.4">
+      <text x="26" y="6.7">numérateur (ou dividende)</text>
+      <text x="26" y="12.5">barre de fraction</text>
+      <text x="26" y="18.5">dénominateur (ou diviseur)</text>
+    </g>
+  </svg>
+
+  <p class="texte">Une fraction peut avoir plusieurs écritures équivalentes:</p>
+  <p class="equiv"><span class="fe"><span>3</span><span>4</span></span> <span class="eg">=</span> <span class="fe"><span>6</span><span>8</span></span> <span class="eg">=</span> <span class="fe"><span>9</span><span>12</span></span> <span class="eg">=</span> <span class="fe"><span>75</span><span>100</span></span> <span class="eg">=</span> <b class="pts">…</b></p>
+
+  <div class="pied"><span>Nombres et opérations - nombres rationnels (fractions) - UOG/AM</span><span>1</span></div>
+</section>
+
+<script>
+document.querySelectorAll('.page[data-corrige]').forEach(p => {
+  const c = p.cloneNode(true);          /* le corrigé garde le numéro de la page d'origine */
+  c.removeAttribute('data-corrige');
+  c.classList.add('page-corrige');
+  document.body.appendChild(c);
+});
+
+const btn = document.getElementById('btn');
+const OEIL = '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.3 8S3.6 3.8 8 3.8 14.7 8 14.7 8 12.4 12.2 8 12.2 1.3 8 1.3 8z"/><circle cx="8" cy="8" r="2.1"/></svg>';
+const OEIL_B = '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.3 8S3.6 3.8 8 3.8 14.7 8 14.7 8 12.4 12.2 8 12.2 1.3 8 1.3 8z"/><circle cx="8" cy="8" r="2.1"/><path d="M2.5 13.5L13.5 2.5"/></svg>';
+btn.addEventListener('click', () => {
+  const on = document.body.classList.toggle('corrige');
+  btn.innerHTML = on ? OEIL_B : OEIL;
+  btn.title = on ? 'Masquer le corrigé' : 'Afficher le corrigé';
+  btn.setAttribute('aria-label', btn.title);
+});
+
+(function(){
+  const racine = document.documentElement;
+  const barre = document.querySelector('.barre');
+  const taux = document.getElementById('zoom-taux');
+  let z = 1;
+  function applique(v){
+    z = Math.max(0.15, Math.min(v, 4));
+    racine.style.setProperty('--z', z);
+    if (taux) taux.textContent = Math.round(z * 100) + ' %';
+  }
+  function pageEntiere(){
+    racine.style.setProperty('--z', 1);
+    const p = document.querySelector('.page');
+    if (!p) return;
+    const r = p.getBoundingClientRect();
+    const hBarre = barre ? barre.getBoundingClientRect().height : 0;
+    applique(Math.min((window.innerWidth - 36) / r.width,
+                      (window.innerHeight - hBarre - 36) / r.height));
+  }
+  /* auto = la page suit la taille de la fenêtre ; un zoom manuel coupe ce suivi
+     jusqu'au prochain clic sur « Page entière » ou au passage en plein écran */
+  let auto = true, lw = window.innerWidth, lh = window.innerHeight;
+  document.getElementById('zoom-moins').addEventListener('click', () => { auto = false; applique(z / 1.15); });
+  document.getElementById('zoom-plus').addEventListener('click', () => { auto = false; applique(z * 1.15); });
+  document.getElementById('zoom-page').addEventListener('click', () => { auto = true; pageEntiere(); });
+  let t; window.addEventListener('resize', () => {
+    clearTimeout(t);
+    t = setTimeout(() => {
+      const w = window.innerWidth, h = window.innerHeight;
+      /* le défilement tactile fait apparaître ou disparaître des barres du navigateur :
+         seule la hauteur bouge un peu, ce n'est pas un vrai redimensionnement */
+      const vrai = Math.abs(w - lw) > 2 || Math.abs(h - lh) > 150;
+      lw = w; lh = h;
+      if (auto && vrai) pageEntiere();
+    }, 150);
+  });
+  pageEntiere();
+
+  const bpe = document.getElementById('plein-ecran');
+  if (bpe) {
+    bpe.addEventListener('click', () => {
+      if (document.fullscreenElement) document.exitFullscreen();
+      else document.documentElement.requestFullscreen();
+    });
+    document.addEventListener('fullscreenchange', () => {
+      const plein = !!document.fullscreenElement;
+      bpe.innerHTML = plein
+        ? '<svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2v4H2"/><path d="M14 6h-4V2"/><path d="M10 14v-4h4"/><path d="M2 10h4v4"/></svg>'
+        : '<svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6V2h4"/><path d="M10 2h4v4"/><path d="M14 10v4h-4"/><path d="M6 14H2v-4"/></svg>';
+      bpe.title = plein ? 'Quitter le plein écran' : 'Plein écran';
+      auto = true;
+      setTimeout(() => { lw = window.innerWidth; lh = window.innerHeight; pageEntiere(); }, 120);
+    });
+  }
+})();
+</script>
+</body>
+</html>
