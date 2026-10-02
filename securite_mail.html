@@ -446,9 +446,12 @@ body:not(.prof) #ex0,body:not(.prof) #menu [data-vue="ex0"]{display:none}
 .consigne-vote .petite{margin:10px 0 0;font-size:clamp(15px, 1.3vw, 19px);color:var(--gris)}
 
 .pas-a-pas{
-  position:absolute;left:0;right:0;bottom:22px;z-index:3;
+  position:fixed;left:0;right:0;bottom:18px;z-index:40;
   display:flex;align-items:center;justify-content:center;gap:14px;
+  pointer-events:none;                      /* seuls le bouton et le compteur sont cliquables */
 }
+.pas-a-pas > *{pointer-events:auto}
+body:not(.sur-intro) .pas-a-pas{display:none}
 .pas-a-pas button{
   font-family:inherit;font-size:16px;font-weight:600;padding:11px 24px;cursor:pointer;
   color:#fff;background:var(--bleu);border:0;border-radius:9px;box-shadow:0 3px 10px rgba(0,0,0,.18);
@@ -1497,13 +1500,14 @@ function majSection(){
   document.getElementById("progression").hidden   = id !== "ex1";
   document.getElementById("t-progression").hidden = id !== "ex2";
   document.querySelectorAll("#menu [data-vue]").forEach(b => b.classList.toggle("actif", b.dataset.vue === id));
+  document.body.classList.toggle("sur-intro", id === "ex0");
 }
 
 // l'illustration des hameçons est reprise telle quelle, sans dupliquer les images
 // disposition validée dans l'application d'écran, en % de la plage
 const POSE_ECRAN = {
   parking:{x:4.27,  y:29.57, l:22.66, z:2, r:0.1},
-  sig:    {x:25.54, y:24, l:70, z:1, r:1.5},
+  sig:    {x:25.54, y:14, l:70, z:1, r:1.5},
   twint:  {x:68.06, y:20.76, l:22.43, z:3, r:2.5}
 };
 
@@ -1683,6 +1687,7 @@ function paginer(avecCorrige){
 
 function depaginer(){
   document.getElementById("sstitre").innerHTML = SOUS_TITRES[sectionCourante()];
+  document.body.classList.toggle("sur-intro", sectionCourante() === "ex0");
   if(!retour) return;
   [...retour].reverse().forEach(({el, parent, avant}) => {
     if(avant && avant.parentNode === parent) parent.insertBefore(el, avant);
