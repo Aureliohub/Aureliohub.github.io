@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fractions – Réduire</title>
+
+<style>
+:root{
+  --encre:#1a1a1a;--navy:#1F3A5F;--bleu:#2E75B6;--magenta:#E6007E;--filet:#c9c9c9;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:#e9e9e9;color:var(--encre);
+  font-family:"Avenir Next","Avenir","Segoe UI","Trebuchet MS",Verdana,sans-serif;
+  font-size:0;line-height:1.5;
+}
+.barre{
+  position:sticky;top:0;z-index:10;
+  display:flex;gap:10px;align-items:center;justify-content:center;
+  padding:8px;background:var(--navy);color:#fff;font-size:10pt;
+}
+.barre button{font:inherit;font-weight:600;cursor:pointer;background:#fff;color:var(--navy);border:none;border-radius:3px;
+  padding:0;width:30px;height:30px;line-height:1;display:inline-flex;align-items:center;justify-content:center;font-size:13pt}
+.barre button svg{display:block}
+.barre button:focus-visible{outline:2px solid var(--magenta);outline-offset:2px}
+.barre span{opacity:.8}
+.barre .zoom-outils{opacity:1}
+.zoom-outils{display:flex;gap:6px;align-items:center}
+.zoom-taux{font-variant-numeric:tabular-nums;min-width:44px;text-align:center;opacity:.9}
+
+.page{
+  position:relative;zoom:var(--z,1);width:210mm;height:292mm;
+  margin:14px auto;padding:12mm 12mm 18mm 20mm;
+  background:#fff;overflow:hidden;font-size:11.5pt;
+}
+h1{font-size:15pt;font-weight:700;text-align:center;margin:0 0 1mm;letter-spacing:.1px}
+.sur-titre{text-align:center;font-size:11.5pt;margin:0 0 6mm}
+.etiquette-corrige{
+  display:none;position:absolute;top:13mm;right:12mm;margin:0;
+  color:var(--magenta);font-weight:700;font-size:11pt;letter-spacing:1px;
+}
+body.corrige .etiquette-corrige{display:block}
+p{margin:0 0 4mm}
+
+.exo-titre{display:flex;gap:3mm;align-items:flex-start;margin-bottom:2mm}
+.exo-titre .consigne{font-weight:700}
+.pastille{flex:0 0 auto;width:15px;height:15px;margin-top:2px}
+.item{margin:0 0 2mm 8mm}
+
+.fig{display:block;margin:2mm auto 0;width:170mm;height:auto}
+.sol{visibility:hidden}
+body.corrige .sol{visibility:visible}
+
+.pied{
+  position:absolute;left:20mm;right:12mm;bottom:10mm;
+  padding-top:2.5mm;border-top:1px solid var(--filet);
+  display:flex;justify-content:space-between;font-size:9.5pt;color:#333;
+}
+
+@page{size:A4;margin:0}
+@media print{
+  html,body{width:210mm;margin:0;padding:0;overflow:hidden}
+  body{background:#fff}
+  .barre{display:none}
+  .page{zoom:1;margin:0;page-break-after:always}
+  .page:last-of-type{page-break-after:auto}
+}
+@media screen{ .page{box-shadow:0 1px 6px rgba(0,0,0,.18)} }
+
+.page-corrige{display:none}
+@media print{
+  body.corrige .page:not(.page-corrige) .etiquette-corrige{display:none}
+  body.corrige .page:not(.page-corrige) .sol{visibility:hidden}
+  .page-corrige{display:block}
+  .page-corrige .etiquette-corrige{display:block}
+  .page-corrige .sol{visibility:visible}
+}
+</style>
+<style>
+/* propre à la fiche – réduire des fractions */
+.fig text{font-family:"Helvetica Neue",Helvetica,Arial,sans-serif}
+.exemple{background:#FFF5CC;border:1px solid #E6D38A;border-radius:3mm;padding:3mm 5mm 3.5mm;margin-bottom:8mm;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.ex-titre{font-size:14pt;font-weight:700;color:#7F7F7F;margin:0 0 2.5mm}
+.ex-texte{margin:0 0 1mm;text-align:justify;font-size:11.5pt}
+.ex-texte .gris{color:#7F7F7F}
+/* sans fonds à l'impression, Chromium fonce le texte gris : on garde la teinte */
+.ex-texte .gris{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.exemple .fig{margin-top:2.5mm;width:128mm}
+.exo-titre + .fig{margin-top:4mm}
+.ex2{margin-top:9mm}
+.liste{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(6,auto);grid-auto-flow:column;row-gap:6mm;margin:5mm 0 0 8mm}
+.it{display:flex;align-items:center;gap:2mm;font-size:12.5pt}
+.lt{width:6mm}
+.fe{display:inline-flex;flex-direction:column;align-items:center;line-height:1.2;min-width:9mm}
+.fe span:first-child{border-bottom:1px solid #1a1a1a;padding:0 2px;align-self:stretch;text-align:center}
+.fe.fs{color:var(--magenta);font-weight:700}
+.fe.fs span:first-child{border-bottom-color:var(--magenta)}
+.eg{padding:0 0.5mm}
+.ex3{margin-top:14mm}
+</style>
+</head>
+<body>
+
+<div class="barre">
+  <button id="btn" type="button" title="Afficher le corrigé" aria-label="Afficher le corrigé"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.3 8S3.6 3.8 8 3.8 14.7 8 14.7 8 12.4 12.2 8 12.2 1.3 8 1.3 8z"></path><circle cx="8" cy="8" r="2.1"></circle></svg></button>
+  <span class="zoom-outils">
+    <button id="zoom-moins" type="button" title="Réduire">−</button>
+    <span class="zoom-taux" id="zoom-taux">100 %</span>
+    <button id="zoom-plus" type="button" title="Agrandir">+</button>
+    <button id="zoom-page" type="button" title="Page entière" aria-label="Page entière"><svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3.2" y="1.6" width="9.6" height="12.8" rx="1.2"></rect><path d="M8 4.6v6.8"></path><path d="M6.3 6.3L8 4.6l1.7 1.7"></path><path d="M6.3 9.7L8 11.4l1.7-1.7"></path></svg></button>
+    <button id="plein-ecran" type="button" title="Plein écran" aria-label="Plein écran"><svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6V2h4"></path><path d="M10 2h4v4"></path><path d="M14 10v4h-4"></path><path d="M6 14H2v-4"></path></svg></button>
+  </span>
+</div>
+
+<!-- ══════════════════ PAGE 1 ══════════════════ -->
+<section class="page" data-corrige="">
+  <h1>Fractions</h1>
+  <p class="sur-titre">Réduire des fractions</p>
+  <p class="etiquette-corrige">CORRIGÉ</p>
+
+  <div class="exemple">
+    <p class="ex-texte"><b>Simplifier ou réduire:</b> la division du <b class="gris">numérateur</b> et du <b>dénominateur</b> par le même nombre ne change pas la valeur de la fraction.</p>
+    <svg class="fig" viewBox="0 0 170 55" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Exemple : 5 dixièmes réduits par 5 donnent 1 demi"><path d="M21.6 19.76L21.6 2.76A17 17 0 0 0 11.61 6.01Z" fill="#B8DCA8" stroke="#E8453C" stroke-width="0.3" stroke-linejoin="round"/><path d="M20.95 20.24L10.96 6.48A17 17 0 0 0 4.78 14.98Z" fill="#B8DCA8" stroke="#E8453C" stroke-width="0.3" stroke-linejoin="round"/><path d="M20.7 21L4.53 15.75A17 17 0 0 0 4.53 26.25Z" fill="#B8DCA8" stroke="#E8453C" stroke-width="0.3" stroke-linejoin="round"/><path d="M20.95 21.76L4.78 27.02A17 17 0 0 0 10.96 35.52Z" fill="#B8DCA8" stroke="#E8453C" stroke-width="0.3" stroke-linejoin="round"/><path d="M21.6 22.24L11.61 35.99A17 17 0 0 0 21.6 39.24Z" fill="#B8DCA8" stroke="#E8453C" stroke-width="0.3" stroke-linejoin="round"/><path d="M22.4 22.24L22.4 39.24A17 17 0 0 0 32.39 35.99Z" fill="#DCDFDF" stroke="#E8453C" stroke-width="0.3" stroke-linejoin="round"/><path d="M23.05 21.76L33.04 35.52A17 17 0 0 0 39.22 27.02Z" fill="#DCDFDF" stroke="#E8453C" stroke-width="0.3" stroke-linejoin="round"/><path d="M23.3 21L39.47 26.25A17 17 0 0 0 39.47 15.75Z" fill="#DCDFDF" stroke="#E8453C" stroke-width="0.3" stroke-linejoin="round"/><path d="M23.05 20.24L39.22 14.98A17 17 0 0 0 33.04 6.48Z" fill="#DCDFDF" stroke="#E8453C" stroke-width="0.3" stroke-linejoin="round"/><path d="M22.4 19.76L32.39 6.01A17 17 0 0 0 22.4 2.76Z" fill="#DCDFDF" stroke="#E8453C" stroke-width="0.3" stroke-linejoin="round"/><text x="58" y="17" text-anchor="middle" font-size="9.5" font-weight="400" fill="#7F7F7F">5</text><line x1="51.5" y1="20.4" x2="64.5" y2="20.4" stroke="#1a1a1a" stroke-width="0.9"/><text x="58" y="29.5" text-anchor="middle" font-size="9.5" font-weight="400" fill="#1a1a1a">10</text><line x1="68" y1="14.5" x2="100.4" y2="14.5" stroke="#4a4a4a" stroke-width="0.35"/><path d="M102 14.5l-1.8 -0.9v1.8z" fill="#4a4a4a"/><rect x="78" y="10.9" width="14" height="7.2" fill="#F2F2F2" stroke="#4a4a4a" stroke-width="0.35"/><text x="85" y="16.3" text-anchor="middle" font-size="5.2" font-weight="400" fill="#1a1a1a">:&#8239;5</text><line x1="68" y1="25.5" x2="100.4" y2="25.5" stroke="#4a4a4a" stroke-width="0.35"/><path d="M102 25.5l-1.8 -0.9v1.8z" fill="#4a4a4a"/><rect x="78" y="21.9" width="14" height="7.2" fill="#F2F2F2" stroke="#4a4a4a" stroke-width="0.35"/><text x="85" y="27.3" text-anchor="middle" font-size="5.2" font-weight="400" fill="#1a1a1a">:&#8239;5</text><text x="114" y="17" text-anchor="middle" font-size="9.5" font-weight="400" fill="#7F7F7F">1</text><line x1="110.5" y1="20.4" x2="117.5" y2="20.4" stroke="#1a1a1a" stroke-width="0.9"/><text x="114" y="29.5" text-anchor="middle" font-size="9.5" font-weight="400" fill="#1a1a1a">2</text><path d="M147.2 21L147.2 4A17 17 0 0 0 147.2 38Z" fill="#B8DCA8" stroke="#E8453C" stroke-width="0.3" stroke-linejoin="round"/><path d="M148.8 21L148.8 38A17 17 0 0 0 148.8 4Z" fill="#DCDFDF" stroke="#E8453C" stroke-width="0.3" stroke-linejoin="round"/><rect x="1" y="43" width="42" height="11" fill="#D3ECF8"/><text x="22" y="50.4" text-anchor="middle" font-size="5.4" font-weight="400" fill="#1a1a1a">5 : 10 = 0,5</text><rect x="127" y="43" width="42" height="11" fill="#D3ECF8"/><text x="148" y="50.4" text-anchor="middle" font-size="5.4" font-weight="400" fill="#1a1a1a">1 : 2 = 0,5</text></svg>
+  </div>
+
+  <div class="exo-titre">
+    <svg class="pastille" viewBox="0 0 16 16" aria-hidden="true"><rect width="16" height="16" rx="2" fill="#1F3A5F"></rect><text x="8" y="12" text-anchor="middle" fill="#fff" font-size="11" font-weight="700" font-family="Verdana,sans-serif">1</text></svg>
+    <span class="consigne">Quelles réductions sont représentées ici&#8239;?</span>
+  </div>
+  <svg class="fig" viewBox="0 0 170 126" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Quatre réductions représentées par des disques"><path d="M8.88 8.41L8.88 0.41A8 8 0 0 0 5.62 1.1Z" fill="#B8DCA8" stroke="#E8453C" stroke-width="0.25" stroke-linejoin="round"/><path d="M8.65 8.51L5.39 1.21A8 8 0 0 0 2.7 3.16Z" fill="#B8DCA8" stroke="#E8453C" stroke-width="0.25" stroke-linejoin="round"/><path d="M8.48 8.7L2.54 3.35A8 8 0 0 0 0.87 6.23Z" fill="#B8DCA8" stroke="#E8453C" stroke-width="0.25" stroke-linejoin="round"/><path d="M8.4 8.94L0.79 6.47A8 8 0 0 0 0.45 9.77Z" fill="#B8DCA8" stroke="#E8453C" stroke-width="0.25" stroke-linejoin="round"/><path d="M8.43 9.19L0.47 10.02A8 8 0 0 0 1.5 13.19Z" fill="#B8DCA8" stroke="#E8453C" stroke-width="0.25" stroke-linejoin="round"/><path d="M8.55 9.4L1.63 13.4A8 8 0 0 0 3.85 15.87Z" fill="#DCDFDF" stroke="#E8453C" stroke-width="0.25" stroke-linejoin="round"/><path d="M8.76 9.55L4.05 16.02A8 8 0 0 0 7.09 17.37Z" fill="#DCDFDF" stroke="#E8453C" stroke-width="0.25" stroke-linejoin="round"/><path d="M9 9.6L7.34 17.43A8 8 0 0 0 10.66 17.43Z" fill="#DCDFDF" stroke="#E8453C" stroke-width="0.25" stroke-linejoin="round"/><path d="M9.24 9.55L10.91 17.37A8 8 0 0 0 13.95 16.02Z" fill="#DCDFDF" stroke="#E8453C" stroke-width="0.25" stroke-linejoin="round"/><path d="M9.45 9.4L14.15 15.87A8 8 0 0 0 16.37 13.4Z" fill="#DCDFDF" stroke="#E8453C" stroke-width="0.25" stroke-linejoin="round"/><path d="M9.57 9.19L16.5 13.19A8 8 0 0 0 17.53 10.02Z" fill="#DCDFDF" stroke="#E8453C" stroke-width="0.25" stroke-linejoin="round"/><path d="M9.6 8.94L17.55 9.77A8 8 0 0 0 17.21 6.47Z" fill="#DCDFDF" stroke="#E8453C" stroke-width="0.25" stroke-linejoin="round"/><path d="M9.52 8.7L17.13 6.23A8 8 0 0 0 15.46 3.35Z" fill="#DCDFDF" stroke="#E8453C" stroke-width="0.25" stroke-linejoin="round"/><path d="M9.35 8.51L15.3 3.16A8 8 0 0 0 12.61 1.21Z" fill="#DCDFDF" stroke="#E8453C" stroke-width="0.25" stroke-linejoin="round"/><path d="M9.12 8.41L12.38 1.1A8 8 0 0 0 9.12 0.41Z" fill="#DCDFDF" stroke="#E8453C" stroke-width="0.25" stroke-linejoin="round"/><line x1="22" y1="9" x2="60.4" y2="9" stroke="#4a4a4a" stroke-width="0.35"/><path d="M62 9l-1.8 -0.9v1.8z" fill="#4a4a4a"/><path d="M72.22 8.55L72.22 0.55A8 8 0 0 0 65.29 12.55Z" fill="#B8DCA8" stroke="#E8453C" stroke-width="0.25" stroke-linejoin="round"/><path d="M73 9.9L66.07 13.9A8 8 0 0 0 79.93 13.9Z" fill="#DCDFDF" stroke="#E8453C" stroke-width="0.25" stroke-linejoin="round"/><path d="M73.78 8.55L80.71 12.55A8 8 0 0 0 73.78 0.55Z" fill="#DCDFDF" stroke="#E8453C" stroke-width="0.25" stroke-linejoin="round"/><rect x="3" y="26" width="13" height="19" fill="#fff" stroke="#4a4a4a" stroke-width="0.3"/><line x1="6.9" y1="35.5" x2="12.1" y2="35.5" stroke="#1a1a1a" stroke-width="0.45"/><g class="sol"><line x1="5.9" y1="35.5" x2="13.1" y2="35.5" stroke="#E6007E" stroke-width="0.5"/><text x="9.5" y="33.5" text-anchor="middle" font-size="5" font-weight="700" fill="#E6007E">5</text><text x="9.5" y="40.85" text-anchor="middle" font-size="5" font-weight="700" fill="#E6007E">15</text></g><rect x="66" y="26" width="13" height="19" fill="#fff" stroke="#4a4a4a" stroke-width="0.3"/><line x1="69.9" y1="35.5" x2="75.1" y2="35.5" stroke="#1a1a1a" stroke-width="0.45"/><g class="sol"><line x1="68.9" y1="35.5" x2="76.1" y2="35.5" stroke="#E6007E" stroke-width="0.5"/><text x="72.5" y="33.5" text-anchor="middle" font-size="5" font-weight="700" fill="#E6007E">1</text><text x="72.5" y="40.85" text-anchor="middle" font-size="5" font-weight="700" fill="#E6007E">3</text></g><line x1="20" y1="29.5" x2="60.4" y2="29.5" stroke="#4a4a4a" stroke-width="0.35"/><path d="M62 29.5l-1.8 -0.9v1.8z" fill="#4a4a4a"/><rect x="34.0" y="26.5" width="12" height="6" fill="#DCDFDF" stroke="#4a4a4a" stroke-width="0.3"/><text x="37" y="30.8" text-anchor="middle" font-size="4" font-weight="400" fill="#1a1a1a">:</text><g class="sol"><text x="41.2" y="30.9" text-anchor="middle" font-size="4" font-weight="700" fill="#E6007E">5</text></g><line x1="20" y1="41.5" x2="60.4" y2="41.5" stroke="#4a4a4a" stroke-width="0.35"/><path d="M62 41.5l-1.8 -0.9v1.8z" fill="#4a4a4a"/><rect x="34.0" y="38.5" width="12" height="6" fill="#DCDFDF" stroke="#4a4a4a" stroke-width="0.3"/><text x="37" y="42.8" text-anchor="middle" font-size="4" font-weight="400" fill="#1a1a1a">:</text><g class="sol"><text x="41.2" y="42.9" text-anchor="middle" font-size="4" font-weight="700" fill="#E6007E">5</text></g><rect x="11.0" y="50" width="60" height="9" fill="#D3ECF8" stroke="#1B6FAE" stroke-width="0.35"/><text x="13.5" y="55.8" text-anchor="start" font-size="4.2" font-weight="400" fill="#1a1a1a">Valeur décimale&#8239;:</text><g class="sol"><text x="46" y="55.8" text-anchor="start" font-size="4.2" font-weight="700" fill="#E6007E">0,3333…</text></g><path d="M95.2 8.48L95.2 0.48A8 8 0 0 0 88.27 4.48Z" fill="#B8DCA8" stroke="#E8453C" stroke-width="0.25" stroke-linejoin="round"/><path d="M94.9 9L87.97 5A8 8 0 0 0 87.97 13Z" fill="#B8DCA8" stroke="#E8453C" stroke-width="0.25" stroke-linejoin="round"/><path d="M95.2 9.52L88.27 13.52A8 8 0 0 0 95.2 17.52Z" fill="#B8DCA8" stroke="#E8453C" stroke-width="0.25" stroke-linejoin="round"/><path d="M95.8 9.52L95.8 17.52A8 8 0 0 0 102.73 13.52Z" fill="#DCDFDF" stroke="#E8453C" stroke-width="0.25" stroke-linejoin="round"/><path d="M96.1 9L103.03 13A8 8 0 0 0 103.03 5Z" fill="#DCDFDF" stroke="#E8453C" stroke-width="0.25" stroke-linejoin="round"/><path d="M95.8 8.48L102.73 4.48A8 8 0 0 0 95.8 0.48Z" fill="#DCDFDF" stroke="#E8453C" stroke-width="0.25" stroke-linejoin="round"/><line x1="108.5" y1="9" x2="146.9" y2="9" stroke="#4a4a4a" stroke-width="0.35"/><path d="M148.5 9l-1.8 -0.9v1.8z" fill="#4a4a4a"/><path d="M158.6 9L158.6 1A8 8 0 0 0 158.6 17Z" fill="#B8DCA8" stroke="#E8453C" stroke-width="0.25" stroke-linejoin="round"/><path d="M160.4 9L160.4 17A8 8 0 0 0 160.4 1Z" fill="#DCDFDF" stroke="#E8453C" stroke-width="0.25" stroke-linejoin="round"/><rect x="89.5" y="26" width="13" height="19" fill="#fff" stroke="#4a4a4a" stroke-width="0.3"/><line x1="93.4" y1="35.5" x2="98.6" y2="35.5" stroke="#1a1a1a" stroke-width="0.45"/><g class="sol"><line x1="92.4" y1="35.5" x2="99.6" y2="35.5" stroke="#E6007E" stroke-width="0.5"/><text x="96" y="33.5" text-anchor="middle" font-size="5" font-weight="700" fill="#E6007E">3</text><text x="96" y="40.85" text-anchor="middle" font-size="5" font-weight="700" fill="#E6007E">6</text></g><rect x="152.5" y="26" width="13" height="19" fill="#fff" stroke="#4a4a4a" stroke-width="0.3"/><line x1="156.4" y1="35.5" x2="161.6" y2="35.5" stroke="#1a1a1a" stroke-width="0.45"/><g class="sol"><line x1="155.4" y1="35.5" x2="162.6" y2="35.5" stroke="#E6007E" stroke-width="0.5"/><text x="159" y="33.5" text-anchor="middle" font-size="5" font-weight="700" fill="#E6007E">1</text><text x="159" y="40.85" text-anchor="middle" font-size="5" font-weight="700" fill="#E6007E">2</text></g><line x1="106.5" y1="29.5" x2="146.9" y2="29.5" stroke="#4a4a4a" stroke-width="0.35"/><path d="M148.5 29.5l-1.8 -0.9v1.8z" fill="#4a4a4a"/><rect x="120.5" y="26.5" width="12" height="6" fill="#DCDFDF" stroke="#4a4a4a" stroke-width="0.3"/><text x="123.5" y="30.8" text-anchor="middle" font-size="4" font-weight="400" fill="#1a1a1a">:</text><g class="sol"><text x="127.7" y="30.9" text-anchor="middle" font-size="4" font-weight="700" fill="#E6007E">3</text></g><line x1="106.5" y1="41.5" x2="146.9" y2="41.5" stroke="#4a4a4a" stroke-width="0.35"/><path d="M148.5 41.5l-1.8 -0.9v1.8z" fill="#4a4a4a"/><rect x="120.5" y="38.5" width="12" height="6" fill="#DCDFDF" stroke="#4a4a4a" stroke-width="0.3"/><text x="123.5" y="42.8" text-anchor="middle" font-size="4" font-weight="400" fill="#1a1a1a">:</text><g class="sol"><text x="127.7" y="42.9" text-anchor="middle" font-size="4" font-weight="700" fill="#E6007E">3</text></g><rect x="97.5" y="50" width="60" height="9" fill="#D3ECF8" stroke="#1B6FAE" stroke-width="0.35"/><text x="100" y="55.8" text-anchor="start" font-size="4.2" font-weight="400" fill="#1a1a1a">Valeur décimale&#8239;:</text><g class="sol"><text x="132.5" y="55.8" text-anchor="start" font-size="4.2" font-weight="700" fill="#E6007E">0,5</text></g><path d="M8.81 74.43L8.81 66.43A8 8 0 0 0 4.11 67.96Z" fill="#B8DCA8" stroke="#E8453C" stroke-width="0.25" stroke-linejoin="round"/><path d="M8.51 74.65L3.81 68.18A8 8 0 0 0 0.91 72.18Z" fill="#B8DCA8" stroke="#E8453C" stroke-width="0.25" stroke-linejoin="round"/><path d="M8.4 75L0.79 72.53A8 8 0 0 0 0.79 77.47Z" fill="#B8DCA8" stroke="#E8453C" stroke-width="0.25" stroke-linejoin="round"/><path d="M8.51 75.35L0.91 77.82A8 8 0 0 0 3.81 81.82Z" fill="#B8DCA8" stroke="#E8453C" stroke-width="0.25" stroke-linejoin="round"/><path d="M8.81 75.57L4.11 82.04A8 8 0 0 0 8.81 83.57Z" fill="#B8DCA8" stroke="#E8453C" stroke-width="0.25" stroke-linejoin="round"/><path d="M9.19 75.57L9.19 83.57A8 8 0 0 0 13.89 82.04Z" fill="#B8DCA8" stroke="#E8453C" stroke-width="0.25" stroke-linejoin="round"/><path d="M9.49 75.35L14.19 81.82A8 8 0 0 0 17.09 77.82Z" fill="#DCDFDF" stroke="#E8453C" stroke-width="0.25" stroke-linejoin="round"/><path d="M9.6 75L17.21 77.47A8 8 0 0 0 17.21 72.53Z" fill="#DCDFDF" stroke="#E8453C" stroke-width="0.25" stroke-linejoin="round"/><path d="M9.49 74.65L17.09 72.18A8 8 0 0 0 14.19 68.18Z" fill="#DCDFDF" stroke="#E8453C" stroke-width="0.25" stroke-linejoin="round"/><path d="M9.19 74.43L13.89 67.96A8 8 0 0 0 9.19 66.43Z" fill="#DCDFDF" stroke="#E8453C" stroke-width="0.25" stroke-linejoin="round"/><line x1="22" y1="75" x2="60.4" y2="75" stroke="#4a4a4a" stroke-width="0.35"/><path d="M62 75l-1.8 -0.9v1.8z" fill="#4a4a4a"/><path d="M72.47 74.27L72.47 66.27A8 8 0 0 0 64.86 71.8Z" fill="#B8DCA8" stroke="#E8453C" stroke-width="0.25" stroke-linejoin="round"/><path d="M72.14 75.28L64.54 72.81A8 8 0 0 0 67.44 81.75Z" fill="#B8DCA8" stroke="#E8453C" stroke-width="0.25" stroke-linejoin="round"/><path d="M73 75.9L68.3 82.37A8 8 0 0 0 77.7 82.37Z" fill="#B8DCA8" stroke="#E8453C" stroke-width="0.25" stroke-linejoin="round"/><path d="M73.86 75.28L78.56 81.75A8 8 0 0 0 81.46 72.81Z" fill="#DCDFDF" stroke="#E8453C" stroke-width="0.25" stroke-linejoin="round"/><path d="M73.53 74.27L81.14 71.8A8 8 0 0 0 73.53 66.27Z" fill="#DCDFDF" stroke="#E8453C" stroke-width="0.25" stroke-linejoin="round"/><rect x="3" y="92" width="13" height="19" fill="#fff" stroke="#4a4a4a" stroke-width="0.3"/><line x1="6.9" y1="101.5" x2="12.1" y2="101.5" stroke="#1a1a1a" stroke-width="0.45"/><g class="sol"><line x1="5.9" y1="101.5" x2="13.1" y2="101.5" stroke="#E6007E" stroke-width="0.5"/><text x="9.5" y="99.5" text-anchor="middle" font-size="5" font-weight="700" fill="#E6007E">6</text><text x="9.5" y="106.85" text-anchor="middle" font-size="5" font-weight="700" fill="#E6007E">10</text></g><rect x="66" y="92" width="13" height="19" fill="#fff" stroke="#4a4a4a" stroke-width="0.3"/><line x1="69.9" y1="101.5" x2="75.1" y2="101.5" stroke="#1a1a1a" stroke-width="0.45"/><g class="sol"><line x1="68.9" y1="101.5" x2="76.1" y2="101.5" stroke="#E6007E" stroke-width="0.5"/><text x="72.5" y="99.5" text-anchor="middle" font-size="5" font-weight="700" fill="#E6007E">3</text><text x="72.5" y="106.85" text-anchor="middle" font-size="5" font-weight="700" fill="#E6007E">5</text></g><line x1="20" y1="95.5" x2="60.4" y2="95.5" stroke="#4a4a4a" stroke-width="0.35"/><path d="M62 95.5l-1.8 -0.9v1.8z" fill="#4a4a4a"/><rect x="34.0" y="92.5" width="12" height="6" fill="#DCDFDF" stroke="#4a4a4a" stroke-width="0.3"/><text x="37" y="96.8" text-anchor="middle" font-size="4" font-weight="400" fill="#1a1a1a">:</text><g class="sol"><text x="41.2" y="96.9" text-anchor="middle" font-size="4" font-weight="700" fill="#E6007E">2</text></g><line x1="20" y1="107.5" x2="60.4" y2="107.5" stroke="#4a4a4a" stroke-width="0.35"/><path d="M62 107.5l-1.8 -0.9v1.8z" fill="#4a4a4a"/><rect x="34.0" y="104.5" width="12" height="6" fill="#DCDFDF" stroke="#4a4a4a" stroke-width="0.3"/><text x="37" y="108.8" text-anchor="middle" font-size="4" font-weight="400" fill="#1a1a1a">:</text><g class="sol"><text x="41.2" y="108.9" text-anchor="middle" font-size="4" font-weight="700" fill="#E6007E">2</text></g><rect x="11.0" y="116" width="60" height="9" fill="#D3ECF8" stroke="#1B6FAE" stroke-width="0.35"/><text x="13.5" y="121.8" text-anchor="start" font-size="4.2" font-weight="400" fill="#1a1a1a">Valeur décimale&#8239;:</text><g class="sol"><text x="46" y="121.8" text-anchor="start" font-size="4.2" font-weight="700" fill="#E6007E">0,6</text></g><path d="M95.34 74.42L95.34 66.42A8 8 0 0 0 91.34 67.49Z" fill="#B8DCA8" stroke="#E8453C" stroke-width="0.25" stroke-linejoin="round"/><path d="M95.08 74.58L91.08 67.65A8 8 0 0 0 88.15 70.58Z" fill="#B8DCA8" stroke="#E8453C" stroke-width="0.25" stroke-linejoin="round"/><path d="M94.92 74.84L87.99 70.84A8 8 0 0 0 86.92 74.84Z" fill="#B8DCA8" stroke="#E8453C" stroke-width="0.25" stroke-linejoin="round"/><path d="M94.92 75.16L86.92 75.16A8 8 0 0 0 87.99 79.16Z" fill="#B8DCA8" stroke="#E8453C" stroke-width="0.25" stroke-linejoin="round"/><path d="M95.08 75.42L88.15 79.42A8 8 0 0 0 91.08 82.35Z" fill="#B8DCA8" stroke="#E8453C" stroke-width="0.25" stroke-linejoin="round"/><path d="M95.34 75.58L91.34 82.51A8 8 0 0 0 95.34 83.58Z" fill="#B8DCA8" stroke="#E8453C" stroke-width="0.25" stroke-linejoin="round"/><path d="M95.66 75.58L95.66 83.58A8 8 0 0 0 99.66 82.51Z" fill="#B8DCA8" stroke="#E8453C" stroke-width="0.25" stroke-linejoin="round"/><path d="M95.92 75.42L99.92 82.35A8 8 0 0 0 102.85 79.42Z" fill="#B8DCA8" stroke="#E8453C" stroke-width="0.25" stroke-linejoin="round"/><path d="M96.08 75.16L103.01 79.16A8 8 0 0 0 104.08 75.16Z" fill="#B8DCA8" stroke="#E8453C" stroke-width="0.25" stroke-linejoin="round"/><path d="M96.08 74.84L104.08 74.84A8 8 0 0 0 103.01 70.84Z" fill="#DCDFDF" stroke="#E8453C" stroke-width="0.25" stroke-linejoin="round"/><path d="M95.92 74.58L102.85 70.58A8 8 0 0 0 99.92 67.65Z" fill="#DCDFDF" stroke="#E8453C" stroke-width="0.25" stroke-linejoin="round"/><path d="M95.66 74.42L99.66 67.49A8 8 0 0 0 95.66 66.42Z" fill="#DCDFDF" stroke="#E8453C" stroke-width="0.25" stroke-linejoin="round"/><line x1="108.5" y1="75" x2="146.9" y2="75" stroke="#4a4a4a" stroke-width="0.35"/><path d="M148.5 75l-1.8 -0.9v1.8z" fill="#4a4a4a"/><path d="M158.86 74.36L158.86 66.36A8 8 0 0 0 150.86 74.36Z" fill="#B8DCA8" stroke="#E8453C" stroke-width="0.25" stroke-linejoin="round"/><path d="M158.86 75.64L150.86 75.64A8 8 0 0 0 158.86 83.64Z" fill="#B8DCA8" stroke="#E8453C" stroke-width="0.25" stroke-linejoin="round"/><path d="M160.14 75.64L160.14 83.64A8 8 0 0 0 168.14 75.64Z" fill="#B8DCA8" stroke="#E8453C" stroke-width="0.25" stroke-linejoin="round"/><path d="M160.14 74.36L168.14 74.36A8 8 0 0 0 160.14 66.36Z" fill="#DCDFDF" stroke="#E8453C" stroke-width="0.25" stroke-linejoin="round"/><rect x="89.5" y="92" width="13" height="19" fill="#fff" stroke="#4a4a4a" stroke-width="0.3"/><line x1="93.4" y1="101.5" x2="98.6" y2="101.5" stroke="#1a1a1a" stroke-width="0.45"/><g class="sol"><line x1="92.4" y1="101.5" x2="99.6" y2="101.5" stroke="#E6007E" stroke-width="0.5"/><text x="96" y="99.5" text-anchor="middle" font-size="5" font-weight="700" fill="#E6007E">9</text><text x="96" y="106.85" text-anchor="middle" font-size="5" font-weight="700" fill="#E6007E">12</text></g><rect x="152.5" y="92" width="13" height="19" fill="#fff" stroke="#4a4a4a" stroke-width="0.3"/><line x1="156.4" y1="101.5" x2="161.6" y2="101.5" stroke="#1a1a1a" stroke-width="0.45"/><g class="sol"><line x1="155.4" y1="101.5" x2="162.6" y2="101.5" stroke="#E6007E" stroke-width="0.5"/><text x="159" y="99.5" text-anchor="middle" font-size="5" font-weight="700" fill="#E6007E">3</text><text x="159" y="106.85" text-anchor="middle" font-size="5" font-weight="700" fill="#E6007E">4</text></g><line x1="106.5" y1="95.5" x2="146.9" y2="95.5" stroke="#4a4a4a" stroke-width="0.35"/><path d="M148.5 95.5l-1.8 -0.9v1.8z" fill="#4a4a4a"/><rect x="120.5" y="92.5" width="12" height="6" fill="#DCDFDF" stroke="#4a4a4a" stroke-width="0.3"/><text x="123.5" y="96.8" text-anchor="middle" font-size="4" font-weight="400" fill="#1a1a1a">:</text><g class="sol"><text x="127.7" y="96.9" text-anchor="middle" font-size="4" font-weight="700" fill="#E6007E">3</text></g><line x1="106.5" y1="107.5" x2="146.9" y2="107.5" stroke="#4a4a4a" stroke-width="0.35"/><path d="M148.5 107.5l-1.8 -0.9v1.8z" fill="#4a4a4a"/><rect x="120.5" y="104.5" width="12" height="6" fill="#DCDFDF" stroke="#4a4a4a" stroke-width="0.3"/><text x="123.5" y="108.8" text-anchor="middle" font-size="4" font-weight="400" fill="#1a1a1a">:</text><g class="sol"><text x="127.7" y="108.9" text-anchor="middle" font-size="4" font-weight="700" fill="#E6007E">3</text></g><rect x="97.5" y="116" width="60" height="9" fill="#D3ECF8" stroke="#1B6FAE" stroke-width="0.35"/><text x="100" y="121.8" text-anchor="start" font-size="4.2" font-weight="400" fill="#1a1a1a">Valeur décimale&#8239;:</text><g class="sol"><text x="132.5" y="121.8" text-anchor="start" font-size="4.2" font-weight="700" fill="#E6007E">0,75</text></g></svg>
+
+  <div class="pied"><span>Nombres et opérations - nombres rationnels (fractions) - UOG/AM</span><span>1</span></div>
+</section>
+
+<!-- ══════════════════ PAGE 2 ══════════════════ -->
+<section class="page" data-corrige="">
+  <h1>Fractions</h1>
+  <p class="sur-titre">Réduire des fractions</p>
+  <p class="etiquette-corrige">CORRIGÉ</p>
+
+  <div class="exo-titre">
+    <svg class="pastille" viewBox="0 0 16 16" aria-hidden="true"><rect width="16" height="16" rx="2" fill="#1F3A5F"></rect><text x="8" y="12" text-anchor="middle" fill="#fff" font-size="11" font-weight="700" font-family="Verdana,sans-serif">2</text></svg>
+    <span class="consigne">Réduisez au maximum.</span>
+  </div>
+  <div class="liste">
+    <div class="it"><span class="lt">a.</span><span class="fe"><span>72</span><span>90</span></span><span class="eg">=</span><span class="sol"><span class="fe fs"><span>4</span><span>5</span></span></span></div>
+    <div class="it"><span class="lt">b.</span><span class="fe"><span>45</span><span>60</span></span><span class="eg">=</span><span class="sol"><span class="fe fs"><span>3</span><span>4</span></span></span></div>
+    <div class="it"><span class="lt">c.</span><span class="fe"><span>15</span><span>25</span></span><span class="eg">=</span><span class="sol"><span class="fe fs"><span>3</span><span>5</span></span></span></div>
+    <div class="it"><span class="lt">d.</span><span class="fe"><span>12</span><span>72</span></span><span class="eg">=</span><span class="sol"><span class="fe fs"><span>1</span><span>6</span></span></span></div>
+    <div class="it"><span class="lt">e.</span><span class="fe"><span>3</span><span>42</span></span><span class="eg">=</span><span class="sol"><span class="fe fs"><span>1</span><span>14</span></span></span></div>
+    <div class="it"><span class="lt">f.</span><span class="fe"><span>12</span><span>36</span></span><span class="eg">=</span><span class="sol"><span class="fe fs"><span>1</span><span>3</span></span></span></div>
+    <div class="it"><span class="lt">g.</span><span class="fe"><span>21</span><span>49</span></span><span class="eg">=</span><span class="sol"><span class="fe fs"><span>3</span><span>7</span></span></span></div>
+    <div class="it"><span class="lt">h.</span><span class="fe"><span>2</span><span>18</span></span><span class="eg">=</span><span class="sol"><span class="fe fs"><span>1</span><span>9</span></span></span></div>
+    <div class="it"><span class="lt">i.</span><span class="fe"><span>55</span><span>88</span></span><span class="eg">=</span><span class="sol"><span class="fe fs"><span>5</span><span>8</span></span></span></div>
+    <div class="it"><span class="lt">j.</span><span class="fe"><span>25</span><span>75</span></span><span class="eg">=</span><span class="sol"><span class="fe fs"><span>1</span><span>3</span></span></span></div>
+    <div class="it"><span class="lt">k.</span><span class="fe"><span>18</span><span>54</span></span><span class="eg">=</span><span class="sol"><span class="fe fs"><span>1</span><span>3</span></span></span></div>
+    <div class="it"><span class="lt">l.</span><span class="fe"><span>12</span><span>15</span></span><span class="eg">=</span><span class="sol"><span class="fe fs"><span>4</span><span>5</span></span></span></div>
+    <div class="it"><span class="lt">m.</span><span class="fe"><span>90</span><span>100</span></span><span class="eg">=</span><span class="sol"><span class="fe fs"><span>9</span><span>10</span></span></span></div>
+    <div class="it"><span class="lt">n.</span><span class="fe"><span>42</span><span>60</span></span><span class="eg">=</span><span class="sol"><span class="fe fs"><span>7</span><span>10</span></span></span></div>
+    <div class="it"><span class="lt">o.</span><span class="fe"><span>28</span><span>56</span></span><span class="eg">=</span><span class="sol"><span class="fe fs"><span>1</span><span>2</span></span></span></div>
+    <div class="it"><span class="lt">p.</span><span class="fe"><span>45</span><span>55</span></span><span class="eg">=</span><span class="sol"><span class="fe fs"><span>9</span><span>11</span></span></span></div>
+  </div>
+
+  <div class="exo-titre ex3">
+    <svg class="pastille" viewBox="0 0 16 16" aria-hidden="true"><rect width="16" height="16" rx="2" fill="#1F3A5F"></rect><text x="8" y="12" text-anchor="middle" fill="#fff" font-size="11" font-weight="700" font-family="Verdana,sans-serif">3</text></svg>
+    <span class="consigne">Réduisez au maximum.</span>
+  </div>
+  <div class="liste">
+    <div class="it"><span class="lt">a.</span><span class="fe"><span>108</span><span>180</span></span><span class="eg">=</span><span class="sol"><span class="fe fs"><span>3</span><span>5</span></span></span></div>
+    <div class="it"><span class="lt">b.</span><span class="fe"><span>105</span><span>150</span></span><span class="eg">=</span><span class="sol"><span class="fe fs"><span>7</span><span>10</span></span></span></div>
+    <div class="it"><span class="lt">c.</span><span class="fe"><span>150</span><span>250</span></span><span class="eg">=</span><span class="sol"><span class="fe fs"><span>3</span><span>5</span></span></span></div>
+    <div class="it"><span class="lt">d.</span><span class="fe"><span>99</span><span>110</span></span><span class="eg">=</span><span class="sol"><span class="fe fs"><span>9</span><span>10</span></span></span></div>
+    <div class="it"><span class="lt">e.</span><span class="fe"><span>125</span><span>1000</span></span><span class="eg">=</span><span class="sol"><span class="fe fs"><span>1</span><span>8</span></span></span></div>
+    <div class="it"><span class="lt">f.</span><span class="fe"><span>198</span><span>660</span></span><span class="eg">=</span><span class="sol"><span class="fe fs"><span>3</span><span>10</span></span></span></div>
+    <div class="it"><span class="lt">g.</span><span class="fe"><span>385</span><span>420</span></span><span class="eg">=</span><span class="sol"><span class="fe fs"><span>11</span><span>12</span></span></span></div>
+    <div class="it"><span class="lt">h.</span><span class="fe"><span>315</span><span>630</span></span><span class="eg">=</span><span class="sol"><span class="fe fs"><span>1</span><span>2</span></span></span></div>
+    <div class="it"><span class="lt">i.</span><span class="fe"><span>625</span><span>875</span></span><span class="eg">=</span><span class="sol"><span class="fe fs"><span>5</span><span>7</span></span></span></div>
+    <div class="it"><span class="lt">j.</span><span class="fe"><span>150</span><span>500</span></span><span class="eg">=</span><span class="sol"><span class="fe fs"><span>3</span><span>10</span></span></span></div>
+    <div class="it"><span class="lt">k.</span><span class="fe"><span>675</span><span>900</span></span><span class="eg">=</span><span class="sol"><span class="fe fs"><span>3</span><span>4</span></span></span></div>
+    <div class="it"><span class="lt">l.</span><span class="fe"><span>175</span><span>875</span></span><span class="eg">=</span><span class="sol"><span class="fe fs"><span>1</span><span>5</span></span></span></div>
+    <div class="it"><span class="lt">m.</span><span class="fe"><span>57</span><span>190</span></span><span class="eg">=</span><span class="sol"><span class="fe fs"><span>3</span><span>10</span></span></span></div>
+    <div class="it"><span class="lt">n.</span><span class="fe"><span>90</span><span>240</span></span><span class="eg">=</span><span class="sol"><span class="fe fs"><span>3</span><span>8</span></span></span></div>
+    <div class="it"><span class="lt">o.</span><span class="fe"><span>165</span><span>231</span></span><span class="eg">=</span><span class="sol"><span class="fe fs"><span>5</span><span>7</span></span></span></div>
+    <div class="it"><span class="lt">p.</span><span class="fe"><span>44</span><span>132</span></span><span class="eg">=</span><span class="sol"><span class="fe fs"><span>1</span><span>3</span></span></span></div>
+  </div>
+
+  <div class="pied"><span>Nombres et opérations - nombres rationnels (fractions) - UOG/AM</span><span>2</span></div>
+</section>
+
+<script>
+document.querySelectorAll('.page[data-corrige]').forEach(p => {
+  const c = p.cloneNode(true);          /* le corrigé garde le numéro de la page d'origine */
+  c.removeAttribute('data-corrige');
+  c.classList.add('page-corrige');
+  document.body.appendChild(c);
+});
+
+const btn = document.getElementById('btn');
+const OEIL = '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.3 8S3.6 3.8 8 3.8 14.7 8 14.7 8 12.4 12.2 8 12.2 1.3 8 1.3 8z"/><circle cx="8" cy="8" r="2.1"/></svg>';
+const OEIL_B = '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.3 8S3.6 3.8 8 3.8 14.7 8 14.7 8 12.4 12.2 8 12.2 1.3 8 1.3 8z"/><circle cx="8" cy="8" r="2.1"/><path d="M2.5 13.5L13.5 2.5"/></svg>';
+btn.addEventListener('click', () => {
+  const on = document.body.classList.toggle('corrige');
+  btn.innerHTML = on ? OEIL_B : OEIL;
+  btn.title = on ? 'Masquer le corrigé' : 'Afficher le corrigé';
+  btn.setAttribute('aria-label', btn.title);
+});
+
+(function(){
+  const racine = document.documentElement;
+  const barre = document.querySelector('.barre');
+  const taux = document.getElementById('zoom-taux');
+  let z = 1;
+  function applique(v){
+    z = Math.max(0.15, Math.min(v, 4));
+    racine.style.setProperty('--z', z);
+    if (taux) taux.textContent = Math.round(z * 100) + ' %';
+  }
+  function pageEntiere(){
+    racine.style.setProperty('--z', 1);
+    const p = document.querySelector('.page');
+    if (!p) return;
+    const r = p.getBoundingClientRect();
+    const hBarre = barre ? barre.getBoundingClientRect().height : 0;
+    applique(Math.min((window.innerWidth - 36) / r.width,
+                      (window.innerHeight - hBarre - 36) / r.height));
+  }
+  /* auto = la page suit la taille de la fenêtre ; un zoom manuel coupe ce suivi
+     jusqu'au prochain clic sur « Page entière » ou au passage en plein écran */
+  let auto = true, lw = window.innerWidth, lh = window.innerHeight;
+  document.getElementById('zoom-moins').addEventListener('click', () => { auto = false; applique(z / 1.15); });
+  document.getElementById('zoom-plus').addEventListener('click', () => { auto = false; applique(z * 1.15); });
+  document.getElementById('zoom-page').addEventListener('click', () => { auto = true; pageEntiere(); });
+  let t; window.addEventListener('resize', () => {
+    clearTimeout(t);
+    t = setTimeout(() => {
+      const w = window.innerWidth, h = window.innerHeight;
+      /* le défilement tactile fait apparaître ou disparaître des barres du navigateur :
+         seule la hauteur bouge un peu, ce n'est pas un vrai redimensionnement */
+      const vrai = Math.abs(w - lw) > 2 || Math.abs(h - lh) > 150;
+      lw = w; lh = h;
+      if (auto && vrai) pageEntiere();
+    }, 150);
+  });
+  pageEntiere();
+
+  const bpe = document.getElementById('plein-ecran');
+  if (bpe) {
+    bpe.addEventListener('click', () => {
+      if (document.fullscreenElement) document.exitFullscreen();
+      else document.documentElement.requestFullscreen();
+    });
+    document.addEventListener('fullscreenchange', () => {
+      const plein = !!document.fullscreenElement;
+      bpe.innerHTML = plein
+        ? '<svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2v4H2"/><path d="M14 6h-4V2"/><path d="M10 14v-4h4"/><path d="M2 10h4v4"/></svg>'
+        : '<svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6V2h4"/><path d="M10 2h4v4"/><path d="M14 10v4h-4"/><path d="M6 14H2v-4"/></svg>';
+      bpe.title = plein ? 'Quitter le plein écran' : 'Plein écran';
+      auto = true;
+      setTimeout(() => { lw = window.innerWidth; lh = window.innerHeight; pageEntiere(); }, 120);
+    });
+  }
+})();
+</script>
+</body>
+</html>
