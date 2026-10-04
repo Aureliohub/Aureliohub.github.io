@@ -683,6 +683,19 @@ body.avec-corrige .corrige{display:block}
   position:relative;font-size:15pt;line-height:1.3}
 .fcarte .n{position:absolute;top:2mm;right:3mm;font-size:8pt;color:#aab2be}
 .fcolonnes{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5mm;margin-top:22mm}
+
+/* la page des colonnes : feuille portrait, contenu pivoté d'un quart de tour à gauche */
+.page.paysage{position:relative;overflow:hidden;padding:0}
+.page.paysage .tourne{
+  position:absolute;top:0;left:0;width:297mm;height:210mm;
+  padding:14mm 16mm 10mm;
+  transform-origin:top left;transform:translateY(297mm) rotate(-90deg);
+}
+.page.paysage h2{border-bottom:2px solid var(--bleu);padding-bottom:3mm;margin-bottom:6mm}
+.page.paysage .fcolonnes{margin-top:6mm;gap:7mm}
+.page.paysage .fcolonne{min-height:143mm;padding:9mm 6mm 6mm;font-size:18pt}
+.page.paysage .fintro{margin-bottom:0}
+.page.paysage .numero{left:16mm;right:16mm;bottom:6mm}
 .fcolonne{border:1.5px dashed var(--bleu);border-radius:3mm;padding:14mm 5mm 8mm;text-align:center;
   font-weight:700;color:var(--bleu);font-size:17pt;min-height:186mm;
   display:flex;align-items:flex-start;justify-content:center}
@@ -913,7 +926,7 @@ body.pagine .rappel{break-before:auto;page-break-before:auto}
   <p class="taide" id="t-aide">Placer la carte dans la bonne colonne.</p>
 
   <div class="tplateau">
-    <div class="colonne" data-zone="clic"><h2>J'ai cliqué,<br>j'ai donné quelque chose</h2><div id="t-pile-clic"></div></div>
+    <div class="colonne" data-zone="clic"><h2>J'ai cliqué,<br>j'ai donné un code, une info, de l'argent…</h2><div id="t-pile-clic"></div></div>
     <div class="colonne" data-zone="rep"><h2>J'ai repéré<br>le piège</h2><div id="t-pile-rep"></div></div>
     <div class="colonne" data-zone="jamais"><h2>Jamais</h2><div id="t-pile-jamais"></div></div>
   </div>
@@ -1355,7 +1368,7 @@ function imprimerIntro(){
 /* ---------- plan de séance, mis en pages comme les autres impressions ---------- */
 function imprimerPlan(){
   const css = document.getElementById("css-papier");
-  const pied = "UOG - Internet en toute sécurité - Messages piégés";
+  const pied = "UOG - Internet en toute sécurité - Emails & SMS - Messages piégés";
   const B = (h, t, c) => `<div class="bloc-plan"><div class="heure">${h}</div><div><h3>${t}</h3>${c}</div></div>`;
 
   const contenu = `<h2>Messages piégés - Email et SMS</h2>
@@ -1679,7 +1692,7 @@ function paginer(avecCorrige){
   [...pages.children].forEach((p, i) => {
     const n = document.createElement("div");
     n.className = "numero";
-    n.innerHTML = `<span>UOG - Internet en toute sécurité - Message piégé&nbsp;: vrai ou faux&nbsp;?</span>`
+    n.innerHTML = `<span>UOG - Internet en toute sécurité - Emails &amp; SMS - Message piégé&nbsp;: vrai ou faux&nbsp;?</span>`
                 + `<span>page ${i + 1} / ${total}</span>`;
     p.appendChild(n);
   });
@@ -2133,24 +2146,25 @@ function rejouer(liste){
 
 afficher();
 /* ---------- feuille de cartes à découper, imprimée depuis le menu ---------- */
-const PIED_CARTES = "UOG - Internet en toute sécurité - Que faire d'un message piégé ?";
+const PIED_CARTES = "UOG - Internet en toute sécurité - Emails & SMS - Que faire d'un message piégé ?";
 
 function pageCartes(n, total, contenu, classe){
-  return `<div class="page cartes ${classe || ""}">${contenu}
-    <div class="numero"><span>${PIED_CARTES}</span><span>page ${n} / ${total}</span></div></div>`;
+  const pied = `<div class="numero"><span>${PIED_CARTES}</span></div>`;
+  return classe === "paysage"
+    ? `<div class="page cartes paysage"><div class="tourne">${contenu}${pied}</div></div>`
+    : `<div class="page cartes ${classe || ""}">${contenu}${pied}</div>`;
 }
 
 window.imprimerCartes = function(){
   const css = document.getElementById("css-papier");
 
   const entete = `<h2>Que faire d'un message piégé&nbsp;?</h2>`;
-  const p1 = entete + `<p class="stitre">Les trois colonnes</p>
-    <div class="fintro">
+  const p1 = entete + `<div class="fintro">
       <p>Vous avez reçu un message piégé&nbsp;: êtes-vous tombé dans le piège ou avez-vous repéré la fraude&nbsp;?
       Que faire ensuite&nbsp;? Classez chaque carte dans l'une des trois colonnes.</p>
     </div>
     <div class="fcolonnes">
-      <div class="fcolonne">J'ai cliqué,<br>j'ai donné quelque chose</div>
+      <div class="fcolonne">J'ai cliqué,<br>j'ai donné un code, une info, de l'argent…</div>
       <div class="fcolonne">J'ai repéré<br>le piège</div>
       <div class="fcolonne">Jamais</div>
     </div>`;
@@ -2168,7 +2182,7 @@ window.imprimerCartes = function(){
 
   const pages = document.createElement("div");
   pages.id = "pages";
-  pages.innerHTML = pageCartes(1, 3, p1) + pageCartes(2, 3, p2) + pageCartes(3, 3, p3);
+  pages.innerHTML = pageCartes(1, 3, p1, "paysage") + pageCartes(2, 3, p2) + pageCartes(3, 3, p3);
   document.body.appendChild(pages);
   document.body.classList.add("pagine");
   css.media = "print";
