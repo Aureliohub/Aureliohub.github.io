@@ -42,7 +42,8 @@ h1,h2,p{margin:0}
 .iconbtn svg{width:1.3em;height:1.3em;stroke:currentColor;fill:none;stroke-width:2}
 .stage{position:relative;display:flex;flex-direction:column;padding:1em 3em 2em;min-height:0;overflow:auto}
 .inner{margin:auto;width:100%;display:flex;flex-direction:column;align-items:center}
-.foot{display:flex;align-items:center;gap:1em;padding:.8em 1.4em;background:var(--card);border-top:1px solid var(--line)}
+.foot{display:flex;align-items:center;gap:1em;padding:.8em 1.4em}
+.badge{background:var(--c2);color:var(--ink);font-weight:600;border-radius:.4em;padding:.35em .8em}
 .foot .sp{flex:1}
 .foot:empty{display:none}
 .btn{border:0;border-radius:.55em;padding:.7em 1.4em;font-weight:600;background:var(--ink);color:#fff;font-size:1.1em}
@@ -55,16 +56,16 @@ h1,h2,p{margin:0}
 .qr{width:25em;height:25em;flex:none;background:#fff;padding:1.1em;border-radius:.6em;display:grid;place-items:center;color:var(--muted)}
 .qr svg{width:100%;height:100%;display:block}
 .join{flex:1;min-width:0;max-width:46em}
-.join h1{font-size:2.6em;font-weight:800;line-height:1.1;margin-bottom:.5em}
+.join h1{font-size:2.3em;font-weight:800;line-height:1.1;margin-bottom:.4em}
 .steps{margin:0 0 1em;padding-left:1.3em;font-size:1.35em;line-height:1.6}
 .code{display:flex;align-items:baseline;gap:.5em;margin:.2em 0 .3em}
 .code b{font-size:4.2em;font-weight:800;letter-spacing:.06em;line-height:1}
 .url{color:var(--muted);word-break:break-all;font-size:.95em}
 .err{color:var(--ko);font-weight:600;margin-top:.6em}
-.ppl-h{display:flex;align-items:baseline;gap:.5em;margin:1.6em 0 .6em;font-size:1.35em}
+.ppl-h{display:flex;align-items:baseline;gap:.5em;margin:1em 0 .5em;font-size:1.3em}
 .ppl-h b{font-size:1.4em}
-.chips{display:flex;flex-wrap:wrap;gap:.5em;min-height:2.6em}
-.chip{border:0;background:var(--card);box-shadow:inset 0 0 0 2px var(--line);border-radius:999px;padding:.35em 1em;font-weight:600;font-size:1.3em;animation:pop .3s ease-out}
+.chips{display:flex;flex-wrap:wrap;gap:.4em;min-height:2.4em}
+.chip{border:0;background:var(--card);box-shadow:inset 0 0 0 2px var(--line);border-radius:999px;padding:.3em .85em;font-weight:600;font-size:1.15em;animation:pop .3s ease-out}
 .chip.off{opacity:.4}
 .chip:hover{box-shadow:inset 0 0 0 2px var(--ko)}
 @keyframes pop{from{transform:scale(.6);opacity:0}}
@@ -104,7 +105,7 @@ h1,h2,p{margin:0}
 .bars .col{width:9em;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%}
 .bars .v{font-size:1.8em;font-weight:800;margin-bottom:.2em}
 .bars .b{width:100%;border-radius:.3em .3em 0 0;min-height:.3em}
-.bars .lab{display:flex;align-items:center;gap:.4em;margin-top:.4em;font-size:1.6em;font-weight:700;padding:.2em .5em;border-radius:.3em}
+.bars .lab{white-space:nowrap;display:flex;align-items:center;gap:.4em;margin-top:.4em;font-size:1.6em;font-weight:700;padding:.2em .5em;border-radius:.3em}
 .bars .col.dim .b,.bars .col.dim .lab{opacity:.3}
 .tf{font-size:3em;font-weight:800;margin-top:.5em;padding:.15em .8em;border-radius:.3em;background:var(--ok);color:#fff}
 
@@ -223,47 +224,6 @@ body[data-tone="ko"]{background:var(--ko);color:#fff}
 .keypad .del svg{width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:2;vertical-align:-.15em}
 #pend{margin-top:.8em}
 </style>
-<script>
-/* ============================================================
-   QUESTIONS — modifiables
-   Le signe _ marque la case à compléter.
-   Types :
-     { type: "diapo", titre: "...", nombre: "10", exemple: "43 + _ = 100", exempleR: 57 }   (exempleR = valeur affichée dans la case)
-     { type: "libre", q: "4 + 6 = _", r: 10 }
-     { type: "choix", q: "19 + _ = 100", choix: ["91", "81", "79", "71"], r: 1 }   (r = position de la bonne réponse, à partir de 0)
-     { type: "vraifaux", q: "53 + 37 = 100", r: false }
-   ============================================================ */
-const TITRE = "Complément à 10, 100, 1000";
-const DUREE_PAR_DEFAUT = 20; // secondes
-
-const QUESTIONS = [
-  { type: "diapo", titre: "Complément à", nombre: "10" },
-  { type: "libre", q: "4 + 6 = _", r: 10 },
-  { type: "libre", q: "3 + 7 = _", r: 10 },
-  { type: "libre", q: "5 + _ = 10", r: 5 },
-  { type: "libre", q: "4 + _ = 10", r: 6 },
-
-  { type: "diapo", titre: "Complément à", nombre: "100", exemple: "43 + _ = 100", exempleR: 57 },
-  { type: "libre", q: "15 + _ = 100", r: 85 },
-  { type: "libre", q: "89 + _ = 100", r: 11 },
-  { type: "libre", q: "45 + _ = 100", r: 55 },
-  { type: "libre", q: "21 + _ = 100", r: 79 },
-  { type: "choix", q: "19 + _ = 100", choix: ["91", "81", "79", "71"], r: 1 },
-  { type: "choix", q: "13 + _ = 100", choix: ["77", "83", "87", "97"], r: 2 },
-  { type: "libre", q: "65 + _ = 100", r: 35 },
-  { type: "vraifaux", q: "53 + 37 = 100", r: false },
-  { type: "libre", q: "77 + _ = 100", r: 23 },
-
-  { type: "diapo", titre: "Complément à", nombre: "1000", exemple: "768 + _ = 1000", exempleR: 232 },
-  { type: "libre", q: "285 + _ = 1000", r: 715 },
-  { type: "libre", q: "144 + _ = 1000", r: 856 },
-  { type: "vraifaux", q: "483 + 517 = 1000", r: true },
-  { type: "libre", q: "560 + _ = 1000", r: 440 },
-  { type: "choix", q: "634 + _ = 1000", choix: ["366", "376"], r: 0 },
-  { type: "choix", q: "310 + _ = 1000", choix: ["790", "690"], r: 1 },
-  { type: "libre", q: "427 + _ = 1000", r: 573 },
-];
-</script>
 </head>
 <body>
 <div id="app"></div>
@@ -3018,9 +2978,43 @@ const LS = {
   del(k) { try { localStorage.removeItem(k); } catch (e) {} },
 };
 
-const ITEMS = QUESTIONS;
-const QIDX = ITEMS.map((it, i) => (it.type === 'diapo' ? -1 : i)).filter(i => i >= 0);
-const NQ = QIDX.length;
+/* ---------- quiz chargé depuis quiz/<nom>.json (ou brouillon de l'éditeur) ---------- */
+let TITRE = 'Quiz', DUREE = 20, ITEMS = [], QIDX = [], NQ = 0;
+const TEST = params.has('test');
+function setQuiz(d) {
+  if (!d || typeof d !== 'object') throw new Error('Le fichier du quiz est illisible.');
+  TITRE = String(d.titre || 'Quiz'); DUREE = Number(d.duree) || 20;
+  ITEMS = Array.isArray(d.questions) ? d.questions.filter(it => it && ['diapo', 'libre', 'choix', 'vraifaux'].includes(it.type)) : [];
+  QIDX = ITEMS.map((it, i) => (it.type === 'diapo' ? -1 : i)).filter(i => i >= 0);
+  NQ = QIDX.length;
+  if (!NQ) throw new Error('Ce quiz ne contient aucune question.');
+  document.title = TITRE;
+}
+const durOf = i => (Number(ITEMS[i] && ITEMS[i].duree) || DUREE) * 1000;
+function durTxt() {
+  const ds = [...new Set(QIDX.map(i => durOf(i) / 1000))].sort((a, b) => a - b);
+  return ds.length === 1 ? `${ds[0]}\u00a0s par question` : `${ds[0]} à ${ds[ds.length - 1]}\u00a0s par question`;
+}
+async function loadQuiz() {
+  if (params.has('brouillon')) {
+    const d = LS.get('quiz-brouillon');
+    if (!d) throw new Error('Aucun brouillon trouvé. Ouvre l’éditeur et clique sur « Tester ».');
+    return d;
+  }
+  const id = String(params.get('q') || '').replace(/[^A-Za-z0-9_-]/g, '');
+  if (!id) throw new Error('NOQ');
+  let r;
+  try { r = await fetch(`quiz/${id}.json`, { cache: 'no-cache' }); } catch (e) { throw new Error('Le quiz n’a pas pu être chargé (connexion).'); }
+  if (!r.ok) throw new Error(`Le quiz « ${id} » est introuvable : le fichier quiz/${id}.json n’existe pas sur le site.`);
+  try { return await r.json(); } catch (e) { throw new Error(`Le fichier quiz/${id}.json est mal formé.`); }
+}
+function quizError(e) {
+  const noq = e && e.message === 'NOQ';
+  app.innerHTML = `<div class="player"><div class="pcard">
+    <h1>${noq ? 'Aucun quiz choisi' : 'Quiz introuvable'}</h1>
+    <p class="pmuted">${noq ? 'L’adresse doit se terminer par <b>?q=</b> suivi du nom du fichier du quiz, par exemple <b>quiz.html?q=complement-10-100-1000</b>.' : esc(e && e.message)}</p>
+    <p><a href="editeur.html">Ouvrir l’éditeur de quiz</a></p></div></div>`;
+}
 const qNum = i => QIDX.indexOf(i) + 1;
 
 const SHAPES = [
@@ -3121,7 +3115,7 @@ function fatal(msg) {
    ANIMATEUR
    ===================================================================== */
 const H = { client: null, link: null, topic: '', bi: 0, code: '', ready: false, net: false, err: '', players: new Map(), kicked: new Set(),
-  phase: 'lobby', idx: -1, dur: DUREE_PAR_DEFAUT * 1000, qStart: 0, qEnd: 0, timer: null };
+  phase: 'lobby', idx: -1, dur: 20000, qStart: 0, qEnd: 0, timer: null };
 
 function joinURL() { return location.origin + location.pathname + '?p=' + H.code + (H.bi ? '&s=' + H.bi : ''); }
 
@@ -3197,7 +3191,7 @@ function tryBroker(bi) {
   client.on('close', () => { if (up) { H.net = false; updateBar(); } });
 }
 
-function send(p, m) { if (H.link) H.link.send(H.topic + '/p/' + p.pid, m); }
+function send(p, m) { if (!p.bot && H.link) H.link.send(H.topic + '/p/' + p.pid, m); }
 function broadcast() { H.players.forEach(p => sendState(p)); }
 function cleanName(n) { return String(n || '').replace(/\s+/g, ' ').trim().slice(0, 18) || 'Joueur'; }
 function uniqueName(n, pid) {
@@ -3220,7 +3214,7 @@ function hostData(d) {
     }
     const was = p.online;
     p.last = Date.now(); p.online = true;
-    send(p, { t: 'welcome', pid, name: p.name });
+    send(p, { t: 'welcome', pid, name: p.name, title: TITRE });
     sendState(p);
     if (!was) refresh();
   } else if (d.t === 'answer' && p) {
@@ -3228,9 +3222,39 @@ function hostData(d) {
     hostAnswer(p, d);
   }
 }
+/* ---------- mode test : participants fictifs ---------- */
+const BOT_NAMES = ['Amina', 'Bruno', 'Daniela', 'Elif', 'Fatou', 'Gabriel', 'Hugo', 'Inès', 'Jonas', 'Kenza', 'Luca', 'Mariana'];
+function addBots() {
+  BOT_NAMES.forEach((name, k) => setTimeout(() => {
+    if (H.phase !== 'lobby') return;
+    const pid = 'bot' + k + rid().slice(0, 6);
+    H.players.set(pid, { pid, name, score: 0, answers: {}, last: Date.now(), online: true,
+      bot: { skill: 0.5 + Math.random() * 0.45, speed: 0.15 + Math.random() * 0.5 } });
+    refresh();
+  }, 800 + k * 500 + Math.random() * 400));
+}
+function botWrong(it) {
+  if (it.type === 'choix') { const o = it.choix.map((_, i) => i).filter(i => i !== it.r); return o[Math.floor(Math.random() * o.length)]; }
+  if (it.type === 'vraifaux') return !it.r;
+  const r = Number(it.r), c = [r + 10, r - 10, r + 1, r - 1, r + 100, r - 100].filter(x => x > 0 && x !== r);
+  const rev = Number(String(r).split('').reverse().join('')); if (rev > 0 && rev !== r) c.push(rev);
+  return String(c.length ? c[Math.floor(Math.random() * c.length)] : r + 1);
+}
+function botsPlay() {
+  const it = ITEMS[H.idx], qi = H.idx, dur = H.dur;
+  const hard = it.type === 'libre' ? Math.min(0.15, String(Math.abs(Number(it.r))).length * 0.03) : 0.03;
+  H.players.forEach(p => {
+    if (!p.bot || Math.random() < 0.05) return; // de temps en temps, pas de réponse
+    const f = Math.min(0.97, Math.max(0.08, p.bot.speed + (Math.random() - 0.4) * 0.3));
+    const ok = Math.random() < p.bot.skill - hard;
+    const v = ok ? (it.type === 'libre' ? String(it.r) : it.r) : botWrong(it);
+    setTimeout(() => { if (H.phase === 'question' && H.idx === qi) hostAnswer(p, { qi, v, ms: f * dur }); }, f * dur);
+  });
+}
+
 function watchPresence() {
   let changed = false;
-  H.players.forEach(p => { const on = Date.now() - p.last < 11000; if (on !== p.online) { p.online = on; changed = true; } });
+  H.players.forEach(p => { if (p.bot) return; const on = Date.now() - p.last < 11000; if (on !== p.online) { p.online = on; changed = true; } });
   if (changed) { refresh(); if (H.phase === 'question' && allAnswered()) endQuestion(); }
 }
 
@@ -3307,7 +3331,9 @@ function go(i) {
 }
 function startQuestion() {
   H.phase = 'question';
+  H.dur = durOf(H.idx);
   H.qStart = Date.now(); H.qEnd = H.qStart + H.dur;
+  if (TEST) botsPlay();
   render(); broadcast();
   clearInterval(H.timer);
   H.timer = setInterval(tick, 100);
@@ -3386,6 +3412,13 @@ function renderChips() {
   if (go) go.disabled = !ps.length;
 }
 
+/* équations longues : on réduit la taille pour qu'elles tiennent sur une ligne */
+function eqSize(it) {
+  const n = String(it.q).replace('_', it.type === 'vraifaux' ? '' : '0000').length;
+  const max = optList(it) ? 4.6 : 6.5;
+  const em = Math.min(max, 95 / Math.max(n, 1));
+  return em < max ? ` style="font-size:${em.toFixed(2)}em"` : '';
+}
 function qrSVG(text) {
   const qr = qrcode(0, 'M'); qr.addData(text); qr.make();
   const n = qr.getModuleCount(), m = 2; let d = '';
@@ -3409,12 +3442,9 @@ function render() {
         <h2 class="ppl-h" id="pcount"></h2>
         <div class="chips" id="chips"></div>
       </div></div>`;
-    foot.innerHTML = `<span>Temps par question</span><div class="seg" id="seg">${[10, 20, 30, 60].map(s =>
-      `<button data-s="${s}" aria-pressed="${H.dur === s * 1000}">${s}\u00a0s</button>`).join('')}</div>
-      <span class="sp"></span><span class="hint">${plural(NQ, 'question', 'questions')}, ${VERSION}</span>
+    foot.innerHTML = `${TEST ? '<span class="badge">Mode test : 12 participants fictifs</span>' : ''}
+      <span class="sp"></span><span class="hint">${plural(NQ, 'question', 'questions')}, ${durTxt()}</span>
       <button class="btn" id="go">Lancer la partie</button>`;
-    $('#seg').onclick = e => { const b = e.target.closest('button'); if (!b) return; H.dur = b.dataset.s * 1000;
-      $('#seg').querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b)); };
     $('#go').onclick = advance;
     if ($('#retry')) $('#retry').onclick = () => { H.err = ''; render(); tryBroker(0); };
     renderChips();
@@ -3431,7 +3461,7 @@ function render() {
       <div class="qhead"><div class="clock" id="clock"></div><div class="count" id="cnt"></div></div>
       <div class="inner asking${opts ? ' with-opts' : ''}">
         ${it.type === 'vraifaux' ? '<div class="qtype">Vrai ou faux ?</div>' : ''}
-        <div class="eq">${eqHTML(it.q)}</div>
+        <div class="eq"${eqSize(it)}>${eqHTML(it.q)}</div>
         ${opts ? `<div class="opts">${opts.map(o => `<div class="opt o${o.k}">${shape(o.k)}<span>${esc(o.label)}</span></div>`).join('')}</div>` : ''}
       </div>`;
     foot.innerHTML = `<span class="sp"></span><button class="btn ghost" id="nx">Arrêter le chrono</button>`;
@@ -3457,8 +3487,8 @@ function render() {
           <div class="lab o${o.k}">${shape(o.k)}${esc(o.label)}${o.value === it.r ? ' ✓' : ''}</div></div>`).join('')}</div>
         <div class="score-line" style="margin-top:1em"><b>${nOk}</b> ${nOk > 1 ? 'bonnes réponses' : 'bonne réponse'} sur ${nTot}</div>`;
     }
-    const eq = it.type === 'vraifaux' ? `<div class="eq">${eqHTML(it.q)}</div><div class="tf">${it.r ? 'Vrai' : 'Faux'}</div>`
-      : `<div class="eq">${eqHTML(it.q, answerText(it))}</div>`;
+    const eq = it.type === 'vraifaux' ? `<div class="eq"${eqSize(it)}>${eqHTML(it.q)}</div>`
+      : `<div class="eq"${eqSize(it)}>${eqHTML(it.q, answerText(it))}</div>`;
     stage.innerHTML = `<div class="inner${opts ? ' with-opts' : ''}">${eq}<div class="result">${res}</div></div>`;
     foot.innerHTML = `<span class="sp"></span><button class="btn" id="nx">${isLastQuestion() ? 'Voir les résultats' : 'Voir le classement'}</button>`;
     $('#nx').onclick = advance;
@@ -3517,7 +3547,7 @@ function reportHTML() {
     return a ? `<td class="${a.ok ? 'ok' : 'ko'}">${esc(givenText(ITEMS[i], a.v))}</td>` : '<td class="na">—</td>'; }).join('')}</tr>`).join('');
   return `<section class="report" id="report">
     <h2>${esc(TITRE)}</h2>
-    <p class="meta">Partie du ${now().txt}. ${plural(n, 'participant', 'participants')}, ${plural(NQ, 'question', 'questions')}, ${H.dur / 1000}\u00a0s par question.</p>
+    <p class="meta">Partie du ${now().txt}. ${plural(n, 'participant', 'participants')}, ${plural(NQ, 'question', 'questions')}, ${durTxt()}.</p>
     <h3>Classement</h3>
     <div class="wrap"><table><thead><tr><th>Rang</th><th>Nom</th><th class="r">Points</th><th class="r">Bonnes réponses</th><th class="r">Temps moyen (réponses justes)</th></tr></thead>
     <tbody>${ps.map((p, i) => `<tr><td>${i + 1}</td><td>${esc(p.name)}</td><td class="r">${fmt(p.score)}</td><td class="r">${okCount(p)} / ${NQ}</td><td class="r">${avgOk(p)}</td></tr>`).join('')}</tbody></table></div>
@@ -3529,17 +3559,17 @@ function reportHTML() {
 }
 function downloadCSV() {
   const q = v => { const t = String(v); return /[;"\n\r]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t; };
-  const ps = ranked(), base = [dateTag(), now().txt.split(', ')[1], TITRE, H.code, H.dur / 1000, ps.length];
-  const rows = [['Date', 'Heure', 'Quiz', 'Code partie', 'Durée par question (s)', 'Participants',
+  const ps = ranked(), base = [dateTag(), now().txt.split(', ')[1], TITRE, H.code, ps.length];
+  const rows = [['Date', 'Heure', 'Quiz', 'Code partie', 'Participants',
     'Rang', 'Nom', 'Points total', 'Bonnes réponses', 'Questions répondues',
-    'N° question', 'Type', 'Question', 'Réponse attendue', 'Réponse donnée', 'Résultat', 'Temps (s)', 'Points', 'Réussite de la classe (%)']];
+    'N° question', 'Type', 'Question', 'Temps accordé (s)', 'Réponse attendue', 'Réponse donnée', 'Résultat', 'Temps (s)', 'Points', 'Réussite de la classe (%)']];
   const pct = {};
   QIDX.forEach(i => { pct[i] = ps.length ? Math.round(ps.filter(p => p.answers[i] && p.answers[i].ok).length / ps.length * 100) : 0; });
   ps.forEach((p, r) => {
     const answered = Object.keys(p.answers).length;
     QIDX.forEach(i => {
       const it = ITEMS[i], a = p.answers[i];
-      rows.push(base.concat([r + 1, p.name, p.score, okCount(p), answered, qNum(i), TYPE_TXT[it.type], it.q.replace('_', '…'), answerText(it),
+      rows.push(base.concat([r + 1, p.name, p.score, okCount(p), answered, qNum(i), TYPE_TXT[it.type], it.q.replace('_', '…'), durOf(i) / 1000, answerText(it),
         a ? givenText(it, a.v) : '', a ? (a.ok ? 'juste' : 'faux') : 'sans réponse', a ? (a.ms / 1000).toFixed(1) : '', a ? a.pts : 0, pct[i]]));
     });
   });
@@ -3559,7 +3589,7 @@ function downloadPDF() {
   let y = M;
   doc.setFont('helvetica', 'bold'); doc.setFontSize(16); doc.setTextColor(...ink); doc.text(TITRE, M, y + 5);
   doc.setFont('helvetica', 'normal'); doc.setFontSize(9.5); doc.setTextColor(...muted);
-  doc.text(`Partie du ${now().txt}. ${plural(n, 'participant', 'participants')}, ${plural(NQ, 'question', 'questions')}, ${H.dur / 1000} s par question.`, M, y + 11);
+  doc.text(`Partie du ${now().txt}. ${plural(n, 'participant', 'participants')}, ${plural(NQ, 'question', 'questions')}, ${durTxt().replace('\u00a0', ' ')}.`, M, y + 11);
   const h3 = (t, yy) => { doc.setFont('helvetica', 'bold'); doc.setFontSize(11); doc.setTextColor(...ink); doc.text(t, M, yy); };
   h3('Classement', y + 21);
   doc.autoTable(Object.assign({}, base, { startY: y + 24,
@@ -3627,7 +3657,7 @@ function startPlayer(code, bi) {
 function renderJoin(msg) {
   document.body.dataset.tone = '';
   app.innerHTML = `<div class="player"><div class="pcard">
-    <h1>Calcul mental</h1><p class="pmuted">${esc(TITRE)}</p>
+    <h1>Rejoindre la partie</h1>
     <form class="pform" id="jf" autocomplete="off">
       ${P.code ? '' : '<label>Code de la partie<input class="pin" id="jc" maxlength="6" required autocapitalize="characters" spellcheck="false" style="text-transform:uppercase;letter-spacing:.15em"></label>'}
       <label>Ton prénom<input class="pin" id="jn" maxlength="18" required autocapitalize="words" enterkeyhint="go"></label>
@@ -3811,7 +3841,7 @@ function answer(v, label) {
 /* ---------- démarrage ---------- */
 if (typeof mqtt === 'undefined') return fatal('La bibliothèque de connexion n’a pas pu être chargée.');
 if (params.has('p') || params.has('jouer')) startPlayer(cleanCode(params.get('p')), Math.min(Number(params.get('s')) || 0, BROKERS.length - 1));
-else startHost();
+else loadQuiz().then(d => { setQuiz(d); startHost(); if (TEST) addBots(); }).catch(quizError);
 })();
 </script>
 </body>
