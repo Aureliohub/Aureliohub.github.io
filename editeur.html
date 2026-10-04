@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="fr-CH">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Éditeur de quiz</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#EEF3F8; --card:#FFFFFF; --ink:#13233F; --muted:#5A6A80; --line:#D3DDE9;
+  --ok:#14915A; --ko:#D03B3B; --c0:#EE6A33; --c1:#2D7FF9; --c2:#F2B705; --c3:#7A4AD6;
+  --font:"Lexend",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--paper);color:var(--ink);font-family:var(--font);font-size:15px;font-variant-numeric:tabular-nums}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--c1);outline-offset:2px}
+h1,h2,p{margin:0}
+
+.top{position:sticky;top:0;z-index:5;background:var(--paper);border-bottom:1px solid var(--line)}
+.top .in{max-width:68em;margin:0 auto;padding:.7em 1.2em;display:flex;align-items:center;gap:.5em;flex-wrap:wrap}
+.top h1{font-size:1.15em;font-weight:700;margin-right:auto}
+.btn{border:0;border-radius:.5em;padding:.55em 1em;font-weight:600;background:var(--ink);color:#fff}
+.btn.ghost{background:var(--card);color:var(--ink);box-shadow:inset 0 0 0 1.5px var(--line)}
+.btn.ghost:hover{box-shadow:inset 0 0 0 1.5px var(--muted)}
+.btn.small{padding:.35em .7em;font-size:.9em}
+
+main{max-width:68em;margin:0 auto;padding:1.2em 1.2em 5em}
+.panel{background:var(--card);border-radius:.7em;padding:1.1em 1.2em;margin-bottom:1.2em}
+.panel h2{font-size:1em;font-weight:700;margin-bottom:.8em}
+.grid3{display:grid;grid-template-columns:2fr 1.3fr;gap:1em}
+label.f{display:flex;flex-direction:column;gap:.3em;font-weight:600;font-size:.92em}
+label.f small{font-weight:400;color:var(--muted)}
+input[type=text],select{width:100%;font-weight:400;padding:.5em .65em;border:1.5px solid var(--line);border-radius:.45em;background:#fff}
+input[type=text]:focus,select:focus{border-color:var(--c1);outline:none}
+.share{display:flex;align-items:center;gap:.6em;margin-top:1em;padding-top:1em;border-top:1px solid var(--line);flex-wrap:wrap}
+.share code{background:var(--paper);padding:.35em .6em;border-radius:.35em;font-size:.9em;word-break:break-all}
+.hint{color:var(--muted);font-size:.9em}
+
+.list{display:flex;flex-direction:column;gap:.8em}
+.card{background:var(--card);border-radius:.7em;padding:.9em 1.1em 1em;border-left:.35em solid var(--line)}
+.card.f-test{border-left-color:var(--c1)} .card.f-avis{border-left-color:var(--c3)} .card.f-info{border-left-color:var(--muted)}
+.chead{display:flex;align-items:center;gap:.6em;margin-bottom:.8em;flex-wrap:wrap}
+.num{font-weight:800;min-width:2.6em}
+.chead select{width:auto}
+.chead .sp{flex:1}
+.ib{border:0;background:transparent;border-radius:.4em;width:2em;height:2em;display:grid;place-items:center;color:var(--muted)}
+.ib:hover:not(:disabled){background:var(--paper);color:var(--ink)}
+.ib:disabled{opacity:.3;cursor:default}
+.ib svg{width:1.15em;height:1.15em;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.ib.del:hover{color:var(--ko)}
+.cbody{display:grid;grid-template-columns:1fr 17em;gap:1.2em;align-items:start}
+.fields{display:flex;flex-direction:column;gap:.7em}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:.7em}
+.qline{display:flex;gap:.5em}
+.qline input{flex:1}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:.5em}
+.opt{display:flex;align-items:center;gap:.4em}
+.opt .sw{width:1.5em;height:1.5em;border-radius:.3em;flex:none;display:grid;place-items:center;color:#fff}
+.opt .sw svg{width:.8em;height:.8em;fill:currentColor}
+.opt input[type=radio]{width:1.15em;height:1.15em;accent-color:var(--ok);flex:none}
+.tf{display:flex;gap:1.2em;font-weight:600}
+.tf label{display:flex;align-items:center;gap:.4em}
+.tf input{width:1.15em;height:1.15em;accent-color:var(--ok)}
+.warn{color:var(--ko);font-size:.88em;font-weight:600}
+.warn:empty{display:none}
+
+.prev{background:var(--paper);border-radius:.5em;padding:.9em;min-height:6.5em;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.5em;text-align:center;overflow:hidden}
+.prev .lab{font-size:.75em;color:var(--muted);align-self:flex-start}
+.eq{font-weight:800;font-size:1.3em;line-height:1.25;text-align:center;overflow-wrap:anywhere}
+.slot{display:inline-block;min-width:2.2em;padding:0 .15em;border:.07em dashed var(--c1);border-radius:.18em;color:var(--c1);background:rgba(45,127,249,.07);text-align:center}
+.slot:empty::before{content:"\00a0"}
+.slot.ok{border-style:solid;border-color:var(--ok);background:var(--ok);color:#fff}
+.pt{font-weight:700;color:var(--muted);font-size:1.05em}
+.pn{font-weight:800;font-size:2.2em;line-height:1}
+.pops{display:grid;grid-template-columns:1fr 1fr;gap:.3em;width:100%}
+.pop{border-radius:.3em;color:#fff;font-weight:700;font-size:.85em;padding:.25em .4em;display:flex;align-items:center;gap:.3em;opacity:.35}
+.pop.good{opacity:1;box-shadow:0 0 0 2px var(--ok)}
+.pop svg{width:.8em;height:.8em;fill:currentColor;flex:none}
+.o0{background:var(--c0)} .o1{background:var(--c1)} .o2{background:var(--c2);color:var(--ink)!important} .o3{background:var(--c3)}
+.tfp{font-weight:800;padding:.15em .7em;border-radius:.3em;background:var(--ok);color:#fff}
+
+#add{margin-top:1.4em;display:flex;flex-direction:column;gap:1em}
+.fam h3{margin:0 0 .5em;font-size:1.05em;color:var(--muted)}
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(10.5em,1fr));gap:.55em}
+.tile{border:0;background:var(--card);border-radius:.6em;padding:.8em .6em .7em;display:flex;flex-direction:column;align-items:center;gap:.25em;text-align:center;box-shadow:inset 0 0 0 1.5px transparent}
+.tile:hover{box-shadow:inset 0 0 0 1.5px var(--c1)}
+.tile .picto{width:2.6em;height:2.6em}
+.tile b{font-size:.98em}
+.tile small{color:var(--muted);font-size:.78em;line-height:1.25}
+.help{margin-top:1.5em;line-height:1.55}
+.help ol{margin:.4em 0 0;padding-left:1.3em}
+.toast{position:fixed;left:50%;bottom:1.2em;transform:translateX(-50%);background:var(--ink);color:#fff;padding:.6em 1.1em;border-radius:.5em;font-weight:600;opacity:0;transition:opacity .25s;pointer-events:none;z-index:9}
+.toast.on{opacity:1}
+@media (max-width:800px){.grid3,.cbody,.row2{grid-template-columns:1fr}.cbody .prev{order:-1}}
+
+.picto{width:1.7em;height:1.7em;flex:none}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.7em}
+.row5{display:grid;grid-template-columns:repeat(5,1fr);gap:.6em}
+.plist{display:flex;flex-direction:column;gap:.35em;margin:.4em 0 .5em}
+.pli{display:flex;align-items:center;gap:.45em}
+.pli b{width:1.6em;height:1.6em;border-radius:50%;background:var(--ink);color:#fff;display:grid;place-items:center;font-size:.8em;flex:none}
+.pli input{flex:1}
+.imgrow{display:flex;align-items:center;gap:.5em;flex-wrap:wrap;margin-top:.3em}
+.filebtn{display:inline-block;cursor:pointer}
+div.f{display:flex;flex-direction:column;gap:.3em;font-weight:600;font-size:.92em}
+.prev .pimg{width:100%;height:auto;border-radius:.3em;cursor:crosshair;background:#fff}
+.prev .pimg .zone{fill:rgba(20,145,90,.25);stroke:var(--ok);stroke-width:.6}
+.prev .pq{font-weight:700;font-size:.95em}
+.ptx{font-size:.85em;color:var(--ink)}
+.pthumb{max-width:100%;max-height:6em;border-radius:.3em}
+.cl{position:relative;width:100%;height:1.6em;margin-top:.3em;border-bottom:2px solid var(--ink)}
+.cl .band{position:absolute;bottom:0;top:0;background:rgba(20,145,90,.2);border-radius:.2em}
+.cl .tg{position:absolute;bottom:-.3em;top:-.1em;width:2px;background:var(--ok)}
+.cle{display:flex;justify-content:space-between;width:100%;font-size:.75em;color:var(--muted)}
+.pzp{margin:0;padding-left:1.4em;text-align:left;align-self:stretch;font-weight:600}
+.prev .sc{display:flex;gap:.2em;flex-wrap:wrap;justify-content:center}
+.prev .sc span{min-width:1.6em;padding:.15em .25em;border-radius:.25em;background:var(--c1);color:#fff;font-weight:700;font-size:.85em}
+.prev .sc .d{background:var(--ko)} .prev .sc .p{background:var(--c2);color:var(--ink)} .prev .sc .g{background:var(--ok)}
+.pcloud{font-weight:800}.pcloud b{font-size:1.6em;color:var(--c1)}.pcloud span{color:var(--c0)}.pcloud i{font-style:normal;font-size:1.2em;color:var(--c3)}
+.pcards{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.25em;width:100%}.pcards span{height:1.6em;background:#fff;border-radius:.25em;box-shadow:inset .15em 0 0 var(--c3)}
+@media (max-width:800px){.row3,.row5{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<header class="top"><div class="in">
+  <h1>Éditeur de quiz</h1>
+  <button class="btn ghost" id="bNew">Nouveau</button>
+  <button class="btn ghost" id="bOpen">Ouvrir un fichier</button>
+  <button class="btn ghost" id="bSite">Ouvrir depuis le site</button>
+  <button class="btn ghost" id="bTest" title="Ouvre le quiz dans un nouvel onglet avec 12 participants fictifs">Tester</button>
+  <button class="btn" id="bSave">Télécharger le fichier</button>
+  <input type="file" id="file" accept=".json,application/json" hidden>
+</div></header>
+
+<main>
+  <section class="panel">
+    <h2>Réglages</h2>
+    <div class="grid3">
+      <label class="f">Titre du quiz<input type="text" id="titre" maxlength="80"></label>
+      <label class="f">Nom du fichier<input type="text" id="slug" maxlength="40" spellcheck="false"><small id="slugHint"></small></label>
+    </div>
+    <div class="share"><span class="hint">Lien à partager (Padlet) une fois le fichier déposé :</span><code id="link"></code><button class="btn ghost small" id="bCopy">Copier</button></div>
+  </section>
+
+  <div class="list" id="list"></div>
+
+  <section class="panel" style="margin-top:1.4em"><h2>Ajouter</h2><div id="add" style="margin-top:0"></div></section>
+
+  <section class="panel help">
+    <h2>Publier le quiz</h2>
+    <ol>
+      <li>Clique sur « Télécharger le fichier ».</li>
+      <li>Sur GitHub, ouvre le dossier <b>quiz</b> du dépôt, puis Add file &gt; Upload files. Dépose le fichier (il remplace l’ancien s’il porte le même nom) et valide avec Commit changes.</li>
+      <li>Après une minute ou deux, le quiz est accessible au lien ci-dessus.</li>
+    </ol>
+    <p class="hint" style="margin-top:.6em">Ton travail est gardé automatiquement dans ce navigateur. « Tester » ouvre le quiz tel qu’il est ici, sans le publier.</p>
+  </section>
+</main>
+<div class="toast" id="toast" role="status"></div>
+<script>
+(() => {
+'use strict';
+const $ = (s, r = document) => r.querySelector(s);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const LS = {
+  get(k) { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { return false; } },
+};
+const DUREE_DEF = 20;
+const DUREES = [5, 10, 15, 20, 30, 45, 60, 90, 120];
+const FAMS = [
+  { id: 'test', label: 'Tester les connaissances', types: ['choix', 'vraifaux', 'libre', 'curseur', 'pin', 'puzzle'] },
+  { id: 'avis', label: 'Collecter des avis', types: ['sondage', 'echelle', 'nps', 'placepin', 'nuage', 'ouverte', 'brainstorm'] },
+  { id: 'info', label: 'Présenter des infos', types: ['diapo'] },
+];
+const TYPES = {
+  choix: { label: 'Quiz', desc: 'Choix multiple, une bonne réponse' },
+  vraifaux: { label: 'Vrai ou faux', desc: 'Deux boutons' },
+  libre: { label: 'Réponse libre', desc: 'Nombre ou mot tapé' },
+  curseur: { label: 'Curseur', desc: 'Valeur sur une échelle' },
+  pin: { label: 'Réponse par pin’s', desc: 'Toucher la bonne zone d’une image' },
+  puzzle: { label: 'Puzzle', desc: 'Remettre dans l’ordre' },
+  sondage: { label: 'Sondage', desc: 'Choix sans bonne réponse' },
+  echelle: { label: 'Échelle', desc: 'De 1 à 5 (ou plus)' },
+  nps: { label: 'Échelle NPS', desc: 'De 0 à 10, recommandation' },
+  placepin: { label: 'Place le pin’s', desc: 'Placer un point sur une image' },
+  nuage: { label: 'Nuage de mots', desc: '1 à 3 mots par personne' },
+  ouverte: { label: 'Question ouverte', desc: 'Réponse en quelques phrases' },
+  brainstorm: { label: 'Brainstorming', desc: 'Idées, puis vote' },
+  diapo: { label: 'Diapo', desc: 'Titre, texte, image' },
+};
+const famOf = t => FAMS.find(f => f.types.includes(t)).id;
+const SCORED = ['choix', 'vraifaux', 'libre', 'curseur', 'pin', 'puzzle'];
+const SHAPES = ['<path d="M12 3 22.5 20.5H1.5z"/>', '<path d="M12 1.5 22.5 12 12 22.5 1.5 12z"/>', '<circle cx="12" cy="12" r="10"/>', '<rect x="2.5" y="2.5" width="19" height="19"/>'];
+const shape = k => `<svg viewBox="0 0 24 24" aria-hidden="true">${SHAPES[k]}</svg>`;
+const ICON = {
+  up: '<svg viewBox="0 0 24 24"><path d="m6 14 6-6 6 6"/></svg>',
+  down: '<svg viewBox="0 0 24 24"><path d="m6 10 6 6 6-6"/></svg>',
+  dup: '<svg viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/></svg>',
+  del: '<svg viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>',
+};
+/* pictogrammes des types (style des annexes) */
+const PICTO = {
+  choix: '<rect x="4" y="4" width="8" height="8" rx="1.5" fill="#EE6A33"/><rect x="14" y="4" width="8" height="8" rx="1.5" fill="#2D7FF9"/><rect x="4" y="14" width="8" height="8" rx="1.5" fill="#F2B705"/><rect x="14" y="14" width="8" height="8" rx="1.5" fill="#7A4AD6"/>',
+  vraifaux: '<rect x="4" y="4" width="8.5" height="18" rx="1.5" fill="#2D7FF9"/><rect x="13.5" y="4" width="8.5" height="18" rx="1.5" fill="#EE6A33"/>',
+  libre: '<rect x="3" y="7" width="20" height="11" rx="2" fill="#2D7FF9"/><path d="M7 10.5h6M10 10.5v5" stroke="#fff" stroke-width="1.8"/><path d="M16 9.5v7" stroke="#fff" stroke-width="1.4"/>',
+  curseur: '<path d="M3 13h20" stroke="#13233F" stroke-width="2"/><path d="M3 13h11" stroke="#2D7FF9" stroke-width="3"/><circle cx="14" cy="13" r="3.4" fill="#fff" stroke="#2D7FF9" stroke-width="2"/>',
+  pin: '<rect x="3" y="12" width="20" height="9" rx="2" fill="#D3DDE9"/><path d="M13 19s-5-5.3-5-9a5 5 0 0 1 10 0c0 3.7-5 9-5 9z" fill="#D03B3B"/><circle cx="13" cy="10" r="1.9" fill="#fff"/>',
+  puzzle: '<rect x="4" y="4" width="18" height="5" rx="1" fill="#EE6A33"/><rect x="7" y="10.5" width="15" height="5" rx="1" fill="#14915A"/><rect x="4" y="17" width="18" height="5" rx="1" fill="#2D7FF9"/>',
+  sondage: '<circle cx="13" cy="13" r="8" fill="none" stroke="#2D7FF9" stroke-width="4"/><path d="M13 5a8 8 0 0 1 8 8" fill="none" stroke="#F2B705" stroke-width="4"/><path d="M21 13a8 8 0 0 1-6 7.7" fill="none" stroke="#14915A" stroke-width="4"/>',
+  echelle: '<rect x="3" y="9" width="6" height="8" rx="1.2" fill="#2D7FF9"/><rect x="17" y="9" width="6" height="8" rx="1.2" fill="#2D7FF9"/><circle cx="11.3" cy="13" r="1" fill="#2D7FF9"/><circle cx="13" cy="13" r="1" fill="#2D7FF9"/><circle cx="14.7" cy="13" r="1" fill="#2D7FF9"/>',
+  nps: '<path d="M4 18a9 9 0 0 1 18 0" fill="none" stroke="#D03B3B" stroke-width="3.4"/><path d="M15.5 9.8A9 9 0 0 1 22 18" fill="none" stroke="#14915A" stroke-width="3.4"/><path d="M11 6.2a9 9 0 0 1 4.5 3.6" fill="none" stroke="#F2B705" stroke-width="3.4"/><path d="M13 18l3-6" stroke="#13233F" stroke-width="2"/>',
+  placepin: '<rect x="3" y="6" width="20" height="15" rx="2" fill="#fff" stroke="#13233F" stroke-width="1.5"/><path d="M13 17s-3.6-3.8-3.6-6.5a3.6 3.6 0 0 1 7.2 0c0 2.7-3.6 6.5-3.6 6.5z" fill="#D03B3B"/><circle cx="7.5" cy="14" r="1.8" fill="#2D7FF9"/><circle cx="18.5" cy="13" r="1.8" fill="#F2B705"/>',
+  nuage: '<rect x="4" y="6" width="10" height="3" rx="1" fill="#2D7FF9"/><rect x="15" y="6" width="6" height="3" rx="1" fill="#EE6A33"/><rect x="5" y="11" width="14" height="4" rx="1" fill="#D03B3B"/><rect x="6" y="17" width="7" height="3" rx="1" fill="#F2B705"/><rect x="14" y="17" width="5" height="3" rx="1" fill="#14915A"/>',
+  ouverte: '<path d="M4 5h18v11H11l-5 4v-4H4z" fill="#fff" stroke="#13233F" stroke-width="1.5"/><rect x="7" y="8" width="8" height="2" rx="1" fill="#D03B3B"/><rect x="7" y="11.5" width="11" height="2" rx="1" fill="#2D7FF9"/>',
+  brainstorm: '<rect x="3" y="7" width="10" height="11" rx="1" fill="#fff" stroke="#13233F" stroke-width="1.4" transform="rotate(-8 8 12)"/><rect x="12" y="5" width="10" height="11" rx="1" fill="#fff" stroke="#13233F" stroke-width="1.4" transform="rotate(7 17 10)"/><path d="m8 10 .9 1.9 2 .3-1.5 1.4.4 2-1.8-1-1.8 1 .4-2-1.5-1.4 2-.3z" fill="#2D7FF9"/><path d="m17 8 .9 1.9 2 .3-1.5 1.4.4 2-1.8-1-1.8 1 .4-2-1.5-1.4 2-.3z" fill="#F2B705"/>',
+  diapo: '<rect x="3" y="5" width="20" height="14" rx="2" fill="#2D7FF9"/><rect x="5" y="15" width="16" height="2" rx="1" fill="#fff"/><circle cx="13" cy="10" r="2.6" fill="#fff"/><path d="M13 9v2.2" stroke="#2D7FF9" stroke-width="1.2"/>',
+};
+const picto = t => `<svg class="picto" viewBox="0 0 26 26" aria-hidden="true">${PICTO[t]}</svg>`;
+const slugify = t => String(t).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40);
+const toNum = v => { const s = String(v == null ? '' : v).replace(/[\s'’\u00a0]/g, '').replace(',', '.'); return /^-?\d+(\.\d+)?$/.test(s) ? Number(s) : NaN; };
+const numOr = (v, d) => { const n = toNum(v); return isNaN(n) ? d : n; };
+const quizURL = () => location.href.replace(/[^/]*([?#].*)?$/, '') + 'quiz.html';
+
+let S;
+function blank(type) {
+  const q = { type, q: '', duree: DUREE_DEF };
+  switch (type) {
+    case 'diapo': return { type, titre: '', nombre: '', texte: '', exemple: '', exempleR: '', img: '', ratio: 0 };
+    case 'libre': return Object.assign(q, { r: '' });
+    case 'choix': return Object.assign(q, { choix: ['', '', '', ''], r: 0 });
+    case 'vraifaux': return Object.assign(q, { r: true });
+    case 'curseur': return Object.assign(q, { min: '0', max: '100', pas: '1', r: '50', marge: '0' });
+    case 'puzzle': return Object.assign(q, { items: ['', '', ''] });
+    case 'pin': return Object.assign(q, { img: '', ratio: 0, zone: { x: 0.5, y: 0.5, r: 0.08 } });
+    case 'sondage': return Object.assign(q, { choix: ['', '', '', ''] });
+    case 'echelle': return Object.assign(q, { min: 1, max: 5, gauche: 'Pas du tout d’accord', droite: 'Tout à fait d’accord' });
+    case 'nps': return Object.assign(q, { q: 'Recommanderais-tu ce cours à un ami ?' });
+    case 'placepin': return Object.assign(q, { img: '', ratio: 0 });
+    case 'nuage': return Object.assign(q, { nb: 1 });
+    case 'ouverte': return q;
+    case 'brainstorm': return Object.assign(q, { nb: 3, votes: 3 });
+  }
+  return q;
+}
+function newQuiz() { return { titre: '', slug: '', slugAuto: true, duree: 20, questions: [blank('libre')] }; }
+
+/* fichier JSON -> état de l'éditeur */
+function fromQuiz(d, slug) {
+  if (!d || !Array.isArray(d.questions)) throw new Error('Ce fichier n’est pas un quiz.');
+  return {
+    titre: String(d.titre || ''), slug: slug || slugify(d.titre || ''), slugAuto: !slug, duree: Number(d.duree) || 20,
+    questions: d.questions.filter(q => q && TYPES[q.type]).map(q => {
+      const b = blank(q.type), str = v => (v == null ? '' : String(v));
+      if (q.type === 'diapo') return Object.assign(b, { titre: str(q.titre), nombre: str(q.nombre), texte: str(q.texte), exemple: str(q.exemple), exempleR: str(q.exempleR), img: q.img || '', ratio: Number(q.ratio) || 0 });
+      b.q = str(q.q); b.duree = Number(q.duree) || Number(d.duree) || DUREE_DEF;
+      switch (q.type) {
+        case 'libre': b.r = [].concat(q.r).map(str).join(' / '); break;
+        case 'choix': case 'sondage': { const c = (q.choix || []).map(str).slice(0, 4); while (c.length < 4) c.push(''); b.choix = c; if (q.type === 'choix') b.r = Number(q.r) || 0; break; }
+        case 'vraifaux': b.r = q.r === true; break;
+        case 'curseur': ['min', 'max', 'pas', 'r', 'marge'].forEach(k => { if (q[k] != null) b[k] = str(q[k]); }); break;
+        case 'puzzle': b.items = (q.items || []).map(str); while (b.items.length < 2) b.items.push(''); break;
+        case 'pin': b.img = q.img || ''; b.ratio = Number(q.ratio) || 0; b.zone = Object.assign({ x: 0.5, y: 0.5, r: 0.08 }, q.zone || {}); break;
+        case 'placepin': b.img = q.img || ''; b.ratio = Number(q.ratio) || 0; break;
+        case 'echelle': b.min = q.min === 0 ? 0 : 1; b.max = Number(q.max) || 5; b.gauche = str(q.gauche || b.gauche); b.droite = str(q.droite || b.droite); break;
+        case 'nuage': b.nb = Number(q.nb) || 1; break;
+        case 'brainstorm': b.nb = Number(q.nb) || 3; b.votes = Number(q.votes) || 3; break;
+      }
+      return b;
+    }),
+  };
+}
+/* état -> fichier JSON propre */
+function toQuiz() {
+  return {
+    titre: S.titre.trim() || 'Quiz sans titre',
+    duree: DUREE_DEF,
+    questions: S.questions.map(q => {
+      if (q.type === 'diapo') {
+        const o = { type: 'diapo', titre: q.titre.trim() };
+        if (q.nombre.trim()) o.nombre = q.nombre.trim();
+        if (q.texte.trim()) o.texte = q.texte.trim();
+        if (q.img) { o.img = q.img; o.ratio = q.ratio; }
+        if (q.exemple.trim()) { o.exemple = q.exemple.trim(); if (String(q.exempleR).trim()) o.exempleR = isNaN(toNum(q.exempleR)) ? String(q.exempleR).trim() : toNum(q.exempleR); }
+        return o;
+      }
+      const o = { type: q.type, q: q.q.trim() };
+      switch (q.type) {
+        case 'libre': {
+          const acc = String(q.r).split('/').map(s => s.trim()).filter(Boolean).map(s => (isNaN(toNum(s)) ? s : toNum(s)));
+          o.r = acc.length === 1 ? acc[0] : acc; break;
+        }
+        case 'choix': {
+          const kept = q.choix.map((c, i) => ({ c: c.trim(), i })).filter(x => x.c);
+          o.choix = kept.map(x => x.c); o.r = Math.max(0, kept.findIndex(x => x.i === q.r)); break;
+        }
+        case 'sondage': o.choix = q.choix.map(c => c.trim()).filter(Boolean); break;
+        case 'vraifaux': o.r = q.r === true; break;
+        case 'curseur': o.min = numOr(q.min, 0); o.max = numOr(q.max, 100); o.pas = numOr(q.pas, 1); o.r = numOr(q.r, o.min); o.marge = numOr(q.marge, 0); break;
+        case 'puzzle': o.items = q.items.map(s => s.trim()).filter(Boolean); break;
+        case 'pin': o.img = q.img; o.ratio = q.ratio; o.zone = { x: +q.zone.x.toFixed(4), y: +q.zone.y.toFixed(4), r: +q.zone.r.toFixed(4) }; break;
+        case 'placepin': o.img = q.img; o.ratio = q.ratio; break;
+        case 'echelle': o.min = q.min; o.max = q.max; o.gauche = q.gauche.trim(); o.droite = q.droite.trim(); break;
+        case 'nuage': o.nb = q.nb; break;
+        case 'brainstorm': o.nb = q.nb; o.votes = q.votes; break;
+      }
+      o.duree = q.duree || DUREE_DEF;
+      return o;
+    }),
+  };
+}
+function problems(q) {
+  const w = [];
+  if (q.type === 'diapo') { if (!q.titre.trim() && !q.nombre.trim() && !q.texte.trim()) w.push('Écris au moins un titre ou un texte.'); return w; }
+  if (!q.q.trim()) w.push('L’énoncé est vide.');
+  switch (q.type) {
+    case 'libre': if (!String(q.r).split('/').some(s => s.trim())) w.push('Indique la réponse attendue.'); break;
+    case 'choix':
+      if (q.choix.filter(c => c.trim()).length < 2) w.push('Il faut au moins 2 propositions.');
+      if (!q.choix[q.r] || !q.choix[q.r].trim()) w.push('La bonne réponse cochée est vide.');
+      break;
+    case 'sondage': if (q.choix.filter(c => c.trim()).length < 2) w.push('Il faut au moins 2 propositions.'); break;
+    case 'curseur': {
+      const mn = toNum(q.min), mx = toNum(q.max), p = toNum(q.pas), r = toNum(q.r), m = toNum(q.marge);
+      if ([mn, mx, p, r, m].some(isNaN)) { w.push('Les valeurs du curseur doivent être des nombres.'); break; }
+      if (!(mx > mn)) w.push('Le maximum doit être plus grand que le minimum.');
+      if (!(p > 0)) w.push('Le pas doit être plus grand que 0.');
+      if (r < mn || r > mx) w.push('La bonne réponse doit être entre le minimum et le maximum.');
+      else if (p > 0 && Math.abs((r - mn) / p - Math.round((r - mn) / p)) > 1e-6) w.push('La bonne réponse ne tombe pas sur un pas du curseur.');
+      break;
+    }
+    case 'puzzle': if (q.items.filter(s => s.trim()).length < 2) w.push('Il faut au moins 2 éléments.'); break;
+    case 'pin': case 'placepin': if (!q.img) w.push('Ajoute une image.'); break;
+  }
+  return w;
+}
+
+/* ---------- aperçus ---------- */
+function eqHTML(q, fill) {
+  return String(q).split('_').map(esc).join(`<span class="slot${fill != null && fill !== '' ? ' ok' : ''}">${fill != null ? esc(fill) : ''}</span>`);
+}
+function pinPrev(q, i) {
+  if (!q.img) return '<span class="hint">Pas encore d’image.</span>';
+  const h = (100 * q.ratio).toFixed(2);
+  return `<svg class="pimg" data-pin="${i}" viewBox="0 0 100 ${h}"><image href="${q.img}" width="100" height="${h}" preserveAspectRatio="none"/>
+    ${q.type === 'pin' ? `<circle class="zone" cx="${q.zone.x * 100}" cy="${q.zone.y * 100 * q.ratio}" r="${q.zone.r * 100}"/>` : ''}</svg>`;
+}
+function preview(q, i) {
+  const lab = SCORED.includes(q.type) ? 'Aperçu (correction)' : 'Aperçu';
+  const head = t => `<span class="lab">${lab}</span>${t}`;
+  const eq = (fill) => q.q ? `<div class="eq">${eqHTML(q.q, fill)}</div>` : '<span class="hint">Écris l’énoncé.</span>';
+  switch (q.type) {
+    case 'diapo': return head(`${q.titre ? `<div class="pt">${esc(q.titre)}</div>` : ''}${q.nombre ? `<div class="pn">${esc(q.nombre)}</div>` : ''}${q.texte ? `<div class="ptx">${esc(q.texte)}</div>` : ''}${q.img ? `<img class="pthumb" src="${q.img}" alt="">` : ''}${q.exemple ? `<div class="eq" style="font-size:1.1em;color:var(--muted)">${eqHTML(q.exemple, q.exempleR)}</div>` : ''}`);
+    case 'libre': { const a = String(q.r).split('/').map(s => s.trim()).filter(Boolean); return head(q.q.includes('_') ? eq(a[0] || '') : eq() + (a.length ? `<span class="tfp">${esc(a.join(' / '))}</span>` : '')); }
+    case 'vraifaux': return head(eq() + `<span class="tfp">${q.r ? 'Vrai' : 'Faux'}</span>`);
+    case 'choix': case 'sondage': return head(eq(q.type === 'choix' && q.q.includes('_') ? q.choix[q.r] : null) + `<div class="pops">${q.choix.map((c, k) => c.trim() ? `<span class="pop o${k}${q.type === 'sondage' || k === q.r ? ' good' : ''}">${shape(k)}${esc(c)}</span>` : '').join('')}</div>`);
+    case 'curseur': {
+      const mn = toNum(q.min), mx = toNum(q.max), r = toNum(q.r), m = toNum(q.marge) || 0;
+      const ok = mx > mn && !isNaN(r);
+      const pos = v => ((v - mn) / (mx - mn) * 100).toFixed(1) + '%';
+      return head(eq(q.q.includes('_') ? q.r : null) + (ok ? `<div class="cl"><span class="band" style="left:${pos(Math.max(mn, r - m))};right:calc(100% - ${pos(Math.min(mx, r + m))})"></span><span class="tg" style="left:${pos(r)}"></span></div><div class="cle"><span>${esc(q.min)}</span><span>${esc(q.max)}</span></div>` : ''));
+    }
+    case 'puzzle': return head(eq() + `<ol class="pzp">${q.items.filter(s => s.trim()).map(s => `<li>${esc(s)}</li>`).join('')}</ol>`);
+    case 'pin': case 'placepin': return head(`<div class="pq">${esc(q.q)}</div>` + pinPrev(q, i) + (q.type === 'pin' && q.img ? '<span class="hint">Clique sur l’image pour placer la zone.</span>' : ''));
+    case 'echelle': case 'nps': {
+      const mn = q.type === 'nps' ? 0 : q.min, mx = q.type === 'nps' ? 10 : q.max, vals = []; for (let v = mn; v <= mx; v++) vals.push(v);
+      return head(`<div class="pq">${esc(q.q)}</div><div class="sc">${vals.map(v => `<span class="${q.type === 'nps' ? (v <= 6 ? 'd' : v <= 8 ? 'p' : 'g') : ''}">${v}</span>`).join('')}</div>`);
+    }
+    case 'nuage': return head(`<div class="pq">${esc(q.q)}</div><div class="pcloud"><b>mot</b> <span>mot</span> <i>mot</i></div>`);
+    case 'ouverte': return head(`<div class="pq">${esc(q.q)}</div><div class="pcards"><span></span><span></span><span></span></div>`);
+    case 'brainstorm': return head(`<div class="pq">${esc(q.q)}</div><span class="hint">1. Idées (${q.nb} par personne) · 2. Vote (${q.votes} par personne)</span>`);
+  }
+  return '';
+}
+
+/* ---------- champs ---------- */
+const optSel = (f, vals, cur, fmt) => `<select data-f="${f}">${vals.map(v => `<option value="${v}"${String(cur) === String(v) ? ' selected' : ''}>${fmt ? fmt(v) : v}</option>`).join('')}</select>`;
+function durSel(q) {
+  const list = DUREES.includes(q.duree) ? DUREES : DUREES.concat(q.duree).sort((a, b) => a - b);
+  return `<select data-f="duree" aria-label="Temps pour cette question">${list.map(d => `<option value="${d}"${q.duree === d ? ' selected' : ''}>Temps : ${d}\u00a0s</option>`).join('')}</select>`;
+}
+const txt = (f, v, ph, extra) => `<input type="text" data-f="${f}" value="${esc(v)}" placeholder="${esc(ph || '')}"${extra || ''}>`;
+const imgField = q => `<div class="imgrow"><label class="btn ghost small filebtn">${q.img ? 'Changer l’image' : 'Choisir une image'}<input type="file" accept="image/*" data-f="img" hidden></label>
+  ${q.img ? '<button class="btn ghost small" data-act="noimg" type="button">Retirer</button>' : ''}<span class="hint">JPG ou PNG, réduite automatiquement.</span></div>`;
+function fields(q, i) {
+  if (q.type === 'diapo') return `
+    <div class="row2"><label class="f">Titre${txt('titre', q.titre, 'Complément à')}</label>
+    <label class="f">Grand texte <small>(facultatif)</small>${txt('nombre', q.nombre, '100')}</label></div>
+    <label class="f">Texte <small>(facultatif)</small>${txt('texte', q.texte, 'Une phrase d’explication')}</label>
+    <div class="row2"><label class="f">Exemple <small>(facultatif, _ = case)</small>${txt('exemple', q.exemple, '43 + _ = 100')}</label>
+    <label class="f">Valeur dans la case${txt('exempleR', q.exempleR, '57')}</label></div>
+    <div class="f"><span>Image <small>(facultatif)</small></span>${imgField(q)}</div>`;
+  const slotBtn = ['libre', 'choix', 'curseur'].includes(q.type);
+  const enonce = `<label class="f">Énoncé${slotBtn ? ' <small>(le signe _ marque la case à compléter, facultatif)</small>' : ''}
+    <span class="qline">${txt('q', q.q, { libre: '15 + _ = 100', choix: '7 × _ = 56', vraifaux: '53 + 37 = 100', curseur: 'Estime : 49 × 21 ≈ _', puzzle: 'Range du plus petit au plus grand', pin: 'Touche l’angle droit',
+      sondage: 'Quelle matière préfères-tu ?', echelle: 'Le cours était clair.', nps: '', placepin: 'Où te situes-tu ?', nuage: 'Un mot pour décrire ce cours', ouverte: 'Qu’est-ce qui t’aiderait ?', brainstorm: 'Idées pour réviser' }[q.type])}
+    ${slotBtn ? '<button class="btn ghost small" data-act="slot" type="button">Insérer la case</button>' : ''}</span></label>`;
+  switch (q.type) {
+    case 'libre': return enonce + `<label class="f">Réponse attendue <small>(nombre ou mot ; plusieurs réponses acceptées : sépare-les par /)</small>${txt('r', q.r, '85   ou   chevaux / des chevaux')}</label>`;
+    case 'vraifaux': return enonce + `<div class="tf" role="radiogroup" aria-label="Bonne réponse"><span class="hint">Bonne réponse :</span>
+      <label><input type="radio" name="tf${i}" data-f="r" value="true"${q.r ? ' checked' : ''}>Vrai</label>
+      <label><input type="radio" name="tf${i}" data-f="r" value="false"${!q.r ? ' checked' : ''}>Faux</label></div>`;
+    case 'choix': case 'sondage': return enonce + `<div><span class="hint">${q.type === 'choix' ? 'Propositions (coche la bonne réponse, les cases vides sont ignorées) :' : 'Propositions (les cases vides sont ignorées) :'}</span>
+      <div class="opts" style="margin-top:.4em">${q.choix.map((c, k) => `<span class="opt">${q.type === 'choix' ? `<input type="radio" name="ch${i}" data-f="r" value="${k}"${q.r === k ? ' checked' : ''} aria-label="Bonne réponse ${k + 1}">` : ''}
+        <span class="sw o${k}">${shape(k)}</span><input type="text" data-f="choix" data-k="${k}" value="${esc(c)}" aria-label="Proposition ${k + 1}"></span>`).join('')}</div></div>`;
+    case 'curseur': return enonce + `<div class="row5">
+      <label class="f">Minimum${txt('min', q.min, '0', ' inputmode="decimal"')}</label><label class="f">Maximum${txt('max', q.max, '100', ' inputmode="decimal"')}</label>
+      <label class="f">Pas${txt('pas', q.pas, '1', ' inputmode="decimal"')}</label><label class="f">Bonne réponse${txt('r', q.r, '50', ' inputmode="decimal"')}</label>
+      <label class="f">Marge (±)${txt('marge', q.marge, '0', ' inputmode="decimal"')}</label></div>`;
+    case 'puzzle': return enonce + `<div><span class="hint">Éléments dans le bon ordre (2 à 6) ; ils seront mélangés pour les participants :</span>
+      <div class="plist">${q.items.map((s, k) => `<span class="pli"><b>${k + 1}</b><input type="text" data-f="item" data-k="${k}" value="${esc(s)}" aria-label="Élément ${k + 1}">
+        <button class="ib" data-act="rmitem" data-k="${k}" title="Retirer" aria-label="Retirer"${q.items.length <= 2 ? ' disabled' : ''}>${ICON.del}</button></span>`).join('')}</div>
+      ${q.items.length < 6 ? '<button class="btn ghost small" data-act="additem" type="button">Ajouter un élément</button>' : ''}</div>`;
+    case 'pin': return enonce + `<div class="f"><span>Image</span>${imgField(q)}</div>
+      ${q.img ? `<label class="f">Taille de la zone juste<input type="range" data-f="zr" min="0.02" max="0.3" step="0.005" value="${q.zone.r}"></label>` : ''}`;
+    case 'placepin': return enonce + `<div class="f"><span>Image</span>${imgField(q)}</div>`;
+    case 'echelle': return enonce + `<div class="row3">
+      <label class="f">De${optSel('min', [0, 1], q.min)}</label><label class="f">À${optSel('max', [3, 4, 5, 6, 7, 10], q.max)}</label><span></span></div>
+      <div class="row2"><label class="f">Libellé à gauche${txt('gauche', q.gauche)}</label><label class="f">Libellé à droite${txt('droite', q.droite)}</label></div>`;
+    case 'nps': return enonce + '<p class="hint">Échelle de 0 à 10. Le score NPS (promoteurs moins détracteurs) s’affiche avec les résultats.</p>';
+    case 'nuage': return enonce + `<label class="f" style="max-width:16em">Mots par personne${optSel('nb', [1, 2, 3], q.nb)}</label>`;
+    case 'ouverte': return enonce + '<p class="hint">Réponse jusqu’à 140 caractères. Les réponses s’affichent sans les prénoms (les prénoms sont dans le rapport).</p>';
+    case 'brainstorm': return enonce + `<div class="row3"><label class="f">Idées par personne${optSel('nb', [1, 2, 3], q.nb)}</label>
+      <label class="f">Votes par personne${optSel('votes', [1, 2, 3], q.votes)}</label><span></span></div>
+      <p class="hint">Deux temps : chacun propose ses idées, puis la classe vote. Le temps s’applique à chaque temps.</p>`;
+  }
+  return enonce;
+}
+function typeSelect(q) {
+  return `<select data-f="type" aria-label="Type">${FAMS.map(f => `<optgroup label="${f.label}">${f.types.map(t => `<option value="${t}"${q.type === t ? ' selected' : ''}>${TYPES[t].label}</option>`).join('')}</optgroup>`).join('')}</select>`;
+}
+function render() {
+  $('#titre').value = S.titre;
+  $('#slug').value = S.slug;
+  updateHead();
+  let n = 0;
+  $('#list').innerHTML = S.questions.map((q, i) => {
+    const label = q.type === 'diapo' ? 'Diapo' : 'Q' + (++n);
+    return `<article class="card f-${famOf(q.type)}" data-i="${i}">
+      <div class="chead"><span class="num">${label}</span>${picto(q.type)}${typeSelect(q)}
+        ${q.type !== 'diapo' ? durSel(q) : ''}
+        <span class="sp"></span>
+        <button class="ib" data-act="up" title="Monter" aria-label="Monter"${i === 0 ? ' disabled' : ''}>${ICON.up}</button>
+        <button class="ib" data-act="down" title="Descendre" aria-label="Descendre"${i === S.questions.length - 1 ? ' disabled' : ''}>${ICON.down}</button>
+        <button class="ib" data-act="dup" title="Dupliquer" aria-label="Dupliquer">${ICON.dup}</button>
+        <button class="ib del" data-act="del" title="Supprimer" aria-label="Supprimer">${ICON.del}</button>
+      </div>
+      <div class="cbody"><div class="fields">${fields(q, i)}<p class="warn">${esc(problems(q).join(' '))}</p></div><div class="prev">${preview(q, i)}</div></div>
+    </article>`;
+  }).join('') || '<p class="hint">Aucune question. Choisis un type ci-dessous.</p>';
+}
+function refreshCard(i) {
+  const card = $(`.card[data-i="${i}"]`), q = S.questions[i];
+  if (!card) return;
+  card.querySelector('.prev').innerHTML = preview(q, i);
+  card.querySelector('.warn').textContent = problems(q).join(' ');
+}
+function updateHead() {
+  const s = S.slug || 'nom-du-quiz';
+  $('#slugHint').textContent = `Fichier : quiz/${s}.json`;
+  $('#link').textContent = `${quizURL()}?q=${s}`;
+}
+let warnedQuota = false;
+function save() { if (!LS.set('quiz-editeur', S) && !warnedQuota) { warnedQuota = true; toast('Images trop lourdes : la sauvegarde automatique ne suit plus. Télécharge le fichier.', 5000); } }
+function toast(t, ms) { const el = $('#toast'); el.textContent = t; el.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove('on'), ms || 2400); }
+
+/* image : réduite à 1200 px de large, JPEG */
+function loadImage(file) {
+  return new Promise((res, rej) => {
+    const fr = new FileReader();
+    fr.onerror = () => rej(new Error('lecture impossible'));
+    fr.onload = () => {
+      const im = new Image();
+      im.onerror = () => rej(new Error('format d’image non reconnu'));
+      im.onload = () => {
+        const k = Math.min(1, 1200 / im.naturalWidth), w = Math.round(im.naturalWidth * k), h = Math.round(im.naturalHeight * k);
+        const c = document.createElement('canvas'); c.width = w; c.height = h;
+        const g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, w, h); g.drawImage(im, 0, 0, w, h);
+        res({ img: c.toDataURL('image/jpeg', 0.82), ratio: +(h / w).toFixed(4) });
+      };
+      im.src = fr.result;
+    };
+    fr.readAsDataURL(file);
+  });
+}
+
+/* ---------- événements ---------- */
+$('#titre').oninput = e => { S.titre = e.target.value; if (S.slugAuto) { S.slug = slugify(S.titre); $('#slug').value = S.slug; } updateHead(); save(); };
+$('#slug').oninput = e => { const v = slugify(e.target.value.replace(/\s/g, '-')); S.slug = v; S.slugAuto = !v; updateHead(); save(); };
+$('#slug').onblur = e => { e.target.value = S.slug; };
+
+$('#list').addEventListener('input', e => {
+  const card = e.target.closest('.card'); if (!card) return;
+  const i = Number(card.dataset.i), q = S.questions[i], f = e.target.dataset.f;
+  if (!f || ['type', 'duree', 'img', 'min', 'max', 'nb', 'votes'].includes(f) && e.target.tagName === 'SELECT' || f === 'img') return;
+  if (f === 'choix') q.choix[Number(e.target.dataset.k)] = e.target.value;
+  else if (f === 'item') q.items[Number(e.target.dataset.k)] = e.target.value;
+  else if (f === 'zr') q.zone.r = Number(e.target.value);
+  else if (f === 'r' && q.type === 'choix') q.r = Number(e.target.value);
+  else if (f === 'r' && q.type === 'vraifaux') q.r = e.target.value === 'true';
+  else q[f] = e.target.value;
+  refreshCard(i); save();
+});
+$('#list').addEventListener('change', async e => {
+  const card = e.target.closest('.card'); if (!card) return;
+  const i = Number(card.dataset.i), q = S.questions[i], f = e.target.dataset.f;
+  if (f === 'type') {
+    const nq = blank(e.target.value);
+    if ('q' in q && 'q' in nq && q.q) nq.q = q.q;
+    if ('duree' in q && 'duree' in nq) nq.duree = q.duree;
+    if (q.img && 'img' in nq) { nq.img = q.img; nq.ratio = q.ratio; }
+    if (q.choix && nq.choix) nq.choix = q.choix.slice();
+    S.questions[i] = nq; render(); save();
+  } else if (f === 'duree') { q.duree = Number(e.target.value); save(); }
+  else if (['min', 'max', 'nb', 'votes'].includes(f) && e.target.tagName === 'SELECT') { q[f] = Number(e.target.value); refreshCard(i); save(); }
+  else if (f === 'img') {
+    const file = e.target.files[0]; if (!file) return;
+    try { const r = await loadImage(file); q.img = r.img; q.ratio = r.ratio; render(); save(); }
+    catch (err) { alert('Impossible d’utiliser cette image : ' + err.message); }
+  }
+});
+$('#list').addEventListener('click', e => {
+  const svg = e.target.closest('svg[data-pin]');
+  if (svg) {
+    const i = Number(svg.dataset.pin), q = S.questions[i];
+    if (q.type !== 'pin') return;
+    const r = svg.getBoundingClientRect();
+    q.zone.x = Math.min(1, Math.max(0, (e.clientX - r.left) / r.width)); q.zone.y = Math.min(1, Math.max(0, (e.clientY - r.top) / r.height));
+    refreshCard(i); save(); return;
+  }
+  const b = e.target.closest('[data-act]'); if (!b) return;
+  const card = b.closest('.card'), i = Number(card.dataset.i), Q = S.questions, q = Q[i];
+  const act = b.dataset.act;
+  if (act === 'slot') {
+    const inp = card.querySelector('[data-f="q"]');
+    const a = inp.selectionStart != null ? inp.selectionStart : inp.value.length, z = inp.selectionEnd != null ? inp.selectionEnd : a;
+    inp.value = inp.value.slice(0, a) + '_' + inp.value.slice(z);
+    inp.focus(); inp.setSelectionRange(a + 1, a + 1);
+    inp.dispatchEvent(new Event('input', { bubbles: true }));
+    return;
+  }
+  if (act === 'additem') { q.items.push(''); render(); save(); const ins = $(`.card[data-i="${i}"]`).querySelectorAll('[data-f="item"]'); ins[ins.length - 1].focus(); return; }
+  if (act === 'rmitem') { q.items.splice(Number(b.dataset.k), 1); render(); save(); return; }
+  if (act === 'noimg') { q.img = ''; q.ratio = 0; render(); save(); return; }
+  if (act === 'up' && i > 0) [Q[i - 1], Q[i]] = [Q[i], Q[i - 1]];
+  else if (act === 'down' && i < Q.length - 1) [Q[i + 1], Q[i]] = [Q[i], Q[i + 1]];
+  else if (act === 'dup') Q.splice(i + 1, 0, JSON.parse(JSON.stringify(Q[i])));
+  else if (act === 'del') { if (!confirm('Supprimer cet élément ?')) return; Q.splice(i, 1); }
+  render(); save();
+  const target = act === 'up' ? i - 1 : act === 'down' ? i + 1 : act === 'dup' ? i + 1 : -1;
+  const c = target >= 0 && $(`.card[data-i="${target}"]`); if (c) c.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+});
+
+/* panneau « Ajouter » en trois familles */
+$('#add').innerHTML = FAMS.map(f => `<div class="fam f-${f.id}"><h3>${f.label}</h3><div class="tiles">${f.types.map(t =>
+  `<button class="tile" data-add="${t}">${picto(t)}<b>${TYPES[t].label}</b><small>${TYPES[t].desc}</small></button>`).join('')}</div></div>`).join('');
+$('#add').addEventListener('click', e => {
+  const b = e.target.closest('[data-add]'); if (!b) return;
+  S.questions.push(blank(b.dataset.add)); render(); save();
+  const c = $(`.card[data-i="${S.questions.length - 1}"]`);
+  c.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  const first = c.querySelector('input[type=text]'); if (first) first.focus({ preventScroll: true });
+});
+
+$('#bNew').onclick = () => { if (!confirm('Commencer un nouveau quiz ? Le quiz affiché sera remplacé (pense à le télécharger avant).')) return; S = newQuiz(); render(); save(); };
+$('#bOpen').onclick = () => $('#file').click();
+$('#file').onchange = async e => {
+  const f = e.target.files[0]; e.target.value = '';
+  if (!f) return;
+  try { S = fromQuiz(JSON.parse(await f.text()), slugify(f.name.replace(/\.json$/i, ''))); render(); save(); toast('Quiz ouvert'); }
+  catch (err) { alert('Impossible d’ouvrir ce fichier : ' + err.message); }
+};
+async function openFromSite(name) {
+  const id = slugify(name || ''); if (!id) return;
+  try {
+    const r = await fetch(`quiz/${id}.json`, { cache: 'no-cache' });
+    if (!r.ok) throw new Error(`le fichier quiz/${id}.json n’existe pas sur le site.`);
+    S = fromQuiz(await r.json(), id); render(); save(); toast('Quiz ouvert');
+  } catch (err) { alert('Impossible d’ouvrir ce quiz : ' + err.message); }
+}
+$('#bSite').onclick = () => { const n = prompt('Nom du quiz à ouvrir (nom du fichier, sans .json) :', S.slug || ''); if (n) openFromSite(n); };
+function countProblems() { return S.questions.reduce((t, q) => t + (problems(q).length ? 1 : 0), 0); }
+$('#bTest').onclick = () => {
+  const n = countProblems();
+  if (!S.questions.some(q => q.type !== 'diapo')) { alert('Ajoute au moins une question.'); return; }
+  if (n && !confirm(`${n} élément(s) à corriger (en rouge). Tester quand même ?`)) return;
+  if (!LS.set('quiz-brouillon', toQuiz())) { alert('Le navigateur refuse d’enregistrer le brouillon (images trop lourdes ?).'); return; }
+  window.open('quiz.html?brouillon&test', '_blank');
+};
+$('#bSave').onclick = () => {
+  const n = countProblems();
+  if (n && !confirm(`${n} élément(s) à corriger (en rouge). Télécharger quand même ?`)) return;
+  if (!S.slug) { S.slug = slugify(S.titre) || 'quiz'; render(); }
+  const blob = new Blob([JSON.stringify(toQuiz(), null, 2) + '\n'], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = S.slug + '.json';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  toast(`${S.slug}.json téléchargé`);
+};
+$('#bCopy').onclick = async () => {
+  try { await navigator.clipboard.writeText($('#link').textContent); toast('Lien copié'); }
+  catch (e) { const r = document.createRange(); r.selectNodeContents($('#link')); const s = getSelection(); s.removeAllRanges(); s.addRange(r); toast('Lien sélectionné : Cmd + C pour copier'); }
+};
+
+/* ---------- démarrage ---------- */
+const params = new URLSearchParams(location.search);
+S = LS.get('quiz-editeur');
+if (!S || !Array.isArray(S.questions)) S = newQuiz();
+else S = Object.assign(newQuiz(), S, { questions: S.questions.filter(q => q && TYPES[q.type]).map(q => { const b = Object.assign(blank(q.type), q); if ('duree' in b && !b.duree) b.duree = Number(S.duree) || DUREE_DEF; return b; }) });
+render();
+if (params.get('q')) { openFromSite(params.get('q')); history.replaceState(null, '', location.pathname); }
+})();
+</script>
+</body>
+</html>

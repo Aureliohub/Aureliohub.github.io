@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Calcul mental en direct</title>
+<title>Quiz en direct</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -102,7 +102,7 @@ h1,h2,p{margin:0}
 .wrong{display:flex;flex-wrap:wrap;gap:.5em;justify-content:center;align-items:center;font-size:1.3em;color:var(--muted)}
 .wrong span{background:var(--card);border-radius:.4em;padding:.2em .6em;color:var(--ko);font-weight:700}
 .bars{display:flex;gap:1.2em;align-items:flex-end;justify-content:center;height:12em;margin-top:1em}
-.bars .col{width:9em;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%}
+.bars .col{width:auto;min-width:9em;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%}
 .bars .v{font-size:1.8em;font-weight:800;margin-bottom:.2em}
 .bars .b{width:100%;border-radius:.3em .3em 0 0;min-height:.3em}
 .bars .lab{white-space:nowrap;display:flex;align-items:center;gap:.4em;margin-top:.4em;font-size:1.6em;font-weight:700;padding:.2em .5em;border-radius:.3em}
@@ -223,6 +223,119 @@ body[data-tone="ko"]{background:var(--ko);color:#fff}
 .keypad button:active{background:var(--line)}
 .keypad .del svg{width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:2;vertical-align:-.15em}
 #pend{margin-top:.8em}
+
+/* ===== v4 : nouveaux types ===== */
+.qtext{font-weight:800;line-height:1.2;text-align:center;max-width:30em;text-wrap:balance}
+.qsmall{font-size:2.2em;font-weight:800;text-align:center;line-height:1.2;max-width:34em;margin-bottom:.5em;text-wrap:balance}
+.bighint{font-size:1.9em;color:var(--muted);margin-top:1.2em;text-align:center}
+.bighint b{color:var(--ink)}
+.answer{font-size:3em;font-weight:800;margin-top:.4em;padding:.1em .7em;border-radius:.25em;background:var(--ok);color:#fff}
+.answer.sm{font-size:2em}
+.avis-n{font-size:1.6em;color:var(--muted);margin-top:.8em;text-align:center}
+.avis-n b{color:var(--ink)}
+.nps3{display:inline-flex;gap:.4em;align-items:center;margin-left:.6em;font-size:.85em}
+.nps3 i{display:inline-block;width:.8em;height:.8em;border-radius:.2em;margin-left:.6em}
+.result.tight{margin-top:.8em}
+/* puzzle */
+.pz{display:flex;flex-wrap:wrap;gap:.7em;justify-content:center;margin-top:1.6em;max-width:70em}
+.pzi{font-size:2.2em;font-weight:700;padding:.4em .9em;border-radius:.35em}
+.pzok{list-style:none;padding:0;margin:1.2em 0 0;display:flex;flex-wrap:wrap;gap:.6em;justify-content:center}
+.pzok li{display:flex;align-items:center;gap:.5em;background:var(--card);border-radius:.4em;padding:.4em .9em;font-size:2em;font-weight:700}
+.pzok b{background:var(--ok);color:#fff;border-radius:50%;width:1.4em;height:1.4em;display:grid;place-items:center;font-size:.75em}
+/* image et pin's */
+.pinimg{display:block;height:min(50vh,42em);width:auto;max-width:100%;border-radius:.4em;margin-top:.6em}
+.pinimg.rev{height:min(52vh,44em)}
+.pinimg .zone{fill:rgba(20,145,90,.22);stroke:var(--ok);stroke-width:.6}
+.pin{fill:var(--c1);stroke:#fff;stroke-width:.5}
+.pin.ok{fill:var(--ok)} .pin.ko{fill:var(--ko)} .pin.me{fill:var(--c0);stroke-width:.7}
+/* échelles */
+.scale{display:flex;gap:.6em;justify-content:center;align-items:flex-end;margin-top:1.6em}
+.scale .sv{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;width:5.2em}
+.scale.res .sv{height:11em}
+.scale .v{font-size:1.6em;font-weight:800}
+.scale .b{width:100%;border-radius:.3em .3em 0 0;min-height:.2em}
+.scale .sn{width:100%;text-align:center;font-size:2.2em;font-weight:800;padding:.2em 0;border-radius:.25em;margin-top:.15em;color:#fff}
+.sc{background:var(--c1);color:#fff}
+.npsd{background:var(--ko);color:#fff} .npsp{background:var(--c2);color:var(--ink)!important} .npsg{background:var(--ok);color:#fff}
+.scalewrap{display:inline-flex;flex-direction:column;align-items:stretch;max-width:100%}
+.slabs{display:flex;justify-content:space-between;gap:2em;font-size:1.4em;color:var(--muted);margin-top:.5em}
+/* curseur */
+.nline{width:100%;max-width:64em;margin-top:.8em}
+.nline .axis{stroke:var(--ink);stroke-width:4}
+.nline .tick{stroke:var(--ink);stroke-width:3}
+.nline .band{fill:rgba(20,145,90,.15)}
+.nline .target{stroke:var(--ok);stroke-width:4;stroke-dasharray:10 6}
+.nline text{font:700 26px var(--font);fill:var(--muted)}
+.nline .tv{fill:var(--ok)}
+.nline circle.ok{fill:var(--ok)} .nline circle.ko{fill:var(--ko)}
+/* nuage, cartes, idées */
+.cloud{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:.15em .6em;max-width:70em;margin-top:.6em;line-height:1.05;font-weight:800}
+.cards{columns:4 15em;column-gap:.8em;width:100%;max-width:90em;margin-top:.4em}
+.ocard{break-inside:avoid;background:var(--card);border-radius:.5em;padding:.55em .85em;margin-bottom:.7em;font-size:1.2em;line-height:1.35;box-shadow:inset .25em 0 0 var(--c3)}
+.ideas{display:grid;grid-template-columns:repeat(auto-fill,minmax(15em,1fr));gap:.6em;width:100%;max-width:90em;margin-top:.8em}
+.idea{background:var(--card);border-radius:.5em;padding:.5em .9em;font-size:1.25em;font-weight:600;display:flex;align-items:center;gap:.6em}
+.idea b{background:var(--ink);color:#fff;border-radius:50%;min-width:1.6em;height:1.6em;display:grid;place-items:center;font-size:.8em}
+.idea .cnt{margin-left:auto;color:var(--c3);font-weight:800}
+.vrank{width:100%;max-width:62em;display:grid;gap:.5em;margin-top:.6em}
+.vrow{display:grid;grid-template-columns:minmax(0,1.3fr) 1fr 6em;gap:1em;align-items:center;background:var(--card);border-radius:.45em;padding:.4em 1em;font-size:1.35em}
+.vrow.top{box-shadow:inset .3em 0 0 var(--c2)}
+.vt{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.vb{height:.7em;background:var(--paper);border-radius:.35em;overflow:hidden}
+.vb i{display:block;height:100%;background:var(--c3)}
+.vn{text-align:right;color:var(--muted);font-size:.85em}
+/* diapo enrichie */
+.slide .tx{font-size:2.2em;max-width:34em;text-align:center;line-height:1.35;margin-top:.5em;color:var(--ink)}
+.slide .simg{max-height:44vh;max-width:90%;border-radius:.5em;margin-top:1em}
+.slide.has-img .n{font-size:6em}
+/* classement animé */
+.row{will-change:transform;position:relative}
+.row .gain{opacity:0;transition:opacity .4s}
+.row.shown .gain{opacity:1}
+
+/* ===== téléphone : nouveaux types ===== */
+.player.wide{max-width:34em;padding-left:.6em;padding-right:.6em}
+.pq{font-size:1.35em;font-weight:800;line-height:1.25}
+.tdisp{min-height:2.4em;background:#fff;border:3px solid var(--c1);border-radius:.45em;padding:.45em .6em;font-size:1.35em;font-weight:700;text-align:left;word-break:break-word;color:var(--ink)}
+.tdisp.long{min-height:4.2em;font-size:1.1em}
+.tdisp .caret{display:inline-block;width:2px;height:1.05em;vertical-align:-.15em;background:var(--c1);animation:blink 1s steps(1) infinite}
+.cnt{font-size:.8em;opacity:.6;text-align:right;margin-top:-.6em}
+.azpad{display:flex;flex-direction:column;gap:.3em;user-select:none}
+.azr{display:flex;gap:.25em}
+.azr button{flex:1;min-width:0;border:0;border-radius:.35em;background:var(--card);box-shadow:inset 0 0 0 1.5px var(--line);padding:.55em 0;font-size:1.05em;font-weight:600;touch-action:manipulation;color:var(--ink)}
+.azr button:active{background:var(--line)}
+.azr .w15{flex:1.5}
+.azr .space{flex:4;font-size:.85em;color:var(--muted)}
+.azr .on{background:var(--ink);color:#fff}
+.azr .del svg{width:1.1em;height:1.1em;fill:none;stroke:currentColor;stroke-width:2;vertical-align:-.2em}
+.sentl{display:flex;flex-wrap:wrap;gap:.35em;justify-content:center}
+.sentl span{background:var(--card);border-radius:999px;padding:.2em .7em;font-weight:600;font-size:.9em;color:var(--ink)}
+.prow{display:flex;gap:.5em}
+.prow .pbtn{flex:1}
+.pbtn.ghost{background:var(--card);color:var(--ink);box-shadow:inset 0 0 0 2px var(--line)}
+.pmine.sm{font-size:1.2em}
+.cval{font-size:3.2em;font-weight:800;color:var(--c1)}
+.crow{display:flex;align-items:center;gap:.5em}
+.crow input{flex:1;accent-color:var(--c1);height:2.2em}
+.cbtn{width:2.4em;height:2.4em;border-radius:50%;border:0;background:var(--card);box-shadow:inset 0 0 0 2px var(--line);font-size:1.3em;font-weight:800;color:var(--ink)}
+.cends{display:flex;justify-content:space-between;font-size:.85em;opacity:.7;gap:1em}
+.pzslots{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:.4em}
+.pzslots li{display:flex;align-items:center;gap:.5em;min-height:2.8em;border:2px dashed var(--line);border-radius:.45em;padding:.2em .4em}
+.pzslots li.full{border-style:solid;border-color:var(--c1)}
+.pzslots b{width:1.6em;height:1.6em;border-radius:50%;background:var(--ink);color:#fff;display:grid;place-items:center;font-size:.85em;flex:none}
+.pzslots button{flex:1;border:0;background:transparent;font-weight:700;font-size:1.1em;text-align:left;color:var(--ink)}
+.pzpool{display:flex;flex-wrap:wrap;gap:.5em;justify-content:center}
+.pzpool button{border:0;border-radius:.45em;padding:.6em 1em;font-weight:700;font-size:1.05em}
+.pinwrap{border-radius:.45em;overflow:hidden;background:#fff}
+.pinwrap svg{display:block;width:100%;height:auto;touch-action:manipulation}
+.pscale{display:flex;gap:.35em}
+.pscale button{flex:1;border:0;border-radius:.45em;padding:.9em 0;font-size:1.4em;font-weight:800;background:var(--c1);color:#fff}
+.pscale button.npsd{background:var(--ko)} .pscale button.npsp{background:var(--c2);color:var(--ink)} .pscale button.npsg{background:var(--ok)}
+.pscale.many{flex-wrap:wrap}
+.pscale.many button{flex:0 0 calc((100% - 5 * .35em) / 6);font-size:1.2em;padding:.75em 0}
+.vlist{display:flex;flex-direction:column;gap:.4em;max-height:46vh;overflow:auto}
+.vlist button{border:0;border-radius:.45em;padding:.75em .9em;text-align:left;font-weight:600;background:var(--card);box-shadow:inset 0 0 0 2px var(--line);color:var(--ink)}
+.vlist button[aria-pressed="true"]{background:var(--c3);color:#fff;box-shadow:none}
+.report .wraptxt{white-space:normal;min-width:18em}
 </style>
 </head>
 <body>
@@ -2960,33 +3073,117 @@ var qrcode = function() {
 <script>
 (() => {
 'use strict';
-const VERSION = 'version 3 (relais)';
+const VERSION = 'version 4';
 
 /* ---------- outils ---------- */
 const $ = (s, r = document) => r.querySelector(s);
 const app = $('#app');
 const params = new URLSearchParams(location.search);
-const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-const fmt = n => String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, '’');
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const fmt = n => { const r = Math.round(n); return (r < 0 ? '-' : '') + String(Math.abs(r)).replace(/\B(?=(\d{3})+(?!\d))/g, '’'); };
+const dec1 = x => (Math.round(x * 10) / 10).toString().replace('.', ',');
+const numTxt = x => (Number.isInteger(x) ? fmt(x) : String(x).replace('.', ','));
 const pad = n => String(n).padStart(2, '0');
 const secs = ms => (ms / 1000).toFixed(1).replace('.', ',') + '\u00a0s';
 const rid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
 const plural = (n, s, p) => n + ' ' + (n > 1 ? p : s);
+const clamp = (x, a, b) => Math.min(b, Math.max(a, x));
+const rnd = a => a[Math.floor(Math.random() * a.length)];
 const LS = {
   get(k) { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } },
   set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} },
   del(k) { try { localStorage.removeItem(k); } catch (e) {} },
 };
+function normNum(v) {
+  const s = String(v).replace(/[\s'’\u00a0]/g, '').replace(',', '.');
+  return /^-?\d+(\.\d+)?$/.test(s) ? Number(s) : NaN;
+}
+const normText = s => String(s == null ? '' : s).normalize('NFC').toLowerCase().replace(/[’‘`´]/g, "'").replace(/\s+/g, ' ').trim().replace(/[.!?]+$/, '').trim();
+
+/* ---------- types de questions ---------- */
+const TYPES = {
+  choix:      { fam: 'test', scored: true, label: 'Quiz' },
+  vraifaux:   { fam: 'test', scored: true, label: 'Vrai ou faux' },
+  libre:      { fam: 'test', scored: true, label: 'Réponse libre' },
+  curseur:    { fam: 'test', scored: true, label: 'Curseur' },
+  pin:        { fam: 'test', scored: true, label: 'Réponse par pin’s' },
+  puzzle:     { fam: 'test', scored: true, label: 'Puzzle' },
+  sondage:    { fam: 'avis', label: 'Sondage' },
+  echelle:    { fam: 'avis', label: 'Échelle' },
+  nps:        { fam: 'avis', label: 'Échelle NPS' },
+  placepin:   { fam: 'avis', label: 'Place le pin’s' },
+  nuage:      { fam: 'avis', label: 'Nuage de mots', multi: true },
+  ouverte:    { fam: 'avis', label: 'Question ouverte' },
+  brainstorm: { fam: 'avis', label: 'Brainstorming', multi: true },
+  diapo:      { fam: 'info', label: 'Diapo' },
+};
+const scored = it => !!(it && TYPES[it.type] && TYPES[it.type].scored);
 
 /* ---------- quiz chargé depuis quiz/<nom>.json (ou brouillon de l'éditeur) ---------- */
-let TITRE = 'Quiz', DUREE = 20, ITEMS = [], QIDX = [], NQ = 0;
+let TITRE = 'Quiz', DUREE = 20, ITEMS = [], QIDX = [], SIDX = [], NQ = 0, NS = 0;
+const IMGS = {};
 const TEST = params.has('test');
+function imgId(data) { let h = 5381; for (let i = 0; i < data.length; i += 7) h = ((h << 5) + h + data.charCodeAt(i)) | 0; return 'i' + (h >>> 0).toString(36) + data.length.toString(36); }
+function accepted(it) { return [].concat(it.r).map(x => String(x == null ? '' : x).trim()).filter(Boolean); }
+function libreKb(it) {
+  const a = accepted(it), nums = a.map(normNum);
+  if (nums.every(x => !isNaN(x))) return nums.every(Number.isInteger) ? 'num' : 'dec';
+  return 'text';
+}
+function shuffledOrder(n) {
+  if (n < 2) return [0];
+  let o;
+  do { o = [...Array(n).keys()].sort(() => Math.random() - 0.5); } while (o.every((x, i) => x === i));
+  return o;
+}
+function prep(src) {
+  const it = Object.assign({}, src);
+  if (it.type !== 'diapo') it.q = String(it.q || '');
+  switch (it.type) {
+    case 'choix': case 'sondage':
+      it.choix = (it.choix || []).map(String).filter(s => s.trim()).slice(0, 4);
+      if (it.choix.length < 2) return null;
+      if (it.type === 'choix') it.r = clamp(Number(it.r) || 0, 0, it.choix.length - 1);
+      break;
+    case 'vraifaux': it.r = it.r === true; break;
+    case 'libre': if (!accepted(it).length) return null; it._kb = libreKb(it); break;
+    case 'curseur':
+      it.min = Number(it.min) || 0; it.max = Number(it.max); if (!(it.max > it.min)) it.max = it.min + 100;
+      it.pas = Number(it.pas) > 0 ? Number(it.pas) : 1;
+      it.r = clamp(isFinite(Number(it.r)) ? Number(it.r) : it.min, it.min, it.max);
+      it.marge = Math.max(0, Number(it.marge) || 0);
+      break;
+    case 'puzzle':
+      it.items = (it.items || []).map(String).filter(s => s.trim()).slice(0, 6);
+      if (it.items.length < 2) return null;
+      it._ord = shuffledOrder(it.items.length);
+      break;
+    case 'pin':
+      if (!it.img) return null;
+      it.zone = Object.assign({ x: 0.5, y: 0.5, r: 0.1 }, it.zone || {});
+      // fallthrough
+    case 'placepin':
+      if (!it.img) return null;
+      it.ratio = Number(it.ratio) > 0 ? Number(it.ratio) : 0.66;
+      break;
+    case 'echelle':
+      it.min = it.min === 0 ? 0 : (Number(it.min) || 1); it.max = Number(it.max) > it.min ? Number(it.max) : 5;
+      it.gauche = it.gauche || 'Pas du tout d’accord'; it.droite = it.droite || 'Tout à fait d’accord';
+      break;
+    case 'nps': it.min = 0; it.max = 10; it.gauche = it.gauche || 'Pas du tout probable'; it.droite = it.droite || 'Très probable'; break;
+    case 'nuage': it.nb = clamp(Number(it.nb) || 1, 1, 3); break;
+    case 'brainstorm': it.nb = clamp(Number(it.nb) || 3, 1, 3); it.votes = clamp(Number(it.votes) || 3, 1, 3); break;
+  }
+  if (it.img) { it._img = imgId(it.img); IMGS[it._img] = it.img; }
+  return it;
+}
 function setQuiz(d) {
   if (!d || typeof d !== 'object') throw new Error('Le fichier du quiz est illisible.');
   TITRE = String(d.titre || 'Quiz'); DUREE = Number(d.duree) || 20;
-  ITEMS = Array.isArray(d.questions) ? d.questions.filter(it => it && ['diapo', 'libre', 'choix', 'vraifaux'].includes(it.type)) : [];
+  ITEMS = (Array.isArray(d.questions) ? d.questions : []).filter(it => it && TYPES[it.type]).map(prep).filter(Boolean);
   QIDX = ITEMS.map((it, i) => (it.type === 'diapo' ? -1 : i)).filter(i => i >= 0);
-  NQ = QIDX.length;
+  SIDX = QIDX.filter(i => scored(ITEMS[i]));
+  NQ = QIDX.length; NS = SIDX.length;
   if (!NQ) throw new Error('Ce quiz ne contient aucune question.');
   document.title = TITRE;
 }
@@ -3017,6 +3214,7 @@ function quizError(e) {
 }
 const qNum = i => QIDX.indexOf(i) + 1;
 
+/* ---------- formes et options ---------- */
 const SHAPES = [
   '<path d="M12 3 22.5 20.5H1.5z"/>',
   '<path d="M12 1.5 22.5 12 12 22.5 1.5 12z"/>',
@@ -3024,39 +3222,74 @@ const SHAPES = [
   '<rect x="2.5" y="2.5" width="19" height="19"/>',
 ];
 const shape = k => `<svg class="shape" viewBox="0 0 24 24" aria-hidden="true">${SHAPES[k % 4]}</svg>`;
-
 function optList(it) {
-  if (it.type === 'choix') return it.choix.map((c, i) => ({ label: c, value: i, k: i }));
+  if (it.type === 'choix' || it.type === 'sondage') return it.choix.map((c, i) => ({ label: c, value: i, k: i }));
   if (it.type === 'vraifaux') return [{ label: 'Vrai', value: true, k: 1 }, { label: 'Faux', value: false, k: 0 }];
   return null;
 }
+
+/* ---------- énoncés ---------- */
 function eqHTML(q, fill) {
   const parts = String(q).split('_').map(esc);
   const slot = `<span class="slot${fill != null ? ' ok' : ''}">${fill != null ? esc(fill) : ''}</span>`;
   return parts.join(slot);
 }
-function answerText(it) {
-  if (it.type === 'libre') return String(it.r);
-  if (it.type === 'choix') return it.choix[it.r];
-  return it.r ? 'Vrai' : 'Faux';
-}
-function givenText(it, v) {
-  if (v == null) return '—';
-  if (it.type === 'choix') return it.choix[v] != null ? it.choix[v] : '?';
-  if (it.type === 'vraifaux') return v ? 'Vrai' : 'Faux';
-  return String(v);
-}
-function normNum(v) {
-  const s = String(v).replace(/[\s'’\u00a0]/g, '').replace(',', '.');
-  return /^-?\d+(\.\d+)?$/.test(s) ? Number(s) : NaN;
-}
-function check(it, v) {
-  if (it.type === 'libre') return normNum(v) === Number(it.r);
-  if (it.type === 'choix') return Number(v) === it.r;
-  if (it.type === 'vraifaux') return v === it.r;
-  return false;
+const isEq = it => it.q.includes('_') || it.q.length <= 22;
+/* énoncé à l'écran : équation sur une ligne, ou phrase qui passe à la ligne */
+function qHTML(it, fill) {
+  if (isEq(it)) {
+    const n = String(it.q).replace('_', fill != null ? String(fill) + '00' : '0000').length;
+    const max = optList(it) || ['curseur', 'puzzle', 'echelle', 'nps'].includes(it.type) ? 4.6 : 6.5;
+    const em = Math.min(max, 95 / Math.max(n, 1));
+    return `<div class="eq" style="font-size:${em.toFixed(2)}em">${eqHTML(it.q, fill)}</div>`;
+  }
+  const L = it.q.length, em = L < 40 ? 3.6 : L < 80 ? 2.9 : 2.3;
+  return `<div class="qtext" style="font-size:${em}em">${eqHTML(it.q, fill)}</div>`;
 }
 
+/* ---------- réponses : contrôle et texte ---------- */
+function pinInside(it, v) {
+  if (!v) return false;
+  const dx = v.x - it.zone.x, dy = (v.y - it.zone.y) * it.ratio;
+  return Math.hypot(dx, dy) <= it.zone.r;
+}
+function check(it, v) {
+  switch (it.type) {
+    case 'libre':
+      if (it._kb !== 'text') return accepted(it).some(a => normNum(a) === normNum(v));
+      return accepted(it).some(a => normText(a) === normText(v) || (!isNaN(normNum(a)) && normNum(a) === normNum(v)));
+    case 'choix': return Number(v) === it.r;
+    case 'vraifaux': return v === it.r;
+    case 'curseur': return Math.abs(Number(v) - it.r) <= it.marge + 1e-9;
+    case 'puzzle': return Array.isArray(v) && v.length === it.items.length && v.every((x, i) => x === i);
+    case 'pin': return pinInside(it, v);
+  }
+  return false;
+}
+function answerText(it) {
+  switch (it.type) {
+    case 'libre': return accepted(it).join(' / ');
+    case 'choix': return it.choix[it.r];
+    case 'vraifaux': return it.r ? 'Vrai' : 'Faux';
+    case 'curseur': return numTxt(it.r) + (it.marge ? ` (± ${numTxt(it.marge)})` : '');
+    case 'puzzle': return it.items.join(' > ');
+    case 'pin': return 'zone indiquée';
+  }
+  return '';
+}
+function givenText(it, a) {
+  if (!a) return '—';
+  const v = a.v;
+  switch (it.type) {
+    case 'choix': case 'sondage': return it.choix[v] != null ? it.choix[v] : '?';
+    case 'vraifaux': return v ? 'Vrai' : 'Faux';
+    case 'curseur': case 'echelle': case 'nps': return numTxt(Number(v));
+    case 'puzzle': return Array.isArray(v) ? v.map(i => it.items[i]).join(' > ') : '?';
+    case 'pin': case 'placepin': return v ? `${Math.round(v.x * 100)} % ; ${Math.round(v.y * 100)} %` : '?';
+    case 'nuage': case 'brainstorm': return (a.list || []).join(' | ') + (a.votes ? ` (votes : ${a.votes.join(', ')})` : '');
+  }
+  return String(v);
+}
 let wakeLock = null;
 async function keepAwake() {
   try { if ('wakeLock' in navigator && document.visibilityState === 'visible') wakeLock = await navigator.wakeLock.request('screen'); } catch (e) {}
@@ -3115,7 +3348,7 @@ function fatal(msg) {
    ANIMATEUR
    ===================================================================== */
 const H = { client: null, link: null, topic: '', bi: 0, code: '', ready: false, net: false, err: '', players: new Map(), kicked: new Set(),
-  phase: 'lobby', idx: -1, dur: 20000, qStart: 0, qEnd: 0, timer: null };
+  phase: 'lobby', idx: -1, sub: '', ideas: [], dur: 20000, qStart: 0, qEnd: 0, timer: null };
 
 function joinURL() { return location.origin + location.pathname + '?p=' + H.code + (H.bi ? '&s=' + H.bi : ''); }
 
@@ -3201,6 +3434,16 @@ function uniqueName(n, pid) {
   return n + ' ' + i;
 }
 const validPid = s => typeof s === 'string' && /^[a-z0-9]{6,40}$/.test(s);
+/* images dont les téléphones ont besoin (pin's) */
+const phoneImgs = () => [...new Set(ITEMS.filter(it => it.type === 'pin' || it.type === 'placepin').map(it => it._img))];
+function sendImg(p, id) {
+  const data = IMGS[id]; if (!data) return;
+  p.imgSent = p.imgSent || {};
+  if (p.imgSent[id] && Date.now() - p.imgSent[id] < 8000) return;
+  p.imgSent[id] = Date.now();
+  const C = 30000, n = Math.ceil(data.length / C);
+  for (let k = 0; k < n; k++) send(p, { t: 'imgc', id, k, n, d: data.slice(k * C, (k + 1) * C) });
+}
 
 function hostData(d) {
   if (!d || typeof d !== 'object' || !validPid(d.from)) return;
@@ -3220,35 +3463,87 @@ function hostData(d) {
   } else if (d.t === 'answer' && p) {
     p.last = Date.now();
     hostAnswer(p, d);
+  } else if (d.t === 'img' && p) {
+    p.last = Date.now();
+    sendImg(p, String(d.id));
   }
 }
+
 /* ---------- mode test : participants fictifs ---------- */
 const BOT_NAMES = ['Amina', 'Bruno', 'Daniela', 'Elif', 'Fatou', 'Gabriel', 'Hugo', 'Inès', 'Jonas', 'Kenza', 'Luca', 'Mariana'];
+const BOT_WORDS = ['facile', 'utile', 'rapide', 'difficile', 'calcul', 'super', 'intéressant', 'fatigant', 'clair', 'amusant', 'stress', 'motivant'];
+const BOT_TEXTS = ['J’ai bien aimé travailler en groupe.', 'C’était un peu rapide pour moi.', 'Je voudrais plus d’exercices.', 'Très clair, merci.',
+  'Les grands nombres sont difficiles.', 'J’aime le calcul mental.', 'Il faudrait plus de temps.', 'Bien expliqué.', 'Je ne sais pas.'];
+const BOT_IDEAS = ['Faire plus de jeux', 'Travailler en binôme', 'Des exercices sur téléphone', 'Plus de pauses', 'Réviser avant le test',
+  'Utiliser la calculatrice', 'Des fiches résumées', 'Faire des exemples concrets'];
 function addBots() {
   BOT_NAMES.forEach((name, k) => setTimeout(() => {
     if (H.phase !== 'lobby') return;
     const pid = 'bot' + k + rid().slice(0, 6);
     H.players.set(pid, { pid, name, score: 0, answers: {}, last: Date.now(), online: true,
-      bot: { skill: 0.5 + Math.random() * 0.45, speed: 0.15 + Math.random() * 0.5 } });
+      bot: { skill: 0.5 + Math.random() * 0.45, speed: 0.15 + Math.random() * 0.5, mood: Math.random() } });
     refresh();
   }, 800 + k * 500 + Math.random() * 400));
 }
-function botWrong(it) {
-  if (it.type === 'choix') { const o = it.choix.map((_, i) => i).filter(i => i !== it.r); return o[Math.floor(Math.random() * o.length)]; }
-  if (it.type === 'vraifaux') return !it.r;
-  const r = Number(it.r), c = [r + 10, r - 10, r + 1, r - 1, r + 100, r - 100].filter(x => x > 0 && x !== r);
+function botWrongLibre(it) {
+  const a = accepted(it)[0];
+  if (it._kb === 'text') {
+    const s = a.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    if (s !== a) return s;
+    return a.length > 2 ? a.slice(0, -2) + a.slice(-1) + a.slice(-2, -1) : a + 'e';
+  }
+  const r = normNum(a), c = [r + 10, r - 10, r + 1, r - 1, r + 100, r - 100].filter(x => x > 0 && x !== r);
   const rev = Number(String(r).split('').reverse().join('')); if (rev > 0 && rev !== r) c.push(rev);
-  return String(c.length ? c[Math.floor(Math.random() * c.length)] : r + 1);
+  return String(c.length ? rnd(c) : r + 1);
+}
+function botValue(p, it) {
+  const ok = Math.random() < p.bot.skill - (it.type === 'libre' && it._kb !== 'text' ? Math.min(0.15, String(normNum(accepted(it)[0])).length * 0.03) : 0.05);
+  const snap = x => clamp(Math.round((x - it.min) / it.pas) * it.pas + it.min, it.min, it.max);
+  switch (it.type) {
+    case 'libre': return ok ? accepted(it)[0] : botWrongLibre(it);
+    case 'choix': return ok ? it.r : rnd(it.choix.map((_, i) => i).filter(i => i !== it.r));
+    case 'vraifaux': return ok ? it.r : !it.r;
+    case 'curseur': {
+      const span = it.max - it.min;
+      return ok ? snap(it.r + (Math.random() * 2 - 1) * it.marge) : snap(it.r + (Math.random() < 0.5 ? -1 : 1) * (it.marge + it.pas + Math.random() * span * 0.25));
+    }
+    case 'puzzle': {
+      const disp = it._ord.map((_, k) => k), inv = it.items.map((_, i) => it._ord.indexOf(i));
+      if (ok) return inv;
+      const w = inv.slice(); const i = Math.floor(Math.random() * (w.length - 1)); [w[i], w[i + 1]] = [w[i + 1], w[i]]; return w.length ? w : disp;
+    }
+    case 'pin': case 'placepin': {
+      if (it.type === 'pin' && ok) { const a = Math.random() * 6.28, d = Math.random() * it.zone.r * 0.9; return { x: it.zone.x + Math.cos(a) * d, y: it.zone.y + Math.sin(a) * d / it.ratio }; }
+      const cx = it.type === 'pin' ? clamp(it.zone.x + (Math.random() < 0.5 ? -1 : 1) * (it.zone.r + 0.05 + Math.random() * 0.2), 0.03, 0.97) : (p.bot.mood < 0.5 ? 0.3 : 0.68);
+      const cy = it.type === 'pin' ? clamp(it.zone.y + (Math.random() - 0.5) * 0.4, 0.03, 0.97) : (p.bot.mood < 0.5 ? 0.4 : 0.62);
+      return { x: clamp(cx + (Math.random() - 0.5) * 0.18, 0.02, 0.98), y: clamp(cy + (Math.random() - 0.5) * 0.18, 0.02, 0.98) };
+    }
+    case 'sondage': return Math.random() < 0.55 ? Math.floor(p.bot.mood * it.choix.length) : Math.floor(Math.random() * it.choix.length);
+    case 'echelle': case 'nps': {
+      const c = it.min + (0.35 + p.bot.mood * 0.6) * (it.max - it.min);
+      return clamp(Math.round(c + (Math.random() - 0.5) * (it.max - it.min) * 0.35), it.min, it.max);
+    }
+    case 'ouverte': return rnd(BOT_TEXTS);
+  }
+  return null;
 }
 function botsPlay() {
-  const it = ITEMS[H.idx], qi = H.idx, dur = H.dur;
-  const hard = it.type === 'libre' ? Math.min(0.15, String(Math.abs(Number(it.r))).length * 0.03) : 0.03;
+  const it = ITEMS[H.idx], qi = H.idx, dur = H.dur, sub = H.sub;
   H.players.forEach(p => {
     if (!p.bot || Math.random() < 0.05) return; // de temps en temps, pas de réponse
-    const f = Math.min(0.97, Math.max(0.08, p.bot.speed + (Math.random() - 0.4) * 0.3));
-    const ok = Math.random() < p.bot.skill - hard;
-    const v = ok ? (it.type === 'libre' ? String(it.r) : it.r) : botWrong(it);
-    setTimeout(() => { if (H.phase === 'question' && H.idx === qi) hostAnswer(p, { qi, v, ms: f * dur }); }, f * dur);
+    const f = Math.min(0.95, Math.max(0.08, p.bot.speed + (Math.random() - 0.4) * 0.3));
+    const fire = (ms, d) => setTimeout(() => { if (H.phase === 'question' && H.idx === qi && H.sub === sub) hostAnswer(p, Object.assign({ qi, ms }, d)); }, ms);
+    if (it.type === 'brainstorm' && sub === 'vote') {
+      const n = H.ideas.length; if (!n) return;
+      const pick = [...new Set([0, 1, 2, 3].map(() => Math.floor(Math.pow(Math.random(), 1.6) * n)))].slice(0, it.votes);
+      return fire(f * dur, { v: pick });
+    }
+    if (it.type === 'nuage' || it.type === 'brainstorm') {
+      const k = 1 + Math.floor(Math.random() * it.nb), pool = it.type === 'nuage' ? BOT_WORDS : BOT_IDEAS;
+      for (let j = 0; j < k; j++) fire(Math.min(0.95, f + j * 0.12) * dur, { v: pool[Math.floor(Math.pow(Math.random(), 1.5) * pool.length)], add: true, done: j === k - 1 });
+      return;
+    }
+    fire(f * dur, { v: botValue(p, it) });
   });
 }
 
@@ -3273,44 +3568,101 @@ function ranked() {
 function rankOf(p) { return ranked().indexOf(p) + 1; }
 function okCount(p) { return Object.values(p.answers).filter(a => a.ok).length; }
 
+/* ---------- état envoyé à chaque téléphone ---------- */
+function pubData(it) {
+  switch (it.type) {
+    case 'libre': return { kb: it._kb };
+    case 'choix': case 'vraifaux': case 'sondage': return { opts: optList(it).map(o => ({ label: o.label, k: o.k })) };
+    case 'curseur': return { min: it.min, max: it.max, pas: it.pas };
+    case 'puzzle': return { items: it._ord.map(i => it.items[i]) };
+    case 'pin': case 'placepin': return { img: it._img, ratio: it.ratio };
+    case 'echelle': case 'nps': return { min: it.min, max: it.max, gauche: it.gauche, droite: it.droite };
+    case 'nuage': return { nb: it.nb };
+    case 'brainstorm': return H.sub === 'vote' ? { ideas: H.ideas.map(x => x.text), votes: it.votes } : { nb: it.nb };
+  }
+  return {};
+}
+function ansDone(p) {
+  const it = ITEMS[H.idx], a = p.answers[H.idx];
+  if (!a) return false;
+  if (it.type === 'brainstorm' && H.sub === 'vote') return !!a.voteDone;
+  if (TYPES[it.type].multi) return !!a.done;
+  return true;
+}
 function sendState(p) {
   const it = ITEMS[H.idx];
   let m;
   switch (H.phase) {
-    case 'lobby': m = { ph: 'lobby' }; break;
+    case 'lobby': m = { ph: 'lobby', imgs: phoneImgs() }; break;
     case 'slide': m = { ph: 'slide', titre: [it.titre, it.nombre].filter(Boolean).join(' ') }; break;
-    case 'question':
-      if (p.answers[H.idx]) m = { ph: 'answered', mine: givenText(it, p.answers[H.idx].v) };
-      else m = { ph: 'question', qi: H.idx, num: qNum(H.idx), total: NQ, type: it.type, q: it.q, opts: optList(it),
-        kb: Number.isInteger(Number(it.r)) ? 'numeric' : 'decimal', dur: H.dur, rem: Math.max(0, H.qEnd - Date.now()) };
+    case 'question': {
+      const a = p.answers[H.idx];
+      if (ansDone(p)) m = { ph: 'answered', qi: H.idx, sub: H.sub, sc: scored(it), ok: !!(a && a.ok), mine: it.type === 'brainstorm' && H.sub === 'vote' ? 'Votes envoyés' : givenText(it, a) };
+      else m = Object.assign({ ph: 'question', qi: H.idx, sub: H.sub, num: qNum(H.idx), total: NQ, type: it.type, q: it.q, dur: H.dur,
+        rem: Math.max(0, H.qEnd - Date.now()), sent: a && a.list ? a.list : undefined }, pubData(it));
       break;
+    }
     case 'reveal': {
       const a = p.answers[H.idx];
-      m = { ph: 'reveal', answered: !!a, ok: !!(a && a.ok), pts: a ? a.pts : 0, bonne: answerText(it), score: p.score };
+      m = { ph: 'reveal', qi: H.idx, sub: H.sub, sc: scored(it), answered: !!a, ok: !!(a && a.ok), pts: a ? a.pts || 0 : 0,
+        bonne: scored(it) && it.type !== 'pin' ? answerText(it) : '', score: p.score, wait: it.type === 'brainstorm' && H.sub === '' && H.ideas.length > 0 };
       break;
     }
     case 'board': m = { ph: 'board', rank: rankOf(p), n: H.players.size, score: p.score }; break;
-    case 'final': m = { ph: 'final', rank: rankOf(p), n: H.players.size, score: p.score, ok: okCount(p), total: NQ }; break;
+    case 'final': m = { ph: 'final', rank: rankOf(p), n: H.players.size, score: p.score, ok: okCount(p), total: NS }; break;
   }
   m.t = 'state';
   send(p, m);
 }
 
+/* ---------- réception d'une réponse ---------- */
+function sanitize(it, v) {
+  const int = (x, a, b) => { const n = Number(x); return Number.isInteger(n) && n >= a && n <= b ? n : undefined; };
+  switch (it.type) {
+    case 'libre': { const s = String(v == null ? '' : v).slice(0, 40).trim(); return s || undefined; }
+    case 'choix': case 'sondage': return int(v, 0, it.choix.length - 1);
+    case 'vraifaux': return v === true || v === false ? v : undefined;
+    case 'curseur': { const n = Number(v); return isFinite(n) ? clamp(n, it.min, it.max) : undefined; }
+    case 'puzzle': {
+      if (!Array.isArray(v) || v.length !== it.items.length) return undefined;
+      const orig = v.map(k => it._ord[k]);
+      return new Set(orig).size === it.items.length && orig.every(x => x != null) ? orig : undefined;
+    }
+    case 'pin': case 'placepin': return v && isFinite(v.x) && isFinite(v.y) ? { x: clamp(+v.x, 0, 1), y: clamp(+v.y, 0, 1) } : undefined;
+    case 'echelle': case 'nps': return int(v, it.min, it.max);
+    case 'ouverte': { const s = String(v == null ? '' : v).replace(/\s+/g, ' ').trim().slice(0, 140); return s || undefined; }
+  }
+  return undefined;
+}
 function hostAnswer(p, d) {
-  if (H.phase !== 'question' || d.qi !== H.idx || p.answers[H.idx]) return;
+  if (H.phase !== 'question' || d.qi !== H.idx) return;
   const it = ITEMS[H.idx];
   const hostEl = Date.now() - H.qStart;
   if (hostEl > H.dur + 1500) return;
-  let ms = Number(d.ms); if (!isFinite(ms)) ms = hostEl;
-  ms = Math.min(Math.max(ms, hostEl - 2500, 0), hostEl, H.dur);
-  let v = d.v;
-  if (it.type === 'libre') v = String(v == null ? '' : v).slice(0, 16);
-  else if (it.type === 'choix') v = Number(v);
-  else v = v === true;
-  const ok = check(it, v);
-  const pts = ok ? Math.round(1000 * (1 - ms / H.dur / 2)) : 0;
-  p.answers[H.idx] = { v, ok, ms, pts };
-  p.score += pts;
+  let a = p.answers[H.idx];
+  if (it.type === 'brainstorm' && H.sub === 'vote') {
+    if (!a) a = p.answers[H.idx] = { list: [], done: true };
+    if (a.voteDone) return;
+    const v = [...new Set((Array.isArray(d.v) ? d.v : []).map(Number).filter(i => Number.isInteger(i) && i >= 0 && i < H.ideas.length))].slice(0, it.votes);
+    a.voteIdx = v; a.votes = v.map(i => H.ideas[i].text); a.voteDone = true;
+  } else if (TYPES[it.type].multi) {
+    if (!a) a = p.answers[H.idx] = { list: [], done: false };
+    if (a.done) return;
+    const txt = String(d.v == null ? '' : d.v).replace(/\s+/g, ' ').trim().slice(0, it.type === 'nuage' ? 25 : 60);
+    if (txt && a.list.length < it.nb) a.list.push(txt);
+    if (d.done || a.list.length >= it.nb) a.done = true;
+    a.v = a.list.join(' | ');
+    if (!a.done) { updateCount(); return; }
+  } else {
+    if (a) return;
+    const v = sanitize(it, d.v); if (v === undefined) return;
+    let ms = Number(d.ms); if (!isFinite(ms)) ms = hostEl;
+    ms = Math.min(Math.max(ms, hostEl - 2500, 0), hostEl, H.dur);
+    const ok = scored(it) && check(it, v);
+    const pts = ok ? Math.round(1000 * (1 - ms / H.dur / 2)) : 0;
+    p.answers[H.idx] = { v, ok, ms, pts };
+    p.score += pts;
+  }
   sendState(p);
   updateCount();
   if (allAnswered()) endQuestion();
@@ -3319,18 +3671,18 @@ function hostAnswer(p, d) {
 function present() { return [...H.players.values()].filter(p => p.online || p.answers[H.idx]); }
 function allAnswered() {
   const on = [...H.players.values()].filter(p => p.online);
-  return on.length > 0 && on.every(p => p.answers[H.idx]);
+  return on.length > 0 && on.every(ansDone);
 }
 
-/* déroulement */
+/* ---------- déroulement ---------- */
 function go(i) {
   if (i >= ITEMS.length) return finish();
-  H.idx = i;
+  H.idx = i; H.sub = ''; H.ideas = [];
   if (ITEMS[i].type === 'diapo') { H.phase = 'slide'; render(); broadcast(); }
-  else startQuestion();
+  else startQuestion('');
 }
-function startQuestion() {
-  H.phase = 'question';
+function startQuestion(sub) {
+  H.phase = 'question'; H.sub = sub;
   H.dur = durOf(H.idx);
   H.qStart = Date.now(); H.qEnd = H.qStart + H.dur;
   if (TEST) botsPlay();
@@ -3346,26 +3698,42 @@ function tick() {
   if (b) { b.style.transform = `scaleX(${Math.max(0, rem / H.dur)})`; b.classList.toggle('late', rem < 5000); }
   if (rem <= 0) endQuestion();
 }
+function collectIdeas() {
+  const map = new Map();
+  H.players.forEach(p => { const a = p.answers[H.idx]; (a && a.list || []).forEach(t => {
+    const k = normText(t); if (!k) return;
+    if (!map.has(k)) map.set(k, { text: t, n: 0 }); map.get(k).n++;
+  }); });
+  return [...map.values()].sort((a, b) => b.n - a.n || a.text.localeCompare(b.text, 'fr')).slice(0, 24);
+}
 function endQuestion() {
   if (H.phase !== 'question') return;
   clearInterval(H.timer);
+  const it = ITEMS[H.idx];
+  H.players.forEach(p => { const a = p.answers[H.idx]; if (a && a.list && !a.done) a.done = true; });
+  if (it.type === 'brainstorm' && H.sub === '') H.ideas = collectIdeas();
   H.phase = 'reveal'; render(); broadcast();
 }
-function nextItemIndex() { return H.idx + 1; }
 function isLastQuestion() { return !ITEMS.slice(H.idx + 1).some(it => it.type !== 'diapo'); }
 function finish() { clearInterval(H.timer); H.phase = 'final'; render(); broadcast(); }
-
+function afterReveal() {
+  const it = ITEMS[H.idx];
+  if (it.type === 'brainstorm' && H.sub === '' && H.ideas.length) return startQuestion('vote');
+  if (isLastQuestion()) return finish();
+  if (scored(it)) { H.phase = 'board'; render(); broadcast(); return; }
+  go(H.idx + 1);
+}
 function advance() {
   switch (H.phase) {
     case 'lobby': if (H.players.size) { H.startedAt = new Date(); go(0); } break;
-    case 'slide': go(nextItemIndex()); break;
+    case 'slide': go(H.idx + 1); break;
     case 'question': endQuestion(); break;
-    case 'reveal': if (isLastQuestion()) finish(); else { H.phase = 'board'; render(); broadcast(); } break;
-    case 'board': go(nextItemIndex()); break;
+    case 'reveal': afterReveal(); break;
+    case 'board': go(H.idx + 1); break;
   }
 }
 
-/* affichage animateur */
+/* ---------- affichage animateur ---------- */
 function refresh() {
   updateBar();
   if (H.phase === 'lobby') renderChips();
@@ -3375,15 +3743,14 @@ function updateBar() {
   const prog = $('#prog'), ppl = $('#ppl');
   if (!prog) return;
   const done = QIDX.filter(i => i <= H.idx).length;
-  prog.textContent = H.phase === 'lobby' || H.phase === 'final' ? '' :
-    H.phase === 'slide' ? '' : `Question ${done} / ${NQ}`;
+  prog.textContent = ['lobby', 'final', 'slide'].includes(H.phase) ? '' : `Question ${done} / ${NQ}`;
   const on = [...H.players.values()].filter(p => p.online).length;
   ppl.textContent = H.ready && !H.net ? 'Connexion au relais perdue, reconnexion…' : plural(on, 'participant connecté', 'participants connectés');
   ppl.className = H.ready && !H.net ? 'err' : '';
 }
 function updateCount() {
   const c = $('#cnt'); if (!c) return;
-  const n = present().length, a = present().filter(p => p.answers[H.idx]).length;
+  const n = present().length, a = present().filter(ansDone).length;
   c.innerHTML = `<b>${a}</b> / ${n} ${n > 1 ? 'réponses' : 'réponse'}`;
 }
 function renderChips() {
@@ -3411,14 +3778,6 @@ function renderChips() {
   }
   if (go) go.disabled = !ps.length;
 }
-
-/* équations longues : on réduit la taille pour qu'elles tiennent sur une ligne */
-function eqSize(it) {
-  const n = String(it.q).replace('_', it.type === 'vraifaux' ? '' : '0000').length;
-  const max = optList(it) ? 4.6 : 6.5;
-  const em = Math.min(max, 95 / Math.max(n, 1));
-  return em < max ? ` style="font-size:${em.toFixed(2)}em"` : '';
-}
 function qrSVG(text) {
   const qr = qrcode(0, 'M'); qr.addData(text); qr.make();
   const n = qr.getModuleCount(), m = 2; let d = '';
@@ -3426,10 +3785,168 @@ function qrSVG(text) {
   return `<svg viewBox="0 0 ${n + 2 * m} ${n + 2 * m}" shape-rendering="crispEdges" role="img" aria-label="Code QR pour rejoindre"><rect width="100%" height="100%" fill="#fff"/><path d="${d}" fill="#13233F"/></svg>`;
 }
 
+/* ---------- briques visuelles ---------- */
+function pinSVG(it, pins, zone, cls) {
+  const h = (100 * it.ratio).toFixed(2);
+  return `<svg class="pinimg ${cls || ''}" viewBox="0 0 100 ${h}" role="img" aria-label="Image">
+    <image href="${IMGS[it._img] || ''}" width="100" height="${h}" preserveAspectRatio="none"/>
+    ${zone ? `<circle class="zone" cx="${it.zone.x * 100}" cy="${it.zone.y * 100 * it.ratio}" r="${it.zone.r * 100}"/>` : ''}
+    ${pins.map(p => `<circle class="pin${p.ok === true ? ' ok' : p.ok === false ? ' ko' : ''}" cx="${(p.x * 100).toFixed(2)}" cy="${(p.y * 100 * it.ratio).toFixed(2)}" r="1.5"/>`).join('')}</svg>`;
+}
+function scaleRow(it, counts) {
+  const vals = []; for (let v = it.min; v <= it.max; v++) vals.push(v);
+  const max = counts ? Math.max(1, ...vals.map(v => counts[v] || 0)) : 1;
+  const col = v => it.type === 'nps' ? (v <= 6 ? 'npsd' : v <= 8 ? 'npsp' : 'npsg') : 'sc';
+  return `<div class="scalewrap"><div class="scale${counts ? ' res' : ''}">${vals.map(v => `<div class="sv">
+      ${counts ? `<div class="v">${counts[v] || 0}</div><div class="b ${col(v)}" style="height:${(counts[v] || 0) / max * 100}%"></div>` : ''}
+      <div class="sn ${col(v)}">${v}</div></div>`).join('')}</div>
+    <div class="slabs"><span>${esc(it.gauche)}</span><span>${esc(it.droite)}</span></div></div>`;
+}
+function bars(it, ans, withCheck) {
+  const opts = optList(it);
+  const counts = opts.map(o => ans.filter(a => a.v === o.value).length);
+  const max = Math.max(1, ...counts);
+  return `<div class="bars">${opts.map((o, i) => {
+    const good = withCheck && o.value === it.r;
+    return `<div class="col${withCheck && !good ? ' dim' : ''}"><div class="v">${counts[i]}</div><div class="b o${o.k}" style="height:${counts[i] / max * 70}%"></div>
+      <div class="lab o${o.k}">${shape(o.k)}${esc(o.label)}${good ? ' ✓' : ''}</div></div>`; }).join('')}</div>`;
+}
+function scoreLine(nOk, nTot) {
+  return `<div class="score-line"><b>${nOk}</b> ${nOk > 1 ? 'bonnes réponses' : 'bonne réponse'} sur ${nTot}</div>
+    <div class="split"><i class="ok" style="flex:${nOk}"></i><i class="ko" style="flex:${Math.max(0, nTot - nOk)}"></i></div>`;
+}
+function numberLine(it, ans) {
+  const W = 1000, X = v => 40 + (v - it.min) / (it.max - it.min) * (W - 80);
+  const bins = {};
+  ans.forEach(a => { const k = Math.round(X(a.v) / 14); (bins[k] = bins[k] || []).push(a); });
+  let dots = '';
+  Object.entries(bins).forEach(([k, arr]) => arr.forEach((a, j) => { dots += `<circle class="${a.ok ? 'ok' : 'ko'}" cx="${k * 14}" cy="${176 - j * 15}" r="6.5"/>`; }));
+  const lo = X(Math.max(it.min, it.r - it.marge)), hi = X(Math.min(it.max, it.r + it.marge));
+  return `<svg class="nline" viewBox="0 0 ${W} 240" role="img" aria-label="Réponses sur la droite graduée">
+    <rect class="band" x="${lo - 4}" y="20" width="${hi - lo + 8}" height="170" rx="6"/>
+    <line class="axis" x1="40" y1="190" x2="${W - 40}" y2="190"/>
+    <line class="tick" x1="40" y1="182" x2="40" y2="198"/><line class="tick" x1="${W - 40}" y1="182" x2="${W - 40}" y2="198"/>
+    <text x="40" y="226" text-anchor="middle">${numTxt(it.min)}</text><text x="${W - 40}" y="226" text-anchor="middle">${numTxt(it.max)}</text>
+    <line class="target" x1="${X(it.r)}" y1="14" x2="${X(it.r)}" y2="198"/>
+    <text class="tv" x="${X(it.r)}" y="226" text-anchor="middle">${numTxt(it.r)}</text>${dots}</svg>`;
+}
+function cloud(words) {
+  const map = new Map();
+  words.forEach(w => { const k = normText(w); if (!k) return; if (!map.has(k)) map.set(k, { t: w.trim(), n: 0 }); map.get(k).n++; });
+  const arr = [...map.values()].sort((a, b) => b.n - a.n).slice(0, 40);
+  if (!arr.length) return '<p class="hint big-hint">Aucune réponse.</p>';
+  const mx = arr[0].n, cols = ['var(--c1)', 'var(--c3)', 'var(--c0)', 'var(--ink)', 'var(--ok)'];
+  const order = []; arr.forEach((w, i) => (i % 2 ? order.push(w) : order.unshift(w)));
+  return `<div class="cloud">${order.map((w, i) => `<span style="font-size:${(1.3 + 3.6 * Math.sqrt(w.n / mx)).toFixed(2)}em;color:${cols[i % cols.length]}" title="${w.n}">${esc(w.t)}</span>`).join('')}</div>`;
+}
+function npsScore(vals) {
+  const n = vals.length; if (!n) return null;
+  const pr = vals.filter(v => v >= 9).length, de = vals.filter(v => v <= 6).length;
+  return { score: Math.round((pr - de) / n * 100), pr: Math.round(pr / n * 100), pa: Math.round((n - pr - de) / n * 100), de: Math.round(de / n * 100) };
+}
+function questionBody(it) {
+  switch (it.type) {
+    case 'choix': case 'vraifaux': case 'sondage':
+      return `<div class="opts">${optList(it).map(o => `<div class="opt o${o.k}">${shape(o.k)}<span>${esc(o.label)}</span></div>`).join('')}</div>`;
+    case 'curseur': return `<div class="bighint">Choisis une valeur entre <b>${numTxt(it.min)}</b> et <b>${numTxt(it.max)}</b></div>`;
+    case 'puzzle': return `<div class="pz">${it._ord.map((i, k) => `<div class="pzi o${k % 4}">${esc(it.items[i])}</div>`).join('')}</div><div class="bighint">Remets dans le bon ordre</div>`;
+    case 'pin': case 'placepin': return pinSVG(it, [], false);
+    case 'echelle': case 'nps': return scaleRow(it);
+    case 'nuage': return `<div class="bighint">Réponds sur ton téléphone${it.nb > 1 ? ` : jusqu’à ${it.nb} mots` : ' en un mot'}</div>`;
+    case 'ouverte': return '<div class="bighint">Réponds sur ton téléphone</div>';
+    case 'brainstorm': return H.sub === 'vote'
+      ? `<div class="bighint">Vote pour ${it.votes > 1 ? `tes ${it.votes} idées préférées` : 'ton idée préférée'}</div><div class="ideas">${H.ideas.map((x, i) => `<div class="idea"><b>${i + 1}</b>${esc(x.text)}</div>`).join('')}</div>`
+      : `<div class="bighint">Propose ${it.nb > 1 ? `jusqu’à ${it.nb} idées` : 'une idée'} sur ton téléphone</div>`;
+  }
+  return '';
+}
+function revealHTML(it) {
+  const ps = present(), list = ps.map(p => p.answers[H.idx]).filter(Boolean), ans = list.filter(a => a.v !== undefined);
+  const nOk = list.filter(a => a.ok).length, nTot = ps.length;
+  const fillable = it.q && it.q.includes('_');
+  const answerBadge = `<div class="answer">${esc(answerText(it))}</div>`;
+  switch (it.type) {
+    case 'libre': return (fillable ? qHTML(it, accepted(it)[0]) : qHTML(it) + answerBadge) + `<div class="result">${scoreLine(nOk, nTot)}</div>`;
+    case 'choix': return (fillable ? qHTML(it, it.choix[it.r]) : qHTML(it)) + bars(it, ans, true);
+    case 'vraifaux': return qHTML(it) + bars(it, ans, true);
+    case 'curseur': {
+      const range = it.marge ? `<div class="avis-n">Réponses acceptées : de <b>${numTxt(Math.max(it.min, it.r - it.marge))}</b> à <b>${numTxt(Math.min(it.max, it.r + it.marge))}</b></div>` : '';
+      return (fillable ? qHTML(it, numTxt(it.r)) : qHTML(it) + `<div class="answer sm">${esc(numTxt(it.r))}</div>`) + range + numberLine(it, ans) + `<div class="result tight">${scoreLine(nOk, nTot)}</div>`;
+    }
+    case 'puzzle': return qHTML(it) + `<ol class="pzok">${it.items.map((t, i) => `<li><b>${i + 1}</b>${esc(t)}</li>`).join('')}</ol><div class="result">${scoreLine(nOk, nTot)}</div>`;
+    case 'pin': return `<div class="qsmall">${esc(it.q)}</div>` + pinSVG(it, ans.map(a => Object.assign({ ok: a.ok }, a.v)), true, 'rev') + `<div class="result tight">${scoreLine(nOk, nTot)}</div>`;
+    case 'sondage': return `<div class="qsmall">${esc(it.q)}</div>` + bars(it, ans, false) + `<div class="avis-n">${plural(ans.length, 'réponse', 'réponses')}</div>`;
+    case 'echelle': case 'nps': {
+      const counts = {}; ans.forEach(a => { counts[a.v] = (counts[a.v] || 0) + 1; });
+      const vals = ans.map(a => a.v);
+      let stat = '';
+      if (it.type === 'echelle' && vals.length) stat = `Moyenne : <b>${dec1(vals.reduce((s, v) => s + v, 0) / vals.length)}</b> sur ${it.max}`;
+      if (it.type === 'nps' && vals.length) { const s = npsScore(vals); stat = `Score NPS : <b>${s.score > 0 ? '+' : ''}${s.score}</b> <span class="nps3"><i class="npsg"></i>promoteurs ${s.pr}\u00a0% <i class="npsp"></i>passifs ${s.pa}\u00a0% <i class="npsd"></i>détracteurs ${s.de}\u00a0%</span>`; }
+      return `<div class="qsmall">${esc(it.q)}</div>` + scaleRow(it, counts) + `<div class="avis-n">${plural(vals.length, 'réponse', 'réponses')}${stat ? '. ' + stat : ''}</div>`;
+    }
+    case 'placepin': return `<div class="qsmall">${esc(it.q)}</div>` + pinSVG(it, ans.map(a => a.v), false, 'rev') + `<div class="avis-n">${plural(ans.length, 'pin’s placé', 'pin’s placés')}</div>`;
+    case 'nuage': return `<div class="qsmall">${esc(it.q)}</div>` + cloud(list.flatMap(a => a.list || []));
+    case 'ouverte': {
+      const t = ans.map(a => a.v);
+      return `<div class="qsmall">${esc(it.q)}</div><div class="cards">${t.map(x => `<div class="ocard">${esc(x)}</div>`).join('') || '<p class="hint">Aucune réponse.</p>'}</div>`;
+    }
+    case 'brainstorm': {
+      if (H.sub === 'vote') {
+        const votes = H.ideas.map(() => 0);
+        list.forEach(a => (a.voteIdx || []).forEach(i => { votes[i]++; }));
+        const order = H.ideas.map((x, i) => ({ x, n: votes[i] })).sort((a, b) => b.n - a.n).slice(0, 8);
+        const mx = Math.max(1, ...order.map(o => o.n));
+        return `<div class="qsmall">${esc(it.q)}</div><div class="vrank">${order.map((o, i) => `<div class="vrow${i === 0 && o.n ? ' top' : ''}"><span class="vt">${esc(o.x.text)}</span>
+          <span class="vb"><i style="width:${o.n / mx * 100}%"></i></span><span class="vn">${plural(o.n, 'vote', 'votes')}</span></div>`).join('')}</div>`;
+      }
+      return `<div class="qsmall">${esc(it.q)}</div><div class="ideas wall">${H.ideas.map(x => `<div class="idea">${esc(x.text)}${x.n > 1 ? `<span class="cnt">×${x.n}</span>` : ''}</div>`).join('') || '<p class="hint">Aucune idée.</p>'}</div>`;
+    }
+  }
+  return '';
+}
+
+/* ---------- classement animé ---------- */
+function boardHTML() {
+  const top = ranked().slice(0, 5);
+  const gain = p => (p.answers[H.idx] && p.answers[H.idx].pts) || 0;
+  const before = [...H.players.values()].map(p => ({ p, s: p.score - gain(p) })).sort((a, b) => b.s - a.s);
+  const prevRank = new Map(before.map((x, i) => [x.p, i]));
+  return `<div class="inner"><div class="board" id="board"><h1>Classement</h1>${top.map((p, i) =>
+    `<div class="row" data-final="${i}" data-start="${prevRank.get(p)}" data-from="${p.score - gain(p)}" data-to="${p.score}">
+      <span class="rk">${prevRank.get(p) + 1}</span><span class="nm">${esc(p.name)}</span><span class="pt">${fmt(p.score - gain(p))}</span>
+      <span class="gain">${gain(p) ? '+' + fmt(gain(p)) : ''}</span></div>`).join('')}</div></div>`;
+}
+function animateBoard() {
+  const rows = [...document.querySelectorAll('#board .row')];
+  if (!rows.length) return;
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const final = () => rows.forEach(r => { r.style.transform = ''; r.querySelector('.rk').textContent = Number(r.dataset.final) + 1; r.querySelector('.pt').textContent = fmt(Number(r.dataset.to)); r.classList.add('shown'); });
+  if (reduce) return final();
+  const h = rows.length > 1 ? rows[1].offsetTop - rows[0].offsetTop : rows[0].offsetHeight;
+  const startIdx = [...rows].sort((a, b) => a.dataset.start - b.dataset.start);
+  rows.forEach(r => { r.style.transition = 'none'; r.style.transform = `translateY(${(startIdx.indexOf(r) - Number(r.dataset.final)) * h}px)`; });
+  setTimeout(() => {
+    const t0 = performance.now(), D = 1200;
+    rows.forEach(r => r.classList.add('shown'));
+    const step = now => {
+      if (!rows[0].isConnected) return;
+      const k = Math.min(1, (now - t0) / D), e = 1 - Math.pow(1 - k, 3);
+      rows.forEach(r => { const a = Number(r.dataset.from), b = Number(r.dataset.to); r.querySelector('.pt').textContent = fmt(a + (b - a) * e); });
+      if (k < 1) requestAnimationFrame(step);
+      else setTimeout(() => {
+        if (!rows[0].isConnected) return;
+        rows.forEach(r => { r.style.transition = 'transform .9s cubic-bezier(.3,.8,.25,1)'; r.style.transform = ''; r.querySelector('.rk').textContent = Number(r.dataset.final) + 1; });
+      }, 450);
+    };
+    requestAnimationFrame(step);
+  }, 700);
+}
+
 function render() {
   const stage = $('#stage'), foot = $('#foot');
   stage.innerHTML = ''; foot.innerHTML = '';
   const it = ITEMS[H.idx];
+  const btn = (label, ghost) => { foot.innerHTML = `<span class="sp"></span><button class="btn${ghost ? ' ghost' : ''}" id="nx">${label}</button>`; $('#nx').onclick = advance; };
   if (H.phase === 'lobby') {
     stage.innerHTML = `<div class="inner lobby">
       <div class="qr">${H.ready ? qrSVG(joinURL()) : 'Préparation…'}</div>
@@ -3449,76 +3966,54 @@ function render() {
     if ($('#retry')) $('#retry').onclick = () => { H.err = ''; render(); tryBroker(0); };
     renderChips();
   } else if (H.phase === 'slide') {
-    stage.innerHTML = `<div class="inner slide">
+    stage.innerHTML = `<div class="inner slide${it.img ? ' has-img' : ''}">
       ${it.titre ? `<div class="t">${esc(it.titre)}</div>` : ''}
       ${it.nombre ? `<div class="n">${esc(it.nombre)}</div>` : ''}
+      ${it.texte ? `<div class="tx">${esc(it.texte)}</div>` : ''}
+      ${it.img ? `<img class="simg" src="${IMGS[it._img]}" alt="">` : ''}
       ${it.exemple ? `<div class="eq">${eqHTML(it.exemple, it.exempleR)}</div>` : ''}</div>`;
-    foot.innerHTML = `<span class="sp"></span><button class="btn" id="nx">Commencer</button>`;
-    $('#nx').onclick = advance;
+    btn('Commencer');
   } else if (H.phase === 'question') {
-    const opts = optList(it);
+    const fam = TYPES[it.type].fam;
+    const tag = it.type === 'vraifaux' ? 'Vrai ou faux ?' : it.type === 'brainstorm' ? (H.sub === 'vote' ? 'Brainstorming : vote' : 'Brainstorming : idées') : fam === 'avis' ? TYPES[it.type].label : '';
+    const compact = ['pin', 'placepin'].includes(it.type) || (it.type === 'brainstorm' && H.sub === 'vote');
     stage.innerHTML = `<div class="tbar" id="tbar"></div>
       <div class="qhead"><div class="clock" id="clock"></div><div class="count" id="cnt"></div></div>
-      <div class="inner asking${opts ? ' with-opts' : ''}">
-        ${it.type === 'vraifaux' ? '<div class="qtype">Vrai ou faux ?</div>' : ''}
-        <div class="eq"${eqSize(it)}>${eqHTML(it.q)}</div>
-        ${opts ? `<div class="opts">${opts.map(o => `<div class="opt o${o.k}">${shape(o.k)}<span>${esc(o.label)}</span></div>`).join('')}</div>` : ''}
+      <div class="inner asking t-${it.type}${optList(it) ? ' with-opts' : ''}">
+        ${tag ? `<div class="qtype">${esc(tag)}</div>` : ''}
+        ${compact ? `<div class="qsmall">${esc(it.q)}</div>` : qHTML(it)}
+        ${questionBody(it)}
       </div>`;
-    foot.innerHTML = `<span class="sp"></span><button class="btn ghost" id="nx">Arrêter le chrono</button>`;
-    $('#nx').onclick = advance;
+    btn('Arrêter le chrono', true);
     updateCount();
   } else if (H.phase === 'reveal') {
-    const ps = present(), ans = ps.filter(p => p.answers[H.idx]);
-    const nOk = ans.filter(p => p.answers[H.idx].ok).length, nTot = ps.length;
-    let res = '';
-    const opts = optList(it);
-    if (it.type === 'libre') {
-      const wrong = {};
-      ans.filter(p => !p.answers[H.idx].ok).forEach(p => { const v = p.answers[H.idx].v.trim() || '(vide)'; wrong[v] = (wrong[v] || 0) + 1; });
-      const top = Object.entries(wrong).sort((a, b) => b[1] - a[1]).slice(0, 5);
-      res = `<div class="score-line"><b>${nOk}</b> ${nOk > 1 ? 'bonnes réponses' : 'bonne réponse'} sur ${nTot}</div>
-        <div class="split"><i class="ok" style="flex:${nOk}"></i><i class="ko" style="flex:${nTot - nOk}"></i></div>
-        ${top.length ? `<div class="wrong">Réponses fausses : ${top.map(([v, c]) => `<span>${esc(v)}${c > 1 ? ` ×${c}` : ''}</span>`).join('')}</div>` : ''}`;
-    } else {
-      const counts = opts.map(o => ans.filter(p => p.answers[H.idx].v === o.value).length);
-      const max = Math.max(1, ...counts);
-      res = `<div class="bars">${opts.map((o, i) => `<div class="col${o.value === it.r ? '' : ' dim'}">
-          <div class="v">${counts[i]}</div><div class="b o${o.k}" style="height:${counts[i] / max * 70}%"></div>
-          <div class="lab o${o.k}">${shape(o.k)}${esc(o.label)}${o.value === it.r ? ' ✓' : ''}</div></div>`).join('')}</div>
-        <div class="score-line" style="margin-top:1em"><b>${nOk}</b> ${nOk > 1 ? 'bonnes réponses' : 'bonne réponse'} sur ${nTot}</div>`;
-    }
-    const eq = it.type === 'vraifaux' ? `<div class="eq"${eqSize(it)}>${eqHTML(it.q)}</div>`
-      : `<div class="eq"${eqSize(it)}>${eqHTML(it.q, answerText(it))}</div>`;
-    stage.innerHTML = `<div class="inner${opts ? ' with-opts' : ''}">${eq}<div class="result">${res}</div></div>`;
-    foot.innerHTML = `<span class="sp"></span><button class="btn" id="nx">${isLastQuestion() ? 'Voir les résultats' : 'Voir le classement'}</button>`;
-    $('#nx').onclick = advance;
+    stage.innerHTML = `<div class="inner reveal t-${it.type}${optList(it) ? ' with-opts' : ''}">${revealHTML(it)}</div>`;
+    const label = it.type === 'brainstorm' && H.sub === '' && H.ideas.length ? 'Passer au vote'
+      : isLastQuestion() ? 'Voir les résultats' : scored(it) ? 'Voir le classement' : 'Suivant';
+    btn(label);
   } else if (H.phase === 'board') {
-    const top = ranked().slice(0, 5);
-    stage.innerHTML = `<div class="inner"><div class="board"><h1>Classement</h1>
-      ${top.map((p, i) => { const g = p.answers[H.idx] ? p.answers[H.idx].pts : 0;
-        return `<div class="row"><span class="rk">${i + 1}</span><span class="nm">${esc(p.name)}</span><span class="pt">${fmt(p.score)}</span><span class="gain">${g ? '+' + fmt(g) : ''}</span></div>`; }).join('')}
-      </div></div>`;
+    stage.innerHTML = boardHTML();
     const nxt = ITEMS[H.idx + 1];
-    foot.innerHTML = `<span class="sp"></span><button class="btn" id="nx">${nxt && nxt.type === 'diapo' ? 'Suivant' : 'Question suivante'}</button>`;
-    $('#nx').onclick = advance;
+    btn(nxt && nxt.type === 'diapo' ? 'Suivant' : 'Question suivante');
+    requestAnimationFrame(animateBoard);
   } else if (H.phase === 'final') {
     const r = ranked();
     const pod = [[r[1], 2], [r[0], 1], [r[2], 3]].filter(x => x[0]);
-    stage.innerHTML = `<div class="inner final">
+    stage.innerHTML = NS ? `<div class="inner final">
       <h1>Bravo à toutes et à tous !</h1>
       <div class="podium">${pod.map(([p, k]) => `<div class="pod p${k}"><div class="nm">${esc(p.name)}</div><div class="pt">${fmt(p.score)} points</div><div class="blk">${k}</div></div>`).join('')}</div>
-      </div>`;
+      </div>` : '<div class="inner final"><h1>Merci pour vos réponses !</h1></div>';
     foot.innerHTML = `<span class="hint">Rapport, PDF et CSV : menu en haut à gauche.</span><span class="sp"></span><button class="btn ghost" id="again">Nouvelle partie</button>`;
     $('#again').onclick = () => { if (confirm('Les résultats de cette partie seront effacés. Télécharge le PDF ou le CSV avant si tu veux les garder. Continuer ?')) { H.phase = 'lobby'; location.reload(); } };
   }
   updateBar();
 }
 
-/* rapport */
+/* ---------- rapport ---------- */
 function now() { const d = H.startedAt || new Date(); return { d, txt: `${pad(d.getDate())}.${pad(d.getMonth() + 1)}.${d.getFullYear()}, ${pad(d.getHours())}:${pad(d.getMinutes())}` }; }
 const dateTag = () => { const d = now().d; return `${pad(d.getDate())}.${pad(d.getMonth() + 1)}.${d.getFullYear()}`; };
 const slug = t => String(t).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40) || 'quiz';
-const TYPE_TXT = { libre: 'Réponse libre', choix: 'Choix multiple', vraifaux: 'Vrai ou faux' };
+const qPlain = it => String(it.q || '').replace(/_/g, '…');
 function saveBlob(blob, name) {
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob); a.download = name;
@@ -3534,43 +4029,77 @@ function showReport() {
   $('.host').appendChild(o);
 }
 function hideReport() { const o = $('#ov'); if (o) o.remove(); }
+
+/* synthèse d'une question d'avis */
+function avisSummary(i) {
+  const it = ITEMS[i], list = [...H.players.values()].map(p => p.answers[i]).filter(Boolean), vals = list.map(a => a.v).filter(v => v !== undefined);
+  const top = (arr, n) => { const m = new Map(); arr.forEach(t => { const k = normText(t); if (!k) return; if (!m.has(k)) m.set(k, { t, n: 0 }); m.get(k).n++; });
+    return [...m.values()].sort((a, b) => b.n - a.n).slice(0, n).map(x => `${x.t} (${x.n})`).join(', '); };
+  switch (it.type) {
+    case 'sondage': return it.choix.map((c, k) => `${c} : ${vals.filter(v => v === k).length}`).join(' ; ');
+    case 'echelle': return vals.length ? `Moyenne ${dec1(vals.reduce((s, v) => s + v, 0) / vals.length)} sur ${it.max} (${plural(vals.length, 'réponse', 'réponses')})` : 'Aucune réponse';
+    case 'nps': { const s = npsScore(vals); return s ? `Score NPS ${s.score > 0 ? '+' : ''}${s.score} (promoteurs ${s.pr} %, passifs ${s.pa} %, détracteurs ${s.de} %)` : 'Aucune réponse'; }
+    case 'placepin': return plural(vals.length, 'pin’s placé', 'pin’s placés');
+    case 'nuage': return top(list.flatMap(a => a.list || []), 12) || 'Aucune réponse';
+    case 'ouverte': return plural(vals.length, 'réponse', 'réponses') + ' (détail ci-dessous)';
+    case 'brainstorm': {
+      const v = new Map(); list.forEach(a => (a.votes || []).forEach(t => v.set(t, (v.get(t) || 0) + 1)));
+      const ideas = top(list.flatMap(a => a.list || []), 50).split(', ').filter(Boolean).length;
+      const best = [...v.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5).map(([t, n]) => `${t} (${plural(n, 'vote', 'votes')})`).join(', ');
+      return `${plural(ideas, 'idée', 'idées')}${best ? '. Plus votées : ' + best : ''}`;
+    }
+  }
+  return '';
+}
+const AVIS = () => QIDX.filter(i => !scored(ITEMS[i]));
+const OPEN = () => QIDX.filter(i => ['ouverte', 'nuage', 'brainstorm'].includes(ITEMS[i].type));
+
 function reportHTML() {
   const ps = ranked(), n = ps.length;
   const avgOk = p => { const a = Object.values(p.answers).filter(x => x.ok); return a.length ? secs(a.reduce((s, x) => s + x.ms, 0) / a.length) : '—'; };
-  const qrows = QIDX.map(i => {
-    const it = ITEMS[i], a = ps.map(p => p.answers[i]).filter(Boolean), ok = a.filter(x => x.ok).length;
-    const pct = n ? Math.round(ok / n * 100) : 0;
-    return `<tr><td>${qNum(i)}</td><td>${esc(it.q.replace('_', '…'))}</td><td>${esc(answerText(it))}</td>
-      <td class="r">${ok} / ${n}</td><td class="r">${pct}\u00a0%</td><td class="r">${a.length ? secs(a.reduce((s, x) => s + x.ms, 0) / a.length) : '—'}</td></tr>`;
-  }).join('');
-  const grid = ps.map(p => `<tr><td>${esc(p.name)}</td>${QIDX.map(i => { const a = p.answers[i];
-    return a ? `<td class="${a.ok ? 'ok' : 'ko'}">${esc(givenText(ITEMS[i], a.v))}</td>` : '<td class="na">—</td>'; }).join('')}</tr>`).join('');
-  return `<section class="report" id="report">
-    <h2>${esc(TITRE)}</h2>
-    <p class="meta">Partie du ${now().txt}. ${plural(n, 'participant', 'participants')}, ${plural(NQ, 'question', 'questions')}, ${durTxt()}.</p>
-    <h3>Classement</h3>
-    <div class="wrap"><table><thead><tr><th>Rang</th><th>Nom</th><th class="r">Points</th><th class="r">Bonnes réponses</th><th class="r">Temps moyen (réponses justes)</th></tr></thead>
-    <tbody>${ps.map((p, i) => `<tr><td>${i + 1}</td><td>${esc(p.name)}</td><td class="r">${fmt(p.score)}</td><td class="r">${okCount(p)} / ${NQ}</td><td class="r">${avgOk(p)}</td></tr>`).join('')}</tbody></table></div>
-    <h3>Réussite par question</h3>
-    <div class="wrap"><table><thead><tr><th>N°</th><th>Question</th><th>Réponse attendue</th><th class="r">Justes</th><th class="r">Réussite</th><th class="r">Temps moyen</th></tr></thead><tbody>${qrows}</tbody></table></div>
-    <h3>Réponses données</h3>
-    <div class="wrap"><table class="grid"><thead><tr><th>Nom</th>${QIDX.map(i => `<th>${qNum(i)}</th>`).join('')}</tr></thead><tbody>${grid}</tbody></table></div>
-  </section>`;
+  let html = `<section class="report" id="report"><h2>${esc(TITRE)}</h2>
+    <p class="meta">Partie du ${now().txt}. ${plural(n, 'participant', 'participants')}, ${plural(NQ, 'question', 'questions')}, ${durTxt()}.</p>`;
+  if (NS) {
+    const qrows = SIDX.map(i => {
+      const it = ITEMS[i], a = ps.map(p => p.answers[i]).filter(Boolean), ok = a.filter(x => x.ok).length;
+      return `<tr><td>${qNum(i)}</td><td>${esc(qPlain(it))}</td><td>${esc(TYPES[it.type].label)}</td><td>${esc(answerText(it))}</td>
+        <td class="r">${ok} / ${n}</td><td class="r">${n ? Math.round(ok / n * 100) : 0}\u00a0%</td><td class="r">${a.length ? secs(a.reduce((s, x) => s + x.ms, 0) / a.length) : '—'}</td></tr>`;
+    }).join('');
+    const grid = ps.map(p => `<tr><td>${esc(p.name)}</td>${SIDX.map(i => { const a = p.answers[i];
+      return a ? `<td class="${a.ok ? 'ok' : 'ko'}">${esc(givenText(ITEMS[i], a))}</td>` : '<td class="na">—</td>'; }).join('')}</tr>`).join('');
+    html += `<h3>Classement</h3>
+      <div class="wrap"><table><thead><tr><th>Rang</th><th>Nom</th><th class="r">Points</th><th class="r">Bonnes réponses</th><th class="r">Temps moyen (réponses justes)</th></tr></thead>
+      <tbody>${ps.map((p, i) => `<tr><td>${i + 1}</td><td>${esc(p.name)}</td><td class="r">${fmt(p.score)}</td><td class="r">${okCount(p)} / ${NS}</td><td class="r">${avgOk(p)}</td></tr>`).join('')}</tbody></table></div>
+      <h3>Réussite par question</h3>
+      <div class="wrap"><table><thead><tr><th>N°</th><th>Question</th><th>Type</th><th>Réponse attendue</th><th class="r">Justes</th><th class="r">Réussite</th><th class="r">Temps moyen</th></tr></thead><tbody>${qrows}</tbody></table></div>
+      <h3>Réponses données</h3>
+      <div class="wrap"><table class="grid"><thead><tr><th>Nom</th>${SIDX.map(i => `<th>${qNum(i)}</th>`).join('')}</tr></thead><tbody>${grid}</tbody></table></div>`;
+  }
+  if (AVIS().length) {
+    html += `<h3>Avis collectés</h3><div class="wrap"><table><thead><tr><th>N°</th><th>Question</th><th>Type</th><th>Synthèse</th></tr></thead><tbody>
+      ${AVIS().map(i => `<tr><td>${qNum(i)}</td><td>${esc(qPlain(ITEMS[i]))}</td><td>${esc(TYPES[ITEMS[i].type].label)}</td><td class="wraptxt">${esc(avisSummary(i))}</td></tr>`).join('')}</tbody></table></div>`;
+    OPEN().forEach(i => {
+      const rows = ps.map(p => [p.name, givenText(ITEMS[i], p.answers[i])]).filter(r => r[1] !== '—');
+      html += `<h3>Question ${qNum(i)} : ${esc(qPlain(ITEMS[i]))}</h3><div class="wrap"><table><tbody>${rows.map(r => `<tr><td>${esc(r[0])}</td><td class="wraptxt">${esc(r[1])}</td></tr>`).join('') || '<tr><td>Aucune réponse.</td></tr>'}</tbody></table></div>`;
+    });
+  }
+  return html + '</section>';
 }
 function downloadCSV() {
   const q = v => { const t = String(v); return /[;"\n\r]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t; };
   const ps = ranked(), base = [dateTag(), now().txt.split(', ')[1], TITRE, H.code, ps.length];
   const rows = [['Date', 'Heure', 'Quiz', 'Code partie', 'Participants',
     'Rang', 'Nom', 'Points total', 'Bonnes réponses', 'Questions répondues',
-    'N° question', 'Type', 'Question', 'Temps accordé (s)', 'Réponse attendue', 'Réponse donnée', 'Résultat', 'Temps (s)', 'Points', 'Réussite de la classe (%)']];
+    'N° question', 'Famille', 'Type', 'Question', 'Temps accordé (s)', 'Réponse attendue', 'Réponse donnée', 'Résultat', 'Temps (s)', 'Points', 'Réussite de la classe (%)']];
   const pct = {};
-  QIDX.forEach(i => { pct[i] = ps.length ? Math.round(ps.filter(p => p.answers[i] && p.answers[i].ok).length / ps.length * 100) : 0; });
+  SIDX.forEach(i => { pct[i] = ps.length ? Math.round(ps.filter(p => p.answers[i] && p.answers[i].ok).length / ps.length * 100) : 0; });
   ps.forEach((p, r) => {
-    const answered = Object.keys(p.answers).length;
+    const answered = QIDX.filter(i => p.answers[i]).length;
     QIDX.forEach(i => {
-      const it = ITEMS[i], a = p.answers[i];
-      rows.push(base.concat([r + 1, p.name, p.score, okCount(p), answered, qNum(i), TYPE_TXT[it.type], it.q.replace('_', '…'), durOf(i) / 1000, answerText(it),
-        a ? givenText(it, a.v) : '', a ? (a.ok ? 'juste' : 'faux') : 'sans réponse', a ? (a.ms / 1000).toFixed(1) : '', a ? a.pts : 0, pct[i]]));
+      const it = ITEMS[i], a = p.answers[i], sc = scored(it);
+      rows.push(base.concat([r + 1, p.name, p.score, okCount(p), answered, qNum(i), sc ? 'Tester les connaissances' : 'Collecter des avis', TYPES[it.type].label, qPlain(it), durOf(i) / 1000,
+        sc ? answerText(it) : '', a ? givenText(it, a) : '', a ? (sc ? (a.ok ? 'juste' : 'faux') : 'avis') : 'sans réponse',
+        a && sc ? (a.ms / 1000).toFixed(1) : '', a && sc ? a.pts : 0, sc ? pct[i] : '']));
     });
   });
   const csv = '\ufeff' + rows.map(r => r.map(q).join(';')).join('\r\n');
@@ -3583,60 +4112,76 @@ function downloadPDF() {
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
   const M = 15, W = 210 - 2 * M, ink = [19, 35, 63], muted = [90, 106, 128], line = [211, 221, 233];
   const ps = ranked(), n = ps.length;
-  const avg = arr => arr.length ? secs(arr.reduce((t, x) => t + x.ms, 0) / arr.length).replace('\u00a0', ' ') : '—';
+  const WIN = '€‚ƒ„…†‡ˆ‰Š‹ŒŽ‘’“”•–—˜™š›œžŸ';
+  const MAP = { '≈': '~', '≠': '!=', '≤': '<=', '≥': '>=', '−': '-', '√': 'racine de ', 'π': 'pi', '∞': 'infini', '→': '->', '←': '<-', '⇒': '=>', '\u202f': ' ', '\u00a0': ' ' };
+  const clean = s => String(s).replace(/./gsu, c => MAP[c] != null ? MAP[c] : (c.charCodeAt(0) < 256 || WIN.includes(c) ? c : '?'));
+  const T = rows => rows.map(r => r.map(x => clean(x)));
+  const avg = arr => arr.length ? clean(secs(arr.reduce((t, x) => t + x.ms, 0) / arr.length)) : '—';
   const base = { theme: 'plain', margin: { left: M, right: M, top: M + 4, bottom: M + 4 }, styles: { font: 'helvetica', fontSize: 9, textColor: ink, cellPadding: 1.6, lineColor: line, lineWidth: { bottom: 0.2 } },
     headStyles: { fontStyle: 'bold', textColor: muted, lineWidth: { bottom: 0.4 } } };
   let y = M;
-  doc.setFont('helvetica', 'bold'); doc.setFontSize(16); doc.setTextColor(...ink); doc.text(TITRE, M, y + 5);
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(16); doc.setTextColor(...ink); doc.text(clean(TITRE), M, y + 5);
   doc.setFont('helvetica', 'normal'); doc.setFontSize(9.5); doc.setTextColor(...muted);
-  doc.text(`Partie du ${now().txt}. ${plural(n, 'participant', 'participants')}, ${plural(NQ, 'question', 'questions')}, ${durTxt().replace('\u00a0', ' ')}.`, M, y + 11);
-  const h3 = (t, yy) => { doc.setFont('helvetica', 'bold'); doc.setFontSize(11); doc.setTextColor(...ink); doc.text(t, M, yy); };
-  h3('Classement', y + 21);
-  doc.autoTable(Object.assign({}, base, { startY: y + 24,
-    head: [['Rang', 'Nom', 'Points', 'Bonnes réponses', 'Temps moyen (justes)']],
-    body: ps.map((p, i) => [i + 1, p.name, fmt(p.score), `${okCount(p)} / ${NQ}`, avg(Object.values(p.answers).filter(a => a.ok))]),
-    columnStyles: { 0: { cellWidth: 14 }, 2: { halign: 'right' }, 3: { halign: 'right' }, 4: { halign: 'right' } },
-    didParseCell: d => { if (d.section === 'head' && d.column.index >= 2) d.cell.styles.halign = 'right'; } }));
-  y = doc.lastAutoTable.finalY + 10; if (y > 260) { doc.addPage(); y = M + 6; }
-  h3('Réussite par question', y);
-  doc.autoTable(Object.assign({}, base, { startY: y + 3,
-    head: [['N°', 'Question', 'Réponse attendue', 'Justes', 'Réussite', 'Temps moyen']],
-    body: QIDX.map(i => { const it = ITEMS[i], a = ps.map(p => p.answers[i]).filter(Boolean), ok = a.filter(x => x.ok).length;
-      return [qNum(i), it.q.replace('_', '…'), answerText(it), `${ok} / ${n}`, `${n ? Math.round(ok / n * 100) : 0} %`, avg(a)]; }),
-    columnStyles: { 0: { cellWidth: 10 }, 3: { halign: 'right' }, 4: { halign: 'right' }, 5: { halign: 'right' } },
-    didParseCell: d => { if (d.section === 'head' && d.column.index >= 3) d.cell.styles.halign = 'right'; } }));
-  y = doc.lastAutoTable.finalY + 10; if (y > 250) { doc.addPage(); y = M + 6; }
-  h3('Réponses données', y);
-  doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(...muted);
-  doc.text('Vert : juste. Rouge : faux. Tiret : pas de réponse.', M + 42, y);
-  const nameW = 30, colW = (W - nameW) / NQ;
-  const cs = { 0: { cellWidth: nameW, halign: 'left' } }; QIDX.forEach((_, k) => { cs[k + 1] = { cellWidth: colW, halign: 'center' }; });
-  doc.autoTable(Object.assign({}, base, { startY: y + 3,
-    styles: Object.assign({}, base.styles, { fontSize: NQ > 16 ? 6.5 : 8, cellPadding: { top: 1.4, bottom: 1.4, left: 0.4, right: 0.4 }, overflow: 'ellipsize' }),
-    head: [['Nom'].concat(QIDX.map(i => String(qNum(i))))],
-    body: ps.map(p => [p.name].concat(QIDX.map(i => { const a = p.answers[i]; return a ? givenText(ITEMS[i], a.v) : '—'; }))),
-    columnStyles: cs,
-    didParseCell: d => {
-      if (d.section === 'head' && d.column.index > 0) d.cell.styles.halign = 'center';
-      if (d.section !== 'body' || d.column.index === 0) return;
-      const a = ps[d.row.index].answers[QIDX[d.column.index - 1]];
-      if (a) { d.cell.styles.fillColor = a.ok ? [226, 244, 234] : [251, 228, 228]; d.cell.styles.textColor = a.ok ? [13, 106, 63] : [166, 43, 43]; }
-      else d.cell.styles.textColor = muted;
-    } }));
+  doc.text(clean(`Partie du ${now().txt}. ${plural(n, 'participant', 'participants')}, ${plural(NQ, 'question', 'questions')}, ${durTxt()}.`), M, y + 11);
+  const h3 = (t, yy) => { doc.setFont('helvetica', 'bold'); doc.setFontSize(11); doc.setTextColor(...ink); doc.text(clean(t), M, yy); };
+  const next = need => { let yy = doc.lastAutoTable ? doc.lastAutoTable.finalY + 10 : y; if (yy > 297 - M - need) { doc.addPage(); yy = M + 6; } return yy; };
+  y += 21;
+  if (NS) {
+    h3('Classement', y);
+    doc.autoTable(Object.assign({}, base, { startY: y + 3,
+      head: [['Rang', 'Nom', 'Points', 'Bonnes réponses', 'Temps moyen (justes)']],
+      body: T(ps.map((p, i) => [i + 1, p.name, fmt(p.score), `${okCount(p)} / ${NS}`, avg(Object.values(p.answers).filter(a => a.ok))])),
+      columnStyles: { 0: { cellWidth: 14 }, 2: { halign: 'right' }, 3: { halign: 'right' }, 4: { halign: 'right' } },
+      didParseCell: d => { if (d.section === 'head' && d.column.index >= 2) d.cell.styles.halign = 'right'; } }));
+    y = next(40); h3('Réussite par question', y);
+    doc.autoTable(Object.assign({}, base, { startY: y + 3,
+      head: [['N°', 'Question', 'Réponse attendue', 'Justes', 'Réussite', 'Temps moyen']],
+      body: SIDX.map(i => { const it = ITEMS[i], a = ps.map(p => p.answers[i]).filter(Boolean), ok = a.filter(x => x.ok).length;
+        return [qNum(i), qPlain(it), answerText(it), `${ok} / ${n}`, `${n ? Math.round(ok / n * 100) : 0} %`, avg(a)]; }).map(r => r.map(x => clean(x))),
+      columnStyles: { 0: { cellWidth: 10 }, 3: { halign: 'right' }, 4: { halign: 'right' }, 5: { halign: 'right' } },
+      didParseCell: d => { if (d.section === 'head' && d.column.index >= 3) d.cell.styles.halign = 'right'; } }));
+    y = next(45); h3('Réponses données', y);
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(...muted);
+    doc.text('Vert : juste. Rouge : faux. Tiret : pas de réponse.', M + 42, y);
+    const nameW = 30, colW = (W - nameW) / NS;
+    const cs = { 0: { cellWidth: nameW, halign: 'left' } }; SIDX.forEach((_, k) => { cs[k + 1] = { cellWidth: colW, halign: 'center' }; });
+    doc.autoTable(Object.assign({}, base, { startY: y + 3,
+      styles: Object.assign({}, base.styles, { fontSize: NS > 16 ? 6.5 : 8, cellPadding: { top: 1.4, bottom: 1.4, left: 0.4, right: 0.4 }, overflow: 'ellipsize' }),
+      head: [['Nom'].concat(SIDX.map(i => String(qNum(i))))],
+      body: ps.map(p => [p.name].concat(SIDX.map(i => { const a = p.answers[i]; return a ? (ITEMS[i].type === 'pin' ? (a.ok ? 'oui' : 'non') : ITEMS[i].type === 'puzzle' ? (a.ok ? 'ordre ok' : 'erreur') : givenText(ITEMS[i], a)) : '—'; }))).map(r => r.map(x => clean(x))),
+      columnStyles: cs,
+      didParseCell: d => {
+        if (d.section === 'head' && d.column.index > 0) d.cell.styles.halign = 'center';
+        if (d.section !== 'body' || d.column.index === 0) return;
+        const a = ps[d.row.index].answers[SIDX[d.column.index - 1]];
+        if (a) { d.cell.styles.fillColor = a.ok ? [226, 244, 234] : [251, 228, 228]; d.cell.styles.textColor = a.ok ? [13, 106, 63] : [166, 43, 43]; }
+        else d.cell.styles.textColor = muted;
+      } }));
+  }
+  if (AVIS().length) {
+    y = next(30); h3('Avis collectés', y);
+    doc.autoTable(Object.assign({}, base, { startY: y + 3,
+      head: [['N°', 'Question', 'Type', 'Synthèse']],
+      body: T(AVIS().map(i => [qNum(i), qPlain(ITEMS[i]), TYPES[ITEMS[i].type].label, avisSummary(i)])),
+      columnStyles: { 0: { cellWidth: 10 }, 1: { cellWidth: 55 }, 2: { cellWidth: 28 } } }));
+    OPEN().forEach(i => {
+      const rows = ps.map(p => [p.name, givenText(ITEMS[i], p.answers[i])]).filter(r => r[1] !== '—');
+      y = next(25); h3(`Question ${qNum(i)} : ${qPlain(ITEMS[i])}`, y);
+      doc.autoTable(Object.assign({}, base, { startY: y + 3, head: [['Nom', 'Réponse']], body: T(rows.length ? rows : [['—', 'Aucune réponse']]), columnStyles: { 0: { cellWidth: 30 } } }));
+    });
+  }
   const pages = doc.getNumberOfPages();
   for (let k = 1; k <= pages; k++) {
     doc.setPage(k); doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(...muted);
-    doc.text(`${TITRE}, ${dateTag()}`, M, 297 - 8);
+    doc.text(clean(`${TITRE}, ${dateTag()}`), M, 297 - 8);
     doc.text(`Page ${k} / ${pages}`, 210 - M, 297 - 8, { align: 'right' });
   }
   saveBlob(doc.output('blob'), `quiz_${slug(TITRE)}_${dateTag()}.pdf`);
 }
-
-
 /* =====================================================================
    PARTICIPANT
    ===================================================================== */
-const P = { code: '', bi: 0, client: null, link: null, topic: '', pid: '', name: '', st: null, sig: '', score: 0, joined: false,
+const P = { code: '', bi: 0, client: null, link: null, topic: '', pid: '', name: '', st: null, sig: '', score: 0, joined: false, imgs: {}, parts: {}, needImgs: [], askedImg: {},
   connected: false, everConnected: false, kicked: false, mine: '', notFound: false, lastHost: 0, joinAt: 0, beat: null };
 const cleanCode = s => String(s || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6);
 
@@ -3703,7 +4248,7 @@ async function connect() {
   P.link.onMessage((t, m) => onMsg(m));
   clearInterval(P.beat);
   P.beat = setInterval(() => {
-    hello();
+    hello(); askImgs();
     const now = Date.now();
     if (P.everConnected) { const c = now - P.lastHost < 10000; if (c !== P.connected) { P.connected = c; setBanner(); } }
     else if (now - P.joinAt > 12000 && P.client && P.client.connected && !P.notFound) { P.notFound = true; pRender(); }
@@ -3722,13 +4267,35 @@ function setBanner() {
   b.textContent = 'Connexion perdue. Reconnexion…';
 }
 
+/* ---------- images (pin's) reçues par morceaux ---------- */
+function askImgs() {
+  if (!P.link || !P.client || !P.client.connected) return;
+  const need = P.needImgs.filter(id => !P.imgs[id]);
+  const id = need.find(x => !P.askedImg[x] || Date.now() - P.askedImg[x] > 9000);
+  if (!id) return;
+  P.askedImg[id] = Date.now();
+  P.link.send(P.topic + '/h', { t: 'img', from: P.pid, id });
+}
+function gotImgPart(m) {
+  if (P.imgs[m.id]) return;
+  const box = P.parts[m.id] = P.parts[m.id] || { n: m.n, got: {} };
+  box.got[m.k] = m.d;
+  if (Object.keys(box.got).length === box.n) {
+    let s = ''; for (let k = 0; k < box.n; k++) s += box.got[k];
+    P.imgs[m.id] = s; delete P.parts[m.id];
+    if (P.st && P.st.ph === 'question' && P.st.img === m.id) pRender();
+    askImgs();
+  }
+}
+
 function onMsg(m) {
   if (!m || typeof m !== 'object') return;
   P.lastHost = Date.now();
   if (!P.connected || !P.everConnected) { P.connected = true; P.everConnected = true; P.notFound = false; setBanner(); }
   if (m.t === 'welcome') {
     if (m.name !== P.name) { P.name = m.name; LS.set('calcul-live:' + P.code, { pid: P.pid, name: P.name }); }
-  } else if (m.t === 'kicked') {
+  } else if (m.t === 'imgc') gotImgPart(m);
+  else if (m.t === 'kicked') {
     P.kicked = true; LS.del('calcul-live:' + P.code);
     clearInterval(P.beat);
     try { P.client.end(); } catch (e) {}
@@ -3736,26 +4303,186 @@ function onMsg(m) {
     document.body.dataset.tone = '';
     app.innerHTML = `<div class="player"><div class="pcard"><h1>Ton nom a été retiré de la partie.</h1><p class="pmuted">Demande à l’enseignant si c’est une erreur.</p></div></div>`;
   } else if (m.t === 'state') {
-    const { rem, ...rest } = m;
+    const { rem, sent, ...rest } = m;
     const sig = JSON.stringify(rest);
     if (sig === P.sig && P.st) return; // rien de nouveau (battement de cœur)
     P.sig = sig;
     m.recv = performance.now();
     if (m.score != null) P.score = m.score;
+    if (m.ph === 'lobby' && m.imgs) { P.needImgs = m.imgs; askImgs(); }
+    if (m.ph === 'question' && m.img && !P.needImgs.includes(m.img)) P.needImgs.push(m.img);
     if (m.ph !== 'answered') P.mine = '';
     if (m.ph === 'answered' && m.mine) P.mine = m.mine;
+    if (m.ph === 'question') P.sentList = (sent || []).slice();
     P.st = m;
     pRender();
   }
 }
 
-
 document.addEventListener('keydown', e => { if (P.keyHandler) P.keyHandler(e); });
-function pShell(inner, tone) {
+function pShell(inner, tone, cls) {
   P.keyHandler = null;
   document.body.dataset.tone = tone || '';
-  app.innerHTML = `<div class="player"><div class="ptop"><span>${esc(P.name)}</span><span>${P.score ? fmt(P.score) + ' points' : ''}</span></div><div class="pcard">${inner}</div></div>`;
+  app.innerHTML = `<div class="player${cls ? ' ' + cls : ''}"><div class="ptop"><span>${esc(P.name)}</span><span>${P.score ? fmt(P.score) + ' points' : ''}</span></div><div class="pcard">${inner}</div></div>`;
   setBanner();
+}
+
+/* ---------- claviers intégrés ---------- */
+const DEL_SVG = '<svg viewBox="0 0 24 24"><path d="M9 5h11v14H9l-6-7z"/><path d="m12 9 5 6m0-6-5 6"/></svg>';
+function numPad(dec) {
+  const keys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', dec ? ',' : '', '0', 'del'];
+  return `<div class="keypad" id="kp">${keys.map(k => k === 'del' ? `<button class="del" data-k="del" aria-label="Effacer">${DEL_SVG}</button>`
+    : k ? `<button data-k="${k}">${k}</button>` : '<span></span>').join('')}</div>`;
+}
+const AZ = [['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'], ['a', 'z', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p'], ['q', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 'm'],
+  ['shift', 'w', 'x', 'c', 'v', 'b', 'n', "'", 'del'], ['é', 'è', 'ê', 'à', 'â', 'ç', 'ù', 'û', 'î', 'ô'], ['-', ',', 'space', '.', '?']];
+function azPad() {
+  return `<div class="azpad" id="kp">${AZ.map(r => `<div class="azr">${r.map(k => k === 'del' ? `<button class="w15 del" data-k="del" aria-label="Effacer">${DEL_SVG}</button>`
+    : k === 'shift' ? '<button class="w15" data-k="shift" aria-label="Majuscule">⇧</button>' : k === 'space' ? '<button class="space" data-k=" " aria-label="Espace">espace</button>'
+      : `<button data-k="${esc(k)}">${esc(k)}</button>`).join('')}</div>`).join('')}</div>`;
+}
+/* saisie de texte ou de nombre ; target = élément qui affiche la frappe */
+function bindEntry(st, mode, max, onChange, onEnter) {
+  let val = '', shift = false;
+  const kp = $('#kp');
+  const setShift = s => { shift = s; kp.querySelectorAll('[data-k]').forEach(b => { const k = b.dataset.k; if (k.length === 1 && /\p{L}/u.test(k)) b.textContent = s ? k.toUpperCase() : k; });
+    const sb = kp.querySelector('[data-k="shift"]'); if (sb) sb.classList.toggle('on', s); };
+  const press = k => {
+    if (k === 'del') val = val.slice(0, -1);
+    else if (k === 'shift') { setShift(!shift); return; }
+    else if (mode !== 'text') {
+      if (k === ',') { if (mode === 'dec' && !val.includes(',')) val = (val || '0') + ','; }
+      else if (/^[0-9]$/.test(k) && val.length < 8) val = val === '0' ? k : val + k;
+    } else if (val.length < max) {
+      if (k === ' ' && (!val || val.endsWith(' '))) return;
+      val += shift ? k.toUpperCase() : k;
+      if (shift) setShift(false);
+    }
+    onChange(val);
+  };
+  kp.addEventListener('click', e => { const b = e.target.closest('button'); if (b) press(b.dataset.k); });
+  P.keyHandler = e => {
+    if (P.st !== st) return;
+    if (e.key === 'Enter') { if (val.trim()) onEnter(val); return; }
+    if (e.key === 'Backspace') return press('del');
+    if (e.key.length === 1) { if (mode !== 'text') press(e.key === '.' ? ',' : e.key); else if (val.length < max) { val += e.key; onChange(val); } }
+  };
+  return { reset() { val = ''; onChange(val); } };
+}
+
+/* ---------- écran de question ---------- */
+function headHTML(st) {
+  const tag = st.type === 'vraifaux' ? 'Vrai ou faux ?' : st.type === 'brainstorm' ? (st.sub === 'vote' ? 'Vote pour les idées' : 'Propose tes idées') : '';
+  const eq = st.q && (st.q.includes('_') || st.q.length <= 22);
+  const n = String(st.q).replace('_', '0000').length;
+  return `<div class="ptimer"><i id="pt"></i></div><p class="pnum">Question ${st.num} / ${st.total}</p>${tag ? `<p class="pmuted">${tag}</p>` : ''}
+    ${eq ? `<div class="eq peq asking" style="font-size:min(2.4em,${(150 / Math.max(n, 1)).toFixed(1)}vw)">${eqHTML(st.q)}</div>` : `<div class="pq">${eqHTML(st.q)}</div>`}`;
+}
+function pQuestion(st) {
+  const head = headHTML(st);
+  const T_ = st.type;
+  if (T_ === 'choix' || T_ === 'vraifaux' || T_ === 'sondage') {
+    pShell(head + `<div class="popts${st.opts.length === 2 ? ' two' : ''}">${st.opts.map((o, i) =>
+      `<button class="popt o${o.k}" data-i="${i}">${shape(o.k)}<span>${esc(o.label)}</span></button>`).join('')}</div>`);
+    $('.popts').onclick = e => { const b = e.target.closest('button'); if (!b) return; const i = Number(b.dataset.i);
+      answer(T_ === 'vraifaux' ? i === 0 : i, st.opts[i].label); };
+  } else if (T_ === 'libre') {
+    const text = st.kb === 'text';
+    const inSlot = st.q.includes('_');
+    pShell(head + (inSlot ? '' : '<div class="tdisp"><span id="typed"></span><i class="caret"></i></div>') + (text ? azPad() : numPad(st.kb === 'dec')) +
+      '<button class="pbtn" id="ok" disabled>Valider</button>', '', text ? 'wide' : '');
+    if (inSlot) { const s = $('.peq .slot') || $('.pq .slot'); s.innerHTML = '<span id="typed"></span><i class="caret"></i>'; }
+    let cur = '';
+    bindEntry(st, st.kb, 30, v => { cur = v; $('#typed').textContent = v; $('#ok').disabled = !v.trim(); }, v => answer(v, v));
+    $('#ok').onclick = () => { if (cur.trim()) answer(cur, cur); };
+  } else if (T_ === 'nuage' || T_ === 'ouverte' || T_ === 'brainstorm') {
+    if (T_ === 'brainstorm' && st.sub === 'vote') return pVote(st);
+    const max = T_ === 'nuage' ? 25 : T_ === 'ouverte' ? 140 : 60, nb = st.nb || 1, sent = P.sentList || [];
+    pShell(head + `${nb > 1 ? `<p class="pmuted">${T_ === 'nuage' ? 'Mot' : 'Idée'} ${Math.min(sent.length + 1, nb)} sur ${nb}</p>` : ''}
+      ${sent.length ? `<div class="sentl">${sent.map(s => `<span>${esc(s)}</span>`).join('')}</div>` : ''}
+      <div class="tdisp${T_ === 'ouverte' ? ' long' : ''}"><span id="typed"></span><i class="caret"></i></div><p class="cnt" id="cc">0 / ${max}</p>
+      ${azPad()}<div class="prow"><button class="pbtn" id="ok" disabled>Envoyer</button>${sent.length && nb > 1 ? '<button class="pbtn ghost" id="fin">J’ai fini</button>' : ''}</div>`, '', 'wide');
+    let cur = '';
+    const ent = bindEntry(st, 'text', max, v => { cur = v; $('#typed').textContent = v; $('#cc').textContent = `${v.length} / ${max}`; $('#ok').disabled = !v.trim(); }, v => submit(v));
+    const submit = v => {
+      const t = v.trim(); if (!t) return;
+      if (TYPES[T_].multi) {
+        P.sentList = sent.concat(t);
+        const last = P.sentList.length >= nb;
+        sendAns(st, t, { add: true, done: last });
+        if (last) { P.mine = P.sentList.join(', '); P.st = { ph: 'answered', qi: st.qi, sub: st.sub, sc: false, local: true }; pRender(); }
+        else { const keep = P.st; pQuestion(keep); }
+        void ent;
+      } else answer(t, t);
+    };
+    $('#ok').onclick = () => submit(cur);
+    if ($('#fin')) $('#fin').onclick = () => { sendAns(st, '', { done: true }); P.mine = sent.join(', '); P.st = { ph: 'answered', qi: st.qi, sub: st.sub, sc: false, local: true }; pRender(); };
+  } else if (T_ === 'curseur') {
+    const steps = Math.round((st.max - st.min) / st.pas);
+    const fmtV = v => numTxt(Math.round(v * 1e6) / 1e6);
+    let v = st.min + Math.round(steps / 2) * st.pas;
+    pShell(head + `<div class="cval" id="cv">${fmtV(v)}</div>
+      <div class="crow"><button class="cbtn" data-d="-1" aria-label="Moins">−</button>
+      <input type="range" id="rg" min="0" max="${steps}" step="1" value="${Math.round(steps / 2)}" aria-label="Valeur"><button class="cbtn" data-d="1" aria-label="Plus">+</button></div>
+      <div class="cends"><span>${fmtV(st.min)}</span><span>${fmtV(st.max)}</span></div><button class="pbtn" id="ok">Valider</button>`);
+    const rg = $('#rg'), show = () => { v = st.min + Number(rg.value) * st.pas; $('#cv').textContent = fmtV(v); };
+    rg.oninput = show;
+    document.querySelectorAll('.cbtn').forEach(b => { b.onclick = () => { rg.value = clamp(Number(rg.value) + Number(b.dataset.d), 0, steps); show(); }; });
+    $('#ok').onclick = () => answer(Math.round(v * 1e6) / 1e6, fmtV(v));
+  } else if (T_ === 'puzzle') {
+    let order = [];
+    const draw = () => {
+      pShell(head + `<p class="pmuted">Touche les éléments dans le bon ordre.</p>
+        <ol class="pzslots">${st.items.map((_, k) => `<li class="${order[k] != null ? 'full' : ''}"><b>${k + 1}</b>${order[k] != null ? `<button data-o="${k}">${esc(st.items[order[k]])}</button>` : '<span></span>'}</li>`).join('')}</ol>
+        <div class="pzpool">${st.items.map((t, i) => order.includes(i) ? '' : `<button class="o${i % 4}" data-i="${i}">${esc(t)}</button>`).join('')}</div>
+        <button class="pbtn" id="ok"${order.length === st.items.length ? '' : ' disabled'}>Valider</button>`);
+      $('.pcard').onclick = e => {
+        const b = e.target.closest('button'); if (!b) return;
+        if (b.dataset.i != null) { order.push(Number(b.dataset.i)); draw(); }
+        else if (b.dataset.o != null) { order.splice(Number(b.dataset.o), 1); draw(); }
+        else if (b.id === 'ok' && order.length === st.items.length) answer(order, order.map(i => st.items[i]).join(' > '));
+      };
+      pTick();
+    };
+    draw(); return;
+  } else if (T_ === 'pin' || T_ === 'placepin') {
+    const data = P.imgs[st.img];
+    if (!data) { pShell(head + '<p class="pmuted">Chargement de l’image…</p>'); askImgs(); pTick(); return; }
+    const h = (100 * st.ratio).toFixed(2);
+    pShell(head + `<p class="pmuted">Touche l’image pour placer ton pin’s.</p><div class="pinwrap"><svg id="psvg" viewBox="0 0 100 ${h}">
+      <image href="${data}" width="100" height="${h}" preserveAspectRatio="none"/><circle id="mk" class="pin me" r="2.2" cx="-10" cy="-10"/></svg></div>
+      <button class="pbtn" id="ok" disabled>Valider</button>`);
+    let pos = null;
+    $('#psvg').addEventListener('click', e => {
+      const r = e.currentTarget.getBoundingClientRect();
+      pos = { x: clamp((e.clientX - r.left) / r.width, 0, 1), y: clamp((e.clientY - r.top) / r.height, 0, 1) };
+      $('#mk').setAttribute('cx', pos.x * 100); $('#mk').setAttribute('cy', pos.y * 100 * st.ratio);
+      $('#ok').disabled = false;
+    });
+    $('#ok').onclick = () => { if (pos) answer(pos, 'Pin’s placé'); };
+  } else if (T_ === 'echelle' || T_ === 'nps') {
+    const vals = []; for (let v = st.min; v <= st.max; v++) vals.push(v);
+    const col = v => T_ === 'nps' ? (v <= 6 ? 'npsd' : v <= 8 ? 'npsp' : 'npsg') : '';
+    pShell(head + `<div class="pscale${vals.length > 7 ? ' many' : ''}">${vals.map(v => `<button class="${col(v)}" data-v="${v}">${v}</button>`).join('')}</div>
+      <div class="cends"><span>${esc(st.gauche)}</span><span>${esc(st.droite)}</span></div>`);
+    $('.pscale').onclick = e => { const b = e.target.closest('button'); if (b) answer(Number(b.dataset.v), b.dataset.v); };
+  }
+  pTick();
+}
+function pVote(st) {
+  const sel = new Set();
+  pShell(headHTML(st) + `<p class="pmuted">Choisis jusqu’à ${st.votes} ${st.votes > 1 ? 'idées' : 'idée'}.</p>
+    <div class="vlist">${st.ideas.map((t, i) => `<button data-i="${i}" aria-pressed="false">${esc(t)}</button>`).join('')}</div>
+    <button class="pbtn" id="ok" disabled>Valider</button>`);
+  $('.vlist').onclick = e => {
+    const b = e.target.closest('button'); if (!b) return;
+    const i = Number(b.dataset.i);
+    if (sel.has(i)) sel.delete(i); else if (sel.size < st.votes) sel.add(i);
+    document.querySelectorAll('.vlist button').forEach(x => x.setAttribute('aria-pressed', sel.has(Number(x.dataset.i))));
+    $('#ok').disabled = !sel.size;
+  };
+  $('#ok').onclick = () => { if (sel.size) answer([...sel], [...sel].map(i => st.ideas[i]).join(', ')); };
+  pTick();
 }
 
 function pRender() {
@@ -3769,51 +4496,26 @@ function pRender() {
   switch (st.ph) {
     case 'lobby': pShell(`<h1>C’est bon, ${esc(P.name)} !</h1><p class="pmuted">Ton prénom s’affiche à l’écran. La partie va bientôt commencer.</p>`); break;
     case 'slide': pShell(`<p class="pmuted">${esc(st.titre)}</p><div class="big">Regarde l’écran</div>`); break;
-    case 'question': {
-      if (st.timeout) { pShell(`<div class="big">Temps écoulé</div><p class="pmuted">Regarde l’écran.</p>`); break; }
-      const head = `<div class="ptimer"><i id="pt"></i></div><p class="pnum">Question ${st.num} / ${st.total}</p>
-        ${st.type === 'vraifaux' ? '<p class="pmuted">Vrai ou faux ?</p>' : ''}<div class="eq peq asking">${eqHTML(st.q)}</div>`;
-      if (st.type === 'libre') {
-        const keys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', st.kb === 'decimal' ? ',' : '', '0', 'del'];
-        pShell(head + `<div class="keypad" id="kp">${keys.map(k => k === 'del'
-            ? '<button class="del" data-k="del" aria-label="Effacer"><svg viewBox="0 0 24 24"><path d="M9 5h11v14H9l-6-7z"/><path d="m12 9 5 6m0-6-5 6"/></svg></button>'
-            : k ? `<button data-k="${k}">${k}</button>` : '<span></span>').join('')}</div>
-          <button class="pbtn" id="ok" disabled>Valider</button>`);
-        const slot = $('.peq .slot');
-        slot.innerHTML = '<span id="typed"></span><i class="caret"></i>';
-        slot.setAttribute('aria-live', 'polite');
-        let val = '';
-        const show = () => { $('#typed').textContent = val; $('#ok').disabled = !val; };
-        const press = k => {
-          if (k === 'del') val = val.slice(0, -1);
-          else if (k === ',') { if (st.kb === 'decimal' && !val.includes(',')) val = (val || '0') + ','; }
-          else if (val.length < 8) val = val === '0' ? k : val + k;
-          show();
-        };
-        $('#kp').onclick = e => { const b = e.target.closest('button'); if (b) press(b.dataset.k); };
-        $('#ok').onclick = () => { if (val) answer(val, val); };
-        P.keyHandler = e => {
-          if (!P.st || P.st !== st) return;
-          if (/^[0-9]$/.test(e.key)) press(e.key);
-          else if (e.key === ',' || e.key === '.') press(',');
-          else if (e.key === 'Backspace') press('del');
-          else if (e.key === 'Enter' && val) answer(val, val);
-        };
+    case 'question':
+      if (st.timeout) { pShell('<div class="big">Temps écoulé</div><p class="pmuted">Regarde l’écran.</p>'); break; }
+      pQuestion(st); break;
+    case 'answered':
+      if (st.sc && !st.local) {
+        pShell(`<div class="big">${st.ok ? 'Juste !' : 'Pas juste'}</div>${P.mine ? `<p class="pmine">${esc(P.mine)}</p>` : ''}<p class="pmuted">Les points s’affichent à la fin du temps.</p>`, st.ok ? 'ok' : 'ko');
+      } else if (st.sc) {
+        pShell(`<div class="big">Envoi…</div>${P.mine ? `<p class="pmine">${esc(P.mine)}</p>` : ''}`);
       } else {
-        pShell(head + `<div class="popts${st.opts.length === 2 ? ' two' : ''}">${st.opts.map((o, i) =>
-          `<button class="popt o${o.k}" data-i="${i}">${shape(o.k)}<span>${esc(o.label)}</span></button>`).join('')}</div>`);
-        $('.popts').onclick = e => { const b = e.target.closest('button'); if (!b) return; const o = st.opts[b.dataset.i]; answer(o.value, o.label); };
+        pShell(`<div class="big">Merci !</div>${P.mine ? `<p class="pmine sm">${esc(P.mine)}</p>` : ''}<p class="pmuted">Réponse envoyée. Regarde l’écran.</p>`);
       }
-      pTick();
       break;
-    }
-    case 'answered': pShell(`<div class="big">Réponse envoyée</div>${P.mine ? `<p class="pmine">${esc(P.mine)}</p>` : ''}<p class="pmuted">Attends la fin du chrono.</p>`); break;
     case 'reveal':
-      pShell(st.ok ? `<div class="big">Juste !</div><p class="pts">+${fmt(st.pts)} points</p>`
-        : `<div class="big">${st.answered ? 'Pas juste' : 'Pas de réponse'}</div><p class="pts">La bonne réponse : ${esc(st.bonne)}</p>`, st.ok ? 'ok' : 'ko');
+      if (!st.sc) { pShell(st.wait ? '<div class="big">Regarde l’écran</div><p class="pmuted">Le vote va commencer.</p>' : '<div class="big">Regarde l’écran</div><p class="pmuted">Voici les réponses de la classe.</p>'); break; }
+      pShell(st.ok ? `<div class="big">+${fmt(st.pts)} points</div><p class="pts">Total : ${fmt(st.score)} points</p>`
+        : `<div class="big">${st.answered ? 'Pas juste' : 'Pas de réponse'}</div>${st.bonne ? `<p class="pts">La bonne réponse : ${esc(st.bonne)}</p>` : '<p class="pts">Regarde l’écran.</p>'}<p class="pmuted">Total : ${fmt(st.score)} points</p>`, st.ok ? 'ok' : 'ko');
       break;
     case 'board': pShell(`<p class="pmuted">Classement</p><div class="big">Rang ${st.rank} sur ${st.n}</div><p class="pts">${fmt(st.score)} points</p>`); break;
-    case 'final': pShell(`<h1>Partie terminée</h1><div class="big">Rang ${st.rank} sur ${st.n}</div><p class="pts">${fmt(st.score)} points</p><p class="pmuted">${st.ok} ${st.ok > 1 ? 'bonnes réponses' : 'bonne réponse'} sur ${st.total}</p>`); break;
+    case 'final': pShell(st.total ? `<h1>Partie terminée</h1><div class="big">Rang ${st.rank} sur ${st.n}</div><p class="pts">${fmt(st.score)} points</p><p class="pmuted">${st.ok} ${st.ok > 1 ? 'bonnes réponses' : 'bonne réponse'} sur ${st.total}</p>`
+      : '<h1>Merci pour tes réponses !</h1>'); break;
   }
 }
 
@@ -3824,19 +4526,23 @@ function pTick() {
   const bar = $('#pt');
   if (bar) { bar.style.transform = `scaleX(${Math.max(0, rem / st.dur)})`; bar.classList.toggle('late', rem < 5000); }
   if (rem <= 0) { st.timeout = true; pRender(); return; }
-  requestAnimationFrame(pTick);
+  if (!st.ticking) { st.ticking = true; const loop = () => { if (P.st !== st || st.timeout) return; const r = st.rem - (performance.now() - st.recv); const b = $('#pt');
+    if (b) { b.style.transform = `scaleX(${Math.max(0, r / st.dur)})`; b.classList.toggle('late', r < 5000); }
+    if (r <= 0) { st.timeout = true; pRender(); return; } requestAnimationFrame(loop); }; requestAnimationFrame(loop); }
 }
 
+function sendAns(st, v, extra) {
+  const ms = st.dur - st.rem + (performance.now() - st.recv);
+  if (P.link) P.link.send(P.topic + '/h', Object.assign({ t: 'answer', from: P.pid, qi: st.qi, v, ms: Math.round(ms) }, extra || {}));
+}
 function answer(v, label) {
   const st = P.st;
   if (!st || st.ph !== 'question' || st.timeout) return;
-  const ms = st.dur - st.rem + (performance.now() - st.recv);
-  if (P.link) P.link.send(P.topic + '/h', { t: 'answer', from: P.pid, qi: st.qi, v, ms: Math.round(ms) });
+  sendAns(st, v);
   P.mine = label;
-  P.st = { ph: 'answered', qi: st.qi };
+  P.st = { ph: 'answered', qi: st.qi, sub: st.sub, sc: TYPES[st.type].scored, local: true };
   pRender();
 }
-
 
 /* ---------- démarrage ---------- */
 if (typeof mqtt === 'undefined') return fatal('La bibliothèque de connexion n’a pas pu être chargée.');
