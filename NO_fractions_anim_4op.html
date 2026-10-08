@@ -1,0 +1,708 @@
+<!doctype html>
+<!--
+  Note pour Claude : animation « Fractions - 4 opérations », bandes (fichier autonome, aucune dépendance).
+  Coquille reprise de soustraction_postit.html : en-tête, plateau 900x560 mis à l'échelle, plein écran.
+  Barre de titre : boutons + et −, puis 1, 2, 3 pour le calcul. Addition : 1/4 + 1/3, 1/2 + 1/3, 1/4 + 3/8 ;
+  soustraction : 1/2 − 2/5, 2/3 − 1/2, 7/8 − 1/2. Grille de calage = plus petit dénominateur commun.
+  Trois bandes : 1 (en haut) partagée selon la 1re fraction, 2 (au milieu) selon la 2e, 3 (en bas) vide.
+  Chaque part se glisse dans n'importe quelle bande : dans sa bande, sur ses parts ; ailleurs, sur la grille
+  (plus petit dénominateur commun du calcul). Addition : pas de chevauchement. Soustraction : dans la bande 3,
+  la 2e part se pose par-dessus la 1re, hachurée (part retirée). À droite de la bande 3 : l'opération, sans résultat,
+  jusqu'à ce qu'un groupe soit posé sur une ligne d'un dénominateur commun : le résultat (irréductible) s'ajoute
+  alors au calcul, et la ligne affiche à droite le résultat dans son dénominateur, en vert.
+  Quand les deux parts sont dans la bande 3, on peut défiler (molette, glissé à deux doigts, bouton flèche) :
+  la bande 3 remonte en haut et dessous apparaît un tableau de lignes partagées en 1/2 … 1/14.
+  Le mur n'est visible qu'après le défilement ; la bande 3 prend alors la hauteur des lignes et ses parts se rangent
+  à gauche. On y glisse une copie de la bande 3 : les deux parts partent ensemble et se calent à gauche de la ligne ;
+  un groupe par ligne ; hors d'une ligne, le groupe s'efface. Un clic sur le bord droit d'une part de la bande 3
+  (en soustraction : fin du reste) trace ou efface un pointillé bleu sur tout le mur, vert sur les lignes d'un
+  dénominateur commun. Dans le mur, les parts couvrent les traits des lignes, sauf sur les lignes d'un
+  dénominateur commun, où ils restent visibles en pointillés à travers les parts. Soustraction, vue mur : la part retirée disparaît, il ne reste que la différence, calée à gauche.
+  Les traits de partage des bandes 1 et 2 se glissent (copie, l'original reste) sur une autre bande.
+-->
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fractions - 4 opérations</title>
+<style>
+:root{
+  --papier:#f5f5f1;--encre:#151a2e;--gris:#6d7382;--trait:#d9dbe1;--bleu-fonce:#1f4fa8;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  background:var(--papier);color:var(--encre);
+  font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;font-size:16px;
+  padding:14px 18px;height:100vh;overflow:hidden;
+}
+.page{max-width:1320px;margin:0 auto;height:100%;display:flex;flex-direction:column}
+.entete{position:relative;display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;text-align:center;min-height:34px}
+.eyebrow{margin:0;font-size:13.5px;font-weight:700;letter-spacing:.16em;color:var(--gris);text-transform:uppercase}
+.rule{height:1px;background:var(--trait);margin:10px 0;flex:none}
+.nav{position:absolute;right:0;top:50%;transform:translateY(-50%);display:flex;gap:8px}
+button{
+  font:inherit;font-weight:700;font-size:14px;padding:9px 12px;border-radius:9px;cursor:pointer;
+  border:1px solid #b9bec9;background:#fff;color:var(--encre);
+}
+button:focus-visible{outline:2px solid var(--bleu-fonce);outline-offset:2px}
+.mode{position:absolute;left:0;top:50%;transform:translateY(-50%);display:flex;gap:6px}
+.mode button{width:40px;height:34px;padding:0;font-size:22px;line-height:1;display:flex;align-items:center;justify-content:center}
+.mode .sep{width:1px;height:24px;background:#c9ccd4;margin:0 6px}
+.calculs{display:flex;gap:6px}
+.calculs button{width:34px;font-size:16px;font-weight:700}
+.mode button[aria-pressed="true"]{background:#e8eefb;border-color:var(--bleu-fonce);color:var(--bleu-fonce)}
+.objet.retiree{mix-blend-mode:normal}
+.objet.retiree rect{stroke-dasharray:6 4}
+.plein{width:34px;height:34px;padding:0;display:flex;align-items:center;justify-content:center}
+.plein svg{width:19px;height:19px}
+.plein .sortir{display:none}
+body.pleinecran .plein .entrer{display:none}
+body.pleinecran .plein .sortir{display:block}
+
+.scene{flex:1;min-height:0;display:flex;justify-content:center;align-items:flex-start}
+.boite{position:relative}
+.plateau{position:absolute;left:0;top:0;width:900px;height:560px;transform-origin:top left}
+.feuille{
+  position:absolute;left:0;top:0;width:900px;height:560px;
+  background:#fdfdfb;border:1px solid var(--trait);border-radius:12px;overflow:hidden;
+}
+.feuille svg.dessin{position:absolute;left:0;top:0;width:900px;height:560px;touch-action:none;user-select:none;-webkit-user-select:none}
+
+/* --- parts (entières ou en cases) --- */
+.objet{cursor:grab;transition:transform .35s cubic-bezier(.3,1.3,.5,1);mix-blend-mode:multiply}
+.objet rect{stroke:#151a2e;stroke-width:1.6}
+.objet.glisse{cursor:grabbing;transition:none;mix-blend-mode:normal}
+.objet.glisse rect{filter:drop-shadow(4px 8px 8px rgba(21,26,46,.30))}
+.etiquette{font-size:30px;font-weight:700;fill:#151a2e;text-anchor:middle}
+
+/* --- traits de partage --- */
+.prise{stroke:transparent;stroke-width:12;pointer-events:stroke;cursor:grab}
+.copie{transition:transform .35s cubic-bezier(.3,1.3,.5,1)}
+.copie.glisse{transition:none;cursor:grabbing}
+
+.outils{position:absolute;left:26px;bottom:20px;display:flex;gap:10px;z-index:5}
+.outils button{width:44px;height:44px;padding:0;display:flex;align-items:center;justify-content:center}
+.outils button svg{width:24px;height:24px}
+/* --- défilement vers le tableau --- */
+#contenu{transition:transform .6s cubic-bezier(.4,0,.2,1)}
+#mur{opacity:0;transition:opacity .4s;pointer-events:none}
+#mur.vu{opacity:1}
+.objet.masque{display:none}
+.objet.dans-mur{mix-blend-mode:normal}       /* opaques dans le mur : elles couvrent les traits */
+#mur-traits{pointer-events:none;opacity:0;transition:opacity .4s}
+#contenu.bas #mur-traits{opacity:1}
+#bords rect{fill:transparent;cursor:pointer}
+#contenu:not(.bas) #bords{display:none}
+#reperes{pointer-events:none;opacity:0;transition:opacity .4s}
+#contenu.bas #reperes{opacity:1}
+#resultats{pointer-events:none;opacity:0;transition:opacity .4s}
+#contenu.bas #resultats{opacity:1}
+.res-ligne{font-size:17px;font-weight:700;fill:#1e9e4a}
+.objet.dans-mur{transition:transform .35s cubic-bezier(.3,1.3,.5,1),opacity .4s}
+#contenu:not(.bas) .objet.dans-mur{opacity:0;pointer-events:none}
+.defiler{position:absolute;right:26px;bottom:20px;width:44px;height:44px;padding:0;display:flex;align-items:center;justify-content:center;z-index:5}
+.defiler[hidden]{display:none}
+.defiler svg{width:24px;height:24px;transition:transform .3s}
+.defiler.haut svg{transform:rotate(180deg)}
+.lib-ligne{font-size:17px;font-weight:700;fill:#151a2e}
+
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <div class="entete">
+    <p class="eyebrow">Fractions - 4 opérations</p>
+    <div class="mode" role="group" aria-label="Opération">
+      <button type="button" data-mode="addition" aria-pressed="true" title="Addition" aria-label="Addition">+</button>
+      <button type="button" data-mode="soustraction" aria-pressed="false" title="Soustraction" aria-label="Soustraction">−</button>
+      <span class="sep" aria-hidden="true"></span>
+      <span id="calculs" class="calculs" role="group" aria-label="Calcul"></span>
+    </div>
+    <div class="nav">
+      <button id="btn-plein" class="plein" title="Plein écran" aria-label="Plein écran">
+        <svg class="entrer" viewBox="0 0 24 24" fill="none" stroke="#151a2e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 3H5.5A2.5 2.5 0 0 0 3 5.5V9"/><path d="M15 3h3.5A2.5 2.5 0 0 1 21 5.5V9"/>
+          <path d="M9 21H5.5A2.5 2.5 0 0 1 3 18.5V15"/><path d="M15 21h3.5a2.5 2.5 0 0 0 2.5-2.5V15"/>
+        </svg>
+        <svg class="sortir" viewBox="0 0 24 24" fill="none" stroke="#151a2e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3.5 9H9V3.5"/><path d="M20.5 9H15V3.5"/><path d="M3.5 15H9v5.5"/><path d="M20.5 15H15v5.5"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+  <div class="rule"></div>
+
+  <div class="scene" id="scene">
+    <div class="boite" id="boite">
+      <div class="plateau" id="stage">
+        <div class="feuille" id="feuille">
+          <svg class="dessin" id="dessin" viewBox="0 0 900 560" xmlns="http://www.w3.org/2000/svg">
+            <g id="contenu">
+              <g id="fond"></g>
+              <g id="cadres"></g>
+              <g id="mur"></g>
+              <g id="objets"></g>
+              <g id="mur-traits"></g>
+              <g id="bords"></g>
+              <g id="reperes"></g>
+              <g id="traits"></g>
+              <g id="legendes"></g>
+              <g id="resultats"></g>
+            </g>
+          </svg>
+          <button id="btn-defiler" class="defiler" title="Descendre au tableau" aria-label="Descendre au tableau" hidden>
+            <svg viewBox="0 0 24 24" fill="none" stroke="#151a2e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+          <div class="outils">
+            <button id="btn-reset" title="Tout remettre en place" aria-label="Réinitialiser">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#151a2e" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20 4v4.6h-4.6"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  const NS = "http://www.w3.org/2000/svg";
+  const scene = document.getElementById("scene");
+  const boite = document.getElementById("boite");
+  const stage = document.getElementById("stage");
+  const svg   = document.getElementById("dessin");
+  const contenu = document.getElementById("contenu");
+  const LARGE = 900, HAUT = 560;
+  const W = 576, H = 70, X0 = 50;                           // bande : longueur, hauteur, gauche
+  const LEG_X = X0 + W + 118;
+  const BLEU = "#A9D4F2", ORANGE = "#F6C27A";
+  const EPS = 1e-6;
+
+  // bandes 0, 1, 2 (en haut) puis lignes du tableau (sous la bande 2, visibles après défilement)
+  const BANDES = [{y:60, h:H}, {y:210, h:H}, {y:380, h:H}];
+  const DECALAGE = 380 - 40;                                 // défilement : la bande 3 remonte en haut
+  const H_MUR = 22;                                          // hauteur des lignes du mur
+  const LIGNES = [];
+  for(let n = 2, y = 380 + H + 30; n <= 14; n++, y += 27) LIGNES.push(BANDES.push({y:y, h:H_MUR, n:n}) - 1);
+
+  // calculs proposés : [numérateur, dénominateur] de la 1re et de la 2e fraction
+  const CALCULS = {
+    addition:     {op:"+", liste:[[[1,4],[1,3]], [[1,2],[1,3]], [[1,4],[3,8]]]},
+    soustraction: {op:"−", liste:[[[1,2],[2,5]], [[2,3],[1,2]], [[7,8],[1,2]]]}
+  };
+  function pgcd(x, y){ return y ? pgcd(y, x % y) : x; }
+  // N : grille de calage hors des bandes d'origine = plus petit dénominateur commun
+  function calcul(mode, i){
+    const c = CALCULS[mode].liste[i], da = c[0][1], db = c[1][1];
+    return {N:da * db / pgcd(da, db), op:CALCULS[mode].op,
+            a:{num:c[0][0], den:da, coul:BLEU}, b:{num:c[1][0], den:db, coul:ORANGE}};
+  }
+  let mode = "addition", rang = 0, M = calcul(mode, rang);
+
+  const fond = document.getElementById("fond"), coucheObj = document.getElementById("objets");
+  const resultats = document.getElementById("resultats");
+  const coucheTraits = document.getElementById("traits"), cadres = document.getElementById("cadres");
+  const legendes = document.getElementById("legendes");
+
+  function el(nom, att, parent){
+    const e = document.createElementNS(NS, nom);
+    for(const k in att) e.setAttribute(k, att[k]);
+    if(parent) parent.appendChild(e);
+    return e;
+  }
+  function vider(g){ while(g.firstChild) g.removeChild(g.firstChild); }
+  function estLigne(b){ return b >= 3; }
+
+  /* ---------- décor ---------- */
+  const defs = el("defs", {}, svg);
+  const motif = el("pattern", {id:"hachures", width:10, height:10, patternUnits:"userSpaceOnUse", patternTransform:"rotate(45)"}, defs);
+  el("rect", {width:10, height:10, fill:"#fff"}, motif);
+  el("line", {x1:0, y1:0, x2:0, y2:10, stroke:"#9aa1ae", "stroke-width":3}, motif);
+
+  const mur = document.getElementById("mur");
+  const murTraits = document.getElementById("mur-traits");   // traits des lignes, par-dessus les parts
+  const murDessous = el("g", {}, mur);                         // traits des lignes, sous les parts
+  // traits des lignes du mur : sous les parts, qui les couvrent ; sur les lignes d'un dénominateur
+  // commun (multiple des deux dénominateurs), ils restent visibles en pointillés à travers les parts
+  function traitsMur(){
+    vider(murTraits); vider(murDessous);
+    mur.appendChild(murDessous);                 // au-dessus du fond blanc des lignes
+    LIGNES.forEach(function(i){
+      const b = BANDES[i], commun = b.n % M.a.den === 0 && b.n % M.b.den === 0;
+      for(let k = 1; k < b.n; k++){
+        const x = X0 + k * W / b.n;
+        el("line", {x1:x, y1:b.y, x2:x, y2:b.y + b.h, stroke:"#151a2e", "stroke-width":1}, murDessous);
+        if(commun) el("line", {x1:x, y1:b.y + 2, x2:x, y2:b.y + b.h - 2, stroke:"#151a2e", "stroke-width":1.2,
+                               "stroke-dasharray":"3 3"}, murTraits);
+      }
+    });
+  }
+  BANDES.forEach(function(b, i){
+    b.fond  = el("rect", {x:X0, y:b.y, width:W, height:b.h, fill:"#fff"}, estLigne(i) ? mur : fond);
+    b.cadre = el("rect", {x:X0, y:b.y, width:W, height:b.h, fill:"none", stroke:"#151a2e", "stroke-width":estLigne(i) ? 1.4 : 2.2}, estLigne(i) ? mur : cadres);
+    if(estLigne(i)){
+      // tableau : chaque ligne partagée en n, avec sa fraction unitaire à droite
+      const t = el("text", {x:X0 + W + 30, y:b.y + 17, class:"lib-ligne"}, mur);
+      t.innerHTML = '<tspan class="num">1</tspan><tspan dx="3">/</tspan><tspan dx="3">' + b.n + '</tspan>';
+    }
+  });
+
+  function dessinerTraits(n, g){
+    for(let k = 1; k < n; k++){
+      const x = k * W / n;
+      el("line", {x1:x, y1:0, x2:x, y2:H, stroke:"#151a2e", "stroke-width":1.6}, g);
+      el("line", {x1:x, y1:0, x2:x, y2:H, class:"prise"}, g);
+    }
+  }
+  let ORIG = [];
+  function traitsOrigine(){
+    coucheTraits.querySelectorAll("[data-orig]").forEach(g => g.remove());
+    ORIG = [{n:M.a.den, bande:0}, {n:M.b.den, bande:1}];
+    ORIG.forEach(function(o){
+      const g = el("g", {transform:"translate(" + X0 + " " + BANDES[o.bande].y + ")"}, coucheTraits);
+      g.dataset.orig = o.n;
+      dessinerTraits(o.n, g);
+      coucheTraits.insertBefore(g, coucheTraits.firstChild);
+    });
+  }
+
+  /* ---------- état ---------- */
+  // objet : {id, f ("a"/"b"), bande, pos (fraction de la longueur, de 0 à 1), arrivee, copie}
+  //   dans les lignes du tableau, ce sont des copies : les parts de la bande 2 restent en place
+  let objets = [], copies = [], seq = 0, horloge = 0;
+  const noeuds = {};
+  function frac(o){ return M[o.f]; }
+  function larg(o){ const f = frac(o); return f.num / f.den; }
+  // vue mur, soustraction : la part retirée disparaît, la première ne montre plus que le reste
+  function vueMur(o){ return (o.bande === 2 && enBas) || estLigne(o.bande); }
+  function partenaire(o){
+    return objets.find(q => q !== o && (o.copie ? q.groupe === o.groupe : (!q.copie && q.bande === 2)));
+  }
+  function masque(o){ return M.op === "−" && o.f === "b" && vueMur(o); }
+  function largAff(o){
+    if(M.op === "−" && o.f === "a" && vueMur(o)){
+      const b = partenaire(o);
+      if(b && b.f === "b") return Math.max(0, larg(o) - larg(b));
+    }
+    return larg(o);
+  }
+  function geom(o){ const b = BANDES[o.bande]; return {x:X0 + o.pos * W, y:b.y, w:largAff(o) * W, h:b.h}; }
+  function superpose(b){ return M.op === "−" && (b === 2 || estLigne(b)); }
+  function retiree(o){ return superpose(o.bande) && o.f === "b"; }
+  function dessiner(o){
+    const g = noeuds[o.id], d = geom(o), r = g.firstChild;
+    r.setAttribute("width", d.w); r.setAttribute("height", d.h);
+    r.setAttribute("fill", retiree(o) ? "url(#hachures)" : frac(o).coul);
+    g.classList.toggle("retiree", retiree(o));
+    g.classList.toggle("dans-mur", estLigne(o.bande));
+    g.classList.toggle("masque", masque(o));
+  }
+  function placer(o, x, y){
+    const d = geom(o);
+    noeuds[o.id].style.transform = "translate(" + (x === undefined ? d.x : x) + "px," + (y === undefined ? d.y : y) + "px)";
+  }
+  function ordonner(){
+    objets.filter(retiree).forEach(o => coucheObj.appendChild(noeuds[o.id]));
+  }
+  function creer(o){
+    const g = el("g", {class:"objet"}, coucheObj);
+    g.dataset.id = o.id;
+    el("rect", {x:0, y:0}, g);
+    noeuds[o.id] = g; dessiner(o); placer(o);
+  }
+  function tout(){
+    vider(coucheObj);
+    for(const k in noeuds) delete noeuds[k];
+    objets.forEach(creer);
+    ordonner(); legender(); majDefiler();
+  }
+  // position libre la plus proche (pas = largeur d'une case), sans chevaucher, sauf superposition permise
+  function caler(b, voulu, w, pas, sauf){
+    const autres = superpose(b) ? [] : objets.filter(o => o !== sauf && o.bande === b);
+    let best = null, dmin = Infinity;
+    const nb = Math.round(1 / pas);
+    for(let k = 0; k <= nb; k++){
+      const p = k * pas;
+      if(p + w > 1 + EPS) break;
+      const libre = autres.every(o => p + w <= o.pos + EPS || p >= o.pos + larg(o) - EPS);
+      if(libre && Math.abs(p - voulu) < dmin){ dmin = Math.abs(p - voulu); best = p; }
+    }
+    return best;
+  }
+
+  /* ---------- légendes (à droite des bandes) ---------- */
+  function fraction(x, y, num, den){
+    el("text", {x:x, y:y, class:"etiquette"}, legendes).textContent = num;
+    const l = Math.max(String(num).length, String(den).length) * 11 + 10;
+    el("line", {x1:x - l/2, y1:y + 9, x2:x + l/2, y2:y + 9, stroke:"#151a2e", "stroke-width":2.4}, legendes);
+    el("text", {x:x, y:y + 39, class:"etiquette"}, legendes).textContent = den;
+  }
+  function signe(x, y, s){ el("text", {x:x, y:y + 19, class:"etiquette"}, legendes).textContent = s; }
+  function ligne(b, termes, resultat){
+    const items = [];
+    termes.forEach(function(t, i){ if(i) items.push(M.op); items.push(t); });
+    if(resultat){ items.push("="); items.push(resultat); }
+    const pas = 40, x0 = LEG_X - (items.length - 1) * pas / 2, y = BANDES[b].y + H/2 - 14;
+    items.forEach(function(it, i){
+      const x = x0 + i * pas;
+      if(typeof it === "string") signe(x, y, it); else fraction(x, y, it[0], it[1]);
+    });
+  }
+  function dansBande2(){ return objets.filter(o => o.bande === 2); }
+  function legender(){
+    vider(legendes);
+    ligne(0, [[M.a.num, M.a.den]]);
+    ligne(1, [[M.b.num, M.b.den]]);
+    // résultat : seulement quand un groupe est posé sur une ligne d'un dénominateur commun
+    vider(resultats);
+    let trouve = false;
+    LIGNES.forEach(function(i){
+      const b = BANDES[i];
+      if(!lignesCommunes(b.n) || !objets.some(o => o.copie && o.bande === i)) return;
+      trouve = true;
+      const num = Math.round(valeur() * b.n);
+      el("text", {x:X0 + W + 82, y:b.y + 17, class:"res-ligne"}, resultats).textContent = num + "/" + b.n;
+    });
+    const ici = dansBande2().filter(o => !o.copie);
+    if(M.op === "−") ici.sort((p, q) => p.f < q.f ? -1 : 1);
+    else ici.sort((p, q) => p.arrivee - q.arrivee);
+    if(ici.length){
+      let res = null;
+      if(trouve && ici.length === 2){
+        const d = M.a.den * M.b.den / pgcd(M.a.den, M.b.den), n = Math.round(valeur() * d), g = pgcd(n, d);
+        res = [n / g, d / g];                                   // fraction irréductible
+      }
+      ligne(2, ici.map(o => [frac(o).num, frac(o).den]), res);
+    }
+  }
+  function lignesCommunes(n){ return n % M.a.den === 0 && n % M.b.den === 0; }
+  function valeur(){
+    const a = M.a.num / M.a.den, b = M.b.num / M.b.den;
+    return M.op === "+" ? a + b : a - b;
+  }
+
+  /* ---------- défilement vers le tableau ---------- */
+  let enBas = false;
+  const btnDef = document.getElementById("btn-defiler");
+  function pret(){ return new Set(dansBande2().map(o => o.f)).size === 2; }
+  function majDefiler(){
+    if(!pret() && enBas) defiler(false);
+    btnDef.hidden = !pret();
+  }
+  function defiler(bas){
+    if(bas && !pret()) return;
+    enBas = bas;
+    contenu.style.transform = "translateY(" + (bas ? -DECALAGE : 0) + "px)";
+    // la bande 3 prend la hauteur des lignes du mur ; ses parts se rangent à gauche
+    const b2 = BANDES[2];
+    b2.h = bas ? H_MUR : H;
+    b2.fond.setAttribute("height", b2.h); b2.cadre.setAttribute("height", b2.h);
+    if(bas) ranger2();
+    dansBande2().forEach(function(o){ if(noeuds[o.id]){ dessiner(o); placer(o); } });
+    ordonner();                                  // la part retirée reste par-dessus
+    majBords();
+    mur.classList.toggle("vu", bas);
+    contenu.classList.toggle("bas", bas);
+    btnDef.classList.toggle("haut", bas);
+    btnDef.title = bas ? "Revenir aux bandes" : "Descendre au tableau";
+    btnDef.setAttribute("aria-label", btnDef.title);
+  }
+  btnDef.addEventListener("click", () => defiler(!enBas));
+  let attente = 0;
+  svg.addEventListener("wheel", function(e){
+    e.preventDefault();
+    const t = Date.now();
+    if(t - attente < 500 || Math.abs(e.deltaY) < 8) return;
+    attente = t;
+    defiler(e.deltaY > 0);
+  }, {passive:false});
+  // glissé vertical à deux doigts ou sur le fond : un coup vers le haut descend au tableau
+  let toucheY = null;
+  svg.addEventListener("touchstart", function(e){ if(e.touches.length === 2) toucheY = e.touches[0].clientY; }, {passive:true});
+  svg.addEventListener("touchend", function(e){
+    if(toucheY === null) return;
+    const dy = (e.changedTouches[0].clientY - toucheY);
+    if(Math.abs(dy) > 40) defiler(dy < 0);
+    toucheY = null;
+  }, {passive:true});
+
+  /* ---------- rangement et repères du mur ---------- */
+  // bande 3, vue mur : addition, bout à bout par ordre d'arrivée ; soustraction, toutes deux à gauche
+  function ranger2(){
+    const ici = dansBande2().filter(o => !o.copie).sort((p, q) => p.arrivee - q.arrivee);
+    let x = 0;
+    if(M.op === "−"){
+      // soustraction : la part retirée se cale sur la fin de la première ; le reste est à gauche
+      const a = ici.find(o => o.f === "a"), b = ici.find(o => o.f === "b");
+      if(a) a.pos = 0;
+      if(a && b) b.pos = Math.max(0, larg(a) - larg(b));
+      return;
+    }
+    ici.forEach(function(o){ o.pos = x; x += larg(o); });
+  }
+  // un clic sur le bord droit d'une part de la bande 3 trace (ou efface) un pointillé vertical sur le mur
+  const coucheBords = document.getElementById("bords");
+  const coucheReperes = document.getElementById("reperes");     // par-dessus les parts
+  const reperes = new Set();
+  function majBords(){
+    vider(coucheBords);
+    if(!enBas) return;
+    // bords cliquables : fin de chaque part ; en soustraction, fin de la première part et fin du reste
+    const bords = [];
+    dansBande2().filter(o => !o.copie).forEach(function(o){
+      if(M.op === "−"){ if(o.f === "b") bords.push(o.pos); }     // soustraction : fin du reste
+      else bords.push(o.pos + larg(o));
+    });
+    bords.forEach(function(f){
+      const xd = X0 + f * W, b = BANDES[2];
+      const r = el("rect", {x:xd - 6, y:b.y - 6, width:12, height:b.h + 12}, coucheBords);
+      r.dataset.bord = f.toFixed(6);
+      el("title", {}, r).textContent = "Tracer un repère";
+    });
+  }
+  function dessinerReperes(){
+    vider(coucheReperes);
+    const y1 = BANDES[2].y + H_MUR, der = BANDES[BANDES.length - 1], y2 = der.y + der.h + 4;
+    reperes.forEach(function(f){
+      const x = X0 + (+f) * W;
+      el("line", {x1:x, y1:y1, x2:x, y2:y2, stroke:"#1f4fa8", "stroke-width":2, "stroke-dasharray":"6 4"}, coucheReperes);
+      // en vert sur les lignes d'un dénominateur commun, où le repère tombe sur un trait
+      LIGNES.forEach(function(i){
+        const b = BANDES[i], k = (+f) * b.n, commun = b.n % M.a.den === 0 && b.n % M.b.den === 0;
+        if(commun && Math.abs(k - Math.round(k)) < 1e-4)
+          el("line", {x1:x, y1:b.y - 2, x2:x, y2:b.y + b.h + 2, stroke:"#1e9e4a", "stroke-width":3.2}, coucheReperes);
+      });
+    });
+  }
+  coucheBords.addEventListener("pointerdown", function(e){
+    const r = e.target.closest("rect");
+    if(!r) return;
+    const f = r.dataset.bord;
+    if(reperes.has(f)) reperes.delete(f); else reperes.add(f);
+    dessinerReperes();
+    e.preventDefault(); e.stopPropagation();
+  });
+
+  /* ---------- glisser une part ---------- */
+  function coord(e){
+    const r = svg.getBoundingClientRect(), k = r.width / LARGE;
+    return {x:(e.clientX - r.left) / k, y:(e.clientY - r.top) / k + (enBas ? DECALAGE : 0)};
+  }
+  function bandeSous(y, marge){
+    // la plus proche dont la zone (avec marge) contient y
+    let best = -1, dmin = Infinity;
+    BANDES.forEach(function(b, i){
+      if(y > b.y - marge && y < b.y + b.h + marge){
+        const d = Math.abs(y - (b.y + b.h / 2));
+        if(d < dmin){ dmin = d; best = i; }
+      }
+    });
+    return best;
+  }
+  // prise : une part seule, ou tout un groupe (les parts de la bande 3 tirées ensemble vers le mur)
+  let prise = null, groupes = 0;
+  coucheObj.addEventListener("pointerdown", function(e){
+    const g = e.target.closest(".objet");
+    if(!g) return;
+    let o = objets.find(q => q.id === g.dataset.id);
+    const p = coord(e);
+    let membres;
+    if(enBas && o.bande === 2){
+      // vue mur : on tire une copie de toute la bande 3, les parts gardent leur place relative
+      const id = ++groupes;
+      membres = dansBande2().filter(q => !q.copie).map(function(q){
+        const c = {id:"o" + (++seq), f:q.f, bande:2, pos:q.pos, arrivee:q.arrivee, copie:true, groupe:id};
+        objets.push(c); creer(c);
+        return c;
+      });
+      membres.forEach(dessiner);                 // toutes créées : la copie du demi ne montre que le reste
+      o = membres.find(c => c.f === o.f);
+    }else if(o.copie){
+      membres = objets.filter(q => q.groupe === o.groupe);
+    }else{
+      membres = [o];
+    }
+    const d = geom(o);
+    prise = {o:o, membres:membres, dx:p.x - d.x, dy:p.y - d.y, x:d.x, y:d.y};
+    membres.forEach(function(m){ coucheObj.appendChild(noeuds[m.id]); noeuds[m.id].classList.add("glisse"); });
+    svg.setPointerCapture(e.pointerId);
+    svg.addEventListener("pointermove", glisse);
+    svg.addEventListener("pointerup", lache);
+    svg.addEventListener("pointercancel", lache);
+    e.preventDefault();
+  });
+  function glisse(e){
+    if(!prise) return;
+    const p = coord(e), d0 = geom(prise.o);
+    prise.x = p.x - prise.dx; prise.y = p.y - prise.dy;
+    const ddx = prise.x - d0.x, ddy = prise.y - d0.y;
+    prise.membres.forEach(function(m){ const d = geom(m); placer(m, d.x + ddx, d.y + ddy); });
+  }
+  function effacer(m){ noeuds[m.id].remove(); delete noeuds[m.id]; objets.splice(objets.indexOf(m), 1); }
+  function lache(){
+    if(!prise) return;
+    svg.removeEventListener("pointermove", glisse);
+    svg.removeEventListener("pointerup", lache);
+    svg.removeEventListener("pointercancel", lache);
+    const o = prise.o, membres = prise.membres, w = larg(o);
+    const yc = prise.y + BANDES[o.bande].h / 2;
+    const b = bandeSous(yc, 14);
+    const ddx = (prise.x - geom(o).x) / W;
+    membres.forEach(m => noeuds[m.id].classList.remove("glisse"));
+    prise = null;
+
+    if(o.copie){
+      // groupe de copies : seulement dans une ligne du mur, calé à gauche ; ailleurs, il s'efface
+      const gauche = Math.min(...membres.map(m => m.pos)), droite = Math.max(...membres.map(m => m.pos + larg(m)));
+      let ok = estLigne(b);
+      if(ok){
+        const best = 0;                       // toujours calé sur le bord gauche de la ligne
+        ok = droite - gauche <= 1 + EPS;
+        if(ok){
+          // un seul groupe par ligne : l'ancien laisse la place
+          objets.filter(q => q.copie && q.bande === b && q.groupe !== o.groupe).forEach(effacer);
+          membres.forEach(function(m){ m.pos = best + (m.pos - gauche); m.bande = b; });
+        }
+      }
+      if(!ok){ membres.forEach(effacer); legender(); return; }
+    }else{
+      const voulu = (geom(o).x - X0) / W + ddx;
+      if(b >= 0 && !estLigne(b)){
+        const avant = o.bande;
+        const maison = o.f === "a" ? 0 : 1;
+        const pas = b === maison ? 1 / frac(o).den : 1 / M.N;
+        const p = caler(b, voulu, w, pas, o);
+        if(p !== null){ o.bande = b; o.pos = p; }
+        if(o.bande === 2 && avant !== 2) o.arrivee = ++horloge;
+      }
+    }
+    requestAnimationFrame(function(){
+      membres.forEach(function(m){ dessiner(m); placer(m); });
+      ordonner(); legender(); majDefiler(); majBords();
+    });
+  }
+
+  /* ---------- glisser les traits ---------- */
+  let tient = null;
+  function placerCopie(c, x, y){
+    c.g.style.transform = "translate(" + (x === undefined ? X0 : x) + "px," + (y === undefined ? BANDES[c.bande].y : y) + "px)";
+  }
+  coucheTraits.addEventListener("pointerdown", function(e){
+    if(!e.target.classList.contains("prise")) return;
+    const g = e.target.parentNode, p = coord(e);
+    let c;
+    if(g.dataset.orig){
+      const o = ORIG.find(q => String(q.n) === g.dataset.orig);
+      c = {n:o.n, bande:o.bande, g:el("g", {class:"copie"}, coucheTraits)};
+      dessinerTraits(c.n, c.g);
+      copies.push(c);
+    }else{
+      c = copies.find(q => q.g === g);
+    }
+    tient = {c:c, dx:p.x - X0, dy:p.y - BANDES[c.bande].y, x:X0, y:BANDES[c.bande].y};
+    placerCopie(c);
+    c.g.classList.add("glisse");
+    svg.setPointerCapture(e.pointerId);
+    svg.addEventListener("pointermove", deplace);
+    svg.addEventListener("pointerup", depose);
+    svg.addEventListener("pointercancel", depose);
+    e.preventDefault(); e.stopPropagation();
+  });
+  function deplace(e){
+    if(!tient) return;
+    const p = coord(e);
+    tient.x = p.x - tient.dx; tient.y = p.y - tient.dy;
+    placerCopie(tient.c, tient.x, tient.y);
+  }
+  function depose(){
+    if(!tient) return;
+    svg.removeEventListener("pointermove", deplace);
+    svg.removeEventListener("pointerup", depose);
+    svg.removeEventListener("pointercancel", depose);
+    const c = tient.c, b = bandeSous(tient.y + H/2, 0);
+    tient = null;
+    c.g.classList.remove("glisse");
+    const doublon = b >= 0 && (ORIG.some(o => o.n === c.n && o.bande === b) ||
+                               copies.some(q => q !== c && q.n === c.n && q.bande === b));
+    if(b < 0 || b > 2 || doublon){ c.g.remove(); copies.splice(copies.indexOf(c), 1); return; }
+    c.bande = b;
+    requestAnimationFrame(function(){ placerCopie(c); });
+  }
+
+  /* ---------- réinitialiser / changer d'opération ---------- */
+  function reinitialiser(){
+    reperes.clear(); vider(coucheReperes);
+    copies.forEach(c => c.g.remove());
+    copies = []; horloge = 0;
+    defiler(false);
+    traitsOrigine();
+    traitsMur();
+    objets = [
+      {id:"o" + (++seq), f:"a", bande:0, pos:0, arrivee:0},
+      {id:"o" + (++seq), f:"b", bande:1, pos:0, arrivee:0}
+    ];
+    tout();
+  }
+  document.getElementById("btn-reset").addEventListener("click", reinitialiser);
+  // boutons + / − puis 1, 2, 3 : choix du calcul
+  const boiteCalculs = document.getElementById("calculs");
+  function majCalculs(){
+    vider(boiteCalculs);
+    CALCULS[mode].liste.forEach(function(c, i){
+      const b = document.createElement("button");
+      b.type = "button"; b.textContent = i + 1;
+      const t = c[0][0] + "/" + c[0][1] + " " + CALCULS[mode].op + " " + c[1][0] + "/" + c[1][1];
+      b.title = "Calcul " + (i + 1) + " : " + t; b.setAttribute("aria-label", b.title);
+      b.setAttribute("aria-pressed", i === rang);
+      b.addEventListener("click", function(){ rang = i; M = calcul(mode, rang); majCalculs(); reinitialiser(); });
+      boiteCalculs.appendChild(b);
+    });
+  }
+  document.querySelectorAll(".mode button[data-mode]").forEach(function(btn){
+    btn.addEventListener("click", function(){
+      mode = btn.dataset.mode; rang = 0; M = calcul(mode, rang);
+      document.querySelectorAll(".mode button[data-mode]").forEach(x => x.setAttribute("aria-pressed", x === btn));
+      majCalculs(); reinitialiser();
+    });
+  });
+  majCalculs();
+
+  /* ---------- mise à l'échelle ---------- */
+  function enPleinEcran(){ return !!(document.fullscreenElement || document.webkitFullscreenElement); }
+  function ajuster(){
+    const dw = scene.clientWidth, dh = scene.clientHeight;
+    if(dw <= 0 || dh <= 0) return;
+    const k = Math.min(enPleinEcran() ? 2 : 1, dw / LARGE, dh / HAUT);
+    stage.style.transform = "scale(" + k + ")";
+    boite.style.width  = Math.round(LARGE * k) + "px";
+    boite.style.height = Math.round(HAUT * k) + "px";
+  }
+  window.addEventListener("resize", ajuster);
+
+  const btnPlein = document.getElementById("btn-plein");
+  btnPlein.addEventListener("click", function(){
+    const d = document.documentElement;
+    if(enPleinEcran()) (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+    else (d.requestFullscreen || d.webkitRequestFullscreen).call(d);
+  });
+  function majPleinEcran(){
+    document.body.classList.toggle("pleinecran", enPleinEcran());
+    btnPlein.title = enPleinEcran() ? "Quitter le plein écran" : "Plein écran";
+    setTimeout(ajuster, 60);
+  }
+  document.addEventListener("fullscreenchange", majPleinEcran);
+  document.addEventListener("webkitfullscreenchange", majPleinEcran);
+
+  reinitialiser();
+  ajuster();
+})();
+</script>
+</body>
+</html>
