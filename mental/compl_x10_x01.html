@@ -1,0 +1,275 @@
+<!doctype html>
+<!--
+  Note pour Claude : animation « calcul mental chronométré » (fichier autonome, aucune dépendance).
+  Coquille commune aux activités : en-tête, plateau 900x560 mis à l'échelle, bouton plein écran.
+  Les calculs de CALCULS s'affichent l'un après l'autre au centre de la feuille (sans post-it),
+  DUREE ms chacun, puis la consigne finale (FINAL). Sur cet écran final, le bouton « Résultat »
+  affiche le résultat (RESULTAT, détail dans DETAIL).
+  Lecture / pause = bouton ou Espace ; flèches gauche / droite = calcul précédent / suivant ;
+  bouton de réinitialisation = retour à l'écran de départ.
+-->
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nombres et opérations - calcul mental</title>
+<style>
+:root{
+  --papier:#f5f5f1;--encre:#151a2e;--gris:#6d7382;--trait:#d9dbe1;--bleu-fonce:#1f4fa8;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  background:var(--papier);color:var(--encre);
+  font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;font-size:16px;
+  padding:14px 18px;height:100vh;overflow:hidden;
+}
+.page{max-width:1320px;margin:0 auto;height:100%;display:flex;flex-direction:column}
+.entete{position:relative;display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;text-align:center;min-height:34px}
+.eyebrow{margin:0;font-size:13.5px;font-weight:700;letter-spacing:.16em;color:var(--gris);text-transform:uppercase}
+.rule{height:1px;background:var(--trait);margin:10px 0;flex:none}
+.nav{position:absolute;right:0;top:50%;transform:translateY(-50%);display:flex;gap:8px}
+button{
+  font:inherit;font-weight:700;font-size:14px;padding:9px 12px;border-radius:9px;cursor:pointer;
+  border:1px solid #b9bec9;background:#fff;color:var(--encre);
+}
+button:focus-visible{outline:2px solid var(--bleu-fonce);outline-offset:2px}
+.plein{width:34px;height:34px;padding:0;display:flex;align-items:center;justify-content:center}
+.plein svg{width:19px;height:19px}
+.plein .sortir{display:none}
+body.pleinecran .plein .entrer{display:none}
+body.pleinecran .plein .sortir{display:block}
+
+.scene{flex:1;min-height:0;display:flex;justify-content:center;align-items:flex-start}
+.boite{position:relative}
+.plateau{position:absolute;left:0;top:0;width:900px;height:560px;transform-origin:top left}
+.feuille{
+  position:absolute;left:0;top:0;width:900px;height:560px;
+  background:#fdfdfb;border:1px solid var(--trait);border-radius:12px;overflow:hidden;
+}
+
+/* --- zone d'affichage --- */
+.carte{position:absolute;left:40px;top:30px;width:820px;height:430px;user-select:none}
+.carte .texte{
+  position:absolute;left:0;top:0;right:0;bottom:0;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;
+  text-align:center;
+  font-size:76px;font-weight:700;color:var(--encre);letter-spacing:-.01em;white-space:nowrap;
+}
+.carte .texte.consigne{font-size:36px;line-height:1.3;white-space:normal;letter-spacing:0}
+.carte .texte .petit{font-size:22px;font-weight:600;color:var(--gris);letter-spacing:0}
+.carte .texte .fort{font-size:46px}
+.carte .texte .resultat{font-size:92px;line-height:1.1;color:var(--bleu-fonce);letter-spacing:-.01em}
+.carte .texte .btn-resultat{font-size:24px;padding:13px 30px;margin-top:10px}
+.carte.entre{animation:entre .45s cubic-bezier(.2,.8,.3,1)}
+@keyframes entre{
+  from{opacity:0;translate:60px -14px;scale:.94}
+  to{opacity:1;translate:0 0;scale:1}
+}
+@media (prefers-reduced-motion:reduce){.carte.entre{animation:none}}
+
+/* --- jauge de temps --- */
+.jauge{
+  position:absolute;left:250px;top:496px;width:400px;height:10px;border-radius:5px;
+  background:#e6e8ee;overflow:hidden;
+}
+.jauge .reste{height:100%;width:100%;background:var(--bleu-fonce);border-radius:5px}
+.secondes{
+  position:absolute;left:662px;top:488px;width:70px;font-size:19px;font-weight:700;color:var(--gris);
+  font-variant-numeric:tabular-nums;
+}
+.rang{
+  position:absolute;right:26px;bottom:30px;font-size:17px;font-weight:700;letter-spacing:.08em;color:var(--gris);
+  font-variant-numeric:tabular-nums;
+}
+.cache{visibility:hidden}
+
+.outils{position:absolute;left:26px;bottom:20px;display:flex;gap:10px;z-index:5}
+.outils button{width:44px;height:44px;padding:0;display:flex;align-items:center;justify-content:center}
+.outils button svg{width:24px;height:24px}
+#btn-lecture .pause{display:none}
+body.enmarche #btn-lecture .lecture{display:none}
+body.enmarche #btn-lecture .pause{display:block}
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <div class="entete">
+    <p class="eyebrow">Nombres et opérations · calcul mental</p>
+    <div class="nav">
+      <button id="btn-plein" class="plein" title="Plein écran" aria-label="Plein écran">
+        <svg class="entrer" viewBox="0 0 24 24" fill="none" stroke="#151a2e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 3H5.5A2.5 2.5 0 0 0 3 5.5V9"/><path d="M15 3h3.5A2.5 2.5 0 0 1 21 5.5V9"/>
+          <path d="M9 21H5.5A2.5 2.5 0 0 1 3 18.5V15"/><path d="M15 21h3.5a2.5 2.5 0 0 0 2.5-2.5V15"/>
+        </svg>
+        <svg class="sortir" viewBox="0 0 24 24" fill="none" stroke="#151a2e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3.5 9H9V3.5"/><path d="M20.5 9H15V3.5"/><path d="M3.5 15H9v5.5"/><path d="M20.5 15H15v5.5"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+  <div class="rule"></div>
+
+  <div class="scene" id="scene">
+    <div class="boite" id="boite">
+      <div class="plateau" id="stage">
+        <div class="feuille" id="feuille">
+          <div class="carte" id="carte">
+            <div class="texte" id="texte" aria-live="polite"></div>
+          </div>
+          <div class="jauge" id="jauge"><div class="reste" id="reste"></div></div>
+          <div class="secondes" id="secondes"></div>
+          <div class="rang" id="rang"></div>
+          <div class="outils">
+            <button id="btn-lecture" title="Démarrer / pause (Espace)" aria-label="Démarrer ou mettre en pause">
+              <svg class="lecture" viewBox="0 0 24 24" fill="#151a2e" stroke="#151a2e" stroke-width="1.7" stroke-linejoin="round">
+                <path d="M8 5.5v13l10.5-6.5z"/>
+              </svg>
+              <svg class="pause" viewBox="0 0 24 24" fill="none" stroke="#151a2e" stroke-width="2.6" stroke-linecap="round">
+                <path d="M9 6v12"/><path d="M15 6v12"/>
+              </svg>
+            </button>
+            <button id="btn-reset" title="Revenir au début" aria-label="Réinitialiser">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#151a2e" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20 4v4.6h-4.6"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  const scene   = document.getElementById("scene");
+  const boite   = document.getElementById("boite");
+  const stage   = document.getElementById("stage");
+  const carte   = document.getElementById("carte");
+  const feuille = document.getElementById("feuille");
+  const texte   = document.getElementById("texte");
+  const jauge   = document.getElementById("jauge");
+  const reste   = document.getElementById("reste");
+  const secondes= document.getElementById("secondes");
+  const rang    = document.getElementById("rang");
+  const LARGE = 900, HAUT = 560;
+
+  /* ---------- contenu ---------- */
+  const DUREE = 15000;                       // durée d'affichage de chaque calcul, en ms
+  const CALCULS = [
+    "78 + … = 100",
+    "45,3 : 10 = …",
+    "0,786 × 100 = …",
+    "12,4 × 0,1 = …"
+  ];
+  const ACCUEIL = '<span class="fort">Calcul mental</span>' +
+                  '<span class="petit">' + CALCULS.length + ' calculs · ' + (DUREE/1000) + ' secondes chacun</span>';
+  const FINAL = 'Additionner les ' + CALCULS.length + ' résultats précédents.<span class="fort">Quelle est la somme ?</span>';
+  const RESULTAT = "106,37";
+  const DETAIL = "22 + 4,53 + 78,6 + 1,24";
+
+  /* etape : -1 = accueil, 0..n-1 = calculs, n = consigne finale */
+  let etape = -1, enMarche = false, ecoule = 0, dernier = 0, revele = false;
+
+  function insec(s){ return s.replace(/ /g, "\u00a0"); }
+
+  function afficher(){
+    const n = CALCULS.length, calcul = etape >= 0 && etape < n;
+    texte.classList.toggle("consigne", !calcul);
+    if(etape < 0) texte.innerHTML = ACCUEIL;
+    else if(calcul) texte.textContent = insec(CALCULS[etape]);
+    else majFinal();
+    carte.classList.remove("entre"); void carte.offsetWidth; carte.classList.add("entre");
+    jauge.classList.toggle("cache", !calcul);
+    secondes.classList.toggle("cache", !calcul);
+    rang.textContent = calcul ? (etape + 1) + " / " + n : "";
+    majJauge();
+  }
+  function majFinal(){
+    texte.innerHTML = FINAL + (revele
+      ? '<span class="resultat">' + RESULTAT + '</span><span class="petit">' + DETAIL + '</span>'
+      : '<button type="button" class="btn-resultat" id="btn-resultat">Résultat</button>');
+  }
+  function majJauge(){
+    const r = Math.max(0, DUREE - ecoule);
+    reste.style.width = (100 * r / DUREE) + "%";
+    secondes.textContent = Math.ceil(r / 1000) + " s";
+  }
+  function marche(oui){
+    enMarche = oui;
+    document.body.classList.toggle("enmarche", oui);
+    dernier = performance.now();
+  }
+  function aller(i, lancer){
+    etape = Math.max(-1, Math.min(CALCULS.length, i));
+    ecoule = 0; revele = false;
+    marche(lancer && etape >= 0 && etape < CALCULS.length);
+    afficher();
+  }
+  function basculer(){
+    if(etape < 0 || etape >= CALCULS.length) aller(0, true);   // départ, ou nouveau tour
+    else marche(!enMarche);
+  }
+
+  function tic(t){
+    if(enMarche){
+      ecoule += t - dernier; dernier = t;
+      if(ecoule >= DUREE) aller(etape + 1, true);
+      else majJauge();
+    }
+    requestAnimationFrame(tic);
+  }
+
+  document.getElementById("btn-lecture").addEventListener("click", basculer);
+  document.getElementById("btn-reset").addEventListener("click", function(){ aller(-1, false); });
+
+  feuille.addEventListener("click", function(e){          // écran final : bouton Résultat
+    if(etape !== CALCULS.length || !e.target.closest("#btn-resultat")) return;
+    revele = true; majFinal();
+  });
+
+  document.addEventListener("keydown", function(e){
+    if(e.key === " " || e.code === "Space"){ e.preventDefault(); basculer(); }
+    else if(e.key === "ArrowRight"){ e.preventDefault(); aller(etape + 1, enMarche); }
+    else if(e.key === "ArrowLeft"){ e.preventDefault(); aller(etape - 1, enMarche); }
+  });
+
+  /* ---------- mise à l'échelle ---------- */
+  function enPleinEcran(){ return !!(document.fullscreenElement || document.webkitFullscreenElement); }
+  function ajuster(){
+    const dw = scene.clientWidth, dh = scene.clientHeight;
+    if(dw <= 0 || dh <= 0) return;
+    const echelle = Math.min(enPleinEcran() ? 2 : 1, dw / LARGE, dh / HAUT);
+    stage.style.transform = "scale(" + echelle + ")";
+    boite.style.width  = Math.round(LARGE * echelle) + "px";
+    boite.style.height = Math.round(HAUT * echelle) + "px";
+  }
+  window.addEventListener("resize", ajuster);
+
+  const btnPlein = document.getElementById("btn-plein");
+  btnPlein.addEventListener("click", function(){
+    const el = document.documentElement;
+    if(enPleinEcran()) (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+    else (el.requestFullscreen || el.webkitRequestFullscreen).call(el);
+    btnPlein.blur();                         // Espace doit rester lecture / pause
+  });
+  function majPleinEcran(){
+    document.body.classList.toggle("pleinecran", enPleinEcran());
+    btnPlein.title = enPleinEcran() ? "Quitter le plein écran" : "Plein écran";
+    setTimeout(ajuster, 60);
+  }
+  document.addEventListener("fullscreenchange", majPleinEcran);
+  document.addEventListener("webkitfullscreenchange", majPleinEcran);
+
+  afficher();
+  ajuster();
+  requestAnimationFrame(tic);
+})();
+</script>
+</body>
+</html>
