@@ -79,11 +79,10 @@ body.corrige .sol{visibility:visible}
 }
 </style>
 <style>
-/* propre à la fiche – critères de divisibilité (pas de corrigé : bouton œil masqué) */
-#btn{display:none}
+/* propre à la fiche – critères de divisibilité */
 .intro{margin:0 0 3mm 7mm}
 .crit{width:164mm;margin:5mm auto 0;border-collapse:separate;border-spacing:0;border:1px solid #1a1a1a;border-radius:4mm}
-.crit tr{height:27mm}
+.crit tr{height:25mm}
 .crit tr.tete{height:12mm}
 .crit tr.tete td{font-weight:700}
 .crit tr:not(:last-child) td{border-bottom:1px solid #1a1a1a}
@@ -94,6 +93,14 @@ body.corrige .sol{visibility:visible}
 .c-e{width:34%;font-size:10.5pt;white-space:nowrap}
 .c-e .ex{color:#555}
 .c-e .pt{display:block;margin-top:1mm;white-space:normal}
+.ex-red{margin-top:10mm}
+.liste{display:grid;grid-template-columns:repeat(2,1fr);grid-template-rows:repeat(3,auto);grid-auto-flow:column;row-gap:6mm;margin:6mm 0 0 8mm}
+.it{display:flex;align-items:center;gap:2mm;font-size:12.5pt}
+.lt{margin-right:1mm}
+.fe{display:inline-flex;flex-direction:column;align-items:center;line-height:1.2;min-width:9mm}
+.fe span:first-child{border-bottom:1px solid #1a1a1a;padding:0 2px;align-self:stretch;text-align:center}
+.fe.fs{color:var(--magenta);font-weight:700}
+.fe.fs span:first-child{border-bottom-color:var(--magenta)}
 </style>
 </head>
 <body>
@@ -110,7 +117,7 @@ body.corrige .sol{visibility:visible}
 </div>
 
 <!-- ══════════════════ PAGE 1 ══════════════════ -->
-<section class="page">
+<section class="page" data-corrige="">
   <h1>Fractions</h1>
   <p class="sur-titre">Critères de divisibilité</p>
   <p class="etiquette-corrige">CORRIGÉ</p>
@@ -124,9 +131,19 @@ body.corrige .sol{visibility:visible}
     <tr><td class="c-n">divisible par <span class="n">5</span></td><td class="c-r">s’il se termine par 0 ou par 5</td><td class="c-e"><span class="ex">exemple:</span> 45, 120, 325, …</td></tr>
     <tr><td class="c-n">divisible par <span class="n">10</span></td><td class="c-r">s’il se termine par 0</td><td class="c-e"><span class="ex">exemple:</span> 40, 120, 310, …</td></tr>
     <tr><td class="c-n">divisible par <span class="n">25</span></td><td class="c-r">s’il se termine par 00, 25, 50 ou&#160;75</td><td class="c-e"><span class="ex">exemple:</span> 75, 125, 350, …</td></tr>
-    <tr><td class="c-n">divisible par <span class="n">50</span></td><td class="c-r">s’il se termine par 00 ou 50</td><td class="c-e"><span class="ex">exemple:</span> 150, 200, 350, …</td></tr>
-    <tr><td class="c-n">divisible par <span class="n">100</span></td><td class="c-r">s’il se termine par 00</td><td class="c-e"><span class="ex">exemple:</span> 200, 500, 1200 …</td></tr>
   </table>
+
+  <div class="exo-titre ex-red">
+    <svg class="pastille" viewBox="0 0 16 16" aria-hidden="true"><rect width="16" height="16" rx="2" fill="#1F3A5F"></rect><text x="8" y="12" text-anchor="middle" fill="#fff" font-size="11" font-weight="700" font-family="Verdana,sans-serif">1</text></svg>
+    <span class="consigne">Réduisez au maximum.</span>
+  </div>
+  <div class="liste">
+    <div class="it"><span class="lt">a.</span><span class="fe"><span>8</span><span>22</span></span><span class="eg">=</span><span class="sol"><span class="fe fs"><span>4</span><span>11</span></span></span></div>
+    <div class="it"><span class="lt">b.</span><span class="fe"><span>531</span><span>84</span></span><span class="eg">=</span><span class="sol"><span class="fe fs"><span>177</span><span>28</span></span></span></div>
+    <div class="it"><span class="lt">c.</span><span class="fe"><span>20</span><span>65</span></span><span class="eg">=</span><span class="sol"><span class="fe fs"><span>4</span><span>13</span></span></span></div>
+    <div class="it"><span class="lt">d.</span><span class="fe"><span>70</span><span>200</span></span><span class="eg">=</span><span class="sol"><span class="fe fs"><span>7</span><span>20</span></span></span></div>
+    <div class="it"><span class="lt">e.</span><span class="fe"><span>75</span><span>125</span></span><span class="eg">=</span><span class="sol"><span class="fe fs"><span>3</span><span>5</span></span></span></div>
+  </div>
 
   <div class="pied"><span>Nombres et opérations - nombres rationnels (fractions) - UOG/AM</span><span>1</span></div>
 </section>
