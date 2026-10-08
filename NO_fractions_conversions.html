@@ -108,6 +108,18 @@ body.corrige .sol{visibility:visible}
 .sd{color:var(--magenta);font-weight:700}
 .ex2{margin-top:14mm}
 </style>
+<style>
+/* écran : agrandissement par transform plutôt que par zoom CSS — Firefox pour Android (écran i3TOUCH)
+   ne dessine pas certains tracés SVG quand la page est agrandie avec zoom. L'impression n'est pas touchée. */
+@media screen{
+  .page{
+    zoom:1 !important;
+    transform:scale(var(--z,1));transform-origin:top left;
+    margin-left:max(14px, calc((100% - var(--pw,210mm) * var(--z,1)) / 2));margin-right:0;
+    margin-bottom:calc(14px + (var(--z,1) - 1) * var(--ph,292mm));
+  }
+}
+</style>
 </head>
 <body>
 
