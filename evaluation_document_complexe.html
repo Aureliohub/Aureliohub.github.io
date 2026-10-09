@@ -460,7 +460,7 @@ ol.corrections li{cursor:pointer}
   <h3>Remarques non notées, signalées à l’apprenant</h3>
   <ul>
         <li>Taille et proportions de l’image.</li>
-    <li>Marges de la page.</li>
+    <li>Police du corps de texte, quand le document entier s’écarte d’Arial.</li>
   </ul>
 </section>
 
@@ -762,27 +762,50 @@ function lireNumerotation(xml){
   return m;
 }
 
-/* couleur portée par un style de paragraphe (word/styles.xml), chaîne basedOn suivie */
-function lireCouleursStyles(xml){
+/* Mise en forme portée par un style de paragraphe (word/styles.xml), chaîne basedOn
+   suivie. Word n'écrit sur le passage que ce qui diffère de ce qu'il hérite : un
+   document entièrement en Arial 11 n'a aucun w:sz. Sans cette lecture, la taille
+   et la police d'un tel document sont invisibles pour le correcteur. */
+function lireStyles(xml){
   const m = new Map();
   if(!xml) return m;
   const doc = new DOMParser().parseFromString(xml, "application/xml");
   if(doc.getElementsByTagName("parsererror").length) return m;
   const att = (el, n) => el ? (el.getAttributeNS(W, n) || el.getAttribute("w:" + n)) : null;
+  const vrai = el => el && att(el, "val") !== "0" && att(el, "val") !== "false" && att(el, "val") !== "none";
+  const lireRPr = rpr => {
+    const o = { couleur:null, taille:null, police:null, gras:null, ital:null, souligne:null };
+    if(!rpr) return o;
+    const c = rpr.getElementsByTagNameNS(W, "color")[0];
+    const v = c ? att(c, "val") : null;
+    if(v && v !== "auto") o.couleur = v.toUpperCase();
+    const sz = rpr.getElementsByTagNameNS(W, "sz")[0];
+    if(sz){ const n = parseInt(att(sz, "val"), 10); if(n) o.taille = n / 2; }
+    const f = rpr.getElementsByTagNameNS(W, "rFonts")[0];
+    if(f) o.police = att(f, "ascii") || null;
+    const b = rpr.getElementsByTagNameNS(W, "b")[0];
+    if(b) o.gras = !!vrai(b);
+    const i = rpr.getElementsByTagNameNS(W, "i")[0];
+    if(i) o.ital = !!vrai(i);
+    const u = rpr.getElementsByTagNameNS(W, "u")[0];
+    if(u) o.souligne = !!vrai(u);
+    return o;
+  };
   const brut = new Map();
   for(const s of doc.getElementsByTagNameNS(W, "style")){
     const id = att(s, "styleId");
-    const rpr = s.getElementsByTagNameNS(W, "rPr")[0];
-    const c = rpr && rpr.getElementsByTagNameNS(W, "color")[0];
-    const v = c ? att(c, "val") : null;
     const base = s.getElementsByTagNameNS(W, "basedOn")[0];
-    brut.set(id, { couleur: (v && v !== "auto") ? v.toUpperCase() : null, base: base ? att(base, "val") : null });
+    brut.set(id, { ...lireRPr(s.getElementsByTagNameNS(W, "rPr")[0]), base: base ? att(base, "val") : null });
   }
+  const CHAMPS = ["couleur", "taille", "police", "gras", "ital", "souligne"];
   const resoudre = (id, vus) => {
     const e = brut.get(id);
-    if(!e || vus.has(id)) return null;
+    if(!e || vus.has(id)) return {};
     vus.add(id);
-    return e.couleur || (e.base ? resoudre(e.base, vus) : null);
+    const parent = e.base ? resoudre(e.base, vus) : {};
+    const o = {};
+    for(const k of CHAMPS) o[k] = (e[k] === null || e[k] === undefined) ? (parent[k] ?? null) : e[k];
+    return o;
   };
   for(const id of brut.keys()) m.set(id, resoudre(id, new Set()));
   return m;
@@ -899,10 +922,11 @@ function diffMots(ref, app){
 /* style dominant d’un paragraphe */
 function styleP(p){
   const st = { taille:null, police:null, gras:false, ital:false, souligne:false, couleur:null };
-  let meilleur = 0;
+  let meilleurT = 0, meilleurP = 0;
   for(const s of (p.styles || [])){
     const l = (s.fin - s.debut) || 0;
-    if(l > meilleur && s.taille){ meilleur = l; st.taille = s.taille; st.police = s.police; }
+    if(l > meilleurT && s.taille){ meilleurT = l; st.taille = s.taille; }
+    if(l > meilleurP && s.police){ meilleurP = l; st.police = s.police; }
     if(l > 0 && s.couleur && !st.couleur) st.couleur = s.couleur;
     if(l > 0){
       if(s.gras) st.gras = true;
@@ -910,8 +934,32 @@ function styleP(p){
       if(s.souligne) st.souligne = true;
     }
   }
-  if(!st.couleur && p.couleurStyle) st.couleur = p.couleurStyle;
+  /* ce que le passage ne dit pas, il l'hérite : style de paragraphe, puis
+     valeurs par défaut du document. Word n'écrit que les différences. */
+  const h = p.herite || {};
+  if(!st.couleur)        st.couleur  = h.couleur || null;
+  if(st.taille === null) st.taille   = (h.taille != null) ? h.taille : (p.tailleBase != null ? p.tailleBase : null);
+  if(!st.police)         st.police   = h.police || p.policeBase || null;
+  if(!st.gras     && h.gras)     st.gras     = true;
+  if(!st.ital     && h.ital)     st.ital     = true;
+  if(!st.souligne && h.souligne) st.souligne = true;
   return st;
+}
+
+/* « Arial N » est une seule exigence : la police et la taille. Elle ne coûte
+   qu'un défaut, et le message dit lequel des deux manque.
+   Une police que le document ne déclare nulle part n'est pas jugée. */
+const ARIAL = /arial|helvetica|liberation sans|nimbus sans/i;
+const policeOK = s => !s.police || ARIAL.test(s.police);
+const tailleOK = (s, n) => s.taille !== null && Math.abs(s.taille - n) < .6;
+const arialOK  = (s, n) => policeOK(s) && tailleOK(s, n);
+/* ce qu'il faut corriger, ou null si le passage est conforme */
+function ecartArial(s, n){
+  const p = policeOK(s), t = tailleOK(s, n);
+  if(p && t) return null;
+  if(!p && !t) return "Arial " + n;
+  if(!t)       return "taille " + n;
+  return "Arial, et non " + s.police;
 }
 
 /* famille de couleur : on juge la teinte, pas la nuance exacte */
@@ -1058,7 +1106,7 @@ function analyser(paras, page, police, formats){
     const ex = [], manque = [];
     if(ti){
       const s = styleP(ti);
-      ex.push(["Arial 20", s.taille !== null && Math.abs(s.taille - 20) < .6]);
+      ex.push([ecartArial(s, 20) || "Arial 20", !ecartArial(s, 20)]);
       ex.push(["gras", s.gras]);
       ex.push(["souligné", s.souligne]);
       ex.push(["centré", ti.jc === "center"]);
@@ -1084,12 +1132,12 @@ function analyser(paras, page, police, formats){
     const ps = ["r1","r2","r3"].map(i => app.get(i)).filter(Boolean);
     const n = ps.length || 1;
     const liste = ps.filter(p => fmt(p) === "decimal").length / n;
-    const taille = ps.filter(p => { const s = styleP(p); return s.taille !== null && Math.abs(s.taille - 18) < .6; }).length / n;
+    const ecart = ps.map(p => ecartArial(styleP(p), 18)).find(Boolean) || null;
     const gras  = ps.filter(p => styleP(p).gras).length / n;
     const soul  = ps.filter(p => styleP(p).souligne).length / n;
     const manque = [];
     if(liste < 1)  manque.push("appliquer la liste numérotée automatique (Accueil ▸ Liste numérotée)");
-    if(taille < 1) manque.push("mettre les titres en Arial 18");
+    if(ecart)      manque.push("mettre les titres en " + ecart);
     if(gras < 1)   manque.push("mettre les titres en gras");
     if(soul < 1)   manque.push("souligner les titres");
     res.D = Math.max(0, 4 - PENALITE * manque.length);
@@ -1102,10 +1150,10 @@ function analyser(paras, page, police, formats){
     const ps = ["b1","b2","b3"].map(i => app.get(i)).filter(Boolean);
     const n = ps.length || 1;
     const liste = ps.filter(p => fmt(p) === "bullet").length / n;
-    const taille = ps.filter(p => { const s = styleP(p); return s.taille !== null && Math.abs(s.taille - 11) < .6; }).length / n;
+    const ecart = ps.map(p => ecartArial(styleP(p), 11)).find(Boolean) || null;
     const manque = [];
     if(liste < 1)  manque.push("appliquer la liste à puces automatique (Accueil ▸ Liste à puces)");
-    if(taille < 1) manque.push("mettre ces trois lignes en Arial 11");
+    if(ecart)      manque.push("mettre ces trois lignes en " + ecart);
     res.E = Math.max(0, 3 - PENALITE * manque.length);
     if(manque.length){
       corr.push({ t:"Liste à puces", d:"À corriger : " + manque.join(" ; ") + ".", cible: ps[0] || null }); }
@@ -1135,16 +1183,19 @@ function analyser(paras, page, police, formats){
   /* --- G : mises en forme ponctuelles --- */
   {
     const tests = [
-      ["att",  "italique de « Attention… »",           p => styleP(p).ital],
-      ["sign", "italique de la signature",             p => styleP(p).ital],
-      ["vet",  "Arial 12 de « Si tu as un doute… »",   p => { const s = styleP(p); return s.taille !== null && Math.abs(s.taille - 12) < .6; }],
-      ["sign", "Arial 12 de la signature",             p => { const s = styleP(p); return s.taille !== null && Math.abs(s.taille - 12) < .6; }],
-      ["merci","Arial 18 gras du remerciement",        p => { const s = styleP(p); return s.gras && s.taille !== null && Math.abs(s.taille - 18) < .6; }]
+      ["att",  p => styleP(p).ital ? null : "italique de « Attention… »"],
+      ["sign", p => styleP(p).ital ? null : "italique de la signature"],
+      ["vet",  p => { const e = ecartArial(styleP(p), 12); return e && "« Si tu as un doute… » en " + e; }],
+      ["sign", p => { const e = ecartArial(styleP(p), 12); return e && "signature en " + e; }],
+      ["merci",p => { const s = styleP(p), e = ecartArial(s, 18);
+                      if(e) return "remerciement en " + e + (s.gras ? "" : " gras");
+                      return s.gras ? null : "remerciement en gras"; }]
     ];
     const manque = []; let premierFautif = null;
-    for(const [id, lib, f] of tests){
+    for(const [id, f] of tests){
       const p = app.get(id);
-      if(!(p && f(p))){ manque.push(lib); premierFautif = premierFautif || p; }
+      const d = p ? f(p) : "élément « " + id + " » introuvable";
+      if(d){ manque.push(d); premierFautif = premierFautif || p; }
     }
     res.G = Math.max(0, 2 - PENALITE * manque.length);
     if(manque.length)
@@ -1174,13 +1225,12 @@ function analyser(paras, page, police, formats){
 
   for(const x of BAREME) if(res[x.c] === undefined) res[x.c] = 0;
 
-  /* --- remarques non notées --- */
-  if(police.nomBase && !/arial|helvetica|liberation sans/i.test(police.nomBase))
+  /* --- remarques non notées ---
+     Les marges ne figurent pas dans la consigne : elles ne sont ni notées ni signalées.
+     La police du corps de texte, elle, n'est pas notée non plus — seuls les passages
+     du barème le sont — mais elle est signalée quand le document entier s'en écarte. */
+  if(police.nomBase && !ARIAL.test(police.nomBase))
     remarques.push({ t:"Police", d:"Le document est en " + police.nomBase + ". Le modèle est en Arial." });
-  const gcm = page.gauche / 566.93, dcm = page.droite / 566.93;
-  if(Math.abs(gcm - 3) > 0.6 || Math.abs(dcm - 1.5) > 0.6)
-    remarques.push({ t:"Marges", d:"Marges de " + gcm.toFixed(1) + " cm à gauche et " + dcm.toFixed(1) +
-      " cm à droite. Le modèle utilise 3 cm et 1,5 cm." });
 
   // les corrections sont numérotées dans l'ordre du document, de haut en bas
   const rang = new Map(lignes.map((p, i) => [p, i]));
@@ -1455,8 +1505,12 @@ async function traiter(f){
     if(!bonDocument(paragraphes)) throw new Error("horssujet");
     const police = lirePolice(xml, styles, theme);
     const formats = lireNumerotation(numxml);
-    const couleursStyles = lireCouleursStyles(styles);
-    for(const p of paragraphes) p.couleurStyle = couleursStyles.get(p.style) || null;
+    const stylesPara = lireStyles(styles);
+    for(const p of paragraphes){
+      p.herite = stylesPara.get(p.style) || null;
+      p.tailleBase = police.tailleBase;          // docDefaults : ce que tout hérite
+      p.policeBase = police.nomBase;
+    }
 
     // l'image du document, pour l'aperçu
     let imageURL = null;
