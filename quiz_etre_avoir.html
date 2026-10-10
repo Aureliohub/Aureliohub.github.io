@@ -116,6 +116,13 @@ button{font:inherit;color:inherit;cursor:pointer;border:0;background:none;touch-
 .ph .quit{color:var(--muted);font-size:.8em;text-decoration:underline;padding:6px}
 .end .under{min-height:0;margin:0}
 #ver{position:fixed;right:10px;bottom:calc(8px + env(safe-area-inset-bottom));background:var(--ink);color:#fff;font-weight:800;font-size:15px;line-height:1;padding:6px 10px;border-radius:999px;opacity:.85;pointer-events:none;z-index:9}
+.pmode{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:.8em;font-weight:600;color:var(--muted)}
+.pmode .seg button{padding:.4em .8em}
+.ph{padding-bottom:calc(44px + env(safe-area-inset-bottom))}
+.ph .btn.alt{font-size:1em;padding:.7em}
+.ph .seg{font-size:1.15em}
+.ph .seg button{padding:.45em 1.1em}
+@media (min-width:700px) and (min-height:700px){.ph{font-size:25px;max-width:700px}}
 </style>
 </head>
 <body>
@@ -2443,7 +2450,7 @@ var qrcode = function() {
 </script>
 <script>
 'use strict';
-const VERSION = 'v4';   // +1 à chaque livraison (pastille affichée en bas à droite)
+const VERSION = 'v6';   // +1 à chaque livraison (pastille affichée en bas à droite)
 /* ============================================================
    CARTES — modifiables. 'e' = je suis, 'a' = j'ai
    ============================================================ */
@@ -2460,6 +2467,7 @@ const CARDS = [
 const VERB = { e: 'Je suis', a: 'J’ai' };
 const RELAYS = ['wss://broker.hivemq.com:8884/mqtt', 'wss://broker.emqx.io:8084/mqtt'];
 const DELAY_OK = 3500, DELAY_KO = 5500;
+const SOLO_MAX = 2;   // nombre de reprises individuelles autorisées
 
 const qs = new URLSearchParams(location.search);
 const TEST_RELAY = qs.get('relais');
@@ -2477,6 +2485,11 @@ const store = {
   set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} },
   del(k) { try { localStorage.removeItem(k); } catch (e) {} }
 };
+/* Tirage : moitié « être », moitié « avoir », ordre aléatoire */
+function pickDeck(total) {
+  const pick = v => shuffle(CARDS.map((c, i) => i).filter(i => CARDS[i][1] === v)).slice(0, total / 2);
+  return shuffle(pick('e').concat(pick('a')));
+}
 let lastHtml = '';
 function paint(html) { if (html === lastHtml) return false; lastHtml = html; app.innerHTML = html; return true; }
 
@@ -2545,7 +2558,7 @@ function pub() {
   const g = H.g, cp = g.players.find(p => p.id === g.cur);
   const live = g.ph === 'turn' || g.ph === 'result', t = g.ph === 'turn' ? 1 : 0;
   return {
-    ph: g.ph, n: g.n, total: g.total, rev: !!g.rev, nm: g.miss.length,
+    ph: g.ph, n: g.n, total: g.total, auto: !!g.auto, rev: !!g.rev, nm: g.miss.length,
     left: (g.rev ? g.queue.length : g.deck.length) + t,
     players: g.players.map(p => ({ id: p.id, name: p.name, score: p.score, err: p.err || 0,
       miss: g.ph === 'end' ? g.miss.filter(m => m.p === p.id).map(m => CARDS[m.c]) : [] })),
@@ -2567,6 +2580,7 @@ function hMsg(m) {
     if (m.a === 'next' && g.ph === 'result' && m.n === g.n) next();
     else if (m.a === 'start' && g.ph === 'lobby') start();
     else if (m.a === 'rev') startRev();
+    else if (m.a === 'auto') setAuto(!!m.v);
     return;
   }
   if (m.t === 'join' && m.pid) {
@@ -2581,15 +2595,18 @@ function hMsg(m) {
   }
   if (m.t === 'ans' && g.ph === 'turn' && m.n === g.n && m.pid === g.cur) resolve(m.v);
 }
+function setAuto(v) {
+  const g = H.g; g.auto = v; clearTimeout(H.timer);
+  if (v && g.ph === 'result') H.timer = setTimeout(next, 2500);
+  commit();
+}
 function putBack() {
   const g = H.g; const pos = g.deck.length ? 1 + rnd(g.deck.length) : 0;
   g.deck.splice(pos, 0, g.card);
 }
 function start() {
   const g = H.g; if (!g.players.length) return;
-  const half = g.total / 2;
-  const pick = v => shuffle(CARDS.map((c, i) => i).filter(i => CARDS[i][1] === v)).slice(0, half);
-  g.deck = shuffle(pick('e').concat(pick('a')));
+  g.deck = pickDeck(g.total);
   g.players.forEach(p => { p.score = 0; p.err = 0; });
   g.order = shuffle(g.players.map(p => p.id));
   g.ti = -1; g.n = 0; g.won = 0; g.err = 0; g.fix = 0; g.res = null;
@@ -2646,7 +2663,7 @@ function hClick(ev) {
   const b = ev.target.closest('[data-a]'); if (!b) return;
   const g = H.g, a = b.dataset.a, v = b.dataset.v;
   if (a === 'total') { g.total = +v; commit(); }
-  else if (a === 'auto') { g.auto = v === '1'; commit(); }
+  else if (a === 'auto') setAuto(v === '1');
   else if (a === 'start') start();
   else if (a === 'ans') resolve(v);
   else if (a === 'next') next();
@@ -2657,6 +2674,7 @@ function hClick(ev) {
   else if (a === 'again') { g.ph = 'lobby'; g.players.forEach(p => { p.score = 0; p.err = 0; }); g.order = []; commit(); }
   else if (a === 'reset') { if (confirm('Nouvelle partie avec un nouveau code QR ? Les participants devront scanner à nouveau.')) { store.del('jsoj-host3'); location.reload(); } }
   else if (a === 'retry') tryRelay(0, 0), hRender();
+  else if (a === 'solo') location.search = '?solo';
   else if (a === 'full') { const d = document; d.fullscreenElement ? d.exitFullscreen() : d.documentElement.requestFullscreen && d.documentElement.requestFullscreen().catch(() => {}); }
 }
 function joinUrl() {
@@ -2687,7 +2705,7 @@ function hRender() {
   else if (!H.ready) h = `<div class="host"><div class="center"><h1>${brand}</h1><p class="dots">Connexion au relais</p></div></div>`;
   else if (g.ph === 'lobby') {
     const n = g.players.length;
-    h = `<div class="host">${net}<header class="bar">${brand}<span class="sp"></span><button class="btn ghost small" data-a="full">Plein écran</button><button class="btn ghost small" data-a="reset">Nouveau code</button></header>
+    h = `<div class="host">${net}<header class="bar">${brand}<span class="sp"></span><button class="btn ghost small" data-a="solo">Jouer seul</button><button class="btn ghost small" data-a="full">Plein écran</button><button class="btn ghost small" data-a="reset">Nouveau code</button></header>
     <div class="lobby">
       <div class="qrbox">${qrSvg(joinUrl())}<p>Scanne le code QR avec ton téléphone</p></div>
       <div>
@@ -2709,7 +2727,7 @@ function hRender() {
     const rows = sorted.map((p, i) => { if (p.score !== prev) { rank = i + 1; prev = p.score; } return `<li class="${rank === 1 && p.score > 0 ? 'first' : ''}"><span class="r">${rank}.</span><span class="n">${esc(p.name)}</span><span class="s">${cartes(p.score)} · ${g.revd ? g.miss.filter(m => m.p === p.id).length + ' à revoir' : erreurs(p.err || 0)}</span></li>`; }).join('');
     const ge = g.err || 0, rep = g.won + ge, nm = g.miss.length;
     const relance = g.revd ? `<p class="under">Relance : ${g.fix} ${g.fix > 1 ? 'erreurs corrigées' : 'erreur corrigée'}, ${nm} à revoir</p>` : '';
-    const hint = nm ? '<p class="under">Sans relance, chacun peut reprendre ses erreurs sur son téléphone.</p>' : '';
+    const hint = nm ? '<p class="under">Sans relance, chacun peut reprendre ses erreurs sur son téléphone (' + SOLO_MAX + ' essais).</p>' : '';
     h = `<div class="host">${net}<header class="bar">${brand}<span class="sp"></span><button class="btn ghost small" data-a="full">Plein écran</button></header>
     <div class="end"><h1>Bravo !</h1><p class="who">${cartes(rep)} : ${g.won} juste${g.won > 1 ? 's' : ''}, ${erreurs(ge)}</p>${relance}<ol class="rank">${rows}</ol>
     <div class="opt">${nm ? `<button class="btn" data-a="rev">Relancer ${nm > 1 ? 'les ' + nm + ' erreurs' : 'l’erreur'}</button>` : ''}<button class="btn${nm ? ' ghost' : ''}" data-a="again">Rejouer</button><button class="btn ghost" data-a="reset">Nouveau code</button></div>${hint}</div></div>`;
@@ -2738,18 +2756,20 @@ function hRender() {
 /* ============================================================
    TÉLÉPHONE
    ============================================================ */
-const P = { code: '', pid: '', name: '', st: null, room: null, c: null, net: false, late: false, sentN: -1, sentV: '', joining: false, prof: false, ctlN: -1, ctlA: '', solo: null, soloDone: false };
+const P = { code: '', pid: '', name: '', st: null, room: null, c: null, net: false, late: false, sentN: -1, sentV: '', joining: false, prof: false, ctlN: -1, ctlA: '', solo: null, soloUsed: 0, soloMiss: null, soloKey: null };
 async function playerInit() {
   P.code = (qs.get('p') || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
   if (P.code.length !== 6 || !window.crypto || !crypto.subtle) { paint('<div class="ph"><div class="ph-mid"><h1>Code QR non valable</h1><p class="muted">Scanne à nouveau le code QR affiché sur l’écran.</p></div></div>'); return; }
   const saved = store.get('jsoj-p-' + P.code) || {};
   P.pid = saved.pid || rid(10); P.name = saved.name || ''; P.prof = !!saved.prof; P.joining = !!saved.name && !P.prof;
+  const ss = store.get('jsoj-s-' + P.code);
+  if (ss) { P.soloUsed = ss.u || 0; P.soloMiss = ss.m || null; P.soloKey = ss.n; }
   P.room = await mkRoom(P.code);
   pRender();
   const c = P.c = openRelay(+qs.get('r') === 1 ? 1 : 0);
   c.on('connect', () => { P.net = true; c.subscribe(P.room.topic + '/s'); pSend({ t: 'hello' }); if (P.joining) pJoin(); pRender(); });
   c.on('close', () => { P.net = false; pRender(); });
-  c.on('message', async (t, payload) => { const m = await unseal(P.room.key, payload.toString()); if (m) { P.st = m; if (pMe()) P.joining = false; if (m.ph !== 'end') { P.solo = null; P.soloDone = false; } pRender(); } });
+  c.on('message', async (t, payload) => { const m = await unseal(P.room.key, payload.toString()); if (m) { P.st = m; if (pMe()) P.joining = false; if (m.ph !== 'end' || (P.soloKey != null && P.soloKey !== m.n)) soloReset(); pRender(); } });
   setTimeout(() => { P.late = true; pRender(); }, 12000);
   setInterval(pTick, 1500);
   document.addEventListener('visibilitychange', () => { if (!document.hidden) { pSend({ t: 'hello' }); wake(); } });
@@ -2760,6 +2780,8 @@ async function pSend(m) { if (P.c && P.c.connected) P.c.publish(P.room.topic + '
 function pCtl() { pSend({ t: 'ctl', a: P.ctlA, n: P.ctlN }); }
 function pJoin() { pSend({ t: 'join', pid: P.pid, name: P.name }); }
 const pMe = () => P.st && P.st.players.find(p => p.id === P.pid);
+function soloReset() { if (!P.solo && !P.soloUsed && !P.soloMiss) return; P.solo = null; P.soloUsed = 0; P.soloMiss = null; P.soloKey = null; store.del('jsoj-s-' + P.code); }
+const soloList = me => P.soloMiss || (me ? me.miss : []);
 function pTick() {
   const st = P.st;
   if (!st) return pSend({ t: 'hello' });
@@ -2782,16 +2804,20 @@ function pClick(ev) {
     const a = k.dataset.k;
     if (a === 'quit') { store.del('jsoj-p-' + P.code); return location.reload(); }
     if (!P.st) return;
+    if (a === 'auto1' || a === 'auto0') { P.st.auto = a === 'auto1'; pSend({ t: 'ctl', a: 'auto', v: P.st.auto }); return pRender(); }
     P.ctlA = a; P.ctlN = P.st.n; wake(); pCtl(); return pRender();
   }
   const so = ev.target.closest('[data-s]');
   if (so && P.st && !P.prof) {
     const a = so.dataset.s, me = pMe(), S = P.solo;
-    if (a === 'go' && me && me.miss.length) P.solo = { q: shuffle(me.miss), res: null };
+    if (a === 'go' && P.soloUsed < SOLO_MAX && soloList(me).length) P.solo = { q: shuffle(soloList(me)), res: null, ko: [] };
     else if (S && (a === 'e' || a === 'a') && !S.res) S.res = { ok: S.q[0][1] === a };
     else if (S && a === 'next' && S.res) {
-      const c = S.q.shift(); if (!S.res.ok) S.q.push(c); S.res = null;
-      if (!S.q.length) { P.solo = null; P.soloDone = true; }
+      const c = S.q.shift(); if (!S.res.ok) S.ko.push(c); S.res = null;
+      if (!S.q.length) {
+        P.soloMiss = S.ko; P.soloUsed++; P.soloKey = P.st.n; P.solo = null;
+        store.set('jsoj-s-' + P.code, { u: P.soloUsed, m: P.soloMiss, n: P.soloKey });
+      }
     }
     return pRender();
   }
@@ -2810,7 +2836,7 @@ function profRender() {
     btn = `<button class="btn" data-k="start"${n ? '' : ' disabled'}>Commencer</button>`;
   } else if (st.ph === 'end') {
     mid = '<h1>Partie terminée</h1><p class="muted">Le classement est affiché sur l’écran.</p>';
-    if (st.nm) { mid += '<p class="muted">Sans relance, chacun peut reprendre ses erreurs sur son téléphone.</p>'; btn = `<button class="btn" data-k="rev">Relancer ${st.nm > 1 ? 'les ' + st.nm + ' erreurs' : 'l’erreur'}</button>`; }
+    if (st.nm) { mid += '<p class="muted">Sans relance, chacun peut reprendre ses erreurs sur son téléphone (' + SOLO_MAX + ' essais).</p>'; btn = `<button class="btn" data-k="rev">Relancer ${st.nm > 1 ? 'les ' + st.nm + ' erreurs' : 'l’erreur'}</button>`; }
   }
   else if (st.ph === 'turn') {
     mid = `<p class="muted">C’est à ${esc(st.curName)}</p><div class="ph-card"><small>Je suis ou j’ai ?</small><strong>${esc(st.card)}</strong></div>
@@ -2823,7 +2849,8 @@ function profRender() {
     btn = `<button class="btn next" data-k="next"${sent ? ' disabled' : ''}>Carte suivante</button>`;
   }
   const off = st && !P.net ? '<p class="muted err" role="status">Connexion perdue, reconnexion…</p>' : '';
-  paint(`<div class="ph prof">${top}<div class="ph-mid">${mid}${off}</div><div class="ph-btns">${btn}</div><button class="quit" data-k="quit">Quitter l’accès prof</button></div>`);
+  const mode = st && st.ph !== 'end' ? `<div class="pmode"><span>Carte suivante</span><span class="seg"><button data-k="auto1" aria-pressed="${!!st.auto}">Automatique</button><button data-k="auto0" aria-pressed="${!st.auto}">Au clic</button></span></div>` : '';
+  paint(`<div class="ph prof">${top}${mode}<div class="ph-mid">${mid}${off}</div><div class="ph-btns">${btn}</div><button class="quit" data-k="quit">Quitter l’accès prof</button></div>`);
 }
 function pRender() {
   if (P.prof) return profRender();
@@ -2835,7 +2862,7 @@ function pRender() {
   else if (st.ph === 'lobby') mid = `<h1>Bienvenue, ${esc(me.name)} !</h1><p class="muted">Regarde l’écran. La partie va commencer.</p>`;
   else if (st.ph === 'end' && P.solo) {
     const S = P.solo, [text, verb] = S.q[0], k = S.q.length;
-    const head = `<p class="muted">Mes erreurs : ${k} restante${k > 1 ? 's' : ''}</p>`;
+    const head = `<p class="muted">Mes erreurs, essai ${P.soloUsed + 1} sur ${SOLO_MAX} : ${k} restante${k > 1 ? 's' : ''}</p>`;
     if (!S.res) {
       mid = head + `<div class="ph-card"><small>Je suis ou j’ai ?</small><strong>${esc(text)}</strong></div>`;
       btns = '<div class="ph-btns"><button class="big e" data-s="e">Je suis</button><button class="big a" data-s="a">J’ai</button></div>';
@@ -2847,9 +2874,13 @@ function pRender() {
   }
   else if (st.ph === 'end') {
     const rank = 1 + st.players.filter(p => p.score > me.score).length;
-    mid = `<h1>Partie terminée</h1><div class="ph-card"><small>Tu as gagné</small><strong>${cartes(me.score)}</strong></div><p class="muted">${rank === 1 ? '1re place' : rank + 'e place'} · ${erreurs(me.err || 0)}</p>` + (P.soloDone ? '<p class="muted">✓ Bravo, tu as repris tes erreurs.</p>' : '');
-    const k = me.miss.length;
-    if (k) btns = `<div class="ph-btns"><button class="btn" data-s="go">${P.soloDone ? 'Recommencer' : 'Reprendre ' + (k > 1 ? 'mes ' + k + ' erreurs' : 'mon erreur')}</button></div>`;
+    mid = `<h1>Partie terminée</h1><div class="ph-card"><small>Tu as gagné</small><strong>${cartes(me.score)}</strong></div><p class="muted">${rank === 1 ? '1re place' : rank + 'e place'} · ${erreurs(me.err || 0)}</p>`;
+    const k = soloList(me).length, u = P.soloUsed;
+    if (u) mid += `<p class="muted">${k ? 'Il te reste ' + erreurs(k) + ' à revoir.' : '✓ Bravo, tu as corrigé toutes tes erreurs.'}</p>`;
+    if (k && u < SOLO_MAX) {
+      const what = k > 1 ? 'mes ' + k + ' erreurs' : 'mon erreur';
+      btns = `<div class="ph-btns"><button class="btn" data-s="go">${u === SOLO_MAX - 1 ? 'Dernier essai : reprendre ' + what : 'Reprendre ' + what}</button></div>`;
+    }
   } else {
     const mine = st.cur === P.pid;
     if (st.ph === 'turn') {
@@ -2867,8 +2898,62 @@ function pRender() {
   paint(`<div class="ph">${top}<div class="ph-mid">${mid}${off}</div>${btns}</div>`);
 }
 
+/* ============================================================
+   JEU INDIVIDUEL (sans écran de classe, sans connexion)
+   ============================================================ */
+const I = { ph: 'menu', total: 20, q: [], n: 0, len: 0, ok: 0, miss: [], ko: [], round: 0, res: null };
+function soloInit() { document.addEventListener('click', iClick); iRender(); }
+function iClick(ev) {
+  const b = ev.target.closest('[data-i]'); if (!b) return;
+  const a = b.dataset.i;
+  if (a === 'total') I.total = +b.dataset.v;
+  else if (a === 'start') Object.assign(I, { q: pickDeck(I.total), len: I.total, n: 0, ok: 0, miss: [], ko: [], round: 0, res: null, ph: 'q' });
+  else if (a === 'retry' && I.ph === 'end' && I.round < SOLO_MAX && I.miss.length) { I.round++; I.q = shuffle(I.miss); I.ko = []; I.res = null; I.ph = 'q'; }
+  else if ((a === 'e' || a === 'a') && I.ph === 'q') {
+    const ok = CARDS[I.q[0]][1] === a; I.res = { ok };
+    if (!ok) I.ko.push(I.q[0]); else if (!I.round) I.ok++;
+    I.ph = 'res';
+  }
+  else if (a === 'next' && I.ph === 'res') { I.q.shift(); I.n++; I.res = null; if (I.q.length) I.ph = 'q'; else { I.miss = I.ko; I.ph = 'end'; } }
+  else if (a === 'menu') I.ph = 'menu';
+  else if (a === 'class') { location.search = '?classe'; return; }
+  iRender();
+}
+function iRender() {
+  let top = '<div class="ph-top"><b>Je suis ou j’ai ?</b><span></span></div>', mid, btns = '';
+  if (I.ph === 'menu') {
+    mid = `<h1>Je joue seul</h1><p class="muted">Dis la phrase, puis choisis « Je suis » ou « J’ai ».</p>
+      <p class="muted" style="margin-top:14px">Nombre de questions</p>${seg('total', I.total, [[10, '10'], [20, '20'], [30, '30'], [40, '40']]).replace(/data-a=/g, 'data-i=')}
+      <p class="src">D’après un jeu de MondoLinguo.com</p>`;
+    btns = '<div class="ph-btns"><button class="btn" data-i="start">Commencer</button><button class="btn ghost alt" data-i="class">Animer une partie en classe (code QR)</button></div>';
+  } else if (I.ph === 'end') {
+    const k = I.miss.length, err = I.len - I.ok;
+    mid = `<h1>Terminé !</h1><div class="ph-card"><small>Réponses justes</small><strong>${I.ok} sur ${I.len}</strong></div>` +
+      (I.round ? `<p class="muted">${k ? 'Il te reste ' + erreurs(k) + ' à revoir.' : '✓ Bravo, tu as corrigé toutes tes erreurs.'}</p>` : `<p class="muted">${err ? erreurs(err) : '✓ Bravo, aucune erreur !'}</p>`);
+    const what = k > 1 ? 'mes ' + k + ' erreurs' : 'mon erreur';
+    btns = '<div class="ph-btns">' + (k && I.round < SOLO_MAX ? `<button class="btn" data-i="retry">${I.round === SOLO_MAX - 1 ? 'Dernier essai : reprendre ' + what : 'Reprendre ' + what}</button>` : '') +
+      '<button class="btn ghost alt" data-i="menu">Nouvelle partie</button></div>';
+  } else {
+    const [text, verb] = CARDS[I.q[0]], k = I.q.length;
+    top = `<div class="ph-top"><b>${I.round ? 'Mes erreurs, essai ' + I.round + ' sur ' + SOLO_MAX : 'Question ' + (I.n + 1) + ' sur ' + I.len}</b><span>${I.round ? k + ' restante' + (k > 1 ? 's' : '') : I.ok + ' juste' + (I.ok > 1 ? 's' : '')}</span></div>`;
+    if (I.ph === 'q') {
+      mid = `<p class="muted">Dis la phrase, puis choisis.</p><div class="ph-card"><small>Je suis ou j’ai ?</small><strong>${esc(text)}</strong></div>`;
+      btns = '<div class="ph-btns"><button class="big e" data-i="e">Je suis</button><button class="big a" data-i="a">J’ai</button></div>';
+    } else {
+      const ok = I.res.ok;
+      mid = `<div class="ph-card ${ok ? 'ok' : 'ko'}"><small>${ok ? '✓ Correct' : '✗ La bonne phrase'}</small><strong>${sentence(text, verb)}</strong></div>`;
+      btns = '<div class="ph-btns"><button class="btn next" data-i="next">Continuer</button></div>';
+    }
+  }
+  paint(`<div class="ph">${top}<div class="ph-mid">${mid}</div>${btns}</div>`);
+}
+
+/* Téléphone ou tablette ouvert sans code QR : jeu individuel. Grand écran : partie en classe. */
+const SMALL = matchMedia('(pointer:coarse)').matches && Math.max(screen.width, screen.height) <= 1400;
 document.getElementById('ver').textContent = VERSION;
-if (qs.has('p')) playerInit(); else hostInit();
+if (qs.has('p')) playerInit();
+else if (qs.has('solo') || (SMALL && !qs.has('classe'))) soloInit();
+else hostInit();
 </script>
 </body>
 </html>
