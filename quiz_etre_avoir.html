@@ -123,6 +123,26 @@ button{font:inherit;color:inherit;cursor:pointer;border:0;background:none;touch-
 .ph .seg{font-size:1.15em}
 .ph .seg button{padding:.45em 1.1em}
 @media (min-width:700px) and (min-height:700px){.ph{font-size:25px;max-width:700px}}
+/* v10 : petit code QR agrandissable, menu Paramètres */
+.lobby{grid-template-columns:minmax(0,21vw) minmax(0,1fr);gap:4vw}
+.lobby>div{font-size:1.3em}
+.lobby h1{font-size:3.6em}
+.qrbox{display:block;width:100%;padding:1em;cursor:zoom-in;font-size:.8em}
+.qrbox svg{max-width:100%}
+.qrbox small{display:block;color:var(--muted);font-weight:600;margin-top:.3em}
+.lobby .chip{font-size:1.1em}
+.sum{color:var(--muted);font-size:.7em;font-weight:600;margin:1.2em 0 0}
+.gear{display:inline-flex;align-items:center;padding:.4em .6em}
+.ovl{position:fixed;inset:0;z-index:5;background:rgba(29,35,64,.78);display:flex;align-items:center;justify-content:center;padding:3vh;font-size:clamp(15px,1.45vw,26px)}
+.qrbig{background:#fff;border-radius:1.6em;padding:3vh 3vh 2vh;text-align:center;cursor:zoom-out}
+.qrbig svg{display:block;width:min(74vh,84vw);height:auto}
+.qrbig p{margin:.5em 0 .1em;font-weight:800;font-size:1.5em}
+.qrbig small{color:var(--muted);font-weight:600}
+.panel{background:var(--paper);border-radius:1.4em;padding:1.4em 1.8em 1.6em;min-width:min(30em,92vw);font-size:1.15em}
+.panel h2{margin:0 0 .8em;font-size:1.5em}
+.panel .opt{margin:.9em 0}
+.panel>.btn{margin-top:1em}
+@media (max-width:800px){.lobby{grid-template-columns:1fr}.qrbox{max-width:14em;margin:0 auto}}
 </style>
 </head>
 <body>
@@ -2450,19 +2470,28 @@ var qrcode = function() {
 </script>
 <script>
 'use strict';
-const VERSION = 'v7';   // +1 à chaque livraison (pastille affichée en bas à droite)
+const VERSION = 'v10';   // +1 à chaque livraison (pastille affichée en bas à droite)
 /* ============================================================
    CARTES — modifiables. 'e' = je suis, 'a' = j'ai
    ============================================================ */
 const CARDS = [
-  ['français','e'],['gentille','e'],['grand','e'],['fatiguée','e'],['malade','e'],
-  ['en colère','e'],['triste','e'],['contente','e'],['professeur','e'],['médecin','e'],
-  ['d’accord','e'],['dans la maison','e'],['en vacances','e'],['en retard','e'],['en forme','e'],
-  ['au travail','e'],['stressée','e'],['occupé','e'],['heureuse','e'],['amoureux','e'],
-  ['25 ans','a'],['les yeux bleus','a'],['froid','a'],['chaud','a'],['peur des chiens','a'],
-  ['trois sœurs','a'],['les cheveux longs','a'],['un sac','a'],['faim','a'],['soif','a'],
-  ['de l’argent','a'],['raison','a'],['besoin de dormir','a'],['de la chance','a'],['mal à la tête','a'],
-  ['sommeil','a'],['envie de manger','a'],['un livre','a'],['honte','a'],['un petit chien','a']
+  // [carte, verbe, catégorie]
+  ['français','e','nationalité'],
+  ['grand','e','description'],['gentille','e','description'],
+  ['fatiguée','e','état physique'],['malade','e','état physique'],['en forme','e','état physique'],
+  ['triste','e','émotion'],['contente','e','émotion'],['heureuse','e','émotion'],['en colère','e','émotion'],['stressée','e','émotion'],['amoureux','e','émotion'],
+  ['professeur','e','profession'],['médecin','e','profession'],
+  ['dans la maison','e','lieu'],['au travail','e','lieu'],
+  ['en vacances','e','situation'],['en retard','e','situation'],['occupé','e','situation'],
+  ['d’accord','e','opinion'],
+  ['25 ans','a','âge'],
+  ['les yeux bleus','a','description'],['les cheveux longs','a','description'],
+  ['froid','a','sensation'],['chaud','a','sensation'],['faim','a','sensation'],['soif','a','sensation'],['sommeil','a','sensation'],['mal à la tête','a','sensation'],
+  ['peur des chiens','a','émotion'],['honte','a','émotion'],
+  ['besoin de dormir','a','besoin'],['envie de manger','a','besoin'],
+  ['trois sœurs','a','famille'],
+  ['un sac','a','possession'],['un livre','a','possession'],['un petit chien','a','possession'],['de l’argent','a','possession'],
+  ['raison','a','expression'],['de la chance','a','expression']
 ];
 const VERB = { e: 'Je suis', a: 'J’ai' };
 const RELAYS = ['wss://broker.hivemq.com:8884/mqtt', 'wss://broker.emqx.io:8084/mqtt'];
@@ -2485,10 +2514,30 @@ const store = {
   set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} },
   del(k) { try { localStorage.removeItem(k); } catch (e) {} }
 };
-/* Tirage : moitié « être », moitié « avoir », ordre aléatoire */
-function pickDeck(total) {
-  const pick = v => shuffle(CARDS.map((c, i) => i).filter(i => CARDS[i][1] === v)).slice(0, total / 2);
-  return shuffle(pick('e').concat(pick('a')));
+/* Tirage : moitié « être », moitié « avoir », réparti sur les catégories, ordre aléatoire.
+   Les cartes pas encore vues passent en priorité d'une partie à l'autre (mémoire par appareil). */
+function pickDeck(total, key) {
+  let seen = store.get(key); if (!Array.isArray(seen)) seen = [];
+  const pick = v => {
+    const pool = CARDS.map((c, i) => i).filter(i => CARDS[i][1] === v), half = total / 2, out = [];
+    const fill = cand => {              // une carte par catégorie à chaque tour, les catégories les plus fournies d'abord
+      const by = {};
+      shuffle(cand).forEach(i => { const c = CARDS[i][2]; (by[c] = by[c] || []).push(i); });
+      while (out.length < half) {
+        const cats = shuffle(Object.keys(by).filter(c => by[c].length)).sort((a, b) => by[b].length - by[a].length);
+        if (!cats.length) break;
+        for (const c of cats) { if (out.length >= half) break; out.push(by[c].pop()); }
+      }
+    };
+    fill(pool.filter(i => !seen.includes(i)));
+    if (out.length < half) {            // tout a été vu : on repart d'un tour complet
+      seen = seen.filter(i => !pool.includes(i));
+      fill(pool.filter(i => !out.includes(i)));
+    }
+    seen.push(...out); return out;
+  };
+  const deck = shuffle(pick('e').concat(pick('a')));
+  store.set(key, seen); return deck;
 }
 let lastHtml = '';
 function paint(html) { if (html === lastHtml) return false; lastHtml = html; app.innerHTML = html; return true; }
@@ -2521,11 +2570,11 @@ function openRelay(idx) {
 /* ============================================================
    ÉCRAN DE CLASSE
    ============================================================ */
-const H = { g: null, code: '', ri: 0, room: null, c: null, ready: false, net: false, err: '', timer: 0 };
-const newGame = () => ({ ph: 'lobby', players: [], order: [], ti: -1, deck: [], card: -1, n: 0, total: 20, won: 0, err: 0, fix: 0, cur: null, miss: [], queue: [], rev: false, revd: false, res: null, auto: true });
+const H = { qr: false, set: false, g: null, code: '', ri: 0, room: null, c: null, ready: false, net: false, err: '', timer: 0 };
+const newGame = () => ({ ph: 'lobby', players: [], order: [], ti: -1, deck: [], card: -1, n: 0, total: 20, won: 0, err: 0, fix: 0, cur: null, miss: [], queue: [], rev: false, revd: false, res: null, auto: false });
 
 async function hostInit() {
-  const saved = store.get('jsoj-host3');
+  const saved = store.get('jsoj-host4');
   if (saved && saved.g && Date.now() - saved.t < 3 * 3600e3) { H.g = saved.g; H.code = saved.code; H.ri = saved.ri || 0; }
   else { H.g = newGame(); H.code = rid(6); }
   if (!window.crypto || !crypto.subtle) { H.err = 'Cette page doit être ouverte en https (par exemple depuis GitHub Pages).'; return hRender(); }
@@ -2571,7 +2620,7 @@ async function hPublish() {
   if (!H.c || !H.c.connected) return;
   H.c.publish(H.room.topic + '/s', await seal(H.room.key, pub()));
 }
-function commit() { store.set('jsoj-host3', { code: H.code, ri: H.ri, g: H.g, t: Date.now() }); hPublish(); hRender(); }
+function commit() { store.set('jsoj-host4', { code: H.code, ri: H.ri, g: H.g, t: Date.now() }); hPublish(); hRender(); }
 
 function hMsg(m) {
   const g = H.g;
@@ -2606,7 +2655,7 @@ function putBack() {
 }
 function start() {
   const g = H.g; if (!g.players.length) return;
-  g.deck = pickDeck(g.total);
+  g.deck = pickDeck(g.total, 'jsoj-vu-classe');
   g.players.forEach(p => { p.score = 0; p.err = 0; });
   g.order = shuffle(g.players.map(p => p.id));
   g.ti = -1; g.n = 0; g.won = 0; g.err = 0; g.fix = 0; g.res = null;
@@ -2672,8 +2721,10 @@ function hClick(ev) {
   else if (a === 'rm') { const p = g.players.find(p => p.id === v); if (p && confirm('Retirer ' + p.name + ' de la partie ?')) removePlayer(v); }
   else if (a === 'stop') { if (confirm('Terminer la partie maintenant ?')) { clearTimeout(H.timer); endRev(); g.ph = 'end'; commit(); } }
   else if (a === 'again') { g.ph = 'lobby'; g.players.forEach(p => { p.score = 0; p.err = 0; }); g.order = []; commit(); }
-  else if (a === 'reset') { if (confirm('Nouvelle partie avec un nouveau code QR ? Les participants devront scanner à nouveau.')) { store.del('jsoj-host3'); location.reload(); } }
+  else if (a === 'reset') { if (confirm('Nouvelle partie avec un nouveau code QR ? Les participants devront scanner à nouveau.')) { store.del('jsoj-host4'); location.reload(); } }
   else if (a === 'retry') tryRelay(0, 0), hRender();
+  else if (a === 'qr') { H.qr = !H.qr; hRender(); }
+  else if (a === 'set') { H.set = !H.set; hRender(); }
   else if (a === 'solo') location.search = '?solo';
   else if (a === 'full') { const d = document; d.fullscreenElement ? d.exitFullscreen() : d.documentElement.requestFullscreen && d.documentElement.requestFullscreen().catch(() => {}); }
 }
@@ -2686,6 +2737,7 @@ function qrSvg(text) {
   for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (q.isDark(r, c)) d += `M${c + m} ${r + m}h1v1h-1z`;
   return `<svg viewBox="0 0 ${n + 2 * m} ${n + 2 * m}" role="img" aria-label="Code QR pour rejoindre la partie" shape-rendering="crispEdges"><rect width="100%" height="100%" fill="#fff"/><path d="${d}" fill="#1D2340"/></svg>`;
 }
+const GEAR = '<svg viewBox="0 0 24 24" width="1.25em" height="1.25em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>';
 const brand = '<span class="brand">Je <i class="v-e">suis</i> ou j’<i class="v-a">ai</i> ?</span>';
 function chips(removable) {
   const g = H.g, live = g.ph === 'turn' || g.ph === 'result';
@@ -2705,18 +2757,17 @@ function hRender() {
   else if (!H.ready) h = `<div class="host"><div class="center"><h1>${brand}</h1><p class="dots">Connexion au relais</p></div></div>`;
   else if (g.ph === 'lobby') {
     const n = g.players.length;
-    h = `<div class="host">${net}<header class="bar">${brand}<span class="sp"></span><button class="btn ghost small" data-a="solo">Jouer seul</button><button class="btn ghost small" data-a="full">Plein écran</button><button class="btn ghost small" data-a="reset">Nouveau code</button></header>
+    h = `<div class="host">${net}<header class="bar">${brand}<span class="sp"></span><button class="btn ghost small" data-a="solo">Jouer seul</button><button class="btn ghost small" data-a="full">Plein écran</button><button class="btn ghost small gear" data-a="set" aria-label="Paramètres" title="Paramètres">${GEAR}</button></header>
     <div class="lobby">
-      <div class="qrbox">${qrSvg(joinUrl())}<p>Scanne le code QR avec ton téléphone</p></div>
+      <button class="qrbox" data-a="qr" aria-label="Agrandir le code QR">${qrSvg(joinUrl())}<p>Scanne le code QR</p><small>Touche le code pour l’agrandir</small></button>
       <div>
         <h1>Je <span class="v-e">suis</span> ou j’<span class="v-a">ai</span> ?</h1>
         <p class="sub">À ton tour : dis la phrase à voix haute, puis choisis sur ton téléphone.</p>
         ${location.protocol === 'file:' ? '<p class="err">Page ouverte depuis l’ordinateur : les téléphones ne pourront pas se connecter. Ouvre-la depuis GitHub Pages.</p>' : ''}
-        <div class="opt"><span>Nombre de cartes</span>${seg('total', g.total, [[10, '10'], [20, '20'], [30, '30'], [40, '40']])}</div>
-        <div class="opt"><span>Carte suivante</span>${seg('auto', g.auto ? 1 : 0, [[1, 'Automatique'], [0, 'Au clic']])}</div>
         <p class="joined">${n ? n + (n > 1 ? ' participants' : ' participant') : 'En attente des participants…'}</p>
         ${chips(true)}
         <button class="btn go" data-a="start"${n ? '' : ' disabled'}>Commencer</button>
+        <p class="sum">${g.total} cartes · carte suivante ${g.auto ? 'automatique' : 'au clic'}</p>
       </div>
     </div>
     <p class="credit">D’après le jeu de cartes « Je suis ou j’ai ? » de <a href="https://www.mondolinguo.com" target="_blank" rel="noopener">MondoLinguo.com</a></p></div>`;
@@ -2727,9 +2778,9 @@ function hRender() {
     const ge = g.err || 0, rep = g.won + ge, nm = g.miss.length;
     const relance = g.revd ? `<p class="under">Relance : ${g.fix} ${g.fix > 1 ? 'erreurs corrigées' : 'erreur corrigée'}, ${nm} à revoir</p>` : '';
     const hint = nm ? '<p class="under">Sans relance, chacun peut reprendre ses erreurs sur son téléphone (' + SOLO_MAX + ' essais).</p>' : '';
-    h = `<div class="host">${net}<header class="bar">${brand}<span class="sp"></span><button class="btn ghost small" data-a="full">Plein écran</button></header>
+    h = `<div class="host">${net}<header class="bar">${brand}<span class="sp"></span><button class="btn ghost small" data-a="full">Plein écran</button><button class="btn ghost small gear" data-a="set" aria-label="Paramètres" title="Paramètres">${GEAR}</button></header>
     <div class="end"><h1>Bravo !</h1><p class="who">${cartes(rep)} : ${g.won} juste${g.won > 1 ? 's' : ''}, ${erreurs(ge)}</p>${relance}<ol class="rank">${rows}</ol>
-    <div class="opt">${nm ? `<button class="btn" data-a="rev">Relancer ${nm > 1 ? 'les ' + nm + ' erreurs' : 'l’erreur'}</button>` : ''}<button class="btn${nm ? ' ghost' : ''}" data-a="again">Rejouer</button><button class="btn ghost" data-a="reset">Nouveau code</button></div>${hint}</div></div>`;
+    <div class="opt">${nm ? `<button class="btn" data-a="rev">Relancer ${nm > 1 ? 'les ' + nm + ' erreurs' : 'l’erreur'}</button>` : ''}<button class="btn${nm ? ' ghost' : ''}" data-a="again">Rejouer</button></div>${hint}</div></div>`;
   } else {
     const cp = g.players.find(p => p.id === g.cur) || { name: '' };
     const [text] = CARDS[g.card], left = (g.rev ? g.queue.length : g.deck.length) + (g.ph === 'turn' ? 1 : 0);
@@ -2745,9 +2796,21 @@ function hRender() {
       under = `<span>${g.rev ? (ok ? 'Erreur corrigée.' : 'Encore à revoir.') : (ok ? esc(cp.name) + ' gagne la carte.' : 'Carte à revoir en fin de partie.')}</span>` + `<button class="btn small" data-a="next">Carte suivante</button>`;
     }
     h = `<div class="host">${net}<header class="bar">${brand}<span class="pill">${g.rev ? 'Relance des erreurs' : 'Cartes restantes'} : ${left}</span><span class="sp"></span>
-      ${g.ph === 'turn' ? '<button class="btn ghost small" data-a="skip">Passer</button>' : ''}<button class="btn ghost small" data-a="full">Plein écran</button><button class="btn ghost small" data-a="stop">Terminer</button></header>
+      ${g.ph === 'turn' ? '<button class="btn ghost small" data-a="skip">Passer</button>' : ''}<button class="btn ghost small" data-a="full">Plein écran</button><button class="btn ghost small" data-a="stop">Terminer</button><button class="btn ghost small gear" data-a="set" aria-label="Paramètres" title="Paramètres">${GEAR}</button></header>
     <main class="stage"><p class="who">${who}</p>${card}<div class="under">${under}</div></main>
     <footer class="players">${chips(false)}</footer></div>`;
+  }
+  const live = g.ph === 'turn' || g.ph === 'result';
+  if (H.ready && !H.err && H.qr && g.ph === 'lobby') {
+    const n = g.players.length;
+    h += `<div class="ovl" data-a="qr"><div class="qrbig">${qrSvg(joinUrl())}<p>Scanne le code QR avec ton téléphone</p><small>${n ? n + (n > 1 ? ' participants' : ' participant') + ' · ' : ''}Touche l’écran pour fermer</small></div></div>`;
+  }
+  if (H.ready && !H.err && H.set) {
+    h += `<div class="ovl" data-a="set"><div class="panel" data-a="noop"><h2>Paramètres</h2>
+      ${live ? '' : `<div class="opt"><span>Nombre de cartes</span>${seg('total', g.total, [[10, '10'], [20, '20'], [30, '30'], [40, '40']])}</div>`}
+      <div class="opt"><span>Carte suivante</span>${seg('auto', g.auto ? 1 : 0, [[0, 'Au clic'], [1, 'Automatique']])}</div>
+      <div class="opt"><span>Code QR</span><button class="btn ghost small" data-a="reset">Nouveau code</button></div>
+      <button class="btn" data-a="set">Fermer</button></div></div>`;
   }
   paint(h);
 }
@@ -2906,7 +2969,7 @@ function iClick(ev) {
   const b = ev.target.closest('[data-i]'); if (!b) return;
   const a = b.dataset.i;
   if (a === 'total') I.total = +b.dataset.v;
-  else if (a === 'start') Object.assign(I, { q: pickDeck(I.total), len: I.total, n: 0, ok: 0, miss: [], ko: [], round: 0, res: null, ph: 'q' });
+  else if (a === 'start') Object.assign(I, { q: pickDeck(I.total, 'jsoj-vu-solo'), len: I.total, n: 0, ok: 0, miss: [], ko: [], round: 0, res: null, ph: 'q' });
   else if (a === 'retry' && I.ph === 'end' && I.round < SOLO_MAX && I.miss.length) { I.round++; I.q = shuffle(I.miss); I.ko = []; I.res = null; I.ph = 'q'; }
   else if ((a === 'e' || a === 'a') && I.ph === 'q') {
     const ok = CARDS[I.q[0]][1] === a; I.res = { ok };
