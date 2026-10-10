@@ -8,7 +8,7 @@ générant des exercices de mathématiques pour adultes (programme PAI, Suisse).
 Product owner : Aurelio (Onex/Genève). Répondre en FRANÇAIS.
 
 ───────────────────────────────────────────────────────────────────────────────
-0. OÙ ON EN EST (v508, 10.10.2026) — à lire en premier
+0. OÙ ON EN EST (v511, 10.10.2026) — à lire en premier
 ───────────────────────────────────────────────────────────────────────────────
 L'application est en ligne : https://aureliohub.github.io/eva_maths.html
 Les fichiers de série et de test (.json) sont déposés à côté d'elle, et s'ouvrent
@@ -543,6 +543,73 @@ PDF de domaine :
 ───────────────────────────────────────────────────────────────────────────────
 Cette section décrit l'ÉTAT, non l'historique. Les numéros de version ne sont
 cités que lorsqu'ils aident à retrouver un choix dans le fichier.
+
+v511 — DROITE GRADUÉE : DEUX NIVEAUX « FRACTIONS » (demande d'Aurelio, sur le
+ modèle d'une fiche papier : des points sur la droite, une CASE sous chacun,
+ l'élève y écrit la fraction).
+ HISTOIRE DE LA JOURNÉE, pour ne pas la rejouer : v509 = 5 cases, et une
+ fraction donnée au niveau 4. Aurelio demande ensuite « 4 fractions à placer
+ au lieu de deux » : compris, question posée à l'appui, comme QUATRE POINTS À
+ POSER D'UN CLIC — c'était faux, la v510 a été refusée (« je ne souhaitais pas
+ changer le modèle »). Il voulait 4 fractions À TROUVER au lieu de 5. Le
+ modèle est donc celui des CASES ; ne pas le changer. La v511 est rebâtie
+ depuis la v508, rien de la v510 n'y subsiste.
+ · NIVEAU 3 « Fractions 1 » : 0 et 1 écrits. NIVEAU 4 « Fractions 2 » : 0 et
+   2, ou 0 et 3 — pas 1, et PAS de fraction donnée. QUATRE cases dans les deux.
+   Numéros 3 et 4 (rien n'est décalé), placés au menu par `niveauMenu`. PAS de
+   `niveauLabels` sur ce sous-domaine : le PDF passerait à quatre exercices et
+   l'étiquette des niveaux 1 et 2 changerait. Le nom du niveau voyage sur
+   l'exercice (`ex._niveauLibelle`, lu par les deux étiquettes « Exercice N. –
+   … » du PDF de sous-domaine — champ générique, réutilisable).
+ · `genDroiteFractions(niveau)` + `buildDroiteFractionsSvg`. Niveau 3 :
+   dénominateurs 4 à 10 (pas de tiers : trop peu de graduations pour loger les
+   cases), droite de 1,4 à 2,3 unités. Niveau 4 : dénominateurs 3 à 10, la
+   droite dépasse un peu le 2 ou le 3 (28 graduations au plus). TOUS LES
+   TRAITS DE MÊME HAUTEUR (un trait long aux entiers montrerait l'unité, que
+   le niveau 4 fait retrouver). Aucun point sur un entier, au moins une
+   fraction sous 1 et une au-dessus, cases écartées d'au moins 58 unités
+   (DFRAC.ecartMin).
+ · LES CASES SONT LES CHAMPS. À l'écran, la grille des questions
+   (`.multi-grid-droite-frac`) est en position relative sous la figure et
+   chaque `.multi-item` s'y place en % (`q.posPct` → style `left`). Le DOM
+   reste celui d'un exercice `multi` ordinaire (inp-/fb- standards) : test,
+   export, tableur et atelier n'ont rien eu à apprendre. La figure et la grille
+   portent la MÊME largeur maximale (760 px : DFRAC_LARGEUR_ECRAN et la CSS) —
+   si l'une change, l'autre doit suivre, sinon les cases quittent leurs points.
+ · AU PDF les cases sont DESSINÉES : le SVG les porte dans un groupe
+   `data-pdf-seul` (display none à l'écran). `droiteFractionsPourPdf(exoDiv)`
+   le révèle, agrandit le viewBox (`data-vb-pdf`) et RETIRE la grille des
+   champs. Appelée dans les trois branches de rendu PDF (domaine,
+   sous-domaine, prop-concret) : sans effet ailleurs. Corrigé : `svgCorrige`
+   avec les fractions en vert dans les cases ; la liste « a) … » sous la
+   figure est omise (elle redirait la figure).
+ · VALIDATION (`q.fractionEquiv = [n, d]`, branche en tête de la comparaison
+   générique de validateAnswer) : toute fraction ÉGALE est juste (7/5 pour
+   14/10, 1/2 pour 4/8), une écriture décimale ou un nombre seul ne l'est pas.
+   Choix de Claude, signalé à Aurelio, non contesté.
+ · PDF DU SOUS-DOMAINE : depuis un niveau « Fractions », il donne Fractions 1
+   puis Fractions 2 ; depuis les niveaux 1 et 2 il reste 1 puis 2, inchangé.
+   Le PDF de DOMAINE garde la droite au niveau 2.
+ · `_sansOutilsQuestion` : les questions sont les cases d'une même figure.
+ · Téléphone (< 640 px) : la figure garde 520 px et défile dans l'exercice.
+ · Lettres A à D au-dessus des points (absentes de la fiche) : elles servent
+   aux corrigés, à l'export et au tableur (« a) A = 7/10 »).
+ LIVRAISON : UNE SEULE carte. Envoyer le fichier une fois ; le déposer en plus
+ dans le dossier de sortie en fait paraître deux, ce qu'Aurelio a relevé.
+ Vérifié au vrai navigateur (Playwright + Chromium préinstallé dans
+ /opt/pw-browsers : plus besoin de @sparticuz/chromium ; le PDF se capte par
+ l'événement `download`) : 20 000 tirages par niveau sans défaut (4 points,
+ écarts, entiers, repère bien placé, case = point, cases du PDF vides, corrigé
+ = attendu) ; saisie FRAPPÉE, juste / égale / décimale / vide ; test complet
+ depuis un fichier (aller-retour JSON, score attendu et obtenu, export) ; PDF
+ du sous-domaine et PDF de série regardés, énoncé et corrigé.
+ NON-RÉGRESSION au navigateur, 34 documents (5 domaines + 29 sous-domaines),
+ graine fixe : l'empreinte du HTML de CHAQUE bloc envoyé à html2canvas, le
+ nombre de pages et d'enregistrements sont identiques à la v508. (Cette
+ empreinte ne voit pas une règle de la feuille de style : seulement le HTML
+ et les styles en ligne. Sabotée d'un pixel, elle le détecte.)
+ VU AU PASSAGE, non touché : au corrigé du niveau 2, l'étiquette d'un point
+ vert (E, F) peut tomber sur un nombre de la graduation (« 0,6 »).
 
 v508 — VOCABULAIRE RÉTABLI ET ÉNONCÉS DE FRACTIONS CORRIGÉS (accord d'Aurelio).
  · MOTS COMPRÉHENSIBLES SANS DICTIONNAIRE (règle posée en septembre, perdue
@@ -5232,6 +5299,58 @@ ainsi (une remarque prise pour une consigne, une sélection ambiguë).
     grid-auto-flow: column;
     gap: 14px 28px;
   }
+  /* Droite graduée « Fractions » : les champs sont les CASES de la fiche, posés
+     sous les points. La grille a la largeur de la figure (même max-width que le
+     SVG : DFRAC_LARGEUR_ECRAN) ; chaque case s'y place en % par son `left`. */
+  .multi-grid-droite-frac {
+    display: block;
+    position: relative;
+    max-width: 760px;
+    height: 72px;
+    /* remonte la grille contre le bas de la figure : marge et rembourrage de
+       .number-line (16px) + le blanc de ligne laissé sous un SVG en ligne */
+    margin: -22px auto 0;
+    padding: 0;
+  }
+  .multi-grid-droite-frac:has(.inline-solution) { height: 118px; }
+  .multi-grid-droite-frac .multi-item {
+    position: absolute;
+    top: 0;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1px;
+    font-size: 0;            /* masque le libellé « a) » et les espaces */
+  }
+  .multi-grid-droite-frac .multi-item > strong,
+  .multi-grid-droite-frac .dfrac-nom { display: none; }
+  .multi-grid-droite-frac .answer-input {
+    width: 52px;
+    height: 46px;
+    margin: 0;
+    padding: 0 2px;
+    text-align: center;
+    font-size: 15px;
+    font-weight: 700;
+    border: 1.5px solid #111827;
+    border-radius: 7px;
+  }
+  .multi-grid-droite-frac .feedback { margin: 0; font-size: 15px; line-height: 1.1; }
+  .multi-grid-droite-frac .inline-solution { margin: 0; font-size: 14px; white-space: nowrap; }
+  .dfrac-aide { margin-top: 3px; font-size: 13px; color: var(--muted); }
+  .dfrac-aide code {
+    background: rgba(0,0,0,0.06); padding: 1px 5px; border-radius: 3px;
+    font-family: 'SF Mono', Menlo, Consolas, monospace; font-size: 12.5px;
+  }
+  @media (max-width: 640px) {
+    .multi-grid-droite-frac .answer-input { width: 42px; height: 40px; font-size: 13px; }
+    /* Téléphone : sous 520px de large les cases se chevaucheraient. La figure
+       garde cette largeur et défile de gauche à droite dans l'exercice. */
+    .exercise:has(.multi-grid-droite-frac) { overflow-x: auto; }
+    .exercise:has(.multi-grid-droite-frac) .number-line,
+    .exercise .multi-grid-droite-frac { min-width: 520px; }
+  }
   /* Angles (horloges) : les QUATRE horloges sur une seule ligne, chacune avec
      ses deux champs SOUS la figure — la disposition de la fiche papier.
      Le PDF, énoncé comme corrigé, reprend la même. */
@@ -8516,6 +8635,9 @@ function genFracPct() {
 // 1.9 Droite graduée – 2 niveaux
 function genDroite() {
   // Le niveau dépend du toggle global (state.niveau).
+  // Niveaux 3 et 4 : les deux niveaux « Fractions » (v509).
+  if (state.niveau === 3) return genDroiteFractions(3);
+  if (state.niveau === 4) return genDroiteFractions(4);
   return state.niveau === 2 ? genDroiteN2() : genDroiteN1();
 }
 
@@ -8797,6 +8919,160 @@ function genDroiteN2() {
   tryAddPlace();
   // Snap au demi-centième (0,005) car les valeurs peuvent être x,xx5.
   return buildDroiteSvg(start, end, step, subSteps, positions, 2, placePositions, 0.005);
+}
+
+// NIVEAUX « FRACTIONS » (v509-v511) — demande d'Aurelio, sur le modèle d'une
+// fiche papier : une droite graduée, QUATRE points, et SOUS chaque point une
+// case où écrire la fraction.
+//   niveau 3 « Fractions 1 » : 0 et 1 sont écrits ; le nombre de graduations
+//                              entre les deux donne le dénominateur.
+//   niveau 4 « Fractions 2 » : 0 et 2, ou 0 et 3, sont écrits — pas 1. Il faut
+//                              retrouver l'unité avant de compter.
+// Tous les traits ont la MÊME hauteur (comme sur la fiche) : un trait plus
+// long aux entiers montrerait l'unité, que le niveau 4 fait retrouver.
+// Aucun point ne tombe sur un entier ; il y en a toujours de part et d'autre
+// de 1 (fractions plus petites ET plus grandes que 1).
+// LES CASES : à l'écran ce sont les champs de saisie, posés sous les points par
+// la grille `.multi-grid-droite-frac` (chaque question porte `posPct`, sa
+// position en % de la largeur de la figure). Dans le SVG, les cases dessinées
+// sont dans un groupe `data-pdf-seul`, invisible à l'écran : c'est
+// `droiteFractionsPourPdf` qui le révèle à l'impression et retire les champs.
+const DFRAC = { W: 600, padX: 30, baseY: 30, hEcran: 64, hPdf: 118,
+                caseY: 66, caseW: 44, caseH: 46, ecartMin: 58 };
+function genDroiteFractions(niveau) {
+  const avecUn = (niveau === 3);
+  const NB = 4;
+  const util = DFRAC.W - 2 * DFRAC.padX;
+  // Tire le nombre écrit sur la droite, le dénominateur, le nombre de
+  // graduations et les points. Rend null si le tirage ne permet pas de loger
+  // les cases sans qu'elles se touchent.
+  const tirer = () => {
+    const repere = avecUn ? 1 : choice([2, 3]);
+    let d, N;
+    if (avecUn) {
+      // Pas de tiers : avec si peu de graduations, les cases ne tiennent pas.
+      d = choice([4, 5, 6, 7, 8, 10]);
+      // La droite va un peu au-delà de 1 : de 1,4 à 2,3 unités environ.
+      const nMin = Math.max(8, Math.ceil(d * 1.4)), nMax = Math.min(23, Math.floor(d * 2.3));
+      if (nMax < nMin) return null;
+      N = rand(nMin, nMax);
+    } else {
+      // 2 ou 3 doit figurer sur la droite, qui le dépasse d'un peu.
+      d = choice(repere === 2 ? [4, 5, 6, 7, 8, 10] : [3, 4, 5, 6, 7, 8]);
+      N = repere * d + rand(1, Math.max(1, Math.floor(d / 2)));
+    }
+    const pas = util / (N + 0.4);
+    const ecart = Math.ceil(DFRAC.ecartMin / pas);       // en graduations
+    const libres = [];
+    for (let k = 1; k <= N; k++) if (k % d !== 0) libres.push(k);
+    for (let i = libres.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [libres[i], libres[j]] = [libres[j], libres[i]];
+    }
+    const pts = [];
+    for (const k of libres) {
+      if (pts.length >= NB) break;
+      if (pts.every(p => Math.abs(p - k) >= ecart)) pts.push(k);
+    }
+    if (pts.length < NB) return null;
+    pts.sort((a, b) => a - b);
+    // Au moins une fraction sous 1 et une au-dessus.
+    if (!pts.some(k => k < d) || !pts.some(k => k > d)) return null;
+    return { d, N, pas, pts, repere };
+  };
+  let t = null;
+  for (let essai = 0; essai < 400 && !t; essai++) t = tirer();
+  // Filet : un tirage sûr, vérifié à la main (septièmes, comme sur la fiche).
+  if (!t) {
+    const N = avecUn ? 13 : 16;
+    t = { d: 7, N, pas: util / (N + 0.4), pts: avecUn ? [2, 5, 10, 12] : [3, 9, 12, 16], repere: avecUn ? 1 : 2 };
+  }
+  return buildDroiteFractionsSvg(t.d, t.N, t.pas, t.pts, t.repere);
+}
+
+function buildDroiteFractionsSvg(d, N, pas, pts, repere) {
+  const { W, padX, baseY, hEcran, hPdf, caseY, caseW, caseH } = DFRAC;
+  const x = (k) => +(padX + k * pas).toFixed(2);
+  const svgId = `droite-${Math.random().toString(36).slice(2, 9)}`;
+  const lettres = ['A', 'B', 'C', 'D'];
+  const NOIR = '#111827', ROUGE = '#dc2626', VERT = '#059669';
+
+  // --- Tracé commun : la droite, les graduations, 0 et le nombre repère
+  // (1, 2 ou 3), les points avec leur lettre et la tige vers la case.
+  let base = `<line x1="${padX - 15}" y1="${baseY}" x2="${W - padX + 15}" y2="${baseY}" stroke="${NOIR}" stroke-width="1.6"/>`;
+  base += `<polygon points="${W - padX + 15},${baseY} ${W - padX + 7},${baseY - 4.5} ${W - padX + 7},${baseY + 4.5}" fill="${NOIR}"/>`;
+  for (let k = 0; k <= N; k++) {
+    base += `<line x1="${x(k)}" y1="${baseY - 7}" x2="${x(k)}" y2="${baseY + 7}" stroke="${NOIR}" stroke-width="1.2"/>`;
+  }
+  base += `<text x="${x(0)}" y="${baseY + 23}" text-anchor="middle" font-size="14" fill="${NOIR}">0</text>`;
+  base += `<text x="${x(repere * d)}" y="${baseY + 23}" text-anchor="middle" font-size="14" fill="${NOIR}">${repere}</text>`;
+  pts.forEach((k, i) => {
+    base += `<line x1="${x(k)}" y1="${baseY}" x2="${x(k)}" y2="${hEcran}" stroke="${NOIR}" stroke-width="1.2"/>`;
+    base += `<circle cx="${x(k)}" cy="${baseY}" r="4.2" fill="${NOIR}"/>`;
+    base += `<text x="${x(k)}" y="${baseY - 13}" text-anchor="middle" font-size="13" font-weight="bold" fill="${ROUGE}">${lettres[i]}</text>`;
+  });
+  // Une case dessinée, vide (énoncé) ou portant sa fraction (corrigé).
+  const caseSvg = (k, avecFraction) => {
+    let g = `<line x1="${x(k)}" y1="${hEcran - 1}" x2="${x(k)}" y2="${caseY}" stroke="${NOIR}" stroke-width="1.2"/>`;
+    g += `<rect x="${x(k) - caseW / 2}" y="${caseY}" width="${caseW}" height="${caseH}" rx="5" fill="#FFFFFF" stroke="${NOIR}" stroke-width="1.2"/>`;
+    if (avecFraction) {
+      const cy = caseY + caseH / 2;
+      g += `<text x="${x(k)}" y="${cy - 5}" text-anchor="middle" font-size="15" font-weight="bold" fill="${VERT}">${k}</text>`;
+      g += `<line x1="${x(k) - 12}" y1="${cy}" x2="${x(k) + 12}" y2="${cy}" stroke="${VERT}" stroke-width="1.3"/>`;
+      g += `<text x="${x(k)}" y="${cy + 16}" text-anchor="middle" font-size="15" font-weight="bold" fill="${VERT}">${d}</text>`;
+    }
+    return g;
+  };
+  const ouvre = (id, h) => `<svg${id ? ` id="${id}"` : ''} viewBox="0 0 ${W} ${h}" xmlns="http://www.w3.org/2000/svg" style="width:100%; max-width:${DFRAC_LARGEUR_ECRAN}px; height:auto;"`;
+  // --- Énoncé : les cases n'existent que pour l'impression.
+  const svg = `${ouvre(svgId, hEcran)} data-droite-frac="1" data-vb-pdf="0 0 ${W} ${hPdf}">${base}`
+    + `<g data-pdf-seul="1" display="none">${pts.map(k => caseSvg(k, false)).join('')}</g></svg>`;
+  // --- Corrigé : toutes les cases remplies.
+  const svgCorrige = `${ouvre('', hPdf)}>${base}${pts.map(k => caseSvg(k, true)).join('')}</svg>`;
+
+  const qLabels = ['a', 'b', 'c', 'd'];
+  const questions = pts.map((k, i) => ({
+    label: `${qLabels[i]})`,
+    // Le nom du point est déjà sur la figure : à l'écran ce texte est masqué
+    // (la case est SOUS le point) ; il sert aux corrigés et aux exports.
+    text: `<span class="dfrac-nom"><strong style="color:${ROUGE}">${lettres[i]}</strong> = </span>`,
+    answer: frac(k, d),
+    // Toute fraction ÉGALE est juste (14/10 comme 7/5), une écriture décimale
+    // ne l'est pas : c'est une fraction qu'on demande.
+    fractionEquiv: [k, d],
+    posPct: +((x(k) / W) * 100).toFixed(3)
+  }));
+  const aide = `<div class="dfrac-aide">Pour écrire une fraction, utilise la barre oblique : <code>7/10</code></div>`;
+  return {
+    svg, svgCorrige, multi: true, questions, svgId,
+    intro: "Écris, sous chaque point, la fraction qui lui correspond :" + aide,
+    droiteFractions: true,
+    // Nom du niveau, affiché à côté du numéro d'exercice dans les PDF (le
+    // sous-domaine n'a pas de `niveauLabels`, voir sa déclaration).
+    _niveauLibelle: repere === 1 ? 'Fractions 1' : 'Fractions 2',
+    // Les questions sont les cases d'UNE MÊME figure : en retirer une, la
+    // déplacer ou la renouveler seule n'a pas de sens (atelier).
+    _sansOutilsQuestion: true
+  };
+}
+// Largeur maximale de la figure à l'écran : au-delà, les cases (de taille fixe)
+// paraîtraient minuscules sous une droite démesurée. La grille des cases porte
+// la MÊME limite dans la feuille de style — les deux doivent rester égales.
+const DFRAC_LARGEUR_ECRAN = 760;
+
+// PDF : la figure reçoit ses cases dessinées (vides) et la grille des champs
+// disparaît. À appeler dans CHAQUE chaîne PDF, après le rendu de l'exercice
+// (piège 8.3 n° 1).
+function droiteFractionsPourPdf(root) {
+  if (!root) return;
+  root.querySelectorAll('svg[data-droite-frac]').forEach(svg => {
+    const vb = svg.getAttribute('data-vb-pdf');
+    if (vb) svg.setAttribute('viewBox', vb);
+    svg.style.maxWidth = '100%';
+    svg.querySelectorAll('[data-pdf-seul]').forEach(g => g.removeAttribute('display'));
+    const exo = svg.closest('.exercise') || root;
+    exo.querySelectorAll('.multi-grid-droite-frac, .dfrac-aide').forEach(el => el.remove());
+  });
 }
 
 function buildDroiteSvg(start, end, step, subSteps, positions, labelEvery, placePositions, snapStep) {
@@ -18661,7 +18937,7 @@ const ICONE_ENSEIGNANT = '<svg viewBox="0 0 24 24" width="21" height="21" fill="
 const ICONE_PDF = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJkAAACUCAMAAAC3HHtWAAAAk1BMVEXi5ef////xVkKwt73K0dji6OrxW0jyUDnG2eHlzczmgnrV2t/x8/T19vbxUTzwTDX4u7Xnvr28wsf+8/L84N3yYlD1jID1hXf1kYb4q6L4t7D96ujwQib1mY7++Pf70c3zcWHxSC/zeGn3pJv6ysX72dXy2Nbj1dXtgnfyaFf3sKj6w73UubvV4ebco6HkioPitLFLhhsqAAAElUlEQVR4nO3ca5eaOhQG4ICOtHUa7AAqIgiIbdVezv//dUcS7tlAXIYkq4v308xCzeNOCAEVZAzmKxKWj8Xi4324tVbQyGahsqdow7J3wbLFgp82LHsTLuOv2rBMIKyQ8dMGZQLHfyXjpsmX8dIUyDhpKmR8NCUyLpoa2eLjq64yjqqpko1XTZlstGrqZGM0hbIRmkrZME2pbJCmVjZEUywboKmW9dOUy3qnXPWyvqppIOupmg4yuGpayMCq6SGDqiZPthySAVWTJ1sPytiqyZMNdydbNYmykaJ1aRJlY0Xr0GTKnqNJlY3sn22aXBlaL4fr1qBJlpEsB/KmVDZEUywboKmW9dOUy3pp6mV9NA1kPTQdZDBNCxlI00MG0TSRATRdZCxNGxlD00fWpWkkQ/rKkL4ypK8M6StD+sqQvjKkrwzpK0P6ypC+MqSvDOkrQ/rKkL6ytbYyVF+tnWWiZW8T5jlZ4Lby/fN0+YFAGyxzw9hbyUoc/oBooOxi2tiUFmybEA2SRaklz5XH/slZs5PEgtGsPrNFg2R3W7YMf+OTbWbZLJtls2yWzbJWrORYJklaaxFs2WUsiznm1htpoIPySzK8PQVl3Oyc1gQrDX3/nMc/h/t0lbTb3vqthDGwkHlFhneO0YyTXYtHWdvWFsc9xA3b6m504nhs1V6R2QemhT192OrS3WJs4rLx7hvKcz8KlVkbpoWI9ovnMlsMN4ULSnJIJpA5gUNStL+qZRFN+RLBDvfJgpXY3qSy2zXOs/MpIbRLWeT/3OYJb0UFL7R9KnMOdXzRewCV+TYmsa8BKdqxku3oFsvGu4C+SFLL3MakwU4rgmTlv/u8ak5emEJWVcKOadmuuJYBmKlkmHpiQGZaMenrg61EZppknso9jMw8khnG9fSTWWletCjF9TizHnmMwsdInFqG6S4A9mY5keR7LpUFYRX4JFugLPHzf6OK0ZatTuWDmfnM2UO012XnI931zTMZ5KfGrNFsEGdkF0igmdaJgQ59XZaFZE1xO9GZlrx/QGYS2Q2UGdtJZO3c6+NmZ5yRg/wZ6k3j4rEvLlrm0h2NlRW7R17R4uh0qnIA1kCCZVF2pW2wMjvMH+BcG7MGmTbywBfmBMqcU2gWbQDzGSnZhfwpa6Y9nWn2qVm9d0ZGZxQyzOTJzkfaJc0+6cjwMSQ7bmRLrZkPbClkCSZoHG+iumQayIzs9lgV3g73YqYzsuJp6mWdXK7N1baMccYpy7xi2EmQ2ed8C3Q4Zs/qorA6CcFpLhu9WP7a1YNNFB3AdULqRjXKcU/bY+P5OHQiN51UhnG6gz/AsLxdndSz2s+249119IOPF68F9axHyZY6TzxNmGzCzLJZNstm2TSyTPpnwh7nZ8KBbBiOGVfPdw9u7DXeSWHHX785ZVGYJNV52ORJ8J/lmlP2WOv54b6VL5Pl73/LT0/Iunn/NF3yLzXyjjNAxvzkQWy0lQEwPWTAKOOXrScM5PoXvrM3y2bZLJtls+zfk3He90Do3TnFykTe0ZQr9Q8XRmTSi9a4zcyITOQNap+Djckk92fzbin/A8PQxx30Ei25AAAAAElFTkSuQmCC';
 
 // Numéro de version, affiché en pied de menu.
-const APP_VERSION = '508';
+const APP_VERSION = '511';
 
 const DOMAINS = [
   {
@@ -18704,7 +18980,16 @@ const DOMAINS = [
       { id: 'puissances', title: "Calculer des puissances",                            gen: genPuissance, patrons: () => [genPuissance] },
       { id: 'racines',    title: "Calculer des racines",                               gen: genRacine, patrons: () => [genRacine] },
       { id: 'hierarchie', title: "Appliquer la hiérarchie des opérations",             gen: genHierarchie, patrons: () => [genHierarchie] },
-      { id: 'droite',     title: "Lire la valeur d'un nombre sur une droite graduée",  gen: genDroite, hasNiveau2: true, patrons: () => [genDroite] },
+      { id: 'droite',     title: "Lire la valeur d'un nombre sur une droite graduée",  gen: genDroite, hasNiveau2: true, patrons: () => [genDroite],
+        // Niveaux « Fractions » (v509) : numéros 3 et 4. PAS de `niveauLabels`
+        // — il ferait passer le PDF du sous-domaine à quatre exercices et
+        // changerait l'étiquette des niveaux 1 et 2. `niveauMenu` suffit.
+        niveauMenu: [
+          { niveau: 1, label: 'Niveau 1' },
+          { niveau: 2, label: 'Niveau 2' },
+          { niveau: 3, label: 'Fractions 1' },
+          { niveau: 4, label: 'Fractions 2' }
+        ] },
       { id: 'estimer',    title: "Estimer le résultat d'un calcul",                    gen: genEstimer, patrons: () => [genEstimer] }
     ]
   },
@@ -25551,6 +25836,8 @@ function renderExercise(ex, num, exIdx) {
     if (ex.champsLarges) gridClasses.push('multi-grid-larges');
     // Angles : quatre horloges sur une ligne, champs sous chaque figure.
     if (ex._anglesHorloge) gridClasses.push('multi-grid-horloges');
+    // Droite graduée « Fractions » : chaque champ se pose SOUS son point.
+    if (ex.droiteFractions) gridClasses.push('multi-grid-droite-frac');
     content += `<div class="${gridClasses.join(' ')}">`;
     for (let qIdx = 0; qIdx < ex.questions.length; qIdx++) {
       const q = ex.questions[qIdx];
@@ -25814,7 +26101,8 @@ function renderExercise(ex, num, exIdx) {
         continue;
       }
       const itemCls = q.layoutFigure ? 'multi-item layout-figure' : 'multi-item';
-      content += `<div class="${itemCls}"><strong>${q.label}</strong> ${q.text}`;
+      const itemPos = (ex.droiteFractions && q.posPct != null) ? ` style="left:${q.posPct}%"` : '';
+      content += `<div class="${itemCls}"${itemPos}><strong>${q.label}</strong> ${q.text}`;
       // Cas spécial : question demandant P ET A → deux champs "P = __" et "A = __"
       if (q.dualPA) {
         const inpP = `inp-${exIdx}-${qIdx}-P`;
@@ -27609,6 +27897,25 @@ function validateAnswer(exIdx, qIdx) {
       feedback.classList.add('incorrect');
       feedback.innerHTML = '✗';
     }
+    return;
+  }
+
+  // Fraction lue sur une droite graduée : toute fraction ÉGALE est juste
+  // (14/10 comme 7/5), rien d'autre — ni décimal, ni nombre seul.
+  if (qObj && Array.isArray(qObj.fractionEquiv) && qIdx !== null && qIdx !== undefined) {
+    const input = document.getElementById(`inp-${exIdx}-${qIdx}`);
+    const feedback = document.getElementById(`fb-${exIdx}-${qIdx}`);
+    if (!input || !feedback) return;
+    const brut = String(input.value || '').trim();
+    input.classList.remove('correct', 'incorrect');
+    feedback.classList.remove('correct', 'incorrect');
+    if (brut === '') { feedback.innerHTML = ''; return; }
+    const m = brut.replace(/\s+/g, '').match(/^(\d+)[\/:÷](\d+)$/);
+    const ok = !!m && parseInt(m[2], 10) !== 0
+      && parseInt(m[1], 10) * qObj.fractionEquiv[1] === parseInt(m[2], 10) * qObj.fractionEquiv[0];
+    input.classList.add(ok ? 'correct' : 'incorrect');
+    feedback.classList.add(ok ? 'correct' : 'incorrect');
+    feedback.innerHTML = ok ? '✓' : '✗';
     return;
   }
 
@@ -31993,6 +32300,7 @@ async function downloadDomainPdf(domainNum, compoImposee) {
       else el.remove();
     });
     exoDiv.querySelectorAll('.feedback, .inline-solution, .exo-tip, .frac-sol-detail').forEach(el => el.remove());
+    droiteFractionsPourPdf(exoDiv);   // droite « Fractions » : cases dessinées
     // Unité d'aide à la saisie : écran seulement (voir la chaîne sous-domaine).
     exoDiv.querySelectorAll('.answer-unite').forEach(el => el.remove());
     exoDiv.querySelectorAll('input.answer-input, input.answer-input-cell, input.answer-input-inline').forEach(inp => {
@@ -32236,8 +32544,9 @@ async function downloadDomainPdf(domainNum, compoImposee) {
       svgBox.style.cssText = `max-width: ${sub.id === 'droite' ? '640px' : '320px'}; margin-bottom: 8px;`;
       svgBox.innerHTML = ex.svgCorrige;
       wrap.appendChild(svgBox);
-      // Liste des coordonnées des 4 points
-      if (ex.multi && Array.isArray(ex.questions)) {
+      // Liste des coordonnées des 4 points (droite « Fractions » : la figure
+      // corrigée porte déjà chaque fraction dans sa case)
+      if (ex.multi && Array.isArray(ex.questions) && !ex.droiteFractions) {
         const coords = document.createElement('div');
         coords.style.cssText = 'display: flex; flex-wrap: wrap; gap: 4px 24px; font-size: 14px;';
         ex.questions.forEach(q => {
@@ -33153,6 +33462,21 @@ async function downloadPdf(opts) {
       } finally {
         state.niveau = savedNiveau;
       }
+    } else if (found.sub.id === 'droite' && state.niveau >= 3) {
+      // Droite graduée, niveaux « Fractions » : le PDF donne les DEUX niveaux
+      // de fractions (3 puis 4), comme il donne 1 puis 2 depuis les niveaux
+      // décimaux. Celui qui est à l'écran est repris tel quel.
+      const savedNiveau = state.niveau;
+      try {
+        exercisesForPdf = [3, 4].map(niv => {
+          const ck = `droite|_|${niv}`;
+          let src = (state.exercisesCache[ck] && state.exercisesCache[ck][0]) || null;
+          if (!src) { state.niveau = niv; src = genDroite(); }
+          return { ...src, _realNiveau: niv };
+        });
+      } finally {
+        state.niveau = savedNiveau;
+      }
     } else if (found.sub.hasNiveau2 && found.sub.id !== 'vocab' && typeof found.sub.gen === 'function') {
       // Le PDF reprend l'exercice AFFICHÉ À L'ÉCRAN pour chaque niveau : on lit le
       // cache (subId|variante|niveau) ; on garde 1 exercice par niveau, donc la
@@ -33634,6 +33958,7 @@ async function downloadPdf(opts) {
         }
       });
       exoDiv.querySelectorAll('.feedback, .inline-solution, .exo-tip, .frac-sol-detail').forEach(el => el.remove());
+      droiteFractionsPourPdf(exoDiv);   // droite « Fractions » : cases dessinées
       // L'unité affichée à droite du champ (« CHF », « g », « m² ») guide la
       // SAISIE à l'écran ; sur papier elle souffle la réponse et n'a pas lieu
       // d'être.
@@ -33799,8 +34124,8 @@ async function downloadPdf(opts) {
           // une série il est seul de son groupe. Le drapeau `_noNiveauTag`,
           // posé par la composition du PDF de sous-domaine, ne voyageait pas
           // jusqu'ici : la série retombait sur « Niveau 1 ».
-          const rub = (Array.isArray(found.sub.niveauLabels) && !SANS_RUBRIQUE.has(found.sub.id))
-            ? found.sub.niveauLabels[(ex._realNiveau || (idx + 1)) - 1] : null;
+          const rub = ex._niveauLibelle || ((Array.isArray(found.sub.niveauLabels) && !SANS_RUBRIQUE.has(found.sub.id))
+            ? found.sub.niveauLabels[(ex._realNiveau || (idx + 1)) - 1] : null);
           if (ex._noNiveauTag || rub) {
             numDiv.innerHTML = rub
               ? `Exercice ${idx + 1}. <span style="color:#6B7280; font-weight:600; font-size:14px; text-transform:none;">– ${rub}</span>`
@@ -33895,8 +34220,8 @@ async function downloadPdf(opts) {
       // Même règle qu'à l'énoncé : le NOM de la sous-rubrique quand il existe,
       // « Niveau N » sinon, et rien du tout pour les sous-domaines qui n'en
       // veulent pas.
-      const rubCor = (Array.isArray(found.sub.niveauLabels) && !SANS_RUBRIQUE.has(found.sub.id))
-        ? found.sub.niveauLabels[(ex._realNiveau || (exIdx + 1)) - 1] : null;
+      const rubCor = ex._niveauLibelle || ((Array.isArray(found.sub.niveauLabels) && !SANS_RUBRIQUE.has(found.sub.id))
+        ? found.sub.niveauLabels[(ex._realNiveau || (exIdx + 1)) - 1] : null);
       const _nivTagCor = ex._realNiveau || (exIdx + 1);
       const niveauTag = (found.sub.titreParNiveau && found.sub.titreParNiveau[_nivTagCor])
         ? ''                                   // le titre du document nomme déjà ce niveau
@@ -33943,7 +34268,7 @@ async function downloadPdf(opts) {
         // Droite graduée : illustration du corrigé agrandie (640px), comme dans
         // le corrigé du PDF « domaine ». Les autres (repérage) restent à 320px.
         inner += `<div style="max-width: ${state.activeSubId === 'droite' ? '640px' : '320px'}; margin-bottom: 8px;">${ex.svgCorrige}</div>`;
-        if (ex.multi && Array.isArray(ex.questions)) {
+        if (ex.multi && Array.isArray(ex.questions) && !ex.droiteFractions) {
           inner += `<div style="display: flex; flex-wrap: wrap; gap: 4px 24px; font-size: 14px;">`;
           ex.questions.forEach(q => {
             inner += `<span><strong>${q.label}</strong> ${q.answer}</span>`;
@@ -34355,6 +34680,7 @@ async function downloadPdf(opts) {
           else el.remove();
         });
         exoDiv.querySelectorAll('.feedback, .inline-solution, .exo-tip, .frac-sol-detail').forEach(el => el.remove());
+        droiteFractionsPourPdf(exoDiv);   // droite « Fractions » : cases dessinées
         // Unité d'aide à la saisie : écran seulement. Cette branche (v504) avait
         // échappé au retrait fait dans les trois chaînes.
         exoDiv.querySelectorAll('.answer-unite').forEach(el => el.remove());
