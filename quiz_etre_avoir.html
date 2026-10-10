@@ -114,6 +114,7 @@ button{font:inherit;color:inherit;cursor:pointer;border:0;background:none;touch-
 .ph .btn.next{min-height:16vh;min-height:16dvh;font-size:1.7em;border-radius:24px}
 .ph .hint{font-size:.85em;text-align:center}
 .ph .quit{color:var(--muted);font-size:.8em;text-decoration:underline;padding:6px}
+.end .under{min-height:0;margin:0}
 </style>
 </head>
 <body>
@@ -2440,7 +2441,7 @@ var qrcode = function() {
 </script>
 <script>
 'use strict';
-const VERSION = 'v2';
+const VERSION = 'v3';
 /* ============================================================
    CARTES — modifiables. 'e' = je suis, 'a' = j'ai
    ============================================================ */
@@ -2506,10 +2507,10 @@ function openRelay(idx) {
    ÉCRAN DE CLASSE
    ============================================================ */
 const H = { g: null, code: '', ri: 0, room: null, c: null, ready: false, net: false, err: '', timer: 0 };
-const newGame = () => ({ ph: 'lobby', players: [], order: [], ti: -1, deck: [], card: -1, n: 0, total: 20, won: 0, err: 0, res: null, auto: true });
+const newGame = () => ({ ph: 'lobby', players: [], order: [], ti: -1, deck: [], card: -1, n: 0, total: 20, won: 0, err: 0, fix: 0, cur: null, miss: [], queue: [], rev: false, revd: false, res: null, auto: true });
 
 async function hostInit() {
-  const saved = store.get('jsoj-host');
+  const saved = store.get('jsoj-host3');
   if (saved && saved.g && Date.now() - saved.t < 3 * 3600e3) { H.g = saved.g; H.code = saved.code; H.ri = saved.ri || 0; }
   else { H.g = newGame(); H.code = rid(6); }
   if (!window.crypto || !crypto.subtle) { H.err = 'Cette page doit être ouverte en https (par exemple depuis GitHub Pages).'; return hRender(); }
@@ -2539,13 +2540,15 @@ function tryRelay(idx, tries) {
   c.on('message', async (t, payload) => { const m = await unseal(H.room.key, payload.toString()); if (m && H.c === c) hMsg(m); });
 }
 function pub() {
-  const g = H.g, cur = g.order[g.ti], cp = g.players.find(p => p.id === cur);
-  const live = g.ph === 'turn' || g.ph === 'result';
+  const g = H.g, cp = g.players.find(p => p.id === g.cur);
+  const live = g.ph === 'turn' || g.ph === 'result', t = g.ph === 'turn' ? 1 : 0;
   return {
-    ph: g.ph, n: g.n, total: g.total, left: g.deck.length + (g.ph === 'turn' ? 1 : 0),
-    players: g.players.map(p => ({ id: p.id, name: p.name, score: p.score, err: p.err || 0 })),
-    v: g.ph === 'turn' ? CARDS[g.card][1] : '',
-    cur: live ? cur : null, curName: live && cp ? cp.name : '',
+    ph: g.ph, n: g.n, total: g.total, rev: !!g.rev, nm: g.miss.length,
+    left: (g.rev ? g.queue.length : g.deck.length) + t,
+    players: g.players.map(p => ({ id: p.id, name: p.name, score: p.score, err: p.err || 0,
+      miss: g.ph === 'end' ? g.miss.filter(m => m.p === p.id).map(m => CARDS[m.c]) : [] })),
+    v: t ? CARDS[g.card][1] : '',
+    cur: live ? g.cur : null, curName: live && cp ? cp.name : '',
     card: live ? CARDS[g.card][0] : '', res: g.ph === 'result' ? g.res : null
   };
 }
@@ -2553,7 +2556,7 @@ async function hPublish() {
   if (!H.c || !H.c.connected) return;
   H.c.publish(H.room.topic + '/s', await seal(H.room.key, pub()));
 }
-function commit() { store.set('jsoj-host', { code: H.code, ri: H.ri, g: H.g, t: Date.now() }); hPublish(); hRender(); }
+function commit() { store.set('jsoj-host3', { code: H.code, ri: H.ri, g: H.g, t: Date.now() }); hPublish(); hRender(); }
 
 function hMsg(m) {
   const g = H.g;
@@ -2561,6 +2564,7 @@ function hMsg(m) {
   if (m.t === 'ctl') {
     if (m.a === 'next' && g.ph === 'result' && m.n === g.n) next();
     else if (m.a === 'start' && g.ph === 'lobby') start();
+    else if (m.a === 'rev') startRev();
     return;
   }
   if (m.t === 'join' && m.pid) {
@@ -2573,7 +2577,7 @@ function hMsg(m) {
     }
     return hPublish();
   }
-  if (m.t === 'ans' && g.ph === 'turn' && m.n === g.n && m.pid === g.order[g.ti]) resolve(m.v);
+  if (m.t === 'ans' && g.ph === 'turn' && m.n === g.n && m.pid === g.cur) resolve(m.v);
 }
 function putBack() {
   const g = H.g; const pos = g.deck.length ? 1 + rnd(g.deck.length) : 0;
@@ -2586,21 +2590,42 @@ function start() {
   g.deck = shuffle(pick('e').concat(pick('a')));
   g.players.forEach(p => { p.score = 0; p.err = 0; });
   g.order = shuffle(g.players.map(p => p.id));
-  g.ti = -1; g.n = 0; g.won = 0; g.err = 0; g.res = null;
+  g.ti = -1; g.n = 0; g.won = 0; g.err = 0; g.fix = 0; g.res = null;
+  g.miss = []; g.queue = []; g.rev = false; g.revd = false;
   next();
+}
+/* Relance : chaque carte ratée revient à la personne qui s'est trompée */
+function startRev() {
+  const g = H.g; if (g.ph !== 'end' || !g.miss.length) return;
+  const ids = g.players.map(p => p.id);
+  g.queue = shuffle(g.miss.filter(m => ids.includes(m.p))); g.miss = [];
+  if (!g.queue.length) return commit();
+  g.rev = true; g.revd = true;
+  next();
+}
+function endRev() {
+  const g = H.g; if (!g.rev) return;
+  if (g.ph === 'turn') g.miss.push({ c: g.card, p: g.cur });
+  g.miss.push(...g.queue); g.queue = []; g.rev = false;
 }
 function next() {
   const g = H.g; clearTimeout(H.timer);
-  if (!g.order.length) g.ph = 'lobby';
+  if (g.rev) {
+    if (!g.queue.length) { g.rev = false; g.ph = 'end'; }
+    else { const e = g.queue.shift(); g.cur = e.p; g.card = e.c; g.n++; g.ph = 'turn'; g.res = null; }
+  }
+  else if (!g.order.length) g.ph = 'lobby';
   else if (!g.deck.length) g.ph = 'end';
-  else { g.ti = (g.ti + 1) % g.order.length; g.card = g.deck.shift(); g.n++; g.ph = 'turn'; g.res = null; }
+  else { g.ti = (g.ti + 1) % g.order.length; g.cur = g.order[g.ti]; g.card = g.deck.shift(); g.n++; g.ph = 'turn'; g.res = null; }
   commit();
 }
 function resolve(v) {
   const g = H.g; if (g.ph !== 'turn' || (v !== 'e' && v !== 'a')) return;
   const verb = CARDS[g.card][1], ok = v === verb;
-  const cp = g.players.find(p => p.id === g.order[g.ti]);
-  if (ok) { cp.score++; g.won++; } else { cp.err = (cp.err || 0) + 1; g.err = (g.err || 0) + 1; putBack(); }
+  const cp = g.players.find(p => p.id === g.cur);
+  if (g.rev) { if (ok) g.fix++; else g.miss.push({ c: g.card, p: g.cur }); }
+  else if (ok) { cp.score++; g.won++; }
+  else { cp.err = (cp.err || 0) + 1; g.err++; g.miss.push({ c: g.card, p: g.cur }); }
   g.res = { ok, verb }; g.ph = 'result';
   commit();
   if (g.auto) H.timer = setTimeout(next, ok ? DELAY_OK : DELAY_KO);
@@ -2608,16 +2633,11 @@ function resolve(v) {
 function removePlayer(id) {
   const g = H.g, i = g.order.indexOf(id);
   g.players = g.players.filter(p => p.id !== id);
-  if (i < 0) return commit();
-  g.order.splice(i, 1);
+  g.miss = g.miss.filter(m => m.p !== id); g.queue = g.queue.filter(m => m.p !== id);
+  if (i >= 0) { g.order.splice(i, 1); if (i <= g.ti) g.ti--; }
   if (g.ph !== 'turn' && g.ph !== 'result') return commit();
-  const len = g.order.length;
-  if (!len) { clearTimeout(H.timer); if (g.ph === 'turn') g.deck.push(g.card); g.ph = 'lobby'; return commit(); }
-  if (i < g.ti) g.ti--;
-  else if (i === g.ti) {
-    g.ti = (g.ti - 1 + len) % len;
-    if (g.ph === 'turn') { putBack(); return next(); }
-  }
+  if (!g.order.length) { clearTimeout(H.timer); g.rev = false; g.queue = []; g.ph = 'lobby'; return commit(); }
+  if (g.cur === id && g.ph === 'turn') { if (!g.rev) putBack(); return next(); }
   commit();
 }
 function hClick(ev) {
@@ -2628,11 +2648,12 @@ function hClick(ev) {
   else if (a === 'start') start();
   else if (a === 'ans') resolve(v);
   else if (a === 'next') next();
-  else if (a === 'skip') { if (g.ph === 'turn') { putBack(); next(); } }
+  else if (a === 'skip') { if (g.ph === 'turn') { if (g.rev) g.miss.push({ c: g.card, p: g.cur }); else putBack(); next(); } }
+  else if (a === 'rev') startRev();
   else if (a === 'rm') { const p = g.players.find(p => p.id === v); if (p && confirm('Retirer ' + p.name + ' de la partie ?')) removePlayer(v); }
-  else if (a === 'stop') { if (confirm('Terminer la partie maintenant ?')) { clearTimeout(H.timer); g.ph = 'end'; commit(); } }
+  else if (a === 'stop') { if (confirm('Terminer la partie maintenant ?')) { clearTimeout(H.timer); endRev(); g.ph = 'end'; commit(); } }
   else if (a === 'again') { g.ph = 'lobby'; g.players.forEach(p => { p.score = 0; p.err = 0; }); g.order = []; commit(); }
-  else if (a === 'reset') { if (confirm('Nouvelle partie avec un nouveau code QR ? Les participants devront scanner à nouveau.')) { store.del('jsoj-host'); location.reload(); } }
+  else if (a === 'reset') { if (confirm('Nouvelle partie avec un nouveau code QR ? Les participants devront scanner à nouveau.')) { store.del('jsoj-host3'); location.reload(); } }
   else if (a === 'retry') tryRelay(0, 0), hRender();
   else if (a === 'full') { const d = document; d.fullscreenElement ? d.exitFullscreen() : d.documentElement.requestFullscreen && d.documentElement.requestFullscreen().catch(() => {}); }
 }
@@ -2650,7 +2671,7 @@ function chips(removable) {
   const g = H.g, live = g.ph === 'turn' || g.ph === 'result';
   const list = live ? g.order.map(id => g.players.find(p => p.id === id)).filter(Boolean) : g.players;
   return '<div class="chips">' + list.map(p =>
-    `<span class="chip${live && p.id === g.order[g.ti] ? ' cur' : ''}"${live ? ` data-a="rm" data-v="${esc(p.id)}" title="Retirer"` : ''}>${esc(p.name)}` +
+    `<span class="chip${live && p.id === g.cur ? ' cur' : ''}"${live ? ` data-a="rm" data-v="${esc(p.id)}" title="Retirer"` : ''}>${esc(p.name)}` +
     (live ? `<b>${p.score}</b>` : '') +
     (removable ? `<button class="x" data-a="rm" data-v="${esc(p.id)}" aria-label="Retirer ${esc(p.name)}">×</button>` : '') + '</span>').join('') + '</div>';
 }
@@ -2683,14 +2704,16 @@ function hRender() {
   } else if (g.ph === 'end') {
     const sorted = g.players.slice().sort((a, b) => b.score - a.score);
     let rank = 0, prev = null;
-    const rows = sorted.map((p, i) => { if (p.score !== prev) { rank = i + 1; prev = p.score; } return `<li class="${rank === 1 && p.score > 0 ? 'first' : ''}"><span class="r">${rank}.</span><span class="n">${esc(p.name)}</span><span class="s">${cartes(p.score)} · ${erreurs(p.err || 0)}</span></li>`; }).join('');
-    const ge = g.err || 0, rep = g.won + ge;
+    const rows = sorted.map((p, i) => { if (p.score !== prev) { rank = i + 1; prev = p.score; } return `<li class="${rank === 1 && p.score > 0 ? 'first' : ''}"><span class="r">${rank}.</span><span class="n">${esc(p.name)}</span><span class="s">${cartes(p.score)} · ${g.revd ? g.miss.filter(m => m.p === p.id).length + ' à revoir' : erreurs(p.err || 0)}</span></li>`; }).join('');
+    const ge = g.err || 0, rep = g.won + ge, nm = g.miss.length;
+    const relance = g.revd ? `<p class="under">Relance : ${g.fix} ${g.fix > 1 ? 'erreurs corrigées' : 'erreur corrigée'}, ${nm} à revoir</p>` : '';
+    const hint = nm ? '<p class="under">Sans relance, chacun peut reprendre ses erreurs sur son téléphone.</p>' : '';
     h = `<div class="host">${net}<header class="bar">${brand}<span class="sp"></span><button class="btn ghost small" data-a="full">Plein écran</button></header>
-    <div class="end"><h1>Bravo !</h1><p class="who">${rep} réponse${rep > 1 ? 's' : ''} : ${g.won} juste${g.won > 1 ? 's' : ''}, ${erreurs(ge)}</p><ol class="rank">${rows}</ol>
-    <div class="opt"><button class="btn" data-a="again">Rejouer</button><button class="btn ghost" data-a="reset">Nouveau code</button></div></div></div>`;
+    <div class="end"><h1>Bravo !</h1><p class="who">${cartes(rep)} : ${g.won} juste${g.won > 1 ? 's' : ''}, ${erreurs(ge)}</p>${relance}<ol class="rank">${rows}</ol>
+    <div class="opt">${nm ? `<button class="btn" data-a="rev">Relancer ${nm > 1 ? 'les ' + nm + ' erreurs' : 'l’erreur'}</button>` : ''}<button class="btn${nm ? ' ghost' : ''}" data-a="again">Rejouer</button><button class="btn ghost" data-a="reset">Nouveau code</button></div>${hint}</div></div>`;
   } else {
-    const cp = g.players.find(p => p.id === g.order[g.ti]) || { name: '' };
-    const [text] = CARDS[g.card], left = g.deck.length + (g.ph === 'turn' ? 1 : 0);
+    const cp = g.players.find(p => p.id === g.cur) || { name: '' };
+    const [text] = CARDS[g.card], left = (g.rev ? g.queue.length : g.deck.length) + (g.ph === 'turn' ? 1 : 0);
     let card, under, who;
     if (g.ph === 'turn') {
       who = `C’est à <b>${esc(cp.name)}</b>`;
@@ -2700,9 +2723,9 @@ function hRender() {
       const ok = g.res.ok;
       who = ok ? `Bravo, <b>${esc(cp.name)}</b> !` : `Pas tout à fait, <b>${esc(cp.name)}</b>`;
       card = `<div class="card ${ok ? 'ok' : 'ko'}"><div class="card-q">${ok ? '✓ Correct' : '✗ La bonne phrase'}</div><div class="card-w">${sentence(text, g.res.verb)}</div></div>`;
-      under = (ok ? `<span>${esc(cp.name)} gagne la carte.</span>` : '<span>La carte retourne dans la pile.</span>') + `<button class="btn small" data-a="next">Carte suivante</button>`;
+      under = `<span>${g.rev ? (ok ? 'Erreur corrigée.' : 'Encore à revoir.') : (ok ? esc(cp.name) + ' gagne la carte.' : 'Carte à revoir en fin de partie.')}</span>` + `<button class="btn small" data-a="next">Carte suivante</button>`;
     }
-    h = `<div class="host">${net}<header class="bar">${brand}<span class="pill">Cartes restantes : ${left}</span><span class="sp"></span>
+    h = `<div class="host">${net}<header class="bar">${brand}<span class="pill">${g.rev ? 'Relance des erreurs' : 'Cartes restantes'} : ${left}</span><span class="sp"></span>
       ${g.ph === 'turn' ? '<button class="btn ghost small" data-a="skip">Passer</button>' : ''}<button class="btn ghost small" data-a="full">Plein écran</button><button class="btn ghost small" data-a="stop">Terminer</button></header>
     <main class="stage"><p class="who">${who}</p>${card}<div class="under">${under}</div></main>
     <footer class="players">${chips(false)}</footer></div>`;
@@ -2713,7 +2736,7 @@ function hRender() {
 /* ============================================================
    TÉLÉPHONE
    ============================================================ */
-const P = { code: '', pid: '', name: '', st: null, room: null, c: null, net: false, late: false, sentN: -1, sentV: '', joining: false, prof: false, ctlN: -1, ctlA: '' };
+const P = { code: '', pid: '', name: '', st: null, room: null, c: null, net: false, late: false, sentN: -1, sentV: '', joining: false, prof: false, ctlN: -1, ctlA: '', solo: null, soloDone: false };
 async function playerInit() {
   P.code = (qs.get('p') || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
   if (P.code.length !== 6 || !window.crypto || !crypto.subtle) { paint('<div class="ph"><div class="ph-mid"><h1>Code QR non valable</h1><p class="muted">Scanne à nouveau le code QR affiché sur l’écran.</p></div></div>'); return; }
@@ -2724,7 +2747,7 @@ async function playerInit() {
   const c = P.c = openRelay(+qs.get('r') === 1 ? 1 : 0);
   c.on('connect', () => { P.net = true; c.subscribe(P.room.topic + '/s'); pSend({ t: 'hello' }); if (P.joining) pJoin(); pRender(); });
   c.on('close', () => { P.net = false; pRender(); });
-  c.on('message', async (t, payload) => { const m = await unseal(P.room.key, payload.toString()); if (m) { P.st = m; if (pMe()) P.joining = false; pRender(); } });
+  c.on('message', async (t, payload) => { const m = await unseal(P.room.key, payload.toString()); if (m) { P.st = m; if (pMe()) P.joining = false; if (m.ph !== 'end') { P.solo = null; P.soloDone = false; } pRender(); } });
   setTimeout(() => { P.late = true; pRender(); }, 12000);
   setInterval(pTick, 1500);
   document.addEventListener('visibilitychange', () => { if (!document.hidden) { pSend({ t: 'hello' }); wake(); } });
@@ -2759,6 +2782,17 @@ function pClick(ev) {
     if (!P.st) return;
     P.ctlA = a; P.ctlN = P.st.n; wake(); pCtl(); return pRender();
   }
+  const so = ev.target.closest('[data-s]');
+  if (so && P.st && !P.prof) {
+    const a = so.dataset.s, me = pMe(), S = P.solo;
+    if (a === 'go' && me && me.miss.length) P.solo = { q: shuffle(me.miss), res: null };
+    else if (S && (a === 'e' || a === 'a') && !S.res) S.res = { ok: S.q[0][1] === a };
+    else if (S && a === 'next' && S.res) {
+      const c = S.q.shift(); if (!S.res.ok) S.q.push(c); S.res = null;
+      if (!S.q.length) { P.solo = null; P.soloDone = true; }
+    }
+    return pRender();
+  }
   const b = ev.target.closest('[data-v]'); if (!b || !P.st || P.prof) return;
   const st = P.st; if (st.ph !== 'turn' || st.cur !== P.pid || P.sentN === st.n) return;
   P.sentN = st.n; P.sentV = b.dataset.v; wake();
@@ -2766,20 +2800,23 @@ function pClick(ev) {
 }
 function profRender() {
   const st = P.st; let mid, btn = '';
-  const top = `<div class="ph-top"><b>Prof</b><span>${st && st.ph !== 'lobby' ? 'Cartes restantes : ' + st.left : ''}</span></div>`;
+  const top = `<div class="ph-top"><b>Prof</b><span>${st && st.ph !== 'lobby' ? (st.rev ? 'Relance : ' : 'Cartes restantes : ') + st.left : ''}</span></div>`;
   if (!st) mid = P.late ? '<h1>Partie introuvable</h1><p class="muted">Vérifie que l’écran affiche le code QR, puis scanne-le à nouveau.</p>' : '<h1 class="dots">Connexion</h1>';
   else if (st.ph === 'lobby') {
     const n = st.players.length;
     mid = `<h1>Accès prof</h1><p class="muted">${n ? n + (n > 1 ? ' participants' : ' participant') : 'En attente des participants…'}</p>`;
     btn = `<button class="btn" data-k="start"${n ? '' : ' disabled'}>Commencer</button>`;
-  } else if (st.ph === 'end') mid = '<h1>Partie terminée</h1><p class="muted">Le classement est affiché sur l’écran.</p>';
+  } else if (st.ph === 'end') {
+    mid = '<h1>Partie terminée</h1><p class="muted">Le classement est affiché sur l’écran.</p>';
+    if (st.nm) { mid += '<p class="muted">Sans relance, chacun peut reprendre ses erreurs sur son téléphone.</p>'; btn = `<button class="btn" data-k="rev">Relancer ${st.nm > 1 ? 'les ' + st.nm + ' erreurs' : 'l’erreur'}</button>`; }
+  }
   else if (st.ph === 'turn') {
     mid = `<p class="muted">C’est à ${esc(st.curName)}</p><div class="ph-card"><small>Je suis ou j’ai ?</small><strong>${esc(st.card)}</strong></div>
       <p class="muted">Réponse attendue : ${st.v ? sentence(st.card, st.v) : ''}</p>`;
     btn = '<button class="btn" disabled>Carte suivante</button><p class="muted hint">Disponible dès que la réponse est donnée.</p>';
   } else {
     const ok = st.res.ok, sent = P.ctlA === 'next' && P.ctlN === st.n;
-    mid = `<p class="muted">${esc(st.curName)} : ${ok ? 'réponse juste' : 'erreur, la carte retourne dans la pile'}</p>
+    mid = `<p class="muted">${esc(st.curName)} : ${ok ? 'réponse juste' : (st.rev ? 'encore à revoir' : 'erreur, carte à revoir en fin de partie')}</p>
       <div class="ph-card ${ok ? 'ok' : 'ko'}"><small>${ok ? '✓ Correct' : '✗ La bonne phrase'}</small><strong>${sentence(st.card, st.res.verb)}</strong></div>`;
     btn = `<button class="btn next" data-k="next"${sent ? ' disabled' : ''}>Carte suivante</button>`;
   }
@@ -2794,9 +2831,23 @@ function pRender() {
   else if (!me && P.joining && P.name) mid = '<h1 class="dots">Inscription</h1>';
   else if (!me) mid = `<h1>Ton prénom</h1><form style="width:100%;display:grid;gap:14px"><input id="nm" maxlength="14" autocomplete="given-name" autocapitalize="words" enterkeyhint="go" aria-label="Ton prénom" value="${esc(P.name)}"><button class="btn" type="submit">Rejoindre</button></form><p class="src">D’après un jeu de MondoLinguo.com</p>`;
   else if (st.ph === 'lobby') mid = `<h1>Bienvenue, ${esc(me.name)} !</h1><p class="muted">Regarde l’écran. La partie va commencer.</p>`;
+  else if (st.ph === 'end' && P.solo) {
+    const S = P.solo, [text, verb] = S.q[0], k = S.q.length;
+    const head = `<p class="muted">Mes erreurs : ${k} restante${k > 1 ? 's' : ''}</p>`;
+    if (!S.res) {
+      mid = head + `<div class="ph-card"><small>Je suis ou j’ai ?</small><strong>${esc(text)}</strong></div>`;
+      btns = '<div class="ph-btns"><button class="big e" data-s="e">Je suis</button><button class="big a" data-s="a">J’ai</button></div>';
+    } else {
+      const ok = S.res.ok;
+      mid = head + `<div class="ph-card ${ok ? 'ok' : 'ko'}"><small>${ok ? '✓ Correct' : '✗ La bonne phrase'}</small><strong>${sentence(text, verb)}</strong></div>`;
+      btns = '<div class="ph-btns"><button class="btn next" data-s="next">Continuer</button></div>';
+    }
+  }
   else if (st.ph === 'end') {
     const rank = 1 + st.players.filter(p => p.score > me.score).length;
-    mid = `<h1>Partie terminée</h1><div class="ph-card"><small>Tu as gagné</small><strong>${cartes(me.score)}</strong></div><p class="muted">${rank === 1 ? '1re place' : rank + 'e place'} · ${erreurs(me.err || 0)}</p>`;
+    mid = `<h1>Partie terminée</h1><div class="ph-card"><small>Tu as gagné</small><strong>${cartes(me.score)}</strong></div><p class="muted">${rank === 1 ? '1re place' : rank + 'e place'} · ${erreurs(me.err || 0)}</p>` + (P.soloDone ? '<p class="muted">✓ Bravo, tu as repris tes erreurs.</p>' : '');
+    const k = me.miss.length;
+    if (k) btns = `<div class="ph-btns"><button class="btn" data-s="go">${P.soloDone ? 'Recommencer' : 'Reprendre ' + (k > 1 ? 'mes ' + k + ' erreurs' : 'mon erreur')}</button></div>`;
   } else {
     const mine = st.cur === P.pid;
     if (st.ph === 'turn') {
@@ -2806,7 +2857,7 @@ function pRender() {
       if (mine) btns = `<div class="ph-btns"><button class="big e${sent && P.sentV === 'e' ? ' sel' : ''}" data-v="e"${sent ? ' disabled' : ''}>Je suis</button><button class="big a${sent && P.sentV === 'a' ? ' sel' : ''}" data-v="a"${sent ? ' disabled' : ''}>J’ai</button></div>`;
     } else {
       const ok = st.res.ok;
-      mid = `<p class="muted">${mine ? (ok ? 'Bravo ! Tu gagnes la carte.' : 'Pas tout à fait. La carte retourne dans la pile.') : (ok ? esc(st.curName) + ' gagne la carte.' : 'La carte retourne dans la pile.')}</p>
+      mid = `<p class="muted">${st.rev ? (ok ? 'Erreur corrigée.' : 'Encore à revoir.') : mine ? (ok ? 'Bravo ! Tu gagnes la carte.' : 'Pas tout à fait. Tu pourras la reprendre à la fin.') : (ok ? esc(st.curName) + ' gagne la carte.' : 'Carte à revoir en fin de partie.')}</p>
         <div class="ph-card ${ok ? 'ok' : 'ko'}"><small>${ok ? '✓ Correct' : '✗ La bonne phrase'}</small><strong>${sentence(st.card, st.res.verb)}</strong></div>`;
     }
   }
