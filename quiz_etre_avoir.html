@@ -143,6 +143,18 @@ button{font:inherit;color:inherit;cursor:pointer;border:0;background:none;touch-
 .panel .opt{margin:.9em 0}
 .panel>.btn{margin-top:1em}
 @media (max-width:800px){.lobby{grid-template-columns:1fr}.qrbox{max-width:14em;margin:0 auto}}
+/* v11 : survol du code QR, croix de fermeture */
+.qrbox{position:relative;cursor:pointer;overflow:visible}
+.qrbox svg{transition:opacity .15s}
+.qr-ico,.qr-x{display:flex;align-items:center;justify-content:center;border-radius:50%;background:#2B2B2B;color:#fff}
+.qr-ico{position:absolute;left:50%;top:50%;width:26%;aspect-ratio:1;transform:translate(-50%,-50%);opacity:0;transition:opacity .15s;pointer-events:none}
+.qr-tip{position:absolute;left:50%;top:calc(100% + .9em);transform:translateX(-50%);background:#2B2B2B;color:#fff;font-weight:600;font-size:1.15em;white-space:nowrap;padding:.45em .8em;border-radius:.4em;opacity:0;transition:opacity .15s;pointer-events:none;z-index:2}
+.qr-tip::before{content:"";position:absolute;left:50%;bottom:100%;transform:translateX(-50%);border:.45em solid transparent;border-bottom-color:#2B2B2B}
+@media (hover:hover){.qrbox:hover>svg{opacity:.22}.qrbox:hover .qr-ico,.qrbox:hover .qr-tip{opacity:1}}
+.qrbox:focus-visible>svg{opacity:.22}.qrbox:focus-visible .qr-ico,.qrbox:focus-visible .qr-tip{opacity:1}
+.qrbig{position:relative;padding:3vh;cursor:default}
+.qrbig svg{width:min(82vh,84vw)}
+.qr-x{position:absolute;top:-.9em;right:-.9em;width:2.6em;height:2.6em;box-shadow:0 0 0 .25em #fff}
 </style>
 </head>
 <body>
@@ -2470,7 +2482,7 @@ var qrcode = function() {
 </script>
 <script>
 'use strict';
-const VERSION = 'v10';   // +1 à chaque livraison (pastille affichée en bas à droite)
+const VERSION = 'v11';   // +1 à chaque livraison (pastille affichée en bas à droite)
 /* ============================================================
    CARTES — modifiables. 'e' = je suis, 'a' = j'ai
    ============================================================ */
@@ -2738,6 +2750,8 @@ function qrSvg(text) {
   return `<svg viewBox="0 0 ${n + 2 * m} ${n + 2 * m}" role="img" aria-label="Code QR pour rejoindre la partie" shape-rendering="crispEdges"><rect width="100%" height="100%" fill="#fff"/><path d="${d}" fill="#1D2340"/></svg>`;
 }
 const GEAR = '<svg viewBox="0 0 24 24" width="1.25em" height="1.25em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>';
+const EXPAND = '<svg viewBox="0 0 24 24" width="55%" height="55%" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 9 4 4M4 8V4h4M15 9l5-5M16 4h4v4M9 15l-5 5M4 16v4h4M15 15l5 5M20 16v4h-4"/></svg>';
+const CROSS = '<svg viewBox="0 0 24 24" width="55%" height="55%" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M5 5l14 14M19 5 5 19"/></svg>';
 const brand = '<span class="brand">Je <i class="v-e">suis</i> ou j’<i class="v-a">ai</i> ?</span>';
 function chips(removable) {
   const g = H.g, live = g.ph === 'turn' || g.ph === 'result';
@@ -2759,7 +2773,7 @@ function hRender() {
     const n = g.players.length;
     h = `<div class="host">${net}<header class="bar">${brand}<span class="sp"></span><button class="btn ghost small" data-a="solo">Jouer seul</button><button class="btn ghost small" data-a="full">Plein écran</button><button class="btn ghost small gear" data-a="set" aria-label="Paramètres" title="Paramètres">${GEAR}</button></header>
     <div class="lobby">
-      <button class="qrbox" data-a="qr" aria-label="Agrandir le code QR">${qrSvg(joinUrl())}<p>Scanne le code QR</p><small>Touche le code pour l’agrandir</small></button>
+      <button class="qrbox" data-a="qr" aria-label="Agrandit le code QR">${qrSvg(joinUrl())}<span class="qr-ico">${EXPAND}</span><span class="qr-tip" aria-hidden="true">Agrandit le code QR</span></button>
       <div>
         <h1>Je <span class="v-e">suis</span> ou j’<span class="v-a">ai</span> ?</h1>
         <p class="sub">À ton tour : dis la phrase à voix haute, puis choisis sur ton téléphone.</p>
@@ -2802,8 +2816,7 @@ function hRender() {
   }
   const live = g.ph === 'turn' || g.ph === 'result';
   if (H.ready && !H.err && H.qr && g.ph === 'lobby') {
-    const n = g.players.length;
-    h += `<div class="ovl" data-a="qr"><div class="qrbig">${qrSvg(joinUrl())}<p>Scanne le code QR avec ton téléphone</p><small>${n ? n + (n > 1 ? ' participants' : ' participant') + ' · ' : ''}Touche l’écran pour fermer</small></div></div>`;
+    h += `<div class="ovl" data-a="qr"><div class="qrbig" data-a="noop"><button class="qr-x" data-a="qr" aria-label="Fermer" title="Fermer">${CROSS}</button>${qrSvg(joinUrl())}</div></div>`;
   }
   if (H.ready && !H.err && H.set) {
     h += `<div class="ovl" data-a="set"><div class="panel" data-a="noop"><h2>Paramètres</h2>
