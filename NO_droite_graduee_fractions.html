@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nombres et opérations – Situer des fractions sur une droite numérique</title>
+
+<style>
+:root{
+  --encre:#1a1a1a;--navy:#1F3A5F;--bleu:#2E75B6;--magenta:#E6007E;--filet:#c9c9c9;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:#e9e9e9;color:var(--encre);
+  font-family:"Avenir Next","Avenir","Segoe UI","Trebuchet MS",Verdana,sans-serif;
+  font-size:0;line-height:1.5;
+}
+.barre{
+  position:sticky;top:0;z-index:10;
+  display:flex;gap:10px;align-items:center;justify-content:center;
+  padding:8px;background:var(--navy);color:#fff;font-size:10pt;
+}
+.barre button{font:inherit;font-weight:600;cursor:pointer;background:#fff;color:var(--navy);border:none;border-radius:3px;
+  padding:0;width:30px;height:30px;line-height:1;display:inline-flex;align-items:center;justify-content:center;font-size:13pt}
+.barre button svg{display:block}
+.barre button:focus-visible{outline:2px solid var(--magenta);outline-offset:2px}
+.barre span{opacity:.8}
+.barre .zoom-outils{opacity:1}
+.zoom-outils{display:flex;gap:6px;align-items:center}
+.zoom-taux{font-variant-numeric:tabular-nums;min-width:44px;text-align:center;opacity:.9}
+
+.page{
+  position:relative;zoom:var(--z,1);width:210mm;height:292mm;
+  margin:14px auto;padding:12mm 12mm 18mm 20mm;
+  background:#fff;overflow:hidden;font-size:11.5pt;
+}
+h1{font-size:15pt;font-weight:700;text-align:center;margin:0 0 1mm;letter-spacing:.1px}
+.sur-titre{text-align:center;font-size:11.5pt;margin:0 0 6mm}
+.etiquette-corrige{
+  display:none;position:absolute;top:13mm;right:12mm;margin:0;
+  color:var(--magenta);font-weight:700;font-size:11pt;letter-spacing:1px;
+}
+body.corrige .etiquette-corrige{display:block}
+p{margin:0 0 4mm}
+
+.exo-titre{display:flex;gap:3mm;align-items:flex-start;margin-bottom:2mm}
+.exo-titre .consigne{font-weight:700}
+.pastille{flex:0 0 auto;width:15px;height:15px;margin-top:2px}
+.item{margin:0 0 2mm 8mm}
+
+.fig{display:block;margin:2mm auto 0;width:170mm;height:auto}
+.sol{visibility:hidden}
+body.corrige .sol{visibility:visible}
+
+.pied{
+  position:absolute;left:20mm;right:12mm;bottom:10mm;
+  padding-top:2.5mm;border-top:1px solid var(--filet);
+  display:flex;justify-content:space-between;font-size:9.5pt;color:#333;
+}
+
+@page{size:A4;margin:0}
+@media print{
+  html,body{width:210mm;margin:0;padding:0;overflow:hidden}
+  body{background:#fff}
+  .barre{display:none}
+  .page{zoom:1;margin:0;page-break-after:always}
+  .page:last-of-type{page-break-after:auto}
+}
+@media screen{ .page{box-shadow:0 1px 6px rgba(0,0,0,.18)} }
+
+.page-corrige{display:none}
+@media print{
+  body.corrige .page:not(.page-corrige) .etiquette-corrige{display:none}
+  body.corrige .page:not(.page-corrige) .sol{visibility:hidden}
+  .page-corrige{display:block}
+  .page-corrige .etiquette-corrige{display:block}
+  .page-corrige .sol{visibility:visible}
+}
+</style>
+<style>
+/* propre à la fiche */
+.droites{margin-top:8mm}
+</style>
+</head>
+<body>
+
+<div class="barre">
+  <button id="btn" type="button" title="Afficher le corrigé" aria-label="Afficher le corrigé"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.3 8S3.6 3.8 8 3.8 14.7 8 14.7 8 12.4 12.2 8 12.2 1.3 8 1.3 8z"></path><circle cx="8" cy="8" r="2.1"></circle></svg></button>
+  <span class="zoom-outils">
+    <button id="zoom-moins" type="button" title="Réduire">−</button>
+    <span class="zoom-taux" id="zoom-taux">100 %</span>
+    <button id="zoom-plus" type="button" title="Agrandir">+</button>
+    <button id="zoom-page" type="button" title="Page entière" aria-label="Page entière"><svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3.2" y="1.6" width="9.6" height="12.8" rx="1.2"></rect><path d="M8 4.6v6.8"></path><path d="M6.3 6.3L8 4.6l1.7 1.7"></path><path d="M6.3 9.7L8 11.4l1.7-1.7"></path></svg></button>
+    <button id="plein-ecran" type="button" title="Plein écran" aria-label="Plein écran"><svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6V2h4"></path><path d="M10 2h4v4"></path><path d="M14 10v4h-4"></path><path d="M6 14H2v-4"></path></svg></button>
+  </span>
+</div>
+
+<!-- ══════════════════ PAGE 1 ══════════════════ -->
+<section class="page" data-corrige="">
+  <h1>Nombres et opérations</h1>
+  <p class="sur-titre">Situer des fractions sur une droite numérique</p>
+  <p class="etiquette-corrige">CORRIGÉ</p>
+
+  <div class="exo-titre">
+    <svg class="pastille" viewBox="0 0 16 16" aria-hidden="true"><rect width="16" height="16" rx="2" fill="#1F3A5F"></rect><text x="8" y="12" text-anchor="middle" fill="#fff" font-size="11" font-weight="700" font-family="Verdana,sans-serif">1</text></svg>
+    <span class="consigne">Écris la fraction représentée par chaque point.</span>
+  </div>
+
+  <svg class="fig droites" viewBox="0 0 170 190" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Droites numériques A à E">
+    <g font-family="inherit" fill="#1a1a1a">
+      <text x="2" y="12.8" font-size="4.6">A</text>
+      <line x1="14" y1="14" x2="159" y2="14" stroke="#1a1a1a" stroke-width="0.5"></line>
+      <path d="M161.5 14l-3.4 -1.2v2.4z" fill="#1a1a1a"></path>
+      <path d="M20 12v4M52.5 12v4M85 12v4M117.5 12v4M150 12v4" stroke="#1a1a1a" stroke-width="0.5" fill="none"></path>
+      <text x="20" y="21.6" text-anchor="middle" font-size="4.2">0</text>
+      <text x="150" y="21.6" text-anchor="middle" font-size="4.2">1</text>
+      <path d="M52.5 14v3.5" stroke="#1a1a1a" stroke-width="0.5"></path>
+      <circle cx="52.5" cy="14" r="1.4" fill="#1a1a1a"></circle>
+      <rect x="47.5" y="17.5" width="10" height="16" rx="1.1" fill="#f1f1f1" stroke="#1a1a1a" stroke-width="0.35"></rect>
+      <g fill="#1a1a1a" font-size="5.2" font-weight="700" text-anchor="middle"><text x="52.5" y="23.9">1</text><path d="M49.1 25.5h6.8" stroke="#1a1a1a" stroke-width="0.5"></path><text x="52.5" y="31.2">4</text></g>
+      <path d="M117.5 14v3.5" stroke="#1a1a1a" stroke-width="0.5"></path>
+      <circle cx="117.5" cy="14" r="1.4" fill="#1a1a1a"></circle>
+      <rect x="112.5" y="17.5" width="10" height="16" rx="1.1" fill="#f1f1f1" stroke="#1a1a1a" stroke-width="0.35"></rect>
+      <g class="sol" fill="#E6007E" font-size="5.2" font-weight="700" text-anchor="middle"><text x="117.5" y="23.9">3</text><path d="M114.1 25.5h6.8" stroke="#E6007E" stroke-width="0.5"></path><text x="117.5" y="31.2">4</text></g>
+
+      <text x="2" y="50.8" font-size="4.6">B</text>
+      <line x1="14" y1="52" x2="159" y2="52" stroke="#1a1a1a" stroke-width="0.5"></line>
+      <path d="M161.5 52l-3.4 -1.2v2.4z" fill="#1a1a1a"></path>
+      <path d="M20 50v4M36.25 50v4M52.5 50v4M68.75 50v4M85 50v4M101.25 50v4M117.5 50v4M133.75 50v4M150 50v4" stroke="#1a1a1a" stroke-width="0.5" fill="none"></path>
+      <text x="20" y="59.6" text-anchor="middle" font-size="4.2">0</text>
+      <text x="150" y="59.6" text-anchor="middle" font-size="4.2">1</text>
+      <path d="M36.25 52v3.5" stroke="#1a1a1a" stroke-width="0.5"></path>
+      <circle cx="36.25" cy="52" r="1.4" fill="#1a1a1a"></circle>
+      <rect x="31.25" y="55.5" width="10" height="16" rx="1.1" fill="#f1f1f1" stroke="#1a1a1a" stroke-width="0.35"></rect>
+      <g class="sol" fill="#E6007E" font-size="5.2" font-weight="700" text-anchor="middle"><text x="36.25" y="61.9">1</text><path d="M32.85 63.5h6.8" stroke="#E6007E" stroke-width="0.5"></path><text x="36.25" y="69.2">8</text></g>
+      <path d="M68.75 52v3.5" stroke="#1a1a1a" stroke-width="0.5"></path>
+      <circle cx="68.75" cy="52" r="1.4" fill="#1a1a1a"></circle>
+      <rect x="63.75" y="55.5" width="10" height="16" rx="1.1" fill="#f1f1f1" stroke="#1a1a1a" stroke-width="0.35"></rect>
+      <g class="sol" fill="#E6007E" font-size="5.2" font-weight="700" text-anchor="middle"><text x="68.75" y="61.9">3</text><path d="M65.35 63.5h6.8" stroke="#E6007E" stroke-width="0.5"></path><text x="68.75" y="69.2">8</text></g>
+      <path d="M133.75 52v3.5" stroke="#1a1a1a" stroke-width="0.5"></path>
+      <circle cx="133.75" cy="52" r="1.4" fill="#1a1a1a"></circle>
+      <rect x="128.75" y="55.5" width="10" height="16" rx="1.1" fill="#f1f1f1" stroke="#1a1a1a" stroke-width="0.35"></rect>
+      <g class="sol" fill="#E6007E" font-size="5.2" font-weight="700" text-anchor="middle"><text x="133.75" y="61.9">7</text><path d="M130.35 63.5h6.8" stroke="#E6007E" stroke-width="0.5"></path><text x="133.75" y="69.2">8</text></g>
+
+      <text x="2" y="88.8" font-size="4.6">C</text>
+      <line x1="14" y1="90" x2="159" y2="90" stroke="#1a1a1a" stroke-width="0.5"></line>
+      <path d="M161.5 90l-3.4 -1.2v2.4z" fill="#1a1a1a"></path>
+      <path d="M20 88v4M52.5 88v4M85 88v4M117.5 88v4M150 88v4" stroke="#1a1a1a" stroke-width="0.5" fill="none"></path>
+      <text x="20" y="97.6" text-anchor="middle" font-size="4.2">0</text>
+      <text x="85" y="97.6" text-anchor="middle" font-size="4.2">1</text>
+      <text x="150" y="97.6" text-anchor="middle" font-size="4.2">2</text>
+      <path d="M52.5 90v3.5" stroke="#1a1a1a" stroke-width="0.5"></path>
+      <circle cx="52.5" cy="90" r="1.4" fill="#1a1a1a"></circle>
+      <rect x="47.5" y="93.5" width="10" height="16" rx="1.1" fill="#f1f1f1" stroke="#1a1a1a" stroke-width="0.35"></rect>
+      <g class="sol" fill="#E6007E" font-size="5.2" font-weight="700" text-anchor="middle"><text x="52.5" y="99.9">1</text><path d="M49.1 101.5h6.8" stroke="#E6007E" stroke-width="0.5"></path><text x="52.5" y="107.2">2</text></g>
+      <path d="M117.5 90v3.5" stroke="#1a1a1a" stroke-width="0.5"></path>
+      <circle cx="117.5" cy="90" r="1.4" fill="#1a1a1a"></circle>
+      <rect x="112.5" y="93.5" width="10" height="16" rx="1.1" fill="#f1f1f1" stroke="#1a1a1a" stroke-width="0.35"></rect>
+      <g class="sol" fill="#E6007E" font-size="5.2" font-weight="700" text-anchor="middle"><text x="117.5" y="99.9">3</text><path d="M114.1 101.5h6.8" stroke="#E6007E" stroke-width="0.5"></path><text x="117.5" y="107.2">2</text></g>
+
+      <text x="2" y="126.8" font-size="4.6">D</text>
+      <line x1="14" y1="128" x2="159" y2="128" stroke="#1a1a1a" stroke-width="0.5"></line>
+      <path d="M161.5 128l-3.4 -1.2v2.4z" fill="#1a1a1a"></path>
+      <path d="M20 126v4M36.25 126v4M52.5 126v4M68.75 126v4M85 126v4M101.25 126v4M117.5 126v4M133.75 126v4M150 126v4" stroke="#1a1a1a" stroke-width="0.5" fill="none"></path>
+      <text x="20" y="135.6" text-anchor="middle" font-size="4.2">0</text>
+      <text x="85" y="135.6" text-anchor="middle" font-size="4.2">1</text>
+      <text x="150" y="135.6" text-anchor="middle" font-size="4.2">2</text>
+      <path d="M36.25 128v3.5" stroke="#1a1a1a" stroke-width="0.5"></path>
+      <circle cx="36.25" cy="128" r="1.4" fill="#1a1a1a"></circle>
+      <rect x="31.25" y="131.5" width="10" height="16" rx="1.1" fill="#f1f1f1" stroke="#1a1a1a" stroke-width="0.35"></rect>
+      <g class="sol" fill="#E6007E" font-size="5.2" font-weight="700" text-anchor="middle"><text x="36.25" y="137.9">1</text><path d="M32.85 139.5h6.8" stroke="#E6007E" stroke-width="0.5"></path><text x="36.25" y="145.2">4</text></g>
+      <path d="M68.75 128v3.5" stroke="#1a1a1a" stroke-width="0.5"></path>
+      <circle cx="68.75" cy="128" r="1.4" fill="#1a1a1a"></circle>
+      <rect x="63.75" y="131.5" width="10" height="16" rx="1.1" fill="#f1f1f1" stroke="#1a1a1a" stroke-width="0.35"></rect>
+      <g class="sol" fill="#E6007E" font-size="5.2" font-weight="700" text-anchor="middle"><text x="68.75" y="137.9">3</text><path d="M65.35 139.5h6.8" stroke="#E6007E" stroke-width="0.5"></path><text x="68.75" y="145.2">4</text></g>
+      <path d="M133.75 128v3.5" stroke="#1a1a1a" stroke-width="0.5"></path>
+      <circle cx="133.75" cy="128" r="1.4" fill="#1a1a1a"></circle>
+      <rect x="128.75" y="131.5" width="10" height="16" rx="1.1" fill="#f1f1f1" stroke="#1a1a1a" stroke-width="0.35"></rect>
+      <g class="sol" fill="#E6007E" font-size="5.2" font-weight="700" text-anchor="middle"><text x="133.75" y="137.9">7</text><path d="M130.35 139.5h6.8" stroke="#E6007E" stroke-width="0.5"></path><text x="133.75" y="145.2">4</text></g>
+
+      <text x="2" y="164.8" font-size="4.6">E</text>
+      <line x1="14" y1="166" x2="159" y2="166" stroke="#1a1a1a" stroke-width="0.5"></line>
+      <path d="M161.5 166l-3.4 -1.2v2.4z" fill="#1a1a1a"></path>
+      <path d="M20 164v4M26.5 164v4M33 164v4M39.5 164v4M46 164v4M52.5 164v4M59 164v4M65.5 164v4M72 164v4M78.5 164v4M85 164v4M91.5 164v4M98 164v4M104.5 164v4M111 164v4M117.5 164v4M124 164v4M130.5 164v4M137 164v4M143.5 164v4M150 164v4" stroke="#1a1a1a" stroke-width="0.5" fill="none"></path>
+      <text x="20" y="173.6" text-anchor="middle" font-size="4.2">0</text>
+      <text x="85" y="173.6" text-anchor="middle" font-size="4.2">1</text>
+      <text x="150" y="173.6" text-anchor="middle" font-size="4.2">2</text>
+      <path d="M33 166v3.5" stroke="#1a1a1a" stroke-width="0.5"></path>
+      <circle cx="33" cy="166" r="1.4" fill="#1a1a1a"></circle>
+      <rect x="28" y="169.5" width="10" height="16" rx="1.1" fill="#f1f1f1" stroke="#1a1a1a" stroke-width="0.35"></rect>
+      <g class="sol" fill="#E6007E" font-size="5.2" font-weight="700" text-anchor="middle"><text x="33" y="175.9">2</text><path d="M29.6 177.5h6.8" stroke="#E6007E" stroke-width="0.5"></path><text x="33" y="183.2">10</text></g>
+      <path d="M59 166v3.5" stroke="#1a1a1a" stroke-width="0.5"></path>
+      <circle cx="59" cy="166" r="1.4" fill="#1a1a1a"></circle>
+      <rect x="54" y="169.5" width="10" height="16" rx="1.1" fill="#f1f1f1" stroke="#1a1a1a" stroke-width="0.35"></rect>
+      <g class="sol" fill="#E6007E" font-size="5.2" font-weight="700" text-anchor="middle"><text x="59" y="175.9">6</text><path d="M55.6 177.5h6.8" stroke="#E6007E" stroke-width="0.5"></path><text x="59" y="183.2">10</text></g>
+      <path d="M124 166v3.5" stroke="#1a1a1a" stroke-width="0.5"></path>
+      <circle cx="124" cy="166" r="1.4" fill="#1a1a1a"></circle>
+      <rect x="119" y="169.5" width="10" height="16" rx="1.1" fill="#f1f1f1" stroke="#1a1a1a" stroke-width="0.35"></rect>
+      <g class="sol" fill="#E6007E" font-size="5.2" font-weight="700" text-anchor="middle"><text x="124" y="175.9">16</text><path d="M120.6 177.5h6.8" stroke="#E6007E" stroke-width="0.5"></path><text x="124" y="183.2">10</text></g>
+    </g>
+  </svg>
+
+  <div class="pied"><span>Nombres et opérations - Lire la valeur d'un nombre sur une droite graduée - UOG/AM</span><span>1</span></div>
+</section>
+
+<!-- ══════════════════ PAGE 2 ══════════════════ -->
+<section class="page" data-corrige="">
+  <h1>Nombres et opérations</h1>
+  <p class="sur-titre">Situer des fractions sur une droite numérique (suite)</p>
+  <p class="etiquette-corrige">CORRIGÉ</p>
+
+  <div class="exo-titre">
+    <svg class="pastille" viewBox="0 0 16 16" aria-hidden="true"><rect width="16" height="16" rx="2" fill="#1F3A5F"></rect><text x="8" y="12" text-anchor="middle" fill="#fff" font-size="11" font-weight="700" font-family="Verdana,sans-serif">1</text></svg>
+    <span class="consigne">Écris la fraction représentée par chaque point.</span>
+  </div>
+
+  <svg class="fig droites" viewBox="0 0 170 190" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Droites numériques F à J">
+    <g font-family="inherit" fill="#1a1a1a">
+      <text x="2" y="12.8" font-size="4.6">F</text>
+      <line x1="14" y1="14" x2="159" y2="14" stroke="#1a1a1a" stroke-width="0.5"></line>
+      <path d="M161.5 14l-3.4 -1.2v2.4z" fill="#1a1a1a"></path>
+      <path d="M20 12v4M30.83 12v4M41.67 12v4M52.5 12v4M63.33 12v4M74.17 12v4M85 12v4M95.83 12v4M106.67 12v4M117.5 12v4M128.33 12v4M139.17 12v4M150 12v4" stroke="#1a1a1a" stroke-width="0.5" fill="none"></path>
+      <text x="20" y="21.6" text-anchor="middle" font-size="4.2">0</text>
+      <text x="85" y="21.6" text-anchor="middle" font-size="4.2">1</text>
+      <path d="M30.83 14v3.5" stroke="#1a1a1a" stroke-width="0.5"></path>
+      <circle cx="30.83" cy="14" r="1.4" fill="#1a1a1a"></circle>
+      <rect x="25.83" y="17.5" width="10" height="16" rx="1.1" fill="#f1f1f1" stroke="#1a1a1a" stroke-width="0.35"></rect>
+      <g class="sol" fill="#E6007E" font-size="5.2" font-weight="700" text-anchor="middle"><text x="30.83" y="23.9">1</text><path d="M27.43 25.5h6.8" stroke="#E6007E" stroke-width="0.5"></path><text x="30.83" y="31.2">6</text></g>
+      <path d="M74.17 14v3.5" stroke="#1a1a1a" stroke-width="0.5"></path>
+      <circle cx="74.17" cy="14" r="1.4" fill="#1a1a1a"></circle>
+      <rect x="69.17" y="17.5" width="10" height="16" rx="1.1" fill="#f1f1f1" stroke="#1a1a1a" stroke-width="0.35"></rect>
+      <g class="sol" fill="#E6007E" font-size="5.2" font-weight="700" text-anchor="middle"><text x="74.17" y="23.9">5</text><path d="M70.77 25.5h6.8" stroke="#E6007E" stroke-width="0.5"></path><text x="74.17" y="31.2">6</text></g>
+      <path d="M139.17 14v3.5" stroke="#1a1a1a" stroke-width="0.5"></path>
+      <circle cx="139.17" cy="14" r="1.4" fill="#1a1a1a"></circle>
+      <rect x="134.17" y="17.5" width="10" height="16" rx="1.1" fill="#f1f1f1" stroke="#1a1a1a" stroke-width="0.35"></rect>
+      <g class="sol" fill="#E6007E" font-size="5.2" font-weight="700" text-anchor="middle"><text x="139.17" y="23.9">11</text><path d="M135.77 25.5h6.8" stroke="#E6007E" stroke-width="0.5"></path><text x="139.17" y="31.2">6</text></g>
+
+      <text x="2" y="50.8" font-size="4.6">G</text>
+      <line x1="14" y1="52" x2="159" y2="52" stroke="#1a1a1a" stroke-width="0.5"></line>
+      <path d="M161.5 52l-3.4 -1.2v2.4z" fill="#1a1a1a"></path>
+      <path d="M20 50v4M41.67 50v4M63.33 50v4M85 50v4M106.67 50v4M128.33 50v4M150 50v4" stroke="#1a1a1a" stroke-width="0.5" fill="none"></path>
+      <text x="20" y="59.6" text-anchor="middle" font-size="4.2">0</text>
+      <text x="85" y="59.6" text-anchor="middle" font-size="4.2">1</text>
+      <path d="M41.67 52v3.5" stroke="#1a1a1a" stroke-width="0.5"></path>
+      <circle cx="41.67" cy="52" r="1.4" fill="#1a1a1a"></circle>
+      <rect x="36.67" y="55.5" width="10" height="16" rx="1.1" fill="#f1f1f1" stroke="#1a1a1a" stroke-width="0.35"></rect>
+      <g class="sol" fill="#E6007E" font-size="5.2" font-weight="700" text-anchor="middle"><text x="41.67" y="61.9">1</text><path d="M38.27 63.5h6.8" stroke="#E6007E" stroke-width="0.5"></path><text x="41.67" y="69.2">3</text></g>
+      <path d="M63.33 52v3.5" stroke="#1a1a1a" stroke-width="0.5"></path>
+      <circle cx="63.33" cy="52" r="1.4" fill="#1a1a1a"></circle>
+      <rect x="58.33" y="55.5" width="10" height="16" rx="1.1" fill="#f1f1f1" stroke="#1a1a1a" stroke-width="0.35"></rect>
+      <g class="sol" fill="#E6007E" font-size="5.2" font-weight="700" text-anchor="middle"><text x="63.33" y="61.9">2</text><path d="M59.93 63.5h6.8" stroke="#E6007E" stroke-width="0.5"></path><text x="63.33" y="69.2">3</text></g>
+      <path d="M150 52v3.5" stroke="#1a1a1a" stroke-width="0.5"></path>
+      <circle cx="150" cy="52" r="1.4" fill="#1a1a1a"></circle>
+      <rect x="145" y="55.5" width="10" height="16" rx="1.1" fill="#f1f1f1" stroke="#1a1a1a" stroke-width="0.35"></rect>
+      <g class="sol" fill="#E6007E" font-size="5.2" font-weight="700" text-anchor="middle"><text x="150" y="61.9">6</text><path d="M146.6 63.5h6.8" stroke="#E6007E" stroke-width="0.5"></path><text x="150" y="69.2">3</text></g>
+
+      <text x="2" y="88.8" font-size="4.6">H</text>
+      <line x1="14" y1="90" x2="159" y2="90" stroke="#1a1a1a" stroke-width="0.5"></line>
+      <path d="M161.5 90l-3.4 -1.2v2.4z" fill="#1a1a1a"></path>
+      <path d="M20 88v4M26.5 88v4M33 88v4M39.5 88v4M46 88v4M52.5 88v4M59 88v4M65.5 88v4M72 88v4M78.5 88v4M85 88v4M91.5 88v4M98 88v4M104.5 88v4M111 88v4M117.5 88v4M124 88v4M130.5 88v4M137 88v4M143.5 88v4M150 88v4" stroke="#1a1a1a" stroke-width="0.5" fill="none"></path>
+      <text x="19.9" y="97.6" text-anchor="end" font-size="4.2">0</text>
+      <text x="85" y="97.6" text-anchor="middle" font-size="4.2">1</text>
+      <path d="M26.5 90v3.5" stroke="#1a1a1a" stroke-width="0.5"></path>
+      <circle cx="26.5" cy="90" r="1.4" fill="#1a1a1a"></circle>
+      <rect x="21.5" y="93.5" width="10" height="16" rx="1.1" fill="#f1f1f1" stroke="#1a1a1a" stroke-width="0.35"></rect>
+      <g class="sol" fill="#E6007E" font-size="5.2" font-weight="700" text-anchor="middle"><text x="26.5" y="99.9">1</text><path d="M23.1 101.5h6.8" stroke="#E6007E" stroke-width="0.5"></path><text x="26.5" y="107.2">10</text></g>
+      <path d="M65.5 90v3.5" stroke="#1a1a1a" stroke-width="0.5"></path>
+      <circle cx="65.5" cy="90" r="1.4" fill="#1a1a1a"></circle>
+      <rect x="60.5" y="93.5" width="10" height="16" rx="1.1" fill="#f1f1f1" stroke="#1a1a1a" stroke-width="0.35"></rect>
+      <g class="sol" fill="#E6007E" font-size="5.2" font-weight="700" text-anchor="middle"><text x="65.5" y="99.9">7</text><path d="M62.1 101.5h6.8" stroke="#E6007E" stroke-width="0.5"></path><text x="65.5" y="107.2">10</text></g>
+      <path d="M143.5 90v3.5" stroke="#1a1a1a" stroke-width="0.5"></path>
+      <circle cx="143.5" cy="90" r="1.4" fill="#1a1a1a"></circle>
+      <rect x="138.5" y="93.5" width="10" height="16" rx="1.1" fill="#f1f1f1" stroke="#1a1a1a" stroke-width="0.35"></rect>
+      <g class="sol" fill="#E6007E" font-size="5.2" font-weight="700" text-anchor="middle"><text x="143.5" y="99.9">19</text><path d="M140.1 101.5h6.8" stroke="#E6007E" stroke-width="0.5"></path><text x="143.5" y="107.2">10</text></g>
+
+      <text x="2" y="126.8" font-size="4.6">I</text>
+      <line x1="14" y1="128" x2="159" y2="128" stroke="#1a1a1a" stroke-width="0.5"></line>
+      <path d="M161.5 128l-3.4 -1.2v2.4z" fill="#1a1a1a"></path>
+      <path d="M20 126v4M29.29 126v4M38.57 126v4M47.86 126v4M57.14 126v4M66.43 126v4M75.71 126v4M85 126v4M94.29 126v4M103.57 126v4M112.86 126v4M122.14 126v4M131.43 126v4M140.71 126v4M150 126v4" stroke="#1a1a1a" stroke-width="0.5" fill="none"></path>
+      <text x="20" y="135.6" text-anchor="middle" font-size="4.2">0</text>
+      <text x="85" y="135.6" text-anchor="middle" font-size="4.2">1</text>
+      <path d="M38.57 128v3.5" stroke="#1a1a1a" stroke-width="0.5"></path>
+      <circle cx="38.57" cy="128" r="1.4" fill="#1a1a1a"></circle>
+      <rect x="33.57" y="131.5" width="10" height="16" rx="1.1" fill="#f1f1f1" stroke="#1a1a1a" stroke-width="0.35"></rect>
+      <g class="sol" fill="#E6007E" font-size="5.2" font-weight="700" text-anchor="middle"><text x="38.57" y="137.9">2</text><path d="M35.17 139.5h6.8" stroke="#E6007E" stroke-width="0.5"></path><text x="38.57" y="145.2">7</text></g>
+      <path d="M66.43 128v3.5" stroke="#1a1a1a" stroke-width="0.5"></path>
+      <circle cx="66.43" cy="128" r="1.4" fill="#1a1a1a"></circle>
+      <rect x="61.43" y="131.5" width="10" height="16" rx="1.1" fill="#f1f1f1" stroke="#1a1a1a" stroke-width="0.35"></rect>
+      <g class="sol" fill="#E6007E" font-size="5.2" font-weight="700" text-anchor="middle"><text x="66.43" y="137.9">5</text><path d="M63.03 139.5h6.8" stroke="#E6007E" stroke-width="0.5"></path><text x="66.43" y="145.2">7</text></g>
+      <path d="M112.86 128v3.5" stroke="#1a1a1a" stroke-width="0.5"></path>
+      <circle cx="112.86" cy="128" r="1.4" fill="#1a1a1a"></circle>
+      <rect x="107.86" y="131.5" width="10" height="16" rx="1.1" fill="#f1f1f1" stroke="#1a1a1a" stroke-width="0.35"></rect>
+      <g class="sol" fill="#E6007E" font-size="5.2" font-weight="700" text-anchor="middle"><text x="112.86" y="137.9">10</text><path d="M109.46 139.5h6.8" stroke="#E6007E" stroke-width="0.5"></path><text x="112.86" y="145.2">7</text></g>
+
+      <text x="2" y="164.8" font-size="4.6">J</text>
+      <line x1="14" y1="166" x2="159" y2="166" stroke="#1a1a1a" stroke-width="0.5"></line>
+      <path d="M161.5 166l-3.4 -1.2v2.4z" fill="#1a1a1a"></path>
+      <path d="M20 164v4M30.83 164v4M41.67 164v4M52.5 164v4M63.33 164v4M74.17 164v4M85 164v4M95.83 164v4M106.67 164v4M117.5 164v4M128.33 164v4M139.17 164v4M150 164v4" stroke="#1a1a1a" stroke-width="0.5" fill="none"></path>
+      <text x="20" y="173.6" text-anchor="middle" font-size="4.2">0</text>
+      <text x="85" y="173.6" text-anchor="middle" font-size="4.2">1</text>
+      <path d="M52.5 166v3.5" stroke="#1a1a1a" stroke-width="0.5"></path>
+      <circle cx="52.5" cy="166" r="1.4" fill="#1a1a1a"></circle>
+      <rect x="47.5" y="169.5" width="10" height="16" rx="1.1" fill="#f1f1f1" stroke="#1a1a1a" stroke-width="0.35"></rect>
+      <g class="sol" fill="#E6007E" font-size="5.2" font-weight="700" text-anchor="middle"><text x="52.5" y="175.9">3</text><path d="M49.1 177.5h6.8" stroke="#E6007E" stroke-width="0.5"></path><text x="52.5" y="183.2">6</text></g>
+      <path d="M106.67 166v3.5" stroke="#1a1a1a" stroke-width="0.5"></path>
+      <circle cx="106.67" cy="166" r="1.4" fill="#1a1a1a"></circle>
+      <rect x="101.67" y="169.5" width="10" height="16" rx="1.1" fill="#f1f1f1" stroke="#1a1a1a" stroke-width="0.35"></rect>
+      <g class="sol" fill="#E6007E" font-size="5.2" font-weight="700" text-anchor="middle"><text x="106.67" y="175.9">8</text><path d="M103.27 177.5h6.8" stroke="#E6007E" stroke-width="0.5"></path><text x="106.67" y="183.2">6</text></g>
+      <path d="M150 166v3.5" stroke="#1a1a1a" stroke-width="0.5"></path>
+      <circle cx="150" cy="166" r="1.4" fill="#1a1a1a"></circle>
+      <rect x="145" y="169.5" width="10" height="16" rx="1.1" fill="#f1f1f1" stroke="#1a1a1a" stroke-width="0.35"></rect>
+      <g class="sol" fill="#E6007E" font-size="5.2" font-weight="700" text-anchor="middle"><text x="150" y="175.9">12</text><path d="M146.6 177.5h6.8" stroke="#E6007E" stroke-width="0.5"></path><text x="150" y="183.2">6</text></g>
+    </g>
+  </svg>
+
+  <div class="pied"><span>Nombres et opérations - Lire la valeur d'un nombre sur une droite graduée - UOG/AM</span><span>2</span></div>
+</section>
+
+<script>
+document.querySelectorAll('.page[data-corrige]').forEach(p => {
+  const c = p.cloneNode(true);          /* le corrigé garde le numéro de la page d'origine */
+  c.removeAttribute('data-corrige');
+  c.classList.add('page-corrige');
+  document.body.appendChild(c);
+});
+
+const btn = document.getElementById('btn');
+const OEIL = '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.3 8S3.6 3.8 8 3.8 14.7 8 14.7 8 12.4 12.2 8 12.2 1.3 8 1.3 8z"/><circle cx="8" cy="8" r="2.1"/></svg>';
+const OEIL_B = '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.3 8S3.6 3.8 8 3.8 14.7 8 14.7 8 12.4 12.2 8 12.2 1.3 8 1.3 8z"/><circle cx="8" cy="8" r="2.1"/><path d="M2.5 13.5L13.5 2.5"/></svg>';
+btn.addEventListener('click', () => {
+  const on = document.body.classList.toggle('corrige');
+  btn.innerHTML = on ? OEIL_B : OEIL;
+  btn.title = on ? 'Masquer le corrigé' : 'Afficher le corrigé';
+  btn.setAttribute('aria-label', btn.title);
+});
+
+(function(){
+  const racine = document.documentElement;
+  const barre = document.querySelector('.barre');
+  const taux = document.getElementById('zoom-taux');
+  let z = 1;
+  function applique(v){
+    z = Math.max(0.15, Math.min(v, 4));
+    racine.style.setProperty('--z', z);
+    if (taux) taux.textContent = Math.round(z * 100) + ' %';
+  }
+  function pageEntiere(){
+    racine.style.setProperty('--z', 1);
+    const p = document.querySelector('.page');
+    if (!p) return;
+    const r = p.getBoundingClientRect();
+    const hBarre = barre ? barre.getBoundingClientRect().height : 0;
+    applique(Math.min((window.innerWidth - 36) / r.width,
+                      (window.innerHeight - hBarre - 36) / r.height));
+  }
+  document.getElementById('zoom-moins').addEventListener('click', () => applique(z / 1.15));
+  document.getElementById('zoom-plus').addEventListener('click', () => applique(z * 1.15));
+  document.getElementById('zoom-page').addEventListener('click', pageEntiere);
+  let t; window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(pageEntiere, 150); });
+  pageEntiere();
+
+  const bpe = document.getElementById('plein-ecran');
+  if (bpe) {
+    bpe.addEventListener('click', () => {
+      if (document.fullscreenElement) document.exitFullscreen();
+      else document.documentElement.requestFullscreen();
+    });
+    document.addEventListener('fullscreenchange', () => {
+      const plein = !!document.fullscreenElement;
+      bpe.innerHTML = plein
+        ? '<svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2v4H2"/><path d="M14 6h-4V2"/><path d="M10 14v-4h4"/><path d="M2 10h4v4"/></svg>'
+        : '<svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6V2h4"/><path d="M10 2h4v4"/><path d="M14 10v4h-4"/><path d="M6 14H2v-4"/></svg>';
+      bpe.title = plein ? 'Quitter le plein écran' : 'Plein écran';
+      setTimeout(pageEntiere, 120);
+    });
+  }
+})();
+</script>
+</body>
+</html>
