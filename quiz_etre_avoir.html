@@ -2450,7 +2450,7 @@ var qrcode = function() {
 </script>
 <script>
 'use strict';
-const VERSION = 'v6';   // +1 à chaque livraison (pastille affichée en bas à droite)
+const VERSION = 'v7';   // +1 à chaque livraison (pastille affichée en bas à droite)
 /* ============================================================
    CARTES — modifiables. 'e' = je suis, 'a' = j'ai
    ============================================================ */
@@ -2711,7 +2711,6 @@ function hRender() {
       <div>
         <h1>Je <span class="v-e">suis</span> ou j’<span class="v-a">ai</span> ?</h1>
         <p class="sub">À ton tour : dis la phrase à voix haute, puis choisis sur ton téléphone.</p>
-        <p class="src">D’après le jeu de cartes « Je suis ou j’ai ? » de <a href="https://www.mondolinguo.com" target="_blank" rel="noopener">MondoLinguo.com</a></p>
         ${location.protocol === 'file:' ? '<p class="err">Page ouverte depuis l’ordinateur : les téléphones ne pourront pas se connecter. Ouvre-la depuis GitHub Pages.</p>' : ''}
         <div class="opt"><span>Nombre de cartes</span>${seg('total', g.total, [[10, '10'], [20, '20'], [30, '30'], [40, '40']])}</div>
         <div class="opt"><span>Carte suivante</span>${seg('auto', g.auto ? 1 : 0, [[1, 'Automatique'], [0, 'Au clic']])}</div>
@@ -2720,7 +2719,7 @@ function hRender() {
         <button class="btn go" data-a="start"${n ? '' : ' disabled'}>Commencer</button>
       </div>
     </div>
-    <p class="credit">Cartes : Céline Masson et Tiphanie Montus, MondoLinguo.com · ${VERSION}</p></div>`;
+    <p class="credit">D’après le jeu de cartes « Je suis ou j’ai ? » de <a href="https://www.mondolinguo.com" target="_blank" rel="noopener">MondoLinguo.com</a></p></div>`;
   } else if (g.ph === 'end') {
     const sorted = g.players.slice().sort((a, b) => b.score - a.score);
     let rank = 0, prev = null;
@@ -2922,7 +2921,7 @@ function iClick(ev) {
 function iRender() {
   let top = '<div class="ph-top"><b>Je suis ou j’ai ?</b><span></span></div>', mid, btns = '';
   if (I.ph === 'menu') {
-    mid = `<h1>Je joue seul</h1><p class="muted">Dis la phrase, puis choisis « Je suis » ou « J’ai ».</p>
+    mid = `<h1>Je joue seul</h1><p class="muted">Choisis « Je suis » ou « J’ai ».</p>
       <p class="muted" style="margin-top:14px">Nombre de questions</p>${seg('total', I.total, [[10, '10'], [20, '20'], [30, '30'], [40, '40']]).replace(/data-a=/g, 'data-i=')}
       <p class="src">D’après un jeu de MondoLinguo.com</p>`;
     btns = '<div class="ph-btns"><button class="btn" data-i="start">Commencer</button><button class="btn ghost alt" data-i="class">Animer une partie en classe (code QR)</button></div>';
@@ -2937,7 +2936,7 @@ function iRender() {
     const [text, verb] = CARDS[I.q[0]], k = I.q.length;
     top = `<div class="ph-top"><b>${I.round ? 'Mes erreurs, essai ' + I.round + ' sur ' + SOLO_MAX : 'Question ' + (I.n + 1) + ' sur ' + I.len}</b><span>${I.round ? k + ' restante' + (k > 1 ? 's' : '') : I.ok + ' juste' + (I.ok > 1 ? 's' : '')}</span></div>`;
     if (I.ph === 'q') {
-      mid = `<p class="muted">Dis la phrase, puis choisis.</p><div class="ph-card"><small>Je suis ou j’ai ?</small><strong>${esc(text)}</strong></div>`;
+      mid = `<div class="ph-card"><small>Je suis ou j’ai ?</small><strong>${esc(text)}</strong></div>`;
       btns = '<div class="ph-btns"><button class="big e" data-i="e">Je suis</button><button class="big a" data-i="a">J’ai</button></div>';
     } else {
       const ok = I.res.ok;
