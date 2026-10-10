@@ -8,7 +8,7 @@ générant des exercices de mathématiques pour adultes (programme PAI, Suisse).
 Product owner : Aurelio (Onex/Genève). Répondre en FRANÇAIS.
 
 ───────────────────────────────────────────────────────────────────────────────
-0. OÙ ON EN EST (v505, 30.09.2026) — à lire en premier
+0. OÙ ON EN EST (v508, 10.10.2026) — à lire en premier
 ───────────────────────────────────────────────────────────────────────────────
 L'application est en ligne : https://aureliohub.github.io/eva_maths.html
 Les fichiers de série et de test (.json) sont déposés à côté d'elle, et s'ouvrent
@@ -87,9 +87,10 @@ CE QU'IL A FALLU APPRENDRE POUR Y ARRIVER — à relire avant de toucher au scri
   quelqu'un qui ouvre le code source.
 
 PISTES ÉVOQUÉES, NON ENGAGÉES
-· Les énoncés de métier ne servent qu'au sous-domaine « problème concret ».
-  Les autres sous-domaines qui nomment quelqu'un (proportionnalité, mise en
-  équation) tirent toujours un prénom sans tenir compte du métier.
+· Les énoncés de métier servent au sous-domaine « problème concret » et, depuis
+  la v507, à UN modèle du niveau « Fractions » (paiement échelonné). Les autres
+  énoncés qui nomment quelqu'un (proportionnalité, mise en équation) tirent
+  toujours un prénom sans tenir compte du métier.
 · La planche du PDF de DOMAINE (Espace) garde sa composition fixe : la rubrique
   « Angles » n'y figure pas, seul le PDF du sous-domaine la propose.
 · Liste de classe : elle vit dans le navigateur de l'enseignant. Elle s'exporte
@@ -542,6 +543,72 @@ PDF de domaine :
 ───────────────────────────────────────────────────────────────────────────────
 Cette section décrit l'ÉTAT, non l'historique. Les numéros de version ne sont
 cités que lorsqu'ils aident à retrouver un choix dans le fichier.
+
+v508 — VOCABULAIRE RÉTABLI ET ÉNONCÉS DE FRACTIONS CORRIGÉS (accord d'Aurelio).
+ · MOTS COMPRÉHENSIBLES SANS DICTIONNAIRE (règle posée en septembre, perdue
+   parce que le fichier en ligne venait d'une autre lignée de versions) :
+   chasubles → casquettes (ARTICLES_CLUB, même fourchette de prix) ;
+   bondes → pommeaux de douche (3 à 8 pièces, 20 à 45 CHF) ; vannes d'arrêt →
+   miroirs (3 à 6 pièces, 35 à 60 CHF) dans ARTICLES_SANITAIRE. Les prix des
+   deux articles sanitaires sont de Claude, À FAIRE RELIRE par Aurelio.
+   « siphons » est resté. Toute entrée de catalogue doit suivre cette règle.
+ · « Elle en a dépensé les 1/4 » (fractions, modèle 2) : plus de « les »
+   devant une fraction unitaire ; « les 2/5 » reste.
+ · FRACTIONS TOUJOURS RÉDUITES DANS L'ÉNONCÉ : « 2/4 des élèves » pouvait
+   sortir aux modèles 5 (fraction d'une fraction), 6 (fraction restante) et
+   1 (successives, « 2/4 de ce qui restait »). Les trois tirages rejettent
+   désormais une fraction non réduite. Corrigé du modèle 5 : plus de
+   « = 4/25 = 4/25 » quand il n'y a rien à simplifier.
+ Banc au vrai navigateur : 16 000 questions de fractions, aucune fraction non
+ réduite, aucun « les 1/ », calculs des modèles 1, 5, 6 refaits ; 3 000 tirages
+ du palier 3b sanitaire (prix et quantité dans la fourchette de l'article,
+ secours 1 sur 3 000) et 3 000 du patron neutre club ; aucun ancien mot.
+
+v507 — PROP-CONCRET, NIVEAU « FRACTIONS » : PALIERS a) → d) ET DEUX MODÈLES.
+ Demande d'Aurelio (10.10) : les 4 questions étaient tirées sans ordre de
+ difficulté parmi 11 modèles très inégaux.
+ · PALIERS : a) simple, b) et c) moyens, d) difficile — l'équilibre 1, 2, 2, 3
+   de « problème concret ». `FRACTIONS_PALIERS` (juste avant genPropConcret)
+   s'aligne sur l'INDEX du tableau `patrons` ; un patron ajouté sans son palier
+   retombe en 2. Classement (proposé par Claude, accepté tel quel — à revoir
+   avec Aurelio s'il le conteste) :
+     1 : fraction d'un tout (0), fraction d'un nombre (4), remplissage (9),
+         complément (10)
+     2 : deux dépenses → reste (2), fraction d'une fraction (5), fraction
+         restante (6), diminution (7), comparaison (8), paiement échelonné (11)
+     3 : fractions successives (1), partage à trois (3), reste connu → total (12)
+ · MODÈLE 11, PAIEMENT ÉCHELONNÉ (idée d'Aurelio) : « Osman commande des pneus
+   pour le garage. Le garage paie 1/4 du montant à la commande, 2/5 à la
+   livraison et le reste à 30 jours. Quelle fraction du montant reste-t-il à
+   payer à 30 jours ? » Le CONTEXTE suit le métier du prénom tiré
+   (`COMMANDES_METIER`, onze métiers, mots simples) ; un prénom sans métier
+   commande des meubles pour son appartement et paie lui-même. La question
+   porte `prenomFige` quand le métier a choisi le contexte. Acompte < 1/2,
+   dénominateurs différents (vrai dénominateur commun, ≤ 30), reste ≠ 1/2.
+ · MODÈLE 12, RESTE CONNU → TOTAL : deux fractions retirées, le reste donné
+   dans une unité, on remonte au tout (trajet en km, récolte en kg, budget en
+   CHF). Totaux de 120 à 900 : PAS de millier, donc pas d'apostrophe à saisir.
+ · MODÈLES TROP PROCHES, un seul par exercice : 0 et 4 (déjà le cas), 6 et 11
+   (même calcul, fraction restante).
+ · Les questions de fractions portent désormais `_modele` (« fraction-<index> »)
+   : l'anti-répétition de l'atelier les distingue.
+ · CONSÉQUENCE À CONNAÎTRE : le test raccourci garde a) et c) de cet exercice
+   (COMPO_TEST_GLOBAL) — soit désormais un palier 1 et un palier 2, jamais le
+   d). Non modifié, signalé à Aurelio.
+ · AUCUNE chaîne PDF touchée. Banc : 4 000 exercices au vrai navigateur, zéro
+   défaut (paliers 1,2,2,3, pas de doublon ni de paire interdite, calculs des
+   modèles 11 et 12 refaits, contexte = métier, pas de prénom répété) ; écran
+   regardé, saisie « 7/20 » et « 600 » validées ; PDF du sous-domaine produit
+   (énoncé + corrigé), les énoncés des deux modèles tiennent sur deux lignes.
+ · Les défauts anciens vus au passage et le vocabulaire perdu sont traités en
+   v508.
+
+v506 — PRÉNOMS (04.10, reportée ici à la main : le fichier reçu était la v505).
+ Osman - mécanicien ajouté ; Mafatoumata devient employée de commerce, Natalia
+ ASSC. « logisticienne » et « assistante en pharmacie » restent dans METIERS et
+ ENONCES_METIER mais ne sortent plus avec la liste d'origine. APP_VERSION,
+ restée à 498, est remise à jour. Une liste de prénoms ENREGISTRÉE dans le
+ navigateur de l'enseignant prime sur la liste d'origine jusqu'à « Rétablir ».
 
 v505 — ATELIER : SÉRIE DE TRACÉS SEULS. Une composition faite uniquement
  d'instruments allait au PDF de sous-domaine (downloadPdf + exercicesImposes),
@@ -5686,9 +5753,9 @@ const fmtSigned = (n) => n >= 0 ? `(+${n})` : `(${n})`;
 const PRENOMS_M_SOURCE = ['Daniel - employé de commerce', 'Hussein - mécanicien',
   'Medhanie - électricien', 'Warryh - gestionnaire du commerce de détail',
   'Belal - installateur sanitaire', 'Maksymilian - employé de commerce',
-  'Shkelkim - agent de propreté'];
-const PRENOMS_F_SOURCE = ['Seraya - assistante dentaire', 'Mafatoumata - logisticienne',
-  'Nicky - ASE', 'Natalia - assistante en pharmacie', 'Maria - ASSC', 'Ayse - ASE'];
+  'Shkelkim - agent de propreté', 'Osman - mécanicien'];
+const PRENOMS_F_SOURCE = ['Seraya - assistante dentaire', 'Mafatoumata - employée de commerce',
+  'Nicky - ASE', 'Natalia - ASSC', 'Maria - ASSC', 'Ayse - ASE'];
 
 // Les onze métiers du groupe. `formes` = les autres façons de les écrire ;
 // la forme masculine et la forme féminine sont reconnues d'office.
@@ -6280,7 +6347,7 @@ const ARTICLES_CLUB = [
   { plur: 'sifflets',       maj: 'Sifflets',       sing: 'un sifflet',        q: [6, 12], prix: [8, 10, 12, 15] },
   { plur: 'gourdes',        maj: 'Gourdes',        sing: 'une gourde',        q: [5, 12], prix: [12, 15, 18, 20, 25] },
   { plur: 'sacs de sport',  maj: 'Sacs de sport',  sing: 'un sac de sport',   q: [4, 10], prix: [25, 30, 35, 40, 45] },
-  { plur: 'chasubles',      maj: 'Chasubles',      sing: 'une chasuble',      q: [6, 12], prix: [12, 15, 18, 20, 25] }
+  { plur: 'casquettes',     maj: 'Casquettes',     sing: 'une casquette',     q: [6, 12], prix: [12, 15, 18, 20, 25] }
 ];
 // ATTENTION : aucun article du catalogue ne doit porter le nom d'une des deux
 // lignes CONNUES de l'énoncé — « 7 ballons à 25 CHF et 9 ballons » est sorti
@@ -6298,8 +6365,8 @@ const ARTICLES_ELECTRICIEN = [
 ];
 const ARTICLES_SANITAIRE = [
   { plur: 'siphons',        maj: 'Siphons',        sing: 'un siphon',         q: [4, 10], prix: [20, 25, 30, 35, 40] },
-  { plur: 'vannes d\'arrêt', maj: 'Vannes',       sing: 'une vanne d\'arrêt', q: [4, 10], prix: [15, 18, 20, 25, 30] },
-  { plur: 'bondes',         maj: 'Bondes',         sing: 'une bonde',         q: [5, 10], prix: [12, 15, 18, 20, 25] }
+  { plur: 'miroirs',        maj: 'Miroirs',        sing: 'un miroir',         q: [3, 6],  prix: [35, 40, 45, 50, 60] },
+  { plur: 'pommeaux de douche', maj: 'Pommeaux de douche', sing: 'un pommeau de douche', q: [3, 8], prix: [20, 25, 30, 35, 40, 45] }
 ];
 const ARTICLES_DETAIL = [
   { plur: 'paquets de biscuits', maj: 'Biscuits',  sing: 'un paquet de biscuits', q: [10, 20], prix: [5, 6, 7, 8, 10, 12] },
@@ -10114,6 +10181,31 @@ function uniteDeLaReponse(rep) {
   return '';
 }
 
+// Niveau « Fractions » : palier de chaque modèle, dans l'ordre du tableau
+// `patrons` de genPropConcretFractions (1 = simple, 2 = moyen, 3 = difficile).
+//   0 fraction d'un tout · 1 fractions successives · 2 deux dépenses → reste
+//   3 partage à trois · 4 fraction d'un nombre · 5 fraction d'une fraction
+//   6 fraction restante · 7 diminution · 8 comparaison · 9 remplissage
+//   10 complément · 11 paiement échelonné · 12 reste connu → total
+const FRACTIONS_PALIERS = [1, 3, 2, 3, 1, 2, 2, 2, 2, 1, 1, 2, 3];
+
+// Paiement échelonné (modèle 11) : ce que l'apprenant commande, pour qui, et
+// qui paie. Mots simples, compréhensibles sans dictionnaire. Le métier n'est
+// pas nommé : c'est le contexte qui le porte.
+const COMMANDES_METIER = {
+  'employe-commerce':    { quoi: 'des fournitures de bureau',   pour: 'pour son entreprise',        payeur: "L'entreprise" },
+  'mecanicien':          { quoi: 'des pneus',                   pour: 'pour le garage',             payeur: 'Le garage' },
+  'electricien':         { quoi: 'du matériel électrique',      pour: 'pour un chantier',           payeur: "L'entreprise" },
+  'gestionnaire-detail': { quoi: 'des marchandises',            pour: 'pour le magasin',            payeur: 'Le magasin' },
+  'sanitaire':           { quoi: 'des lavabos et des robinets', pour: 'pour un chantier',           payeur: "L'entreprise" },
+  'dentaire':            { quoi: 'du matériel',                 pour: 'pour le cabinet dentaire',   payeur: 'Le cabinet' },
+  'pharmacie':           { quoi: 'des médicaments',             pour: 'pour la pharmacie',          payeur: 'La pharmacie' },
+  'logistique':          { quoi: "des cartons d'emballage",     pour: "pour l'entrepôt",            payeur: "L'entreprise" },
+  'proprete':            { quoi: 'des produits de nettoyage',   pour: 'pour son entreprise',        payeur: "L'entreprise" },
+  'ase':                 { quoi: 'des jeux',                    pour: 'pour la crèche',             payeur: 'La crèche' },
+  'assc':                { quoi: 'du matériel de soins',        pour: "pour l'hôpital",             payeur: "L'hôpital" }
+};
+
 function genPropConcret() {
   // 3 niveaux : 1 = proportionnalité, 2 = fractions, 3 = rabais.
   let ex;
@@ -10136,12 +10228,10 @@ function genPropConcret() {
 }
 
 // ====== NIVEAU 2 : Problèmes de fractions ======
-// 5 types de problèmes inspirés des modèles Biceps, 4 tirés au hasard :
-//   1. Fraction d'un tout connue en valeur → trouver le tout
-//   2. Fractions successives (vendu a/b, puis c/d du reste) → total
-//   3. Plusieurs fractions dépensées → reste
-//   4. Partage : une part connue en valeur + fraction → somme + autres parts
-//   5. Fraction d'un nombre = valeur → trouver le nombre
+// 13 modèles (les premiers inspirés des modèles Biceps), 4 questions par
+// exercice, rangées du plus simple a) au plus difficile d) — voir
+// FRACTIONS_PALIERS plus bas (v507). Avant la v507 les 4 questions étaient
+// tirées sans ordre de difficulté.
 function genPropConcretFractions() {
   const labels = ['a)', 'b)', 'c)', 'd)'];
   const fmt = (n) => {
@@ -10199,9 +10289,9 @@ function genPropConcretFractions() {
     do {
       d = choice([2, 3, 4, 5]);
       c = rand(1, d - 1);
-    } while (Math.abs(c / d - 1 / b1) < 1e-9 && safetyF-- > 0);
+    } while ((Math.abs(c / d - 1 / b1) < 1e-9 || pgcd(c, d) > 1) && safetyF-- > 0);
     // Filet : si on n'a pas trouvé, force une valeur sûre distincte
-    if (Math.abs(c / d - 1 / b1) < 1e-9) {
+    if (Math.abs(c / d - 1 / b1) < 1e-9 || pgcd(c, d) > 1) {
       if (b1 === 2) { c = 1; d = 3; } else { c = 1; d = 2; }
     }
     // total multiple de b1 et tel que le reste soit multiple de d
@@ -10253,8 +10343,10 @@ function genPropConcretFractions() {
     const reste = M - dep1 - dep2;
     const objets = [['un CD', 'un livre'], ['un jeu', 'un cadeau'], ['des fleurs', 'un cahier']];
     const [o1, o2] = choice(objets);
+    // « les 2/5 » mais « 1/4 » : pas d'article pluriel devant une fraction unitaire.
+    const les = a > 1 ? 'les ' : '';
     return {
-      text: `${prenom} avait ${fmt(M)} CHF. ${pronom} en a dépensé les ${a}/${b} pour acheter ${o1} et ${c}/${d} pour acheter ${o2}. Combien d'argent lui reste-t-il ?`,
+      text: `${prenom} avait ${fmt(M)} CHF. ${pronom} en a dépensé ${les}${a}/${b} pour acheter ${o1} et ${c}/${d} pour acheter ${o2}. Combien d'argent lui reste-t-il ?`,
       answer: `${fmt(reste)} CHF`,
       solutionDetail: `${a}/${b} de ${fmt(M)} = ${fmt(dep1)} CHF ; ${c}/${d} de ${fmt(M)} = ${fmt(dep2)} CHF. Reste : ${fmt(M)} − ${fmt(dep1)} − ${fmt(dep2)} = ${fmt(reste)} CHF.`
     };
@@ -10341,12 +10433,14 @@ function genPropConcretFractions() {
       d = rand(2, 6); c = rand(1, d - 1);
       num = a * c; den = b * d; g = pgcd(num, den);
       safety--;
-    } while (safety > 0 && ((a === 1 && c === 1) || (den / g) <= 2 || (a === c && b === d)));
+    } while (safety > 0 && ((a === 1 && c === 1) || (den / g) <= 2 || (a === c && b === d)
+      || pgcd(a, b) > 1 || pgcd(c, d) > 1));   // jamais « 2/4 des élèves » dans l'énoncé
+    if (pgcd(a, b) > 1 || pgcd(c, d) > 1 || (den / g) <= 2) { a = 2; b = 3; c = 3; d = 5; num = 6; den = 15; g = 3; }
     const rn = num / g, rd = den / g;
     return {
       text: `${ctx.lieu}, ${a}/${b} des ${ctx.groupe} sont ${ctx.sous}. Parmi ces ${ctx.sous}, ${c}/${d} ${ctx.verbe}. Quelle fraction de l'ensemble des ${ctx.groupe} cela représente-t-il ?`,
       answer: `${rn}/${rd}`,
-      solutionDetail: `${a}/${b} × ${c}/${d} = ${num}/${den} = ${rn}/${rd}.`
+      solutionDetail: `${a}/${b} × ${c}/${d} = ${num}/${den}${g > 1 ? ` = ${rn}/${rd}` : ''}.`
     };
   }
 
@@ -10366,7 +10460,9 @@ function genPropConcretFractions() {
       restN = lcm - sumN; restD = lcm;
       g = restN > 0 ? pgcd(restN, restD) : 1;
       safety--;
-    } while (safety > 0 && (b === d || lcm <= Math.max(b, d) || restN <= 0 || (restD / g) <= 2));
+    } while (safety > 0 && (b === d || lcm <= Math.max(b, d) || restN <= 0 || (restD / g) <= 2
+      || pgcd(a, b) > 1 || pgcd(c, d) > 1));   // fractions écrites réduites
+    if (pgcd(a, b) > 1 || pgcd(c, d) > 1 || restN <= 0) { a = 1; b = 3; c = 2; d = 5; lcm = 15; sumN = 11; restN = 4; restD = 15; g = 1; }
     return {
       text: `${ctx.sujet} ${ctx.act} ${a}/${b} ${ctx.quoi} ${ctx.t1} et ${c}/${d} ${ctx.quoi} ${ctx.t2}. Quelle fraction ${ctx.quoi} reste-t-il ?`,
       answer: `${restN / g}/${restD / g}`,
@@ -10484,6 +10580,91 @@ function genPropConcretFractions() {
     };
   }
 
+  // --- Type 12 : paiement échelonné → fraction restante (v507) ---
+  // Le contexte suit le DOMAINE DE FORMATION du prénom tiré (des pneus pour le
+  // mécanicien, des jeux pour l'ASE) ; un prénom sans métier commande des
+  // meubles pour lui-même. Le métier n'est pas nommé, comme dans « problème
+  // concret ». Même calcul que le type 7 (fraction restante) : les deux ne
+  // sortent jamais dans le même exercice.
+  function patPaiementEchelonne() {
+    const { prenom, genre, metier } = pickPrenom();
+    const pronom = genre === 'M' ? 'Il' : 'Elle';
+    const ctx = COMMANDES_METIER[metier]
+      || { quoi: 'des meubles', pour: 'pour son appartement', payeur: pronom };
+    let a, b, c, d, lcm, sumN, restN, g, safety = 200;
+    do {
+      b = choice([3, 4, 5, 6, 10]); a = rand(1, b - 1);
+      d = choice([2, 3, 4, 5, 6]);  c = rand(1, d - 1);
+      lcm = b * d / pgcd(b, d);
+      sumN = a * (lcm / b) + c * (lcm / d);
+      restN = lcm - sumN;
+      g = restN > 0 ? pgcd(restN, lcm) : 1;
+      safety--;
+    } while (safety > 0 && (
+      pgcd(a, b) > 1 || pgcd(c, d) > 1 ||      // fractions écrites réduites
+      lcm <= Math.max(b, d) || lcm > 30 ||     // un vrai dénominateur commun, sans calcul lourd
+      a / b >= 0.5 ||                          // l'acompte reste inférieur à la moitié
+      restN <= 0 || (lcm / g) <= 2             // il reste quelque chose, et pas « la moitié »
+    ));
+    if (safety <= 0) { a = 1; b = 4; c = 2; d = 5; lcm = 20; sumN = 13; restN = 7; g = 1; }
+    return {
+      text: `${prenom} commande ${ctx.quoi} ${ctx.pour}. ${ctx.payeur} paie ${a}/${b} du montant à la commande, ${c}/${d} à la livraison et le reste à 30 jours. Quelle fraction du montant reste-t-il à payer à 30 jours ?`,
+      answer: `${restN / g}/${lcm / g}`,
+      solutionDetail: `Déjà payé : ${a}/${b} + ${c}/${d} = ${a * (lcm / b)}/${lcm} + ${c * (lcm / d)}/${lcm} = ${sumN}/${lcm}. Reste : ${lcm}/${lcm} − ${sumN}/${lcm} = ${restN}/${lcm}${g > 1 ? ` = ${restN / g}/${lcm / g}` : ''}.`,
+      prenomFige: !!COMMANDES_METIER[metier]
+    };
+  }
+
+  // --- Type 13 : deux fractions retirées, le reste connu en valeur → le tout (v507) ---
+  // Soustraire deux fractions de dénominateurs différents, PUIS remonter au
+  // tout dans une unité (km, kg, CHF). Quatre étapes : c'est un palier 3.
+  function patResteVersTotal() {
+    const { prenom, genre } = pickPrenom();
+    const pronom = genre === 'M' ? 'Il' : 'Elle';
+    const ctx = choice([
+      { unite: 'km', pas: [10, 20, 30, 40, 50], max: 900,
+        debut: (f1, f2) => `${prenom} fait un long trajet en voiture. ${pronom} parcourt ${f1} du trajet le matin et ${f2} l'après-midi.`,
+        reste: (v) => `Il lui reste ${v} km à parcourir.`,
+        q: 'Quelle est la longueur totale du trajet ?' },
+      { unite: 'kg', pas: [5, 10, 15, 20, 25], max: 600,
+        debut: (f1, f2) => `Un agriculteur vend ${f1} de sa récolte de pommes au marché et ${f2} à un magasin.`,
+        reste: (v) => `Il lui reste ${v} kg de pommes.`,
+        q: 'Combien de kg de pommes a-t-il récoltés ?' },
+      { unite: 'CHF', pas: [10, 20, 30, 40, 50], max: 900,
+        debut: (f1, f2) => `Un club de sport dépense ${f1} de son budget pour le matériel et ${f2} pour une sortie.`,
+        reste: (v) => `Il lui reste ${v} CHF.`,
+        q: 'Quel était le budget du club au départ ?' }
+    ]);
+    let a, b, c, d, lcm, sumN, restN, g, rn, rd, w, V, total, safety = 300;
+    do {
+      b = rand(2, 6); a = rand(1, b - 1);
+      d = rand(2, 6); c = rand(1, d - 1);
+      lcm = b * d / pgcd(b, d);
+      sumN = a * (lcm / b) + c * (lcm / d);
+      restN = lcm - sumN;
+      g = restN > 0 ? pgcd(restN, lcm) : 1;
+      rn = restN / g; rd = lcm / g;
+      w = choice(ctx.pas);
+      V = rn * w; total = rd * w;
+      safety--;
+    } while (safety > 0 && (
+      pgcd(a, b) > 1 || pgcd(c, d) > 1 ||
+      lcm <= Math.max(b, d) || lcm > 30 ||
+      restN <= 0 || rd <= 2 ||
+      total > ctx.max || total < 120 || V < 20
+    ));
+    if (safety <= 0) {
+      a = 1; b = 3; c = 2; d = 5; lcm = 15; sumN = 11; restN = 4; g = 1; rn = 4; rd = 15;
+      w = ctx.pas[1]; V = rn * w; total = rd * w;
+    }
+    const u = ctx.unite;
+    return {
+      text: `${ctx.debut(`${a}/${b}`, `${c}/${d}`)} ${ctx.reste(V)} ${ctx.q}`,
+      answer: `${total} ${u}`,
+      solutionDetail: `Parts retirées : ${a}/${b} + ${c}/${d} = ${a * (lcm / b)}/${lcm} + ${c * (lcm / d)}/${lcm} = ${sumN}/${lcm}. Reste : ${lcm}/${lcm} − ${sumN}/${lcm} = ${restN}/${lcm}${g > 1 ? ` = ${rn}/${rd}` : ''}. ${rn}/${rd} → ${V} ${u}${rn > 1 ? `, donc 1/${rd} → ${V / rn} ${u}` : ''}. Le tout (${rd}/${rd}) : ${V / rn} × ${rd} = ${total} ${u}.`
+    };
+  }
+
   const patrons = [
     patFractionTout,         // 0
     patFractionsSuccessives, // 1
@@ -10495,21 +10676,26 @@ function genPropConcretFractions() {
     patDiminutionFraction,   // 7
     patCompareFractions,     // 8
     patRemplissage,          // 9
-    patComplementFraction    // 10
+    patComplementFraction,   // 10
+    patPaiementEchelonne,    // 11
+    patResteVersTotal        // 12
   ];
-  // patFractionTout (0) et patFractionNombre (4) sont très similaires
-  // (fraction × tout = valeur → trouver le tout). On n'en garde qu'UN par
-  // série : on choisit lequel au hasard, on exclut l'autre du tirage.
-  const SIMILAIRES = [0, 4];
-  const exclu = choice(SIMILAIRES);  // celui qu'on retire
-  const dispo = patrons.map((_, i) => i).filter(i => i !== exclu);
-  // Tirer 4 patrons distincts parmi les 4 restants (donc tous les 4 dispo)
+  // PALIERS (v507) : a) simple, b) et c) moyens, d) difficile — le même
+  // équilibre 1, 2, 2, 3 que « problème concret ». FRACTIONS_PALIERS s'aligne
+  // sur l'INDEX des patrons : un patron ajouté sans son palier retombe en 2.
+  const byTier = { 1: [], 2: [], 3: [] };
+  patrons.forEach((_, i) => { (byTier[FRACTIONS_PALIERS[i] || 2] || byTier[2]).push(i); });
+  // Modèles trop proches pour sortir ensemble : un seul par exercice.
+  //   0 et 4 : fraction × tout = valeur → trouver le tout
+  //   6 et 11 : deux fractions retirées → fraction restante
+  const SIMILAIRES = [[0, 4], [6, 11]];
   const indices = [];
-  const pool = [...dispo];
-  while (indices.length < 4 && pool.length > 0) {
-    const k = Math.floor(Math.random() * pool.length);
-    indices.push(pool.splice(k, 1)[0]);
-  }
+  [1, 2, 2, 3].forEach(t => {
+    const interdits = new Set(indices);
+    SIMILAIRES.forEach(grp => { if (grp.some(i => indices.includes(i))) grp.forEach(i => interdits.add(i)); });
+    const dispo = byTier[t].filter(i => !interdits.has(i));
+    indices.push(choice(dispo.length ? dispo : byTier[t]));
+  });
   const questions = indices.map((idx, i) => {
     const q = patrons[idx]();
     // Certains modèles proposent un choix (« Qui a lu le plus ? ») : leurs
@@ -10520,6 +10706,11 @@ function genPropConcretFractions() {
       text: q.text,
       answer: q.answer,
       solutionDetail: q.solutionDetail,
+      // Étiquette du modèle : l'anti-répétition de l'atelier s'en sert.
+      _modele: `fraction-${idx}`,
+      // Un prénom qui a choisi le contexte (métier) ne doit pas être réécrit
+      // par unifierPrenoms.
+      ...(q.prenomFige ? { prenomFige: true } : {}),
       ...(q.answerType ? { answerType: q.answerType } : {}),
       ...(q.choices ? { choices: q.choices, correctIdx: q.correctIdx } : {})
     };
@@ -18470,7 +18661,7 @@ const ICONE_ENSEIGNANT = '<svg viewBox="0 0 24 24" width="21" height="21" fill="
 const ICONE_PDF = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJkAAACUCAMAAAC3HHtWAAAAk1BMVEXi5ef////xVkKwt73K0dji6OrxW0jyUDnG2eHlzczmgnrV2t/x8/T19vbxUTzwTDX4u7Xnvr28wsf+8/L84N3yYlD1jID1hXf1kYb4q6L4t7D96ujwQib1mY7++Pf70c3zcWHxSC/zeGn3pJv6ysX72dXy2Nbj1dXtgnfyaFf3sKj6w73UubvV4ebco6HkioPitLFLhhsqAAAElUlEQVR4nO3ca5eaOhQG4ICOtHUa7AAqIgiIbdVezv//dUcS7tlAXIYkq4v308xCzeNOCAEVZAzmKxKWj8Xi4324tVbQyGahsqdow7J3wbLFgp82LHsTLuOv2rBMIKyQ8dMGZQLHfyXjpsmX8dIUyDhpKmR8NCUyLpoa2eLjq64yjqqpko1XTZlstGrqZGM0hbIRmkrZME2pbJCmVjZEUywboKmW9dOUy3qnXPWyvqppIOupmg4yuGpayMCq6SGDqiZPthySAVWTJ1sPytiqyZMNdydbNYmykaJ1aRJlY0Xr0GTKnqNJlY3sn22aXBlaL4fr1qBJlpEsB/KmVDZEUywboKmW9dOUy3pp6mV9NA1kPTQdZDBNCxlI00MG0TSRATRdZCxNGxlD00fWpWkkQ/rKkL4ypK8M6StD+sqQvjKkrwzpK0P6ypC+MqSvDOkrQ/rKkL6ytbYyVF+tnWWiZW8T5jlZ4Lby/fN0+YFAGyxzw9hbyUoc/oBooOxi2tiUFmybEA2SRaklz5XH/slZs5PEgtGsPrNFg2R3W7YMf+OTbWbZLJtls2yWzbJWrORYJklaaxFs2WUsiznm1htpoIPySzK8PQVl3Oyc1gQrDX3/nMc/h/t0lbTb3vqthDGwkHlFhneO0YyTXYtHWdvWFsc9xA3b6m504nhs1V6R2QemhT192OrS3WJs4rLx7hvKcz8KlVkbpoWI9ovnMlsMN4ULSnJIJpA5gUNStL+qZRFN+RLBDvfJgpXY3qSy2zXOs/MpIbRLWeT/3OYJb0UFL7R9KnMOdXzRewCV+TYmsa8BKdqxku3oFsvGu4C+SFLL3MakwU4rgmTlv/u8ak5emEJWVcKOadmuuJYBmKlkmHpiQGZaMenrg61EZppknso9jMw8khnG9fSTWWletCjF9TizHnmMwsdInFqG6S4A9mY5keR7LpUFYRX4JFugLPHzf6OK0ZatTuWDmfnM2UO012XnI931zTMZ5KfGrNFsEGdkF0igmdaJgQ59XZaFZE1xO9GZlrx/QGYS2Q2UGdtJZO3c6+NmZ5yRg/wZ6k3j4rEvLlrm0h2NlRW7R17R4uh0qnIA1kCCZVF2pW2wMjvMH+BcG7MGmTbywBfmBMqcU2gWbQDzGSnZhfwpa6Y9nWn2qVm9d0ZGZxQyzOTJzkfaJc0+6cjwMSQ7bmRLrZkPbClkCSZoHG+iumQayIzs9lgV3g73YqYzsuJp6mWdXK7N1baMccYpy7xi2EmQ2ed8C3Q4Zs/qorA6CcFpLhu9WP7a1YNNFB3AdULqRjXKcU/bY+P5OHQiN51UhnG6gz/AsLxdndSz2s+249119IOPF68F9axHyZY6TzxNmGzCzLJZNstm2TSyTPpnwh7nZ8KBbBiOGVfPdw9u7DXeSWHHX785ZVGYJNV52ORJ8J/lmlP2WOv54b6VL5Pl73/LT0/Iunn/NF3yLzXyjjNAxvzkQWy0lQEwPWTAKOOXrScM5PoXvrM3y2bZLJtls+zfk3He90Do3TnFykTe0ZQr9Q8XRmTSi9a4zcyITOQNap+Djckk92fzbin/A8PQxx30Ei25AAAAAElFTkSuQmCC';
 
 // Numéro de version, affiché en pied de menu.
-const APP_VERSION = '498';
+const APP_VERSION = '508';
 
 const DOMAINS = [
   {
