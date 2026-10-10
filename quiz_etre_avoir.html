@@ -108,6 +108,12 @@ button{font:inherit;color:inherit;cursor:pointer;border:0;background:none;touch-
 .dots::after{content:"";animation:dots 1.4s steps(4) infinite}
 @keyframes dots{25%{content:"."}50%{content:".."}75%{content:"..."}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important}}
+.src{color:var(--muted);font-size:.8em;margin:-.9em 0 1.4em}
+.src a{color:inherit}
+.ph .src{margin:14px 0 0;font-size:.75em;font-weight:500}
+.ph .btn.next{min-height:16vh;min-height:16dvh;font-size:1.7em;border-radius:24px}
+.ph .hint{font-size:.85em;text-align:center}
+.ph .quit{color:var(--muted);font-size:.8em;text-decoration:underline;padding:6px}
 </style>
 </head>
 <body>
@@ -2434,7 +2440,7 @@ var qrcode = function() {
 </script>
 <script>
 'use strict';
-const VERSION = 'v1';
+const VERSION = 'v2';
 /* ============================================================
    CARTES — modifiables. 'e' = je suis, 'a' = j'ai
    ============================================================ */
@@ -2460,6 +2466,8 @@ const rnd = n => Math.floor(Math.random() * n);
 const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = rnd(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 const rid = n => { const A = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; let s = ''; for (let i = 0; i < n; i++) s += A[rnd(A.length)]; return s; };
 const cartes = n => n + (n > 1 ? ' cartes' : ' carte');
+const erreurs = n => n + (n > 1 ? ' erreurs' : ' erreur');
+const isProf = s => String(s || '').replace(/\s+/g, '').toLowerCase() === '?prof';
 const sentence = (text, v) => `<span class="v-${v}">${VERB[v]}</span> ${esc(text)}.`;
 const store = {
   get(k) { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } },
@@ -2498,7 +2506,7 @@ function openRelay(idx) {
    ÉCRAN DE CLASSE
    ============================================================ */
 const H = { g: null, code: '', ri: 0, room: null, c: null, ready: false, net: false, err: '', timer: 0 };
-const newGame = () => ({ ph: 'lobby', players: [], order: [], ti: -1, deck: [], card: -1, n: 0, total: 20, won: 0, res: null, auto: true });
+const newGame = () => ({ ph: 'lobby', players: [], order: [], ti: -1, deck: [], card: -1, n: 0, total: 20, won: 0, err: 0, res: null, auto: true });
 
 async function hostInit() {
   const saved = store.get('jsoj-host');
@@ -2535,7 +2543,8 @@ function pub() {
   const live = g.ph === 'turn' || g.ph === 'result';
   return {
     ph: g.ph, n: g.n, total: g.total, left: g.deck.length + (g.ph === 'turn' ? 1 : 0),
-    players: g.players.map(p => ({ id: p.id, name: p.name, score: p.score })),
+    players: g.players.map(p => ({ id: p.id, name: p.name, score: p.score, err: p.err || 0 })),
+    v: g.ph === 'turn' ? CARDS[g.card][1] : '',
     cur: live ? cur : null, curName: live && cp ? cp.name : '',
     card: live ? CARDS[g.card][0] : '', res: g.ph === 'result' ? g.res : null
   };
@@ -2549,10 +2558,16 @@ function commit() { store.set('jsoj-host', { code: H.code, ri: H.ri, g: H.g, t: 
 function hMsg(m) {
   const g = H.g;
   if (m.t === 'hello') return hPublish();
+  if (m.t === 'ctl') {
+    if (m.a === 'next' && g.ph === 'result' && m.n === g.n) next();
+    else if (m.a === 'start' && g.ph === 'lobby') start();
+    return;
+  }
   if (m.t === 'join' && m.pid) {
+    if (isProf(m.name)) return;
     if (!g.players.some(p => p.id === m.pid)) {
       const name = String(m.name || '').replace(/\s+/g, ' ').trim().slice(0, 14) || 'Sans nom';
-      g.players.push({ id: String(m.pid).slice(0, 16), name, score: 0 });
+      g.players.push({ id: String(m.pid).slice(0, 16), name, score: 0, err: 0 });
       if (g.ph === 'turn' || g.ph === 'result') g.order.push(m.pid);
       return commit();
     }
@@ -2569,9 +2584,9 @@ function start() {
   const half = g.total / 2;
   const pick = v => shuffle(CARDS.map((c, i) => i).filter(i => CARDS[i][1] === v)).slice(0, half);
   g.deck = shuffle(pick('e').concat(pick('a')));
-  g.players.forEach(p => p.score = 0);
+  g.players.forEach(p => { p.score = 0; p.err = 0; });
   g.order = shuffle(g.players.map(p => p.id));
-  g.ti = -1; g.n = 0; g.won = 0; g.res = null;
+  g.ti = -1; g.n = 0; g.won = 0; g.err = 0; g.res = null;
   next();
 }
 function next() {
@@ -2584,7 +2599,8 @@ function next() {
 function resolve(v) {
   const g = H.g; if (g.ph !== 'turn' || (v !== 'e' && v !== 'a')) return;
   const verb = CARDS[g.card][1], ok = v === verb;
-  if (ok) { g.players.find(p => p.id === g.order[g.ti]).score++; g.won++; } else putBack();
+  const cp = g.players.find(p => p.id === g.order[g.ti]);
+  if (ok) { cp.score++; g.won++; } else { cp.err = (cp.err || 0) + 1; g.err = (g.err || 0) + 1; putBack(); }
   g.res = { ok, verb }; g.ph = 'result';
   commit();
   if (g.auto) H.timer = setTimeout(next, ok ? DELAY_OK : DELAY_KO);
@@ -2615,7 +2631,7 @@ function hClick(ev) {
   else if (a === 'skip') { if (g.ph === 'turn') { putBack(); next(); } }
   else if (a === 'rm') { const p = g.players.find(p => p.id === v); if (p && confirm('Retirer ' + p.name + ' de la partie ?')) removePlayer(v); }
   else if (a === 'stop') { if (confirm('Terminer la partie maintenant ?')) { clearTimeout(H.timer); g.ph = 'end'; commit(); } }
-  else if (a === 'again') { g.ph = 'lobby'; g.players.forEach(p => p.score = 0); g.order = []; commit(); }
+  else if (a === 'again') { g.ph = 'lobby'; g.players.forEach(p => { p.score = 0; p.err = 0; }); g.order = []; commit(); }
   else if (a === 'reset') { if (confirm('Nouvelle partie avec un nouveau code QR ? Les participants devront scanner à nouveau.')) { store.del('jsoj-host'); location.reload(); } }
   else if (a === 'retry') tryRelay(0, 0), hRender();
   else if (a === 'full') { const d = document; d.fullscreenElement ? d.exitFullscreen() : d.documentElement.requestFullscreen && d.documentElement.requestFullscreen().catch(() => {}); }
@@ -2654,6 +2670,7 @@ function hRender() {
       <div>
         <h1>Je <span class="v-e">suis</span> ou j’<span class="v-a">ai</span> ?</h1>
         <p class="sub">À ton tour : dis la phrase à voix haute, puis choisis sur ton téléphone.</p>
+        <p class="src">D’après le jeu de cartes « Je suis ou j’ai ? » de <a href="https://www.mondolinguo.com" target="_blank" rel="noopener">MondoLinguo.com</a></p>
         ${location.protocol === 'file:' ? '<p class="err">Page ouverte depuis l’ordinateur : les téléphones ne pourront pas se connecter. Ouvre-la depuis GitHub Pages.</p>' : ''}
         <div class="opt"><span>Nombre de cartes</span>${seg('total', g.total, [[10, '10'], [20, '20'], [30, '30'], [40, '40']])}</div>
         <div class="opt"><span>Carte suivante</span>${seg('auto', g.auto ? 1 : 0, [[1, 'Automatique'], [0, 'Au clic']])}</div>
@@ -2662,13 +2679,14 @@ function hRender() {
         <button class="btn go" data-a="start"${n ? '' : ' disabled'}>Commencer</button>
       </div>
     </div>
-    <p class="credit">Cartes tirées du jeu « Je suis ou j’ai ? » de Céline Masson et Tiphanie Montus, <a href="https://www.mondolinguo.com" target="_blank" rel="noopener">MondoLinguo.com</a>. ${VERSION}</p></div>`;
+    <p class="credit">Cartes : Céline Masson et Tiphanie Montus, MondoLinguo.com · ${VERSION}</p></div>`;
   } else if (g.ph === 'end') {
     const sorted = g.players.slice().sort((a, b) => b.score - a.score);
     let rank = 0, prev = null;
-    const rows = sorted.map((p, i) => { if (p.score !== prev) { rank = i + 1; prev = p.score; } return `<li class="${rank === 1 && p.score > 0 ? 'first' : ''}"><span class="r">${rank}.</span><span class="n">${esc(p.name)}</span><span class="s">${cartes(p.score)}</span></li>`; }).join('');
+    const rows = sorted.map((p, i) => { if (p.score !== prev) { rank = i + 1; prev = p.score; } return `<li class="${rank === 1 && p.score > 0 ? 'first' : ''}"><span class="r">${rank}.</span><span class="n">${esc(p.name)}</span><span class="s">${cartes(p.score)} · ${erreurs(p.err || 0)}</span></li>`; }).join('');
+    const ge = g.err || 0, rep = g.won + ge;
     h = `<div class="host">${net}<header class="bar">${brand}<span class="sp"></span><button class="btn ghost small" data-a="full">Plein écran</button></header>
-    <div class="end"><h1>Bravo !</h1><p class="who">${cartes(g.won)} gagnée${g.won > 1 ? 's' : ''} sur ${g.total}</p><ol class="rank">${rows}</ol>
+    <div class="end"><h1>Bravo !</h1><p class="who">${rep} réponse${rep > 1 ? 's' : ''} : ${g.won} juste${g.won > 1 ? 's' : ''}, ${erreurs(ge)}</p><ol class="rank">${rows}</ol>
     <div class="opt"><button class="btn" data-a="again">Rejouer</button><button class="btn ghost" data-a="reset">Nouveau code</button></div></div></div>`;
   } else {
     const cp = g.players.find(p => p.id === g.order[g.ti]) || { name: '' };
@@ -2695,12 +2713,12 @@ function hRender() {
 /* ============================================================
    TÉLÉPHONE
    ============================================================ */
-const P = { code: '', pid: '', name: '', st: null, room: null, c: null, net: false, late: false, sentN: -1, sentV: '', joining: false };
+const P = { code: '', pid: '', name: '', st: null, room: null, c: null, net: false, late: false, sentN: -1, sentV: '', joining: false, prof: false, ctlN: -1, ctlA: '' };
 async function playerInit() {
   P.code = (qs.get('p') || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
   if (P.code.length !== 6 || !window.crypto || !crypto.subtle) { paint('<div class="ph"><div class="ph-mid"><h1>Code QR non valable</h1><p class="muted">Scanne à nouveau le code QR affiché sur l’écran.</p></div></div>'); return; }
   const saved = store.get('jsoj-p-' + P.code) || {};
-  P.pid = saved.pid || rid(10); P.name = saved.name || ''; P.joining = !!saved.name;
+  P.pid = saved.pid || rid(10); P.name = saved.name || ''; P.prof = !!saved.prof; P.joining = !!saved.name && !P.prof;
   P.room = await mkRoom(P.code);
   pRender();
   const c = P.c = openRelay(+qs.get('r') === 1 ? 1 : 0);
@@ -2714,11 +2732,13 @@ async function playerInit() {
   document.addEventListener('submit', ev => { ev.preventDefault(); pSubmit(); });
 }
 async function pSend(m) { if (P.c && P.c.connected) P.c.publish(P.room.topic + '/h', await seal(P.room.key, m)); }
+function pCtl() { pSend({ t: 'ctl', a: P.ctlA, n: P.ctlN }); }
 function pJoin() { pSend({ t: 'join', pid: P.pid, name: P.name }); }
 const pMe = () => P.st && P.st.players.find(p => p.id === P.pid);
 function pTick() {
   const st = P.st;
   if (!st) return pSend({ t: 'hello' });
+  if (P.prof) { if (P.ctlA === 'next' && st.ph === 'result' && st.n === P.ctlN) pCtl(); return; }
   if (P.joining && !pMe()) pJoin();
   if (st.ph === 'turn' && st.cur === P.pid && P.sentN === st.n) pSend({ t: 'ans', pid: P.pid, n: st.n, v: P.sentV });
 }
@@ -2727,25 +2747,56 @@ function wake() { try { if (navigator.wakeLock && !document.hidden) navigator.wa
 function pSubmit() {
   const i = document.getElementById('nm'); if (!i) return;
   const name = i.value.replace(/\s+/g, ' ').trim().slice(0, 14); if (!name) return i.focus();
+  if (isProf(name)) { P.prof = true; P.name = ''; store.set('jsoj-p-' + P.code, { pid: P.pid, prof: true }); wake(); return pRender(); }
   P.name = name; P.joining = true; store.set('jsoj-p-' + P.code, { pid: P.pid, name });
   wake(); pJoin(); pRender();
 }
 function pClick(ev) {
-  const b = ev.target.closest('[data-v]'); if (!b || !P.st) return;
+  const k = ev.target.closest('[data-k]');
+  if (k && P.prof) {
+    const a = k.dataset.k;
+    if (a === 'quit') { store.del('jsoj-p-' + P.code); return location.reload(); }
+    if (!P.st) return;
+    P.ctlA = a; P.ctlN = P.st.n; wake(); pCtl(); return pRender();
+  }
+  const b = ev.target.closest('[data-v]'); if (!b || !P.st || P.prof) return;
   const st = P.st; if (st.ph !== 'turn' || st.cur !== P.pid || P.sentN === st.n) return;
   P.sentN = st.n; P.sentV = b.dataset.v; wake();
   pSend({ t: 'ans', pid: P.pid, n: st.n, v: P.sentV }); pRender();
 }
+function profRender() {
+  const st = P.st; let mid, btn = '';
+  const top = `<div class="ph-top"><b>Prof</b><span>${st && st.ph !== 'lobby' ? 'Cartes restantes : ' + st.left : ''}</span></div>`;
+  if (!st) mid = P.late ? '<h1>Partie introuvable</h1><p class="muted">Vérifie que l’écran affiche le code QR, puis scanne-le à nouveau.</p>' : '<h1 class="dots">Connexion</h1>';
+  else if (st.ph === 'lobby') {
+    const n = st.players.length;
+    mid = `<h1>Accès prof</h1><p class="muted">${n ? n + (n > 1 ? ' participants' : ' participant') : 'En attente des participants…'}</p>`;
+    btn = `<button class="btn" data-k="start"${n ? '' : ' disabled'}>Commencer</button>`;
+  } else if (st.ph === 'end') mid = '<h1>Partie terminée</h1><p class="muted">Le classement est affiché sur l’écran.</p>';
+  else if (st.ph === 'turn') {
+    mid = `<p class="muted">C’est à ${esc(st.curName)}</p><div class="ph-card"><small>Je suis ou j’ai ?</small><strong>${esc(st.card)}</strong></div>
+      <p class="muted">Réponse attendue : ${st.v ? sentence(st.card, st.v) : ''}</p>`;
+    btn = '<button class="btn" disabled>Carte suivante</button><p class="muted hint">Disponible dès que la réponse est donnée.</p>';
+  } else {
+    const ok = st.res.ok, sent = P.ctlA === 'next' && P.ctlN === st.n;
+    mid = `<p class="muted">${esc(st.curName)} : ${ok ? 'réponse juste' : 'erreur, la carte retourne dans la pile'}</p>
+      <div class="ph-card ${ok ? 'ok' : 'ko'}"><small>${ok ? '✓ Correct' : '✗ La bonne phrase'}</small><strong>${sentence(st.card, st.res.verb)}</strong></div>`;
+    btn = `<button class="btn next" data-k="next"${sent ? ' disabled' : ''}>Carte suivante</button>`;
+  }
+  const off = st && !P.net ? '<p class="muted err" role="status">Connexion perdue, reconnexion…</p>' : '';
+  paint(`<div class="ph prof">${top}<div class="ph-mid">${mid}${off}</div><div class="ph-btns">${btn}</div><button class="quit" data-k="quit">Quitter l’accès prof</button></div>`);
+}
 function pRender() {
+  if (P.prof) return profRender();
   const st = P.st, me = pMe(); let mid, btns = '';
   const top = me ? `<div class="ph-top"><b>${esc(me.name)}</b><span>${cartes(me.score)}</span></div>` : '<div class="ph-top"><b>Je suis ou j’ai ?</b><span></span></div>';
   if (!st) mid = P.late ? '<h1>Partie introuvable</h1><p class="muted">Vérifie que l’écran affiche le code QR, puis scanne-le à nouveau.</p>' : '<h1 class="dots">Connexion</h1>';
   else if (!me && P.joining && P.name) mid = '<h1 class="dots">Inscription</h1>';
-  else if (!me) mid = `<h1>Ton prénom</h1><form style="width:100%;display:grid;gap:14px"><input id="nm" maxlength="14" autocomplete="given-name" autocapitalize="words" enterkeyhint="go" aria-label="Ton prénom" value="${esc(P.name)}"><button class="btn" type="submit">Rejoindre</button></form>`;
+  else if (!me) mid = `<h1>Ton prénom</h1><form style="width:100%;display:grid;gap:14px"><input id="nm" maxlength="14" autocomplete="given-name" autocapitalize="words" enterkeyhint="go" aria-label="Ton prénom" value="${esc(P.name)}"><button class="btn" type="submit">Rejoindre</button></form><p class="src">D’après un jeu de MondoLinguo.com</p>`;
   else if (st.ph === 'lobby') mid = `<h1>Bienvenue, ${esc(me.name)} !</h1><p class="muted">Regarde l’écran. La partie va commencer.</p>`;
   else if (st.ph === 'end') {
     const rank = 1 + st.players.filter(p => p.score > me.score).length;
-    mid = `<h1>Partie terminée</h1><div class="ph-card"><small>Tu as gagné</small><strong>${cartes(me.score)}</strong></div><p class="muted">${rank === 1 ? '1re place' : rank + 'e place'}</p>`;
+    mid = `<h1>Partie terminée</h1><div class="ph-card"><small>Tu as gagné</small><strong>${cartes(me.score)}</strong></div><p class="muted">${rank === 1 ? '1re place' : rank + 'e place'} · ${erreurs(me.err || 0)}</p>`;
   } else {
     const mine = st.cur === P.pid;
     if (st.ph === 'turn') {
