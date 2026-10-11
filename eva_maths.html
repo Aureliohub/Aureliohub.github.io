@@ -8,7 +8,7 @@ générant des exercices de mathématiques pour adultes (programme PAI, Suisse).
 Product owner : Aurelio (Onex/Genève). Répondre en FRANÇAIS.
 
 ───────────────────────────────────────────────────────────────────────────────
-0. OÙ ON EN EST (v517, 11.10.2026) — à lire en premier
+0. OÙ ON EN EST (v519, 11.10.2026) — à lire en premier
 ───────────────────────────────────────────────────────────────────────────────
 L'application est en ligne : https://aureliohub.github.io/eva_maths.html
 Les fichiers de série et de test (.json) sont déposés à côté d'elle, et s'ouvrent
@@ -544,6 +544,39 @@ PDF de domaine :
 Cette section décrit l'ÉTAT, non l'historique. Les numéros de version ne sont
 cités que lorsqu'ils aident à retrouver un choix dans le fichier.
 
+v519 — CHANGE : LE DOLLAR S'AJOUTE À L'EURO (11.10, demande d'Aurelio). Une fois
+ sur deux : « Au bureau de change, le cours est de 1 USD = 0,83 CHF. Combien de
+ dollars reçoit-on pour 166 CHF ? » ou « Combien doit-on payer en CHF pour
+ 135 USD ? ». Cours de 0,79 à 0,84 CHF (0,83 début octobre 2026, vérifié en
+ ligne). Mêmes règles que l'euro (v518).
+ · LA VALIDATION APPREND LE DOLLAR, en quatre endroits — à refaire pour toute
+   nouvelle devise : UNITES_CANON (« usd », « dollars », « $ » → usd ; « eur »
+   ajouté à l'euro au passage), le retrait des suffixes de normalizeUserInput,
+   et les deux listes de `uniteDeLaReponse` (unité affichée après le champ).
+   Une réponse en « euros » à une question en dollars est REFUSÉE.
+ Banc au vrai navigateur : 12 000 exercices recalculés sans défaut ; saisie
+ frappée « 200 », « 200 USD », « 200 dollars », « 200 $ » juste, « 200 euros »
+ fausse ; l'euro revérifié à l'identique.
+
+v518 — CHANGE : LE COURS EST DONNÉ (11.10). Demande d'Aurelio : « pour les
+ questions relatives au change, donner le cours puis demander soit combien on
+ reçoit en devise, soit combien on doit payer en CHF pour un montant en
+ devise ». RÈGLE À RETENIR : un énoncé de change donne le cours ; il ne le fait
+ pas déduire d'une paire de montants (forme de la v517 et d'avant).
+ · « Au bureau de change, le cours est de 1 EUR = 0,94 CHF. » puis, une fois sur
+   deux : « Combien d'euros reçoit-on pour 141 CHF ? » (÷) ou « Combien doit-on
+   payer en CHF pour 135 EUR ? » (×).
+ · Cours de 0,92 à 0,96 CHF pour 1 EUR (0,93 début octobre 2026, vérifié en
+   ligne). Résultat toujours juste au centime ; montant en francs DONNÉ
+   toujours entier ; jamais un multiple de 100 EUR.
+ · PALIER 1 (classement de Claude, à revoir s'il le conteste) : une seule
+   opération. Le palier 1 compte enfin TROIS modèles — salaire, carburant,
+   change — et le palier 2 cinq.
+ · Euro seul en v518 ; le dollar est venu en v519. Pour la livre sterling,
+   attention : « livres » désigne déjà des livres à lire dans `uniteDeLaReponse`.
+ Banc au vrai navigateur : 12 000 exercices recalculés, zéro défaut sur les dix
+ modèles ; saisie frappée des bonnes réponses acceptée ; écran regardé.
+
 v517 — NIVEAU « PROPORTIONNALITÉ » : PLUS DE CALCULS QUI SE FONT DE TÊTE (11.10).
  Aurelio a envoyé huit énoncés tirés de la v516 et les a tous jugés trop
  simples : « en réalité on ne fait pas les calculs que tu proposes […] tous ces
@@ -707,7 +740,9 @@ v512 — PROP-CONCRET, NIVEAU « PROPORTIONNALITÉ » : PALIERS a) → d) ET CAD
    Classement proposé par Claude, appliqué sans qu'Aurelio l'ait commenté — à
    revoir s'il le conteste :
      1 : salaire horaire (5), carburant (8) — taux entier, deux opérations
+         [+ change (4) depuis la v518]
      2 : recette (0), cadence (3), change (4), dosage (6), peinture (7)
+         [+ deux offres (9) en v514 ; change parti au palier 1 en v518]
      3 : prix au kilo (1), partage du paddle (2)
    Le palier 1 ne compte que DEUX modèles : a) est donc toujours le salaire ou
    le carburant. Un troisième modèle simple y remédierait.
@@ -10656,12 +10691,12 @@ function uniteDeLaReponse(rep) {
   // Unités composées (CHF/kg, km/L…) : les deux membres doivent être connus.
   const compose = mot.split('/');
   if (compose.length === 2
-      && compose.every(x => canoniserUnite(x.trim()) || /^(chf|eur|portions?)$/i.test(x.trim()))) {
+      && compose.every(x => canoniserUnite(x.trim()) || /^(chf|eur|usd|portions?)$/i.test(x.trim()))) {
     return mot;
   }
   // Monnaies et grandeurs hors du tableau métrique, plus les objets dénombrés
   // qui font office d'unité dans la réponse (« 26 portions », « 12 employés »).
-  if (/^(CHF|EUR|hectares?|ares?|portions?|employ[ée]s?|inscrits?|spectateurs?|livres?|gar[çc]ons?|filles?|voitures?|[oœ]ufs?|[ée]l[èe]ves?|animaux|personnes?|pages?|fruits?|romans?|chats?|pi[èe]ces?)$/i.test(mot)) {
+  if (/^(CHF|EUR|USD|hectares?|ares?|portions?|employ[ée]s?|inscrits?|spectateurs?|livres?|gar[çc]ons?|filles?|voitures?|[oœ]ufs?|[ée]l[èe]ves?|animaux|personnes?|pages?|fruits?|romans?|chats?|pi[èe]ces?)$/i.test(mot)) {
     return mot;
   }
   // « 30 autres animaux », « 4 c.s. » : fragments de phrase, pas des unités.
@@ -10734,10 +10769,10 @@ function champDureeDispense(inp) {
 // `patrons` de genPropConcretProp (v512, classement proposé par Claude le 11.10).
 //   0 recette · 1 prix au kilo · 2 partage du paddle · 3 cadence · 4 change
 //   5 salaire horaire · 6 dosage · 7 peinture · 8 carburant · 9 deux offres
-//   1 = taux entier, deux opérations sur des entiers
+//   1 = taux entier, deux opérations sur des entiers ; ou cours donné, une opération
 //   2 = taux décimal, tri de l'information ou conversion de durée
 //   3 = conversion g → kg avec prix décimal, ou trois étapes
-const PROP_PALIERS = [2, 3, 3, 2, 2, 1, 2, 2, 1, 2];
+const PROP_PALIERS = [2, 3, 3, 2, 1, 1, 2, 2, 1, 2];
 
 // Paiement échelonné (modèle 11) : ce que l'apprenant commande, pour qui, et
 // qui paie. Mots simples, compréhensibles sans dictionnaire. Le métier n'est
@@ -11528,31 +11563,48 @@ function genPropConcretProp() {
     };
   }
 
-  // --- Patron 5 : Taux de change (CHF <-> EUR), sens alterné ---
-  // On donne une PAIRE de référence (et non le taux). v517 : les deux montants
-  // en francs passent la règle `evident` (avant : 40, 80 ou 120 CHF puis ×1,5,
-  // ×2,5 ou ×3,5, qui se font de tête) ; taux resserrés autour du cours réel
-  // (1 CHF ≈ 1,04 à 1,08 EUR — ils allaient de 0,80 à 1,25).
+  // --- Patron 5 : Change (v518 : le COURS est donné) — PALIER 1 ---
+  // Demande d'Aurelio (11.10) : « donner le cours puis demander soit combien on
+  // reçoit en devise, soit combien on doit payer en CHF pour un montant en
+  // devise ». Avant la v518 l'énoncé donnait une paire (« 160 CHF valent
+  // 172,80 EUR ») et l'élève devait en tirer le taux : ne pas y revenir.
+  // Le cours s'écrit comme au guichet en Suisse : le prix d'UN euro en francs.
+  // Une seule opération, d'où le palier 1 — mais il faut choisir la bonne :
+  //   · « combien d'euros reçoit-on pour N CHF »      → N ÷ cours ;
+  //   · « combien doit-on payer en CHF pour N EUR »   → N × cours.
+  // Les montants sont tirés pour que le résultat tombe JUSTE (au centime), et
+  // le montant en francs donné à l'élève est un nombre entier de francs.
+  // Jamais 100 ni un multiple de 100 en euros : le cours se lirait tel quel.
+  // Cours de 0,92 à 0,96 CHF pour 1 EUR (0,93 début octobre 2026).
+  // v519 : EURO ou DOLLAR, à pile ou face. Cours du dollar de 0,79 à 0,84 CHF
+  // (0,83 début octobre 2026 ; de 0,76 à 0,84 sur l'année).
   function patChange() {
-    let refChf = 75, qChf = 120, taux = 106;                    // secours
-    for (let i = 0; i < 300; i++) {
-      const a = choice([60, 75, 80, 120, 125, 150, 160, 175, 180, 225, 240, 250]);
-      const b = 5 * rand(7, 92);                                // 35 à 460 CHF
-      if (evident(a, b, null)) continue;
-      refChf = a; qChf = b; taux = choice([104, 105, 106, 107, 108]);
+    const cours2 = (c) => (c / 100).toFixed(2).replace('.', ',');
+    const devise = choice([
+      { code: 'EUR', combien: "Combien d'euros",  cours: [92, 93, 94, 95, 96] },
+      { code: 'USD', combien: 'Combien de dollars', cours: [79, 80, 82, 83, 84] }
+    ]);
+    const versDevise = Math.random() < 0.5;
+    let c = devise.cours[2], dev = 150;                          // secours : francs entiers
+    for (let i = 0; i < 400; i++) {
+      const cc = choice(devise.cours);
+      const e = 5 * rand(7, 96);                                 // 35 à 480
+      if (e % 100 === 0) continue;
+      if (versDevise && (e * cc) % 100 !== 0) continue;          // francs entiers à donner
+      c = cc; dev = e;
       break;
     }
-    const refEur = fmtPrix(refChf * taux / 100);
-    const qEur = fmtPrix(qChf * taux / 100);
-    if (Math.random() < 0.5) {
+    const chf = fmtPrix(dev * c / 100);
+    const debut = `Au bureau de change, le cours est de 1 ${devise.code} = ${cours2(c)} CHF.`;
+    if (versDevise) {
       return {
-        text: `Au bureau de change, ${refChf} CHF valent ${refEur} EUR. Combien d'euros obtient-on pour ${qChf} CHF ?`,
-        answer: `${qChf} ÷ ${refChf} × ${refEur} = ${qEur} EUR.`
+        text: `${debut} ${devise.combien} reçoit-on pour ${chf} CHF ?`,
+        answer: `${chf} ÷ ${cours2(c)} = ${dev} ${devise.code}.`
       };
     }
     return {
-      text: `Au bureau de change, ${refChf} CHF valent ${refEur} EUR. Combien de CHF faut-il pour obtenir ${qEur} EUR ?`,
-      answer: `${qEur} ÷ ${refEur} × ${refChf} = ${qChf} CHF.`
+      text: `${debut} Combien doit-on payer en CHF pour ${dev} ${devise.code} ?`,
+      answer: `${dev} × ${cours2(c)} = ${chf} CHF.`
     };
   }
 
@@ -19391,7 +19443,7 @@ const ICONE_ENSEIGNANT = '<svg viewBox="0 0 24 24" width="21" height="21" fill="
 const ICONE_PDF = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJkAAACUCAMAAAC3HHtWAAAAk1BMVEXi5ef////xVkKwt73K0dji6OrxW0jyUDnG2eHlzczmgnrV2t/x8/T19vbxUTzwTDX4u7Xnvr28wsf+8/L84N3yYlD1jID1hXf1kYb4q6L4t7D96ujwQib1mY7++Pf70c3zcWHxSC/zeGn3pJv6ysX72dXy2Nbj1dXtgnfyaFf3sKj6w73UubvV4ebco6HkioPitLFLhhsqAAAElUlEQVR4nO3ca5eaOhQG4ICOtHUa7AAqIgiIbdVezv//dUcS7tlAXIYkq4v308xCzeNOCAEVZAzmKxKWj8Xi4324tVbQyGahsqdow7J3wbLFgp82LHsTLuOv2rBMIKyQ8dMGZQLHfyXjpsmX8dIUyDhpKmR8NCUyLpoa2eLjq64yjqqpko1XTZlstGrqZGM0hbIRmkrZME2pbJCmVjZEUywboKmW9dOUy3qnXPWyvqppIOupmg4yuGpayMCq6SGDqiZPthySAVWTJ1sPytiqyZMNdydbNYmykaJ1aRJlY0Xr0GTKnqNJlY3sn22aXBlaL4fr1qBJlpEsB/KmVDZEUywboKmW9dOUy3pp6mV9NA1kPTQdZDBNCxlI00MG0TSRATRdZCxNGxlD00fWpWkkQ/rKkL4ypK8M6StD+sqQvjKkrwzpK0P6ypC+MqSvDOkrQ/rKkL6ytbYyVF+tnWWiZW8T5jlZ4Lby/fN0+YFAGyxzw9hbyUoc/oBooOxi2tiUFmybEA2SRaklz5XH/slZs5PEgtGsPrNFg2R3W7YMf+OTbWbZLJtls2yWzbJWrORYJklaaxFs2WUsiznm1htpoIPySzK8PQVl3Oyc1gQrDX3/nMc/h/t0lbTb3vqthDGwkHlFhneO0YyTXYtHWdvWFsc9xA3b6m504nhs1V6R2QemhT192OrS3WJs4rLx7hvKcz8KlVkbpoWI9ovnMlsMN4ULSnJIJpA5gUNStL+qZRFN+RLBDvfJgpXY3qSy2zXOs/MpIbRLWeT/3OYJb0UFL7R9KnMOdXzRewCV+TYmsa8BKdqxku3oFsvGu4C+SFLL3MakwU4rgmTlv/u8ak5emEJWVcKOadmuuJYBmKlkmHpiQGZaMenrg61EZppknso9jMw8khnG9fSTWWletCjF9TizHnmMwsdInFqG6S4A9mY5keR7LpUFYRX4JFugLPHzf6OK0ZatTuWDmfnM2UO012XnI931zTMZ5KfGrNFsEGdkF0igmdaJgQ59XZaFZE1xO9GZlrx/QGYS2Q2UGdtJZO3c6+NmZ5yRg/wZ6k3j4rEvLlrm0h2NlRW7R17R4uh0qnIA1kCCZVF2pW2wMjvMH+BcG7MGmTbywBfmBMqcU2gWbQDzGSnZhfwpa6Y9nWn2qVm9d0ZGZxQyzOTJzkfaJc0+6cjwMSQ7bmRLrZkPbClkCSZoHG+iumQayIzs9lgV3g73YqYzsuJp6mWdXK7N1baMccYpy7xi2EmQ2ed8C3Q4Zs/qorA6CcFpLhu9WP7a1YNNFB3AdULqRjXKcU/bY+P5OHQiN51UhnG6gz/AsLxdndSz2s+249119IOPF68F9axHyZY6TzxNmGzCzLJZNstm2TSyTPpnwh7nZ8KBbBiOGVfPdw9u7DXeSWHHX785ZVGYJNV52ORJ8J/lmlP2WOv54b6VL5Pl73/LT0/Iunn/NF3yLzXyjjNAxvzkQWy0lQEwPWTAKOOXrScM5PoXvrM3y2bZLJtls+zfk3He90Do3TnFykTe0ZQr9Q8XRmTSi9a4zcyITOQNap+Djckk92fzbin/A8PQxx30Ei25AAAAAElFTkSuQmCC';
 
 // Numéro de version, affiché en pied de menu.
-const APP_VERSION = '517';
+const APP_VERSION = '519';
 
 const DOMAINS = [
   {
@@ -27466,7 +27518,7 @@ const UNITES_CANON = [
   // vitesse (avant les longueurs : « km/h » contient « km »)
   [/^km\s*\/\s*h$/, 'km/h'], [/^m\s*\/\s*s$/, 'm/s'],
   // monnaies
-  [/^(chf|francs?|frs?\.?)$/, 'chf'], [/^(€|euros?)$/, 'eur'],
+  [/^(chf|francs?|frs?\.?)$/, 'chf'], [/^(€|euros?|eur)$/, 'eur'], [/^(\$|dollars?|usd)$/, 'usd'],
   // longueurs, aires, volumes – abréviations et mots entiers
   [/^(kilom[èe]tres?)$/, 'km'], [/^(m[èe]tres?)$/, 'm'],
   [/^(d[ée]cim[èe]tres?)$/, 'dm'], [/^(centim[èe]tres?)$/, 'cm'], [/^(millim[èe]tres?)$/, 'mm'],
@@ -27710,7 +27762,7 @@ function normalizeUserInput(s) {
   // Retirer suffixes courants : unités physiques et monnaies.
   // Inclut aire (cm², m², …) et volume (cm³, m³, …) ; comme convertSupToCaret
   // a déjà transformé "²" en "^2" et "³" en "^3" plus haut, on matche cette forme.
-  x = x.replace(/\s*(kilom[èe]tres?|d[ée]cim[èe]tres?|centim[èe]tres?|millim[èe]tres?|m[èe]tres?|kilogrammes?|kilos?|milligrammes?|centigrammes?|d[ée]cigrammes?|grammes?|d[ée]cilitres?|centilitres?|millilitres?|chf|francs?|frs?\.?|€|euros?|%|km(?:\^[23])?|hm(?:\^[23])?|dam(?:\^[23])?|cm(?:\^[23])?|mm(?:\^[23])?|dm(?:\^[23])?|m(?:\^[23])?|kg|hg|dag|dg|cg|mg|g|kl|hl|dal|dl|cl|ml|litres?|l|h|heures?|minutes?|min|sec|secondes?|km\/h|m\/s)\s*$/i, '');
+  x = x.replace(/\s*(kilom[èe]tres?|d[ée]cim[èe]tres?|centim[èe]tres?|millim[èe]tres?|m[èe]tres?|kilogrammes?|kilos?|milligrammes?|centigrammes?|d[ée]cigrammes?|grammes?|d[ée]cilitres?|centilitres?|millilitres?|chf|francs?|frs?\.?|€|euros?|\$|dollars?|usd|%|km(?:\^[23])?|hm(?:\^[23])?|dam(?:\^[23])?|cm(?:\^[23])?|mm(?:\^[23])?|dm(?:\^[23])?|m(?:\^[23])?|kg|hg|dag|dg|cg|mg|g|kl|hl|dal|dl|cl|ml|litres?|l|h|heures?|minutes?|min|sec|secondes?|km\/h|m\/s)\s*$/i, '');
   // Espaces internes (pour "1 000" → "1000")
   x = x.replace(/\s+/g, '');
   // Équivalence "n/d * v" ↔ "nv/d" pour les coefficients fractionnaires.
