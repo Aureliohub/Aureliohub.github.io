@@ -8,7 +8,7 @@ générant des exercices de mathématiques pour adultes (programme PAI, Suisse).
 Product owner : Aurelio (Onex/Genève). Répondre en FRANÇAIS.
 
 ───────────────────────────────────────────────────────────────────────────────
-0. OÙ ON EN EST (v511, 10.10.2026) — à lire en premier
+0. OÙ ON EN EST (v517, 11.10.2026) — à lire en premier
 ───────────────────────────────────────────────────────────────────────────────
 L'application est en ligne : https://aureliohub.github.io/eva_maths.html
 Les fichiers de série et de test (.json) sont déposés à côté d'elle, et s'ouvrent
@@ -543,6 +543,204 @@ PDF de domaine :
 ───────────────────────────────────────────────────────────────────────────────
 Cette section décrit l'ÉTAT, non l'historique. Les numéros de version ne sont
 cités que lorsqu'ils aident à retrouver un choix dans le fichier.
+
+v517 — NIVEAU « PROPORTIONNALITÉ » : PLUS DE CALCULS QUI SE FONT DE TÊTE (11.10).
+ Aurelio a envoyé huit énoncés tirés de la v516 et les a tous jugés trop
+ simples : « en réalité on ne fait pas les calculs que tu proposes […] tous ces
+ calculs se font mentalement, je veux que ce soit un peu moins évident ». Ses
+ raisons, à garder en tête pour TOUT nouvel énoncé de proportionnalité :
+   · 45 L puis 5 L : neuf fois moins, donc 630 ÷ 9 ;
+   · 15 L puis 20 L : je divise par 3, je multiplie par 4 ;
+   · 10 piles : on voit sans calcul que l'autre est plus cher ;
+   · 500 g à 10,50 CHF : 750 g feront un peu plus de 15 ;
+   · un total de 10 heures.
+ Mes garde-fous n'écartaient que les rapports ENTIERS ; il fallait écarter
+ ceux qu'on VOIT. C'est un adulte qui juge, pas la table de multiplication.
+ · RÈGLE COMMUNE `evident(a, b, v)` en tête de genPropConcretProp (lire son
+   commentaire). Elle sert à la recette, au change, au dosage, à la peinture
+   et aux deux offres. Salaire, carburant et cadence, dont le taux est entier
+   par construction, exigent que les deux quantités n'aient AUCUN facteur
+   commun.
+ · CONSÉQUENCE ASSUMÉE : les réponses des modèles de palier 2 portent souvent
+   une décimale (8,4 dL ; 145,6 m² ; 437,5 g de riz). Avec de petits nombres
+   entiers, toute réponse entière se trouve par « ÷ puis × » de tête. Signalé
+   à Aurelio.
+ · Modèle par modèle :
+   – recette : convives et ingrédient tirés ensemble ; seuls les ingrédients
+     qui se pèsent ou se mesurent sont demandés. Le gâteau passe de 6 à 8
+     personnes et les crêpes de 200 à 250 g de farine (sinon aucun tirage ne
+     passait la règle) ;
+   – prix au kilo : masses de 350, 450, 550, 650 ou 850 g ;
+   – partage du paddle : le prix n'est plus fixé à 45 CHF (38 à 78 CHF), le
+     total des heures n'est jamais 10, le prix par heure n'est jamais entier,
+     chaque part tombe au 5 ct ;
+   – cadence : durées sans facteur commun ;
+   – change : montants libres et taux de 1,04 à 1,08 EUR pour 1 CHF (ils
+     allaient de 0,80 à 1,25 — relevé dans le topo du 11.10, corrigé ici
+     puisque tous les nombres étaient à refaire) ;
+   – salaire, carburant : voir plus haut. Les salaires de 18 et 21 CHF/h,
+     sous le minimum genevois, n'ont PAS été touchés ;
+   – dosage, peinture : trois nombres tirés sous la règle ;
+   – deux offres : ni paquet de 5 ou de 10, ni 100 ou 500 g ; vrais prix au
+     5 ct, donc prix unitaire arrondi au centime dans le corrigé (« ≈ ») ; les
+     deux prix unitaires ont la même partie entière en francs ; écart de 4 à
+     18 % ; comparaison EXACTE par produits en croix.
+ · Les paliers ne changent pas (PROP_PALIERS).
+ Banc au vrai navigateur : 12 000 exercices, chaque modèle RECALCULÉ depuis son
+ énoncé par un programme indépendant, qui applique aussi sa propre version de
+ la règle : zéro défaut sur les dix modèles. Aucun secours utilisé (de 25
+ énoncés distincts pour la recette à près de 5 900 pour le partage). Les bonnes
+ réponses, FRAPPÉES dans 12 exercices, sont toutes acceptées (48 sur 48),
+ décimales comprises. Écran et PDF du sous-domaine regardés ; PDF du domaine 2
+ produit (5 pages). AUCUNE chaîne PDF touchée.
+
+v516 — « 1 HEURE » AU SINGULIER dans le partage du paddle (11.10, signalé en
+ v515, corrigé à la demande d'Aurelio) : « Medhanie 1 heures » → « 1 heure ».
+ Mesuré au navigateur sur 300 tirages de chaque sous-domaine et niveau : 65
+ énoncés de paddle portent « 1 heure », et plus aucun « 1 » suivi d'un pluriel
+ ne sort ailleurs (énoncés, corrigés, détails).
+
+v515 — PRIX À DEUX DÉCIMALES (11.10). Demande d'Aurelio : « les prix doivent
+ être 3,60 CHF et non 3,6 CHF ». RÈGLE À RETENIR : tout montant en francs qui a
+ des centimes s'écrit avec DEUX décimales ; un montant rond reste « 12 CHF ».
+ · `fmtPrix(n)` (juste avant fmtCHF) : à employer pour tout montant écrit dans
+   un énoncé, une case de tableau ou un corrigé. Le `fmt` local des générateurs
+   (arrondi puis toString) rend « 3,6 » : ne pas s'en servir pour un prix.
+ · Trois sources corrigées, trouvées en MESURANT (300 tirages de chaque
+   sous-domaine et niveau, recherche d'un nombre à une décimale accolé à CHF) :
+   prix au kilo et partage du paddle (prop-concret, niveau Proportionnalité —
+   énoncé et corrigé) ; cerises, photocopies et tissu (proportion niveau 2 —
+   énoncé, corrigé ET cases du tableau).
+   Avant : 59 + 53 défauts sur 200 exercices de prop-concret, 127 sur ceux de
+   proportion N2. Après : zéro partout, 4 999 cases en CHF relues.
+ · La saisie n'est pas plus stricte : « 22,5 », « 22,50 », « 22.50 » et
+   « 22,5 francs » restent justes, dans un champ libre comme dans une case de
+   tableau (frappé au navigateur).
+ Écran regardé (problème concret et proportion N2) ; aucune chaîne PDF touchée.
+
+v514 — PROP-CONCRET, NIVEAU « PROPORTIONNALITÉ » : MODÈLE « DEUX OFFRES » (11.10,
+ idée d'Aurelio : « un commerce propose x articles à x prix, un autre y à y
+ prix (ou g / CHF) — quelle est la meilleure offre ? »).
+ · `patOffres`, patron 9 (dixième), PALIER 2 — classement de Claude : deux
+   retours à l'unité puis une comparaison, sans piège de conversion. Le palier
+   2 compte désormais six modèles ; le palier 1 toujours deux.
+ · Deux familles tirées à pile ou face : à la PIÈCE (yogourts, œufs,
+   bouteilles d'eau, piles, stylos) et au POIDS (café, fromage râpé, noix,
+   chocolat ; comparaison aux 100 g). Prix de Claude, À FAIRE RELIRE.
+ · Question d'Aurelio mot pour mot : « Quelle est la meilleure offre ? ».
+   Réponse À CHOISIR, deux boutons « Magasin A » / « Magasin B » (`choice`,
+   comme « Qui a lu le plus ? »).
+ · Garde-fous : quantités jamais multiples l'une de l'autre ; le plus gros
+   paquet coûte plus cher en tout ; écart de 5 à 20 ct la pièce, de 10 à 40 ct
+   les 100 g ; prix au 5 ct ; la meilleure offre est tantôt le gros paquet,
+   tantôt le petit.
+ · Prix écrits « 4,20 CHF » (deux décimales). Le prix au kilo, qui écrivait
+   « 3,6 CHF », a été corrigé en v515.
+ · Corrigé (`attenduExport`) : « Magasin B (0,65 CHF le yogourt, contre
+   0,70 CHF) ». L'assemblage du niveau transmet maintenant `choices`,
+   `correctIdx` et `solutionDetail`.
+ Banc au vrai navigateur : 8 000 exercices sans défaut (paliers 1, 2, 2, 3, quatre
+ modèles distincts, types de réponse) ; 2 637 offres relues une à une — prix
+ unitaires recalculés depuis l'énoncé, bonne réponse, garde-fous, format des
+ prix, corrigé ; 2 239 énoncés distincts, le gros paquet gagne 48 % des fois,
+ A et B à égalité. Écran : clic faux ✗, clic juste ✓, solutions regardées.
+ Test : 1 point, tableur « Magasin A » / juste, export regardé (les deux
+ propositions, la bonne en vert) ; remplissage automatique 100 % sur 10 tests.
+ PDF du sous-domaine regardé : énoncé sur deux lignes, corrigé avec les deux
+ prix unitaires.
+
+v513 — RÉPONSE EN DURÉE : « COMBIEN DE TEMPS », DEUX CHAMPS h / min (11.10).
+ La v512 demandait « Combien de minutes » pour le modèle Cadence : REFUSÉ par
+ Aurelio — « les questions de temps ne doivent pas demander une réponse en
+ minutes, ça ne fait pas de sens ». RÈGLE À RETENIR pour tout énoncé de durée :
+ la question est « Combien de temps », la réponse se donne en heures ou en
+ heures et minutes.
+ · NOUVEAU TYPE GÉNÉRIQUE `answerType: 'duree'` (bloc « RÉPONSE EN DURÉE »,
+   avant PROP_PALIERS). Une question s'en sert en étalant
+   `...dureeQuestion(minutes)`, qui pose `dureeMin` et `attenduExport`.
+   Champs « [ ] h [ ] min » : `inp-e-q` (heures) et `inp-e-q-min`, UNE marque
+   `fb-e-q`, donc un seul point au barème par défaut (`question`).
+ · VALIDATION SUR LA DURÉE TOTALE (`dureeSaisie`), décision d'Aurelio : pour
+   165 min sont justes « 2 h 45 min », « 2,75 h » (minutes vides) et « 165 min »
+   (heures vides). Tolère l'unité tapée dans le champ et « 2h45 » dans le
+   premier. Le champ laissé vide reste neutre.
+ · CORRIGÉS : les TROIS écritures, dans l'ordre demandé — « 2,75 h ou 2 h 45 min
+   ou 165 min » (heure pleine : « 2 h ou 120 min »). Portées par
+   `attenduExport`, que lisent déjà les deux corrigés PDF et le tableur.
+ · PIÈGES RENCONTRÉS EN CÂBLANT, à connaître avant d'ajouter un type à champs
+   multiples :
+   – validateExercise tient une question pour VIDE dès que son champ `inp-e-q`
+     l'est : « 165 min » (heures vides) n'était pas corrigé. D'où la délégation
+     explicite à validateAnswer, comme pour `prop-table`.
+   – le gestionnaire global des exposants transforme « 2h45 » en « 2h⁴⁵ » :
+     les deux champs portent `data-brut`.
+   – l'export passait `attenduExport` par extractFinalResult dans les
+     sous-domaines à réponse rédigée : il n'en restait que « 165 min ».
+   – contrôle des réponses vides du test : un champ de durée vide n'est pas un
+     oubli si l'autre est rempli (`champDureeDispense`), et une durée toute
+     vide compte pour UNE réponse.
+ · Les unités « h » et « min » portent `.answer-unite` et le groupe `.no-print` :
+   les chaînes PDF les retirent sans rien apprendre. AUCUNE chaîne PDF touchée.
+ · Sérialisation : trois champs simples sur la question, aucune fonction. Une
+   série exportée en v512 (« Combien de minutes ») s'ouvre toujours, avec son
+   champ unique.
+ Banc au vrai navigateur : 6 000 exercices sans défaut (paliers, type `duree`
+ sur la seule cadence, rien ne fuit sur les autres modèles, JSON) ; 2 428
+ cadences recalculées, les trois écritures comparées une à une (733 heures
+ pleines). Saisie FRAPPÉE, 14 cas : justes « 3 / 30 », « 3,5 / – », « – / 210 »,
+ « 3h30 », « 3 h / 30 min », « 3.5 » ; refusés « 3 / – », « 4 / 30 », « – / 30 »,
+ « abc », « 210 » dans les heures, « 3 / 35 » ; tout vide = neutre ; aucun
+ exposant parasite. TEST complet (domaine 2) : « 90 min » seul compte une
+ réponse remplie (13 vides → 12), 1 point sur 4, tableur « 90 min » / juste /
+ « 1,5 h ou 1 h 30 min ou 90 min », export regardé ; remplissage automatique
+ 100 % sur 12 tests. ATELIER : commandes posées, sérialisation, PDF de série
+ produit, aperçu écran validé. PDF du sous-domaine regardé (énoncé inchangé de
+ forme, corrigé à trois écritures) ; PDF du domaine 2 produit.
+
+v512 — PROP-CONCRET, NIVEAU « PROPORTIONNALITÉ » : PALIERS a) → d) ET CADENCE
+ DURCIE (11.10). Deux demandes d'Aurelio : « ces nombres sont trop simples » sur
+ le jardinier (600 m² en 2 h, combien pour 900 m² ?), puis un classement des
+ modèles par niveau.
+ · PALIERS : a) simple, b) et c) moyens, d) difficile, comme « Fractions »
+   (v507). `PROP_PALIERS` (à côté de FRACTIONS_PALIERS) s'aligne sur l'INDEX du
+   tableau `patrons` ; un patron ajouté sans son palier retombe en 2.
+   Classement proposé par Claude, appliqué sans qu'Aurelio l'ait commenté — à
+   revoir s'il le conteste :
+     1 : salaire horaire (5), carburant (8) — taux entier, deux opérations
+     2 : recette (0), cadence (3), change (4), dosage (6), peinture (7)
+     3 : prix au kilo (1), partage du paddle (2)
+   Le palier 1 ne compte que DEUX modèles : a) est donc toujours le salaire ou
+   le carburant. Un troisième modèle simple y remédierait.
+ · CADENCE (patron 3) : durée de référence en heures et minutes (1 h 15 à
+   2 h 45, jamais une heure pleine), cadences moins rondes, rapport entre les
+   deux surfaces jamais entier ni en demis. [REMPLACÉ EN v513 : la question
+   est « Combien de temps », réponse en durée.] LA RÉPONSE ÉTAIT DEMANDÉE EN MINUTES
+   (« Combien de minutes lui faudra-t-il… ») : j'avais annoncé « heures et
+   minutes », mais validation, corrigés, export et tableur lisent le DERNIER
+   nombre de la réponse — « 2 h 55 min » y deviendrait « 55 min ». Accepter une
+   durée à deux nombres demanderait un champ générique (sur le modèle de
+   `fractionEquiv`) ; non fait, proposé à Aurelio.
+   Corrigé : « 1 h 45 min = 105 min. Temps : 1'050 ÷ 630 × 105 = 175 min. »
+   Les surfaces portent l'apostrophe des milliers.
+ · Les questions portent `_modele` (« prop-<index> ») : l'anti-répétition de
+   l'atelier les distingue.
+ · CONSÉQUENCE : le test raccourci garde a) et b) de cet exercice
+   (COMPO_TEST_GLOBAL) — désormais un palier 1 et un palier 2. Non modifié.
+ · VU AU PASSAGE, non touché, signalé à Aurelio : change de 0,80 à 1,25 EUR
+   pour 1 CHF (peu réaliste) ; salaires de 18 et 21 CHF/h (sous le minimum
+   genevois) ; paddle toujours à 45 CHF ; carburant parfois trivial (40 L puis
+   20 L) ; aucun contexte de métier dans ce niveau.
+ · AUCUNE chaîne PDF touchée.
+ Banc au vrai navigateur (Playwright + Chromium) : 6 000 exercices sans défaut
+ (paliers 1, 2, 2, 3, quatre modèles distincts, libellés a) à d)) ; 2 426
+ énoncés de cadence vérifiés un à un — calcul refait, minutes entières de 90 à
+ 300, surfaces entières, jamais d'heure pleine en référence, rapport jamais
+ entier ni en demis, cadence dans la fourchette du métier, réponse absente de
+ l'énoncé, unité « min », secours jamais utilisé (566 énoncés distincts).
+ Saisie FRAPPÉE : « 165 », « 165 min », « 165 minutes » justes ; « 170 »,
+ « 2 h 45 min » et « 165 h » refusés. PDF du sous-domaine (énoncé + corrigé)
+ regardé : l'énoncé tient sur deux lignes, l'espace de réponse est intact, le
+ corrigé donne « 165 min ». PDF du domaine 2 produit (5 pages).
 
 v511 — DROITE GRADUÉE : DEUX NIVEAUX « FRACTIONS » (demande d'Aurelio, sur le
  modèle d'une fiche papier : des points sur la droite, une CASE sous chacun,
@@ -3095,6 +3293,10 @@ ainsi (une remarque prise pour une consigne, une sélection ambiguë).
     margin-left: 22px;
     margin-right: 4px;
   }
+  /* Réponse en durée : « [ ] h [ ] min », d'un seul tenant sur la ligne. */
+  .duree-champs { display: inline-flex; align-items: center; gap: 2px; white-space: nowrap; vertical-align: middle; }
+  .answer-input.answer-input-duree { width: 68px; text-align: center; }
+  .duree-champs .answer-unite { margin-right: 4px; }
   .answer-unite {
     font-weight: 700;
     color: #374151;
@@ -9821,6 +10023,15 @@ function _repOnPointerUp() {
 // Listes d'objets avec fourchette de prix plausible.
 
 // Format CHF : entier si rond, sinon "X,50"
+// PRIX : toujours DEUX décimales dès qu'il y a des centimes — « 3,60 CHF », jamais
+// « 3,6 CHF » (demande d'Aurelio, v515). Un montant rond reste « 12 CHF ».
+// À employer pour TOUT montant en francs écrit dans un énoncé, une case de
+// tableau ou un corrigé.
+const fmtPrix = (n) => {
+  const c = Math.round(n * 100);
+  return (c % 100 === 0) ? String(c / 100) : (c / 100).toFixed(2).replace('.', ',');
+};
+
 const fmtCHF = (n) => {
   // n est en demi-CHF (n*2 entier) pour éviter tout flottant.
   // Ici on reçoit un nombre normal ; on arrondit au demi.
@@ -10188,8 +10399,8 @@ function genProportionN2() {
         m2 = choice(mChoices.filter(m => m !== m1));
         safety--;
       } while (safety > 0 && (m2 % m1 === 0 || m1 % m2 === 0));
-      const prix1 = fmt(prixKiloCent * m1 / 100);
-      const prix2 = fmt(prixKiloCent * m2 / 100);
+      const prix1 = fmtPrix(prixKiloCent * m1 / 100);
+      const prix2 = fmtPrix(prixKiloCent * m2 / 100);
       const dir = pickDir();
       if (dir === 'B') {
         // Inconnue = prix (col B)
@@ -10222,8 +10433,8 @@ function genProportionN2() {
         n2 = choice(nChoices.filter(n => n !== n1));
         safety--;
       } while (safety > 0 && (n2 % n1 === 0 || n1 % n2 === 0));
-      const cout1 = fmt(coutUnit * n1 / 100);
-      const cout2 = fmt(coutUnit * n2 / 100);
+      const cout1 = fmtPrix(coutUnit * n1 / 100);
+      const cout2 = fmtPrix(coutUnit * n2 / 100);
       const dir = pickDir();
       if (dir === 'B') {
         // Inconnue = coût (col B)
@@ -10290,8 +10501,8 @@ function genProportionN2() {
         m2 = choice(mChoices.filter(m => m !== m1));
         safety--;
       } while (safety > 0 && (m2 % m1 === 0 || m1 % m2 === 0));
-      const prix1 = fmt(prixMetreCent * m1 / 100);
-      const prix2 = fmt(prixMetreCent * m2 / 100);
+      const prix1 = fmtPrix(prixMetreCent * m1 / 100);
+      const prix2 = fmtPrix(prixMetreCent * m2 / 100);
       const dir = pickDir();
       if (dir === 'B') {
         return {
@@ -10464,6 +10675,69 @@ function uniteDeLaReponse(rep) {
 //   6 fraction restante · 7 diminution · 8 comparaison · 9 remplissage
 //   10 complément · 11 paiement échelonné · 12 reste connu → total
 const FRACTIONS_PALIERS = [1, 3, 2, 3, 1, 2, 2, 2, 2, 1, 1, 2, 3];
+
+// ---------------------------------------------------------------------------
+// RÉPONSE EN DURÉE (v513) — `answerType: 'duree'`, générique : toute question
+// « Combien de temps… ? » peut s'en servir en étalant `...dureeQuestion(min)`.
+// À l'écran : deux champs « [ ] h [ ] min » (identifiants `inp-e-q` et
+// `inp-e-q-min`, UNE marque de correction `fb-e-q`). La validation porte sur la
+// DURÉE TOTALE, pas champ par champ : pour 165 min sont justes « 2 h 45 min »,
+// « 2,75 h » (minutes vides) et « 165 min » (heures vides) — décision d'Aurelio
+// du 11.10. Un seul point pour la question.
+// `attenduExport` porte les trois écritures (heures décimales, heures et
+// minutes, minutes) : c'est lui que lisent les corrigés PDF, l'export et le
+// tableur. `dureeMin` est la seule valeur comparée.
+// ---------------------------------------------------------------------------
+function dureeTroisEcritures(min) {
+  const h = Math.floor(min / 60), m = min % 60;
+  const dec = (Math.round(min / 60 * 100) / 100).toString().replace('.', ',');
+  const hm = m ? `${h} h ${m} min` : `${h} h`;
+  // Heure pleine : « 2 h » dit déjà les heures décimales.
+  return (m ? [`${dec} h`, hm, `${min} min`] : [hm, `${min} min`]).join(' ou ');
+}
+function dureeQuestion(min) {
+  return { answerType: 'duree', dureeMin: min, attenduExport: dureeTroisEcritures(min) };
+}
+// Lit les deux champs d'une durée. Rend { vide, min, texte } ; `min` vaut NaN
+// quand la saisie n'est pas une durée. Tolère l'unité tapée dans le champ
+// (« 2 h », « 45 min ») et une durée entière écrite dans le premier (« 2h45 »).
+function dureeSaisie(inpH, inpM) {
+  const brut = (inp) => (inp ? (inp.value || '') : '').trim().toLowerCase().replace(/\s+/g, '');
+  const vh = brut(inpH), vm = brut(inpM);
+  if (!vh && !vm) return { vide: true, min: NaN, texte: '' };
+  const nb = (t) => parseFloat(t.replace(',', '.'));
+  const NB = '(\\d+(?:[.,]\\d+)?)';
+  let h = 0, m = 0, ok = true;
+  if (vh) {
+    const r = vh.match(new RegExp('^' + NB + '(?:h|heures?)?(?:' + NB + '(?:min|minutes?|mn)?)?$'));
+    if (r) { h = nb(r[1]); if (r[2]) m += nb(r[2]); } else ok = false;
+  }
+  if (vm) {
+    const r = vm.match(new RegExp('^' + NB + '(?:min|minutes?|mn)?$'));
+    if (r) m += nb(r[1]); else ok = false;
+  }
+  const propre = (inp) => (inp ? (inp.value || '') : '').trim();
+  const texte = [vh ? propre(inpH) + (/[a-z]/i.test(propre(inpH)) ? '' : ' h') : '',
+                 vm ? propre(inpM) + (/[a-z]/i.test(propre(inpM)) ? '' : ' min') : '']
+    .filter(Boolean).join(' ');
+  return { vide: false, min: ok ? h * 60 + m : NaN, texte };
+}
+// Un champ de durée laissé vide n'est pas un oubli quand l'autre est rempli
+// (« 2,75 h » sans minutes, « 165 min » sans heures).
+function champDureeDispense(inp) {
+  if (!inp || !inp.hasAttribute || !inp.hasAttribute('data-duree')) return false;
+  const grp = inp.closest('.duree-champs');
+  return !!grp && [...grp.querySelectorAll('input')].some(o => o !== inp && (o.value || '').trim() !== '');
+}
+
+// Niveau « Proportionnalité » : palier de chaque modèle, dans l'ordre du tableau
+// `patrons` de genPropConcretProp (v512, classement proposé par Claude le 11.10).
+//   0 recette · 1 prix au kilo · 2 partage du paddle · 3 cadence · 4 change
+//   5 salaire horaire · 6 dosage · 7 peinture · 8 carburant · 9 deux offres
+//   1 = taux entier, deux opérations sur des entiers
+//   2 = taux décimal, tri de l'information ou conversion de durée
+//   3 = conversion g → kg avec prix décimal, ou trois étapes
+const PROP_PALIERS = [2, 3, 3, 2, 2, 1, 2, 2, 1, 2];
 
 // Paiement échelonné (modèle 11) : ce que l'apprenant commande, pour qui, et
 // qui paie. Mots simples, compréhensibles sans dictionnaire. Le métier n'est
@@ -11029,6 +11303,8 @@ function genPropConcretRabais() {
 }
 
 // ====== NIVEAU 1 : Proportionnalité (recette, prix au kilo, partage, cadence) ======
+// 10 modèles, 4 questions rangées du plus simple a) au plus difficile d) — voir
+// PROP_PALIERS (v512). Avant la v512 elles étaient tirées sans ordre.
 function genPropConcretProp() {
   const labels = ['a)', 'b)', 'c)', 'd)'];
 
@@ -11037,6 +11313,37 @@ function genPropConcretProp() {
     const s = (Math.round(n * 100) / 100).toString();
     return s.replace('.', ',');
   };
+
+  // -------------------------------------------------------------------------
+  // RÈGLE « PAS DE TÊTE » (v517, retour d'Aurelio sur huit énoncés : « tous ces
+  // calculs se font mentalement, je veux que ce soit un peu moins évident »).
+  // Ce qu'il a refusé, cas par cas : 45 L puis 5 L (neuf fois moins) ; 15 L
+  // puis 20 L (on divise par 3, on multiplie par 4) ; 10 piles (÷ 10) ; 500 g
+  // puis 750 g (une fois et demie) ; un total de 10 heures.
+  // `evident(a, b, v)` dit si passer de la quantité `a` à la quantité `b` se
+  // voit sans poser le calcul, `v` étant la valeur connue pour `a` :
+  //   · a ou b vaut 10, 100 ou 1000 ;
+  //   · b est un multiple ou un diviseur de a, ou à une demie près (×1,5, ×2,5) ;
+  //   · après simplification, il reste à diviser par 2 ou par 3 ;
+  //   · la division de v par ce qui reste tombe juste (÷ 4 puis × 5) ;
+  //   · a est un multiple de v (7 dL pour 14 L : la moitié, sans calcul).
+  // Conséquence assumée : hors des deux modèles à taux entier (salaire,
+  // carburant), les réponses portent souvent UNE décimale (8,4 dL ; 437,5 g).
+  // NE PAS relâcher cette règle « pour avoir des nombres ronds ».
+  // -------------------------------------------------------------------------
+  const pgcd = (a, b) => { a = Math.abs(a); b = Math.abs(b); while (b) { [a, b] = [b, a % b]; } return a; };
+  const evident = (a, b, v) => {
+    if (a === b) return true;
+    if ([a, b].some(x => x === 10 || x === 100 || x === 1000)) return true;
+    if ((2 * b) % a === 0 || (2 * a) % b === 0) return true;
+    const q = a / pgcd(a, b);
+    if (q < 4) return true;
+    if (v != null && Number.isInteger(v) && v % q === 0) return true;
+    if (v != null && Number.isInteger(v) && a % v === 0) return true;   // 7 dL pour 14 L : « la moitié »
+    return false;
+  };
+  // Une décimale au plus : « 8,4 » oui, « 8,75 » non.
+  const uneDecimale = (n) => Math.abs(n * 10 - Math.round(n * 10)) < 1e-9;
 
   // --- Patron 1 : Recette (un ingrédient ciblé) ---
   // Inspirée du modèle risotto : on donne 5 ingrédients pour N1 personnes,
@@ -11059,7 +11366,7 @@ function genPropConcretProp() {
       {
         plat: 'gâteau au chocolat',
         article: 'un',   // « un risotto », mais « des crêpes »
-        baseNb: 6,
+        baseNb: 8,       // 6 avant la v517 : aucun couple n'échappait au calcul de tête
         ingredients: [
           { name: 'g de chocolat', qty: 180 },
           { name: 'g de beurre', qty: 120 },
@@ -11073,34 +11380,36 @@ function genPropConcretProp() {
         article: 'des',   // « un risotto », mais « des crêpes »
         baseNb: 4,
         ingredients: [
-          { name: 'g de farine', qty: 200 },
+          { name: 'g de farine', qty: 250 },   // 200 avant la v517 (÷ 4 tombait juste)
           { name: 'œufs', qty: 3 },
           { name: 'dl de lait', qty: 5 },
           { name: 'c.s. de sucre', qty: 2 }
         ]
       }
     ];
-    const recette = choice(recettes);
-    // Choisir un ratio NON ENTIER pour éviter les calculs triviaux (×2, ×3).
-    // On privilégie 1,5 / 2,5 / 3,5 qui obligent un vrai calcul de proportionnalité.
-    // On exige que le nouveau nombre de personnes soit entier (baseNb × ratio).
-    const ratios = [1.5, 2.5, 3.5];
-    let target, ratio;
-    let safety = 20;
-    do {
-      ratio = choice(ratios);
-      target = recette.baseNb * ratio;
-      safety--;
-    } while (safety > 0 && !Number.isInteger(target));
-    // Sélectionne UN ingrédient cible – celui dont la nouvelle quantité tombe rond
-    const validIngs = recette.ingredients.filter(i => Number.isInteger(i.qty * ratio));
-    const cible = choice(validIngs.length > 0 ? validIngs : recette.ingredients);
-    const newQty = cible.qty * ratio;
+    // v517 : le nombre de convives visé et l'ingrédient demandé sont choisis
+    // ENSEMBLE, parmi les couples qui ne se calculent pas de tête (`evident`) et
+    // dont le résultat tient en une décimale. Seuls les ingrédients qui se
+    // PÈSENT ou se MESURENT sont demandés (g, dl) : « 2,5 œufs » n'a pas de sens.
+    const couples = [];
+    recettes.forEach(r => r.ingredients.forEach(ing => {
+      if (!/^(g|dl) /.test(ing.name)) return;
+      for (let t = 3; t <= 15; t++) {
+        if (evident(r.baseNb, t, ing.qty)) continue;
+        if (!uneDecimale(ing.qty * t / r.baseNb)) continue;
+        couples.push({ r, ing, t });
+      }
+    }));
+    // Secours : ne devrait jamais servir (les trois recettes offrent des couples).
+    const pick = couples.length ? choice(couples)
+      : { r: recettes[0], ing: recettes[0].ingredients[2], t: 7 };
+    const recette = pick.r, cible = pick.ing, target = pick.t;
+    const newQty = cible.qty * target / recette.baseNb;
     // Énoncé : liste compacte des ingrédients
     const listIng = recette.ingredients.map(i => `${i.qty} ${i.name}`).join(', ');
     return {
       text: `Ingrédients pour ${recette.article || 'un'} ${recette.plat} (${recette.baseNb} personnes) : ${listIng}. Combien de « ${cible.name} » faut-il pour ${target} personnes ?`,
-      answer: `Pour ${target} personnes (${target}/${recette.baseNb} = ${fmt(ratio)} × la recette de base) : ${cible.qty} × ${fmt(ratio)} = ${fmt(newQty)} ${cible.name}.`
+      answer: `Pour ${target} personnes : ${cible.qty} ÷ ${recette.baseNb} × ${target} = ${fmt(newQty)} ${cible.name}.`
     };
   }
 
@@ -11110,7 +11419,9 @@ function genPropConcretProp() {
     const aliment = choice(aliments);
     const prixKgList = [12, 14, 15, 16, 18, 20, 24, 25, 28, 30, 32, 35, 40, 45]; // CHF/kg ronds
     // Masses dont 1000/masse n'est PAS entier → pas de ×2/×5/×10 trivial.
-    const masseList = [300, 350, 400, 450, 600, 700, 750, 800];
+    // v517 : plus de 300, 400, 600, 700, 750 ni 800 g, d'où l'on remonte au kilo
+    // de tête (÷ 3 × 10, × 2,5, ÷ 7 × 10…).
+    const masseList = [350, 450, 550, 650, 850];
     let prixKg, masseG, prixCent, safety = 80;
     do {
       prixKg = choice(prixKgList);
@@ -11118,7 +11429,7 @@ function genPropConcretProp() {
       prixCent = prixKg * masseG / 10; // centimes (toujours entier, multiple de 5 ici)
       safety--;
     } while (safety > 0 && (!Number.isInteger(prixCent) || prixCent % 5 !== 0));
-    const prix = fmt(prixCent / 100);
+    const prix = fmtPrix(prixCent / 100);
     return {
       text: `À l'épicerie, on a payé ${prix} CHF pour ${masseG} g de ${aliment}. Quel est le prix au kilo ?`,
       answer: `Prix au kilo : (${prix} ÷ ${masseG}) × 1000 = ${prixKg} CHF/kg.`
@@ -11127,25 +11438,26 @@ function genPropConcretProp() {
 
   // --- Patron 3 : Partage proportionnel (3 parts, on demande UNE part) ---
   function patPartage() {
-    // Le paddle coûte 45 CHF pour la journée (prix fixe). Les répartitions ont
-    // des sommes variées (9, 10, 12, 15) : le prix horaire peut être entier
-    // (45÷9=5, 45÷15=3) ou décimal (45÷10=4,5 ; 45÷12=3,75), mais les parts
-    // finales restent calculables proprement.
-    const total = 45;
-    const partsList = [
-      [2, 3, 4],   // somme 9  → 5 CHF/h
-      [1, 3, 5],   // somme 9  → 5 CHF/h
-      [2, 3, 5],   // somme 10 → 4,5 CHF/h
-      [1, 4, 5],   // somme 10 → 4,5 CHF/h
-      [3, 4, 5],   // somme 12 → 3,75 CHF/h
-      [2, 4, 6],   // somme 12 → 3,75 CHF/h
-      [4, 5, 6],   // somme 15 → 3 CHF/h
-      [3, 5, 7],   // somme 15 → 3 CHF/h
-      [2, 6, 7]    // somme 15 → 3 CHF/h
-    ];
-    const parts = choice(partsList);
-    const somme = parts.reduce((a, b) => a + b, 0);
-    const unite = total / somme; // CHF par heure (entier ou décimal)
+    // v517 : le prix et les heures sont tirés ensemble. Avant, la location
+    // valait toujours 45 CHF et les heures totalisaient 9, 10, 12 ou 15 : la
+    // division se faisait de tête (45 ÷ 9, 45 ÷ 10, 45 ÷ 15). Désormais :
+    //   · trois durées différentes, de 1 à 7 heures, dont le total n'est pas 10 ;
+    //   · le prix par heure N'EST PAS un nombre entier, mais tombe au centime ;
+    //   · chaque part tombe au 5 centimes près, comme un prix réel.
+    let total = 54, parts = [1, 3, 4], somme = 8;        // secours : 6,75 CHF/h
+    for (let i = 0; i < 400; i++) {
+      const h = [rand(1, 7), rand(1, 7), rand(1, 7)];
+      if (new Set(h).size < 3) continue;
+      const S = h[0] + h[1] + h[2];
+      if (S === 10 || S < 8 || S > 15) continue;
+      const T = rand(38, 78);
+      if (T % S === 0) continue;                         // prix horaire entier : de tête
+      if ((T * 100) % S !== 0) continue;                 // prix horaire au centime
+      if (h.some(x => (T * 100 * x / S) % 5 !== 0)) continue;   // parts au 5 ct
+      total = T; parts = h.sort((x, y) => x - y); somme = S;
+      break;
+    }
+    const unite = total / somme; // CHF par heure
     // Choisir une personne et son nombre de parts
     // Trois prénoms du MÊME genre quand la liste le permet : l'énoncé accorde
     // « amis / amies » et « Ils / Elles ». À défaut (liste trop courte), on
@@ -11163,48 +11475,75 @@ function genPropConcretProp() {
     // Énoncé : location d'un paddle (stand-up paddle) à plusieurs, où le coût
     // total de la location est partagé au prorata du temps d'utilisation de
     // chacun – une situation de partage proportionnel naturelle.
-    const heuresList = parts.map((p, i) => `${prenoms[i]} ${p} heures`).join(', ');
+    const heuresList = parts.map((p, i) => `${prenoms[i]} ${p} ${p > 1 ? 'heures' : 'heure'}`).join(', ');
     return {
       text: `Trois ${motAmis} ont loué ensemble un paddle pour la journée. La location revient à ${total} CHF. ${motIls} décident de payer chacun${feminin ? 'e' : ''} proportionnellement au temps d'utilisation : ${heuresList}. Quelle est la part à payer pour ${prenom} ?`,
-      answer: `Total des heures : ${parts.join(' + ')} = ${somme} h. Prix par heure : ${total} ÷ ${somme} = ${fmt(unite)} CHF/h. Part de ${prenom} : ${fmt(unite)} × ${partCible} = ${fmt(sa_part)} CHF.`
+      answer: `Total des heures : ${parts.join(' + ')} = ${somme} h. Prix par heure : ${total} ÷ ${somme} = ${fmtPrix(unite)} CHF/h. Part de ${prenom} : ${fmtPrix(unite)} × ${partCible} = ${fmtPrix(sa_part)} CHF.`
     };
   }
 
-  // --- Patron 4 : Cadence de travail ---
-  // La référence porte sur 2 ou 3 heures (et non 1 h) : l'élève doit d'abord
-  // déduire la cadence horaire, puis calculer le temps. Échelle non entière.
+  // --- Patron 4 : Cadence de travail (v512, réponse en durée depuis la v513) ---
+  // Avant la v512 : référence de 2 ou 3 heures, cadence ronde, réponse en heures
+  // entières (« 600 m² en 2 h, combien pour 900 m² ? ») — jugé trop simple par
+  // Aurelio. Désormais la durée de référence est en HEURES ET MINUTES (jamais
+  // une heure pleine) et le rapport entre les deux surfaces n'est ni entier ni
+  // « une fois et demie ».
+  // On compte en QUARTS D'HEURE : `parQuart` = m² faits en 15 min (réalistes pour
+  // le métier), ce qui garantit des surfaces entières et une réponse en quarts
+  // d'heure — donc des heures décimales qui tombent toujours juste (…,25 / ,5 / ,75).
+  // LA QUESTION EST « Combien de temps » (v513) : la v512 demandait des minutes,
+  // refusé par Aurelio (« ça ne fait pas de sens »). La réponse est une DURÉE
+  // (`answerType: 'duree'`, voir `dureeQuestion`) : deux champs h / min.
+  // `answer` garde le raisonnement et finit par « … = N min. » pour les lecteurs
+  // génériques, qui ne retiennent que le DERNIER nombre.
   function patCadence() {
     const metiers = [
-      { metier: 'carreleur', verbe: 'pose', unite: 'm² de carreaux', tache: 'recouvrir un sol', cadences: [4, 5, 6] },
-      { metier: 'peintre',   verbe: 'peint', unite: 'm² de mur',     tache: 'peindre une pièce', cadences: [8, 10, 12, 15] },
-      { metier: 'jardinier', verbe: 'tond', unite: 'm² de pelouse',  tache: 'tondre un jardin', cadences: [150, 200, 250, 300] }
+      { metier: 'carreleur', verbe: 'pose', unite: 'm² de carreaux', tache: 'recouvrir un sol',  parQuart: [1, 1.5] },      // 4 à 6 m²/h
+      { metier: 'peintre',   verbe: 'peint', unite: 'm² de mur',     tache: 'peindre une pièce', parQuart: [2, 3, 4] },      // 8 à 16 m²/h
+      { metier: 'jardinier', verbe: 'tond', unite: 'm² de pelouse',  tache: 'tondre un jardin',  parQuart: [45, 60, 75, 90] } // 180 à 360 m²/h
     ];
+    const mil = (n) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, "'");
+    const duree = (q) => `${Math.floor(q / 4)} h ${(q % 4) * 15} min`;
     const m = choice(metiers);
-    const cadence = choice(m.cadences);       // m²/h réalistes pour ce métier
-    const refH = choice([2, 3]);              // référence sur 2 ou 3 heures
-    const refSurface = cadence * refH;
-    let targetH, safety = 40;
+    let c, refQ, cibleQ, safety = 200;
     do {
-      targetH = choice([2, 3, 4, 5, 6, 7]);
+      c = choice(m.parQuart);
+      refQ = choice([5, 6, 7, 9, 10, 11]);          // 1 h 15 à 2 h 45, jamais une heure pleine
+      cibleQ = rand(6, 20);                          // 1 h 30 à 5 h
       safety--;
-    } while (safety > 0 && (targetH === refH || targetH % refH === 0)); // échelle non entière
-    const surface = cadence * targetH;
+    } while (safety > 0 && (
+      cibleQ === refQ
+      || (2 * cibleQ) % refQ === 0                   // ×2, ×1,5, ×2,5… : rapport visible
+      || (2 * refQ) % cibleQ === 0                   // moitié, deux tiers… dans l'autre sens
+      || pgcd(refQ, cibleQ) !== 1                    // v517 : sinon « ÷ 3 puis × 7 » se voit
+      || !Number.isInteger(c * refQ) || !Number.isInteger(c * cibleQ)
+    ));
+    if (safety <= 0) { c = m.parQuart[0]; refQ = 7; cibleQ = 10; }   // secours : toujours juste
+    const refMin = refQ * 15, cibleMin = cibleQ * 15;
+    const refSurface = c * refQ, surface = c * cibleQ;
     return {
-      text: `En ${refH} heures de travail, un ${m.metier} ${m.verbe} ${refSurface} ${m.unite}. Combien de temps lui faudra-t-il pour ${m.tache} de ${surface} ${m.unite} ?`,
-      answer: `Cadence : ${refSurface} ÷ ${refH} = ${cadence} m²/h. Temps : ${surface} ÷ ${cadence} = ${targetH} h.`
+      text: `En ${duree(refQ)} de travail, un ${m.metier} ${m.verbe} ${mil(refSurface)} ${m.unite}. Combien de temps lui faudra-t-il pour ${m.tache} de ${mil(surface)} ${m.unite} ?`,
+      answer: `${duree(refQ)} = ${refMin} min. Temps : ${mil(surface)} ÷ ${mil(refSurface)} × ${refMin} = ${cibleMin} min.`,
+      ...dureeQuestion(cibleMin)
     };
   }
 
   // --- Patron 5 : Taux de change (CHF <-> EUR), sens alterné ---
-  // On donne une PAIRE de référence (et non le taux) → l'élève doit d'abord
-  // déduire le taux, puis l'appliquer. Échelle non entière (×1,5 / ×2,5 / ×3,5).
+  // On donne une PAIRE de référence (et non le taux). v517 : les deux montants
+  // en francs passent la règle `evident` (avant : 40, 80 ou 120 CHF puis ×1,5,
+  // ×2,5 ou ×3,5, qui se font de tête) ; taux resserrés autour du cours réel
+  // (1 CHF ≈ 1,04 à 1,08 EUR — ils allaient de 0,80 à 1,25).
   function patChange() {
-    const r = choice([1.05, 1.10, 1.20, 1.25, 0.95, 0.90, 0.80]);
-    const refChf = 40 * choice([1, 2, 3]);     // 40, 80 ou 120 CHF
-    const scale = choice([1.5, 2.5, 3.5]);
-    const qChf = refChf * scale;               // multiple de 20
-    const refEur = Math.round(refChf * r);     // entier (CHF multiple de 20)
-    const qEur = Math.round(qChf * r);
+    let refChf = 75, qChf = 120, taux = 106;                    // secours
+    for (let i = 0; i < 300; i++) {
+      const a = choice([60, 75, 80, 120, 125, 150, 160, 175, 180, 225, 240, 250]);
+      const b = 5 * rand(7, 92);                                // 35 à 460 CHF
+      if (evident(a, b, null)) continue;
+      refChf = a; qChf = b; taux = choice([104, 105, 106, 107, 108]);
+      break;
+    }
+    const refEur = fmtPrix(refChf * taux / 100);
+    const qEur = fmtPrix(qChf * taux / 100);
     if (Math.random() < 0.5) {
       return {
         text: `Au bureau de change, ${refChf} CHF valent ${refEur} EUR. Combien d'euros obtient-on pour ${qChf} CHF ?`,
@@ -11217,15 +11556,18 @@ function genPropConcretProp() {
     };
   }
 
-  // --- Patron 6 : Salaire horaire, sens alterné ---
+  // --- Patron 6 : Salaire horaire, sens alterné (PALIER 1 : taux entier) ---
+  // v517 : les deux durées n'ont aucun facteur commun (avant : 6 h puis 27 h,
+  // soit ×4,5). Il faut passer par le salaire horaire.
   function patSalaire() {
     const rate = choice([18, 21, 24, 25, 28, 30, 35]); // CHF/h
-    let refH, qH, safety = 40;
+    let refH = 7, qH = 23, safety = 80;
     do {
-      refH = choice([4, 5, 6, 8]);
-      qH = choice([10, 12, 15, 18, 20, 27, 30, 36]);
+      refH = choice([6, 7, 8, 9]);
+      qH = rand(11, 38);
       safety--;
-    } while (safety > 0 && (qH % refH === 0)); // échelle non entière -> oblige à passer par le taux
+    } while (safety > 0 && (pgcd(refH, qH) !== 1 || qH % 10 === 0));
+    if (safety <= 0) { refH = 7; qH = 23; }
     const refPay = rate * refH;
     const qPay = rate * qH;
     if (Math.random() < 0.5) {
@@ -11241,8 +11583,9 @@ function genPropConcretProp() {
   }
 
   // --- Patron 7 : Dosage / mélange (concentré <-> eau), sens alterné ---
-  // Rapports NON triviaux (2:5, 3:5, 4:5, 3:4) et échelle non entière entre la
-  // référence et la question → vraie règle de trois (résultats entiers).
+  // v517 : trois nombres tirés sous la règle `evident` (avant : 6 dL pour 15 L,
+  // combien pour 20 L — on divise par 3, on multiplie par 4). Le dosage reste
+  // entre 0,25 et 0,9 dL par litre ; la quantité cherchée a une décimale.
   function patDosage() {
     const mix = [
       { prod: 'sirop',           art: 'du ',   conc: 'concentré' },
@@ -11251,12 +11594,15 @@ function genPropConcretProp() {
       { prod: 'engrais liquide', art: "de l'", conc: 'produit'   }
     ];
     const m = choice(mix);
-    const rt = choice([{ c: 2, e: 5 }, { c: 3, e: 5 }, { c: 4, e: 5 }, { c: 3, e: 4 }]);
-    const fRef = choice([2, 3]);
-    const refConc = rt.c * fRef, refEau = rt.e * fRef;
-    // facteur question : échelle NON entière par rapport à la référence
-    const fQ = choice(fRef === 2 ? [3, 5, 7] : [2, 4, 5, 7]);
-    const qConc = rt.c * fQ, qEau = rt.e * fQ;
+    let refEau = 15, qEau = 18, refConc = 7;                    // secours : 8,4 dL
+    for (let i = 0; i < 400; i++) {
+      const a = rand(8, 24), b = rand(6, 36), v = rand(3, 14);
+      if (v / a < 0.25 || v / a > 0.9) continue;
+      if (evident(a, b, v) || !uneDecimale(v * b / a)) continue;
+      refEau = a; qEau = b; refConc = v;
+      break;
+    }
+    const qConc = fmt(refConc * qEau / refEau);
     if (Math.random() < 0.5) {
       return {
         text: `Pour préparer ${m.art}${m.prod}, on mélange ${refConc} dL de ${m.conc} pour ${refEau} L d'eau. Combien de dL de ${m.conc} faut-il pour ${qEau} L d'eau ?`,
@@ -11270,14 +11616,18 @@ function genPropConcretProp() {
   }
 
   // --- Patron 8 : Peinture / surface couverte, sens alterné ---
+  // v517 : trois nombres tirés sous la règle `evident` (avant : 4 ou 6 litres
+  // puis ×1,5 ou ×2,5). Rendement de 6 à 10 m² par litre.
   function patPeinture() {
-    // Rapport litres:m² non réduit, rendement NON entier (6,5 / 7,5 / 8,5 / 9,5 m²/L)
-    // et échelle non entière entre référence et question -> vraie règle de trois.
-    const b = choice([13, 15, 17, 19]);   // m² pour 2 litres -> rendement = b/2 (décimal)
-    const fRef = choice([2, 3]);
-    const refL = 2 * fRef, refS = b * fRef;
-    const fQ = choice(fRef === 2 ? [3, 5, 7] : [2, 4, 5, 7]);
-    const qL = 2 * fQ, qS = b * fQ;
+    let refL = 12, qL = 15, refS = 90;                          // secours : 112,5 m²
+    for (let i = 0; i < 400; i++) {
+      const a = rand(6, 15), b = rand(5, 24), v = rand(36, 140);
+      if (v / a < 6 || v / a > 10) continue;
+      if (evident(a, b, v) || !uneDecimale(v * b / a)) continue;
+      refL = a; qL = b; refS = v;
+      break;
+    }
+    const qS = fmt(refS * qL / refL);
     if (Math.random() < 0.5) {
       return {
         text: `Avec ${refL} litres de peinture, on couvre ${refS} m². Quelle surface peut-on couvrir avec ${qL} litres ?`,
@@ -11290,13 +11640,21 @@ function genPropConcretProp() {
     };
   }
 
-  // --- Patron 9 : Consommation de carburant (distance <-> litres), sens alterné ---
+  // --- Patron 9 : Consommation de carburant, sens alterné (PALIER 1 : taux entier) ---
+  // v517 : les deux quantités de carburant n'ont aucun facteur commun (avant :
+  // 45 L puis 5 L, neuf fois moins). Distance de référence sous 1'000 km : une
+  // apostrophe des milliers dans la réponse tromperait les lecteurs génériques.
   function patCarburant() {
-    const rate = choice([12, 14, 15, 16, 18, 20]); // km/L
-    const refL = choice([30, 40, 45, 50]);
+    let rate = 14, refL = 45, qL = 7, safety = 200;
+    do {
+      rate = choice([12, 13, 14, 16, 17, 18, 19]);              // km/L
+      refL = choice([32, 35, 36, 38, 42, 44, 45, 48, 52, 54, 55]);
+      qL = rand(7, 29);
+      safety--;
+    } while (safety > 0 && (pgcd(refL, qL) !== 1 || qL % 10 === 0 || refL * rate >= 1000));
+    if (safety <= 0) { rate = 14; refL = 45; qL = 7; }
     const refKm = refL * rate;
-    const k = choice([5, 8, 10, 12, 15, 20]);
-    const qL = k, qKm = k * rate;
+    const qKm = qL * rate;
     if (Math.random() < 0.5) {
       return {
         text: `Avec ${refL} litres d'essence, une voiture parcourt ${refKm} km. Quelle distance parcourt-elle avec ${qL} litres ?`,
@@ -11309,19 +11667,115 @@ function genPropConcretProp() {
     };
   }
 
-  // 9 modèles ; on tire 4 questions distinctes (a-d).
-  const patrons = [patRecette, patPrixKilo, patPartage, patCadence, patChange, patSalaire, patDosage, patPeinture, patCarburant];
-  const indices = [];
-  while (indices.length < 4) {
-    const r = Math.floor(Math.random() * patrons.length);
-    if (!indices.includes(r)) indices.push(r);
+  // --- Patron 10 : Deux offres à comparer (v514, idée d'Aurelio ; refait en v517) ---
+  // Deux magasins, le même produit, deux quantités et deux prix : l'élève
+  // ramène chaque offre à un prix unitaire (la pièce, ou les 100 g) et compare.
+  // v517, après le retour d'Aurelio (« 10 piles : on voit de tête » ; « 500 g
+  // puis 750 g : ça fera un peu plus de 15 ») :
+  //   · les deux quantités passent la règle `evident` DANS LES DEUX SENS — ni
+  //     10, ni 100 g, ni double, ni une fois et demie, ni « ÷ 3 × 4 » ;
+  //   · les prix sont de vrais prix (au 5 ct), si bien que le prix unitaire ne
+  //     tombe en général PAS juste : le corrigé l'arrondit au centime (« ≈ ») ;
+  //   · les deux prix unitaires ont la même partie entière en francs (8,40 CHF
+  //     les 8 contre 9 CHF les 10 : plus et moins d'un franc pièce, ça se voit) ;
+  //   · écart de 4 à 18 % : assez pour trancher, pas assez pour deviner ;
+  //   · le plus gros paquet coûte plus cher en tout ; la meilleure offre est
+  //     tantôt le gros paquet, tantôt le petit.
+  // La comparaison est EXACTE (produits en croix sur des centimes), jamais faite
+  // sur les valeurs arrondies. Réponse à choisir, deux boutons.
+  function patOffres() {
+    const pieces = [
+      { sing: 'le yogourt',   plur: 'yogourts',         pu: [55, 95] },
+      { sing: "l'œuf",        plur: 'œufs',             pu: [45, 75] },
+      { sing: 'la bouteille', plur: "bouteilles d'eau", pu: [60, 110] },
+      { sing: 'la pile',      plur: 'piles',            pu: [110, 180] },
+      { sing: 'le stylo',     plur: 'stylos',           pu: [110, 190] }
+    ];
+    const poids = [
+      { nom: 'de café',         pu: [160, 280] },
+      { nom: 'de fromage râpé', pu: [140, 240] },
+      { nom: 'de noix',         pu: [220, 360] },
+      { nom: 'de chocolat',     pu: [130, 240] }
+    ];
+    const paquets = [8, 9, 12, 15, 16, 18, 24];   // ni 5 ni 10 : la division se ferait de tête
+    const masses = [150, 180, 220, 250, 275, 350, 375, 450, 650, 750, 850];
+    const chf = (ct) => fmtPrix(ct / 100);
+    const auPoids = Math.random() < 0.5;
+    const o = choice(auPoids ? poids : pieces);
+    const den = auPoids ? 100 : 1;                      // prix unitaire : la pièce ou les 100 g
+    const au5 = (ct) => Math.round(ct / 5) * 5;
+    let q1, q2, t1, t2, ok = false;
+    for (let i = 0; i < 600 && !ok; i++) {
+      const qs = auPoids ? masses : paquets;
+      q1 = choice(qs); q2 = choice(qs.filter(v => v !== q1));
+      if (evident(q1, q2, null) || evident(q2, q1, null)) continue;
+      const u1 = rand(o.pu[0], o.pu[1]);
+      const u2 = u1 * (1 + choice([-1, 1]) * rand(5, 14) / 100);
+      if (u2 < o.pu[0] || u2 > o.pu[1]) continue;
+      t1 = au5(q1 * u1 / den); t2 = au5(q2 * u2 / den);
+      if ((q1 > q2) !== (t1 > t2) || t1 === t2) continue;
+      const r1 = t1 * den / q1, r2 = t2 * den / q2;      // prix unitaires réels, en centimes
+      const ecart = Math.abs(r1 - r2) / Math.min(r1, r2);
+      if (ecart < 0.04 || ecart > 0.18) continue;
+      if (Math.floor(r1 / 100) !== Math.floor(r2 / 100)) continue;
+      if (Math.round(r1) === Math.round(r2)) continue;
+      ok = true;
+    }
+    if (!ok) {   // secours : toujours juste
+      if (auPoids) { q1 = 350; t1 = au5(350 * (o.pu[0] + 30) / 100); q2 = 450; t2 = au5(450 * (o.pu[0] + 10) / 100); }
+      else { q1 = 8; t1 = au5(8 * (o.pu[0] + 12)); q2 = 9; t2 = au5(9 * (o.pu[0] + 3)); }
+    }
+    // Produits en croix : t1/q1 < t2/q2  ⇔  t1 × q2 < t2 × q1.
+    const bon = (t1 * q2 < t2 * q1) ? 0 : 1;
+    const magasins = ['Magasin A', 'Magasin B'];
+    const quoi = auPoids ? `g ${o.nom}` : o.plur;
+    const unite = auPoids ? 'les 100 g' : o.sing;
+    // Prix unitaire affiché : exact s'il tombe au centime, sinon « ≈ ».
+    const pu = (t, q) => {
+      const r = t * den / q;
+      return (Math.abs(r - Math.round(r)) < 1e-9 ? '' : '≈ ') + (Math.round(r) / 100).toFixed(2).replace('.', ',');
+    };
+    const calc = (t, q) => auPoids ? `${chf(t)} ÷ ${q} × 100` : `${chf(t)} ÷ ${q}`;
+    const pA = pu(t1, q1), pB = pu(t2, q2);
+    const [pb, pm] = bon === 0 ? [pA, pB] : [pB, pA];
+    return {
+      text: `Le magasin A vend ${q1} ${quoi} pour ${chf(t1)} CHF. Le magasin B vend ${q2} ${quoi} pour ${chf(t2)} CHF. Quelle est la meilleure offre ?`,
+      answerType: 'choice',
+      choices: magasins,
+      correctIdx: bon,
+      answer: magasins[bon],
+      // Corrigés PDF, export et tableur : la réponse ET les deux prix comparés.
+      attenduExport: `${magasins[bon]} (${pb} CHF ${unite}, contre ${pm} CHF)`,
+      solutionDetail: `Magasin A : ${calc(t1, q1)} = ${pA} CHF ${unite}. Magasin B : ${calc(t2, q2)} = ${pB} CHF ${unite}. Le magasin ${'AB'[bon]} est le moins cher.`.replace(/= ≈/g, '≈')
+    };
   }
+
+  // 10 modèles, 4 questions distinctes. PALIERS (v512) : a) simple, b) et c)
+  // moyens, d) difficile — le même équilibre 1, 2, 2, 3 que « Fractions ».
+  // PROP_PALIERS s'aligne sur l'INDEX des patrons : un patron ajouté sans son
+  // palier retombe en 2.
+  const patrons = [patRecette, patPrixKilo, patPartage, patCadence, patChange, patSalaire, patDosage, patPeinture, patCarburant, patOffres];
+  const byTier = { 1: [], 2: [], 3: [] };
+  patrons.forEach((_, i) => { (byTier[PROP_PALIERS[i] || 2] || byTier[2]).push(i); });
+  const indices = [];
+  [1, 2, 2, 3].forEach(t => {
+    const dispo = byTier[t].filter(i => !indices.includes(i));
+    indices.push(choice(dispo.length ? dispo : patrons.map((_, i) => i).filter(i => !indices.includes(i))));
+  });
   const questions = indices.map((idx, i) => {
     const q = patrons[idx]();
     return {
       label: labels[i],
       text: q.text,
-      answer: q.answer
+      answer: q.answer,
+      // Réponse en durée (cadence) : ses champs doivent survivre à l'assemblage.
+      ...(q.answerType ? { answerType: q.answerType } : {}),
+      ...(q.choices ? { choices: q.choices, correctIdx: q.correctIdx } : {}),
+      ...(q.solutionDetail ? { solutionDetail: q.solutionDetail } : {}),
+      ...(q.dureeMin != null ? { dureeMin: q.dureeMin } : {}),
+      ...(q.attenduExport ? { attenduExport: q.attenduExport } : {}),
+      // Étiquette du modèle : l'anti-répétition de l'atelier s'en sert.
+      _modele: `prop-${idx}`
     };
   });
   return {
@@ -18937,7 +19391,7 @@ const ICONE_ENSEIGNANT = '<svg viewBox="0 0 24 24" width="21" height="21" fill="
 const ICONE_PDF = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJkAAACUCAMAAAC3HHtWAAAAk1BMVEXi5ef////xVkKwt73K0dji6OrxW0jyUDnG2eHlzczmgnrV2t/x8/T19vbxUTzwTDX4u7Xnvr28wsf+8/L84N3yYlD1jID1hXf1kYb4q6L4t7D96ujwQib1mY7++Pf70c3zcWHxSC/zeGn3pJv6ysX72dXy2Nbj1dXtgnfyaFf3sKj6w73UubvV4ebco6HkioPitLFLhhsqAAAElUlEQVR4nO3ca5eaOhQG4ICOtHUa7AAqIgiIbdVezv//dUcS7tlAXIYkq4v308xCzeNOCAEVZAzmKxKWj8Xi4324tVbQyGahsqdow7J3wbLFgp82LHsTLuOv2rBMIKyQ8dMGZQLHfyXjpsmX8dIUyDhpKmR8NCUyLpoa2eLjq64yjqqpko1XTZlstGrqZGM0hbIRmkrZME2pbJCmVjZEUywboKmW9dOUy3qnXPWyvqppIOupmg4yuGpayMCq6SGDqiZPthySAVWTJ1sPytiqyZMNdydbNYmykaJ1aRJlY0Xr0GTKnqNJlY3sn22aXBlaL4fr1qBJlpEsB/KmVDZEUywboKmW9dOUy3pp6mV9NA1kPTQdZDBNCxlI00MG0TSRATRdZCxNGxlD00fWpWkkQ/rKkL4ypK8M6StD+sqQvjKkrwzpK0P6ypC+MqSvDOkrQ/rKkL6ytbYyVF+tnWWiZW8T5jlZ4Lby/fN0+YFAGyxzw9hbyUoc/oBooOxi2tiUFmybEA2SRaklz5XH/slZs5PEgtGsPrNFg2R3W7YMf+OTbWbZLJtls2yWzbJWrORYJklaaxFs2WUsiznm1htpoIPySzK8PQVl3Oyc1gQrDX3/nMc/h/t0lbTb3vqthDGwkHlFhneO0YyTXYtHWdvWFsc9xA3b6m504nhs1V6R2QemhT192OrS3WJs4rLx7hvKcz8KlVkbpoWI9ovnMlsMN4ULSnJIJpA5gUNStL+qZRFN+RLBDvfJgpXY3qSy2zXOs/MpIbRLWeT/3OYJb0UFL7R9KnMOdXzRewCV+TYmsa8BKdqxku3oFsvGu4C+SFLL3MakwU4rgmTlv/u8ak5emEJWVcKOadmuuJYBmKlkmHpiQGZaMenrg61EZppknso9jMw8khnG9fSTWWletCjF9TizHnmMwsdInFqG6S4A9mY5keR7LpUFYRX4JFugLPHzf6OK0ZatTuWDmfnM2UO012XnI931zTMZ5KfGrNFsEGdkF0igmdaJgQ59XZaFZE1xO9GZlrx/QGYS2Q2UGdtJZO3c6+NmZ5yRg/wZ6k3j4rEvLlrm0h2NlRW7R17R4uh0qnIA1kCCZVF2pW2wMjvMH+BcG7MGmTbywBfmBMqcU2gWbQDzGSnZhfwpa6Y9nWn2qVm9d0ZGZxQyzOTJzkfaJc0+6cjwMSQ7bmRLrZkPbClkCSZoHG+iumQayIzs9lgV3g73YqYzsuJp6mWdXK7N1baMccYpy7xi2EmQ2ed8C3Q4Zs/qorA6CcFpLhu9WP7a1YNNFB3AdULqRjXKcU/bY+P5OHQiN51UhnG6gz/AsLxdndSz2s+249119IOPF68F9axHyZY6TzxNmGzCzLJZNstm2TSyTPpnwh7nZ8KBbBiOGVfPdw9u7DXeSWHHX785ZVGYJNV52ORJ8J/lmlP2WOv54b6VL5Pl73/LT0/Iunn/NF3yLzXyjjNAxvzkQWy0lQEwPWTAKOOXrScM5PoXvrM3y2bZLJtls+zfk3He90Do3TnFykTe0ZQr9Q8XRmTSi9a4zcyITOQNap+Djckk92fzbin/A8PQxx30Ei25AAAAAElFTkSuQmCC';
 
 // Numéro de version, affiché en pied de menu.
-const APP_VERSION = '511';
+const APP_VERSION = '517';
 
 const DOMAINS = [
   {
@@ -26130,6 +26584,10 @@ function renderExercise(ex, num, exIdx) {
           content += showSol ? ` <span class="inline-solution">→ ${q.answer}</span>`
             + `<span class="quotient-complet">(${q.quotientComplet})</span>` : '';
         }
+        // Durée : les écritures admises, pas le dernier nombre du raisonnement.
+        else if (q.answerType === 'duree') {
+          content += showSol ? ` <span class="inline-solution">→ ${q.attenduExport}</span>` : '';
+        }
         // Si plusieurs réponses sont acceptables (unités mélangées : 1,5 m² OU
         // 15 000 cm²), on les affiche toutes séparées par " ou ".
         else if (q.acceptAlt && q.acceptAlt.length > 0) {
@@ -26259,6 +26717,17 @@ function renderInput(inputId, feedbackId, exIdx, qIdx, q, withButton) {
               <input type="text" id="${expInputId}" class="answer-input answer-input-exp" placeholder="exp" autocomplete="off" ${onEnter}>
              </span>${btnHtml}
              <span id="${feedbackId}" class="feedback"></span>`;
+  }
+  if (q && q.answerType === 'duree') {
+    // Durée : « [ ] h [ ] min ». `data-brut` : sans lui, « 2h45 » tapé dans le
+    // champ deviendrait « 2h⁴⁵ » (conversion des exposants de l'algèbre).
+    // Les unités portent `.answer-unite` : les chaînes PDF les retirent déjà.
+    return ` <span class="duree-champs no-print">`
+      + `<input type="text" id="${inputId}" class="answer-input answer-input-duree" data-brut="1" data-duree="h" placeholder="?" autocomplete="off" ${onEnter}>`
+      + `<span class="answer-unite">h</span>`
+      + `<input type="text" id="${inputId}-min" class="answer-input answer-input-duree" data-brut="1" data-duree="min" placeholder="?" autocomplete="off" ${onEnter}>`
+      + `<span class="answer-unite">min</span></span>${btnHtml}
+           <span id="${feedbackId}" class="feedback"></span>`;
   }
   // Unité imposée : elle s'affiche à droite du champ (comme dans les
   // transformations d'unités), l'élève n'a que le nombre à écrire.
@@ -26683,6 +27152,14 @@ function validateExercise(exIdx) {
 
     // Cas spécial : question 'unites-row' (2 inputs par ligne du tableau Temps)
     if (q.answerType === 'unites-row') {
+      validateAnswer(exIdx, qIdx);
+      continue;
+    }
+
+    // Cas spécial : durée (deux champs, un seul peut suffire — « 165 min »
+    // laisse les heures vides, ce que le chemin ordinaire prendrait pour une
+    // question sans réponse).
+    if (q.answerType === 'duree') {
       validateAnswer(exIdx, qIdx);
       continue;
     }
@@ -27694,6 +28171,24 @@ function validateAnswer(exIdx, qIdx) {
       feedback.classList.add('incorrect');
       feedback.innerHTML = '✗';
     }
+    return;
+  }
+  // Cas spécial : durée. La comparaison porte sur le TOTAL des deux champs.
+  if (qObj && qObj.answerType === 'duree') {
+    const baseId = (qIdx === null || qIdx === undefined) ? `inp-${exIdx}` : `inp-${exIdx}-${qIdx}`;
+    const fbId  = (qIdx === null || qIdx === undefined) ? `fb-${exIdx}` : `fb-${exIdx}-${qIdx}`;
+    const inpH = document.getElementById(baseId), inpM = document.getElementById(`${baseId}-min`);
+    const feedback = document.getElementById(fbId);
+    if (!feedback) return;
+    const lu = dureeSaisie(inpH, inpM);
+    [inpH, inpM].forEach(i => i && i.classList.remove('correct', 'incorrect'));
+    feedback.classList.remove('correct', 'incorrect');
+    if (lu.vide) { feedback.innerHTML = ''; return; }
+    const ok = Number.isFinite(lu.min) && Math.abs(lu.min - qObj.dureeMin) < 0.01;
+    // Le champ laissé vide reste neutre : il n'est ni juste ni faux.
+    [inpH, inpM].forEach(i => { if (i && (i.value || '').trim() !== '') i.classList.add(ok ? 'correct' : 'incorrect'); });
+    feedback.classList.add(ok ? 'correct' : 'incorrect');
+    feedback.innerHTML = ok ? '✓' : '✗';
     return;
   }
   // Cas spécial : question 'unites-row' du tableau Temps.
@@ -28862,6 +29357,17 @@ function _autoActions() {
           trio.forEach((v, k) => { if (k !== q.given) val(`${base}-c${k}`, v); });
           break;
         }
+        case 'duree': {
+          // UNE action pour la question : les deux champs valent une réponse.
+          const hI = document.getElementById(base), mI = document.getElementById(`${base}-min`);
+          if (!hI || !mI) break;
+          const hh = Math.floor(q.dureeMin / 60), mm = q.dureeMin % 60;
+          actions.push({
+            juste: () => { hI.value = String(hh); mI.value = String(mm); },
+            faux: () => { hI.value = String(hh + 1); mI.value = String(mm); }
+          });
+          break;
+        }
         case 'eq+val':
           val(base, q.equation); val(`${base}-v`, q.answer); break;
         case 'multi-named':
@@ -29084,6 +29590,9 @@ function reponseSaisieResultats(i, j, q) {
     const sel = grp ? grp.getAttribute('data-selected') : null;
     const idx = (sel === null || sel === '') ? -1 : parseInt(sel, 10);
     donnee = (idx >= 0 && q.choices && q.choices[idx] !== undefined) ? String(q.choices[idx]) : '';
+  } else if (q && q.answerType === 'duree') {
+    // « 2 h 45 min », pas « 2 | 45 ».
+    donnee = dureeSaisie(document.getElementById(prefixe), document.getElementById(`${prefixe}-min`)).texte;
   } else if (bloc) {
     donnee = [...bloc.querySelectorAll('input')]
       .filter(inp => (inp.id === prefixe) || (inp.id || '').startsWith(prefixe + '-'))
@@ -29327,6 +29836,7 @@ function signalerChampsVides(racine) {
   let premier = null;
   racine.querySelectorAll('input.answer-input, input.count-input, input.fill-input').forEach(inp => {
     if ((inp.value || '').trim() !== '') return;
+    if (champDureeDispense(inp)) return;
     inp.classList.add('champ-vide');
     if (!premier) premier = inp;
     inp.addEventListener('input', function nettoie() {
@@ -29446,7 +29956,10 @@ function afficherPointsParExercice(racine) {
 // Compte les champs de saisie encore vides, toutes familles confondues.
 function compterChampsVides(racine) {
   const champs = [...racine.querySelectorAll('input.answer-input, input.count-input, input.fill-input')];
-  let vides = champs.filter(i => !(i.value || '').trim()).length;
+  let vides = champs.filter(i => !(i.value || '').trim() && !champDureeDispense(i)).length;
+  // Une durée entièrement vide compte pour UNE réponse, pas deux.
+  vides -= [...racine.querySelectorAll('.duree-champs')]
+    .filter(g => [...g.querySelectorAll('input')].every(i => !(i.value || '').trim())).length;
   // Familles sans champ texte : appariements, sélections, clics sur figure.
   state.test.items.forEach((it, i) => {
     const ex = it.ex;
@@ -30108,7 +30621,9 @@ async function exporterTest(opts) {
           donneeChoix = (idx >= 0 && q.choices && q.choices[idx] !== undefined)
             ? String(q.choices[idx]) : '';
         }
-        const donnee = donneeChoix !== null ? donneeChoix : champs
+        const donnee = donneeChoix !== null ? donneeChoix
+          : (q.answerType === 'duree') ? dureeSaisie(champs[0], champs[1]).texte
+          : champs
           .map((c, k) => (c.value || '').trim()
             ? (c.value || '').trim() + ((q.answerType === 'transform-row'
                 && q.outputs && q.outputs[k] && q.outputs[k].unit) ? ' ' + q.outputs[k].unit : '')
@@ -30151,7 +30666,9 @@ async function exporterTest(opts) {
         // Deux écritures également justes (10⁻⁴ : fraction ou décimale) : le
         // corrigé les donne toutes les deux.
         if (q.attenduExport) brute = q.attenduExport;
-        const attendu = estReponseLongue(it.ex) ? extractFinalResult(brute) : brute;
+        // `attenduExport` est déjà la réponse à afficher : en extraire le
+        // « résultat final » n'en garderait que la dernière écriture.
+        const attendu = (!q.attenduExport && estReponseLongue(it.ex)) ? extractFinalResult(brute) : brute;
         return { q, j, donnee, parChamp, juste, partiel, attendu };
       });
       // L'énoncé accompagne la réponse – sauf quand il n'est lui-même qu'un
@@ -30332,7 +30849,7 @@ async function exporterTest(opts) {
                 + en.replace('___', rep) + '</div>';
             }
             // Plusieurs champs : chacun avec sa couleur, séparés par «  ;  ».
-            const corps = (parChamp && parChamp.length > 1)
+            const corps = (parChamp && parChamp.length > 1 && q.answerType !== 'duree')
               ? parChamp.map(c => rendu(c.val, c.juste, c.attendu, false,
                   /<sup/.test(String(c.attendu)))).join('<span style="color:#9CA3AF;"> ; </span>')
               : rendu(donnee, juste, attendu, partiel, /<sup/.test(String(attendu)));
