@@ -8,7 +8,7 @@ générant des exercices de mathématiques pour adultes (programme PAI, Suisse).
 Product owner : Aurelio (Onex/Genève). Répondre en FRANÇAIS.
 
 ───────────────────────────────────────────────────────────────────────────────
-0. OÙ ON EN EST (v519, 11.10.2026) — à lire en premier
+0. OÙ ON EN EST (v521, 12.10.2026) — à lire en premier
 ───────────────────────────────────────────────────────────────────────────────
 L'application est en ligne : https://aureliohub.github.io/eva_maths.html
 Les fichiers de série et de test (.json) sont déposés à côté d'elle, et s'ouvrent
@@ -543,6 +543,49 @@ PDF de domaine :
 ───────────────────────────────────────────────────────────────────────────────
 Cette section décrit l'ÉTAT, non l'historique. Les numéros de version ne sont
 cités que lorsqu'ils aident à retrouver un choix dans le fichier.
+
+v521 — « % - RABAIS », MODÈLE « MEILLEURE AFFAIRE » (patron I) : RÉPONSE À
+ CHOISIR ET NOMBRES SERRÉS (12.10, demande d'Aurelio : « passer en choix […]
+ l'exemple est trop simple et se fait de tête ; conserver le modèle mais avec
+ des nombres plus proches et plus difficiles à trouver »).
+ · Défaut corrigé : le champ attendait le dernier nombre du raisonnement
+   (« 14 », c'est-à-dire le rabais du magasin B) et le corrigé l'affichait.
+   Désormais deux boutons « Magasin A » / « Magasin B » ; corrigé (via
+   `attenduExport`) : « Magasin A (47,55 CHF de réduction, contre 46 CHF) ».
+   genPropConcretRabais transmet maintenant answerType, choices, correctIdx,
+   attenduExport et solutionDetail (il ne gardait que text et answer).
+ · Nombres : prix jamais multiple de 10 ni de 25 ; taux de 12, 15, 18, 22, 24,
+   35 ou 45 % ; réduction du magasin B en francs entiers, à 0,50–3 CHF de celle
+   du magasin A, tantôt au-dessus, tantôt au-dessous.
+ Banc au vrai navigateur : 6 000 exercices du niveau, 2 403 « meilleure
+ affaire » recalculés depuis l'énoncé (bonne réponse, écart de 0,55 à 2,95 CHF,
+ prix et taux jamais ronds, corrigé), A gagne 1 218 fois, B 1 185 fois ; clic
+ faux ✗, clic juste ✓ ; test : 1 point, tableur « Magasin A » / juste ;
+ remplissage automatique 100 % ; écran et PDF regardés.
+ VU AU PASSAGE, non touché : les autres modèles de ce niveau gardent des
+ nombres ronds qui se calculent de tête (« 200 CHF, 15 % », « 45 CHF sur
+ 450 CHF »). La règle « pas de tête » du niveau Proportionnalité (v517) ne s'y
+ applique pas encore.
+
+v520 — NIVEAU « % - RABAIS » : MODÈLE DOUBLE RABAIS (12.10, demande d'Aurelio :
+ « ajouter un modèle avec un double rabais en %, quel est le % total » ; deux
+ exemples proposés puis acceptés).
+ · Dernier patron de PROP_CONCRET_PATRONS : il entre dans le tirage des quatre
+   rabais du niveau (genPropConcretRabais), sans palier — ce niveau n'en a pas.
+ · Deux formes à pile ou face : AVEC un prix (« Daniel achète une chemise à
+   180 CHF. En soldes, l'article est réduit de 30 %. À la caisse, Daniel obtient
+   encore 20 % de rabais sur le prix soldé. Quel est le rabais total en % ? »
+   → 44 %) et SANS prix (« Un magasin baisse ses prix de 20 %, puis de 15 % sur
+   le nouveau prix… » → 32 %, en raisonnant sur 100).
+ · Douze paires (20/10, 30/10, 20/15, 30/20, 35/20, 40/15, 40/10, 20/5, 40/20 et
+   leurs inverses quand le total ne change pas) : total entier, jamais 40, 50
+   ou 60 %. Prix payé au 5 ct, prix écrits par fmtPrix.
+ Banc au vrai navigateur : 6 000 exercices du niveau, chaque double rabais
+ recalculé depuis son énoncé (prix soldé, prix payé, total), réponse jamais
+ égale à la somme des deux taux ; saisie frappée « 32 », « 32 % », « 32% »
+ juste, « 35 » (la somme) faux ; écran et PDF du niveau regardés.
+ VU AU PASSAGE : le modèle « meilleure affaire » attendait « 14 » au lieu du
+ magasin — corrigé en v521.
 
 v519 — CHANGE : LE DOLLAR S'AJOUTE À L'EURO (11.10, demande d'Aurelio). Une fois
  sur deux : « Au bureau de change, le cours est de 1 USD = 0,83 CHF. Combien de
@@ -11328,7 +11371,12 @@ function genPropConcretRabais() {
   for (let i = chosen.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [chosen[i], chosen[j]] = [chosen[j], chosen[i]]; }
   const questions = chosen.map((patron, i) => {
     const q = patron();
-    return { label: labels[i], text: q.text, answer: q.answer };
+    // Les modèles à choisir (« meilleure affaire », v521) gardent leurs champs.
+    return { label: labels[i], text: q.text, answer: q.answer,
+      ...(q.answerType ? { answerType: q.answerType } : {}),
+      ...(q.choices ? { choices: q.choices, correctIdx: q.correctIdx } : {}),
+      ...(q.attenduExport ? { attenduExport: q.attenduExport } : {}),
+      ...(q.solutionDetail ? { solutionDetail: q.solutionDetail } : {}) };
   });
   return {
     multi: true,
@@ -12013,29 +12061,83 @@ const PROP_CONCRET_PATRONS = [
     },
 
     // Patron I : comparer deux offres (−pct% vs −montant CHF) → la plus avantageuse.
+    // v521 (retour d'Aurelio : « trop simple, se fait de tête ») :
+    //   · la réponse est À CHOISIR, « Magasin A » / « Magasin B » — avant la
+    //     v521, le champ attendait le dernier nombre du raisonnement (« 14 ») ;
+    //   · prix non rond (jamais un multiple de 10 ni de 25) et taux qui ne se
+    //     calculent pas de tête (ni 10, ni 20, ni 25, ni 50 %) ;
+    //   · la réduction en francs du magasin B est PROCHE de celle du magasin A :
+    //     de 0,50 à 3 CHF d'écart, si bien qu'une estimation ne suffit pas.
+    //     Elle est tantôt plus forte, tantôt plus faible.
     () => {
-      for (let tries = 0; tries < 60; tries++) {
-        const pct = choice(PROP_CONCRET_PCTS);
+      const pcts = [12, 15, 18, 22, 24, 35, 45];
+      for (let tries = 0; tries < 300; tries++) {
+        const pct = choice(pcts);
         const obj = choice(OBJETS_PROP);
-        const tirage = tirePrixDepartEtPaye(obj.min, obj.max, pct);
-        if (!tirage) continue;
-        const rabaisA = tirage.prixDepart - tirage.paye;
-        const ecart = choice([10, 15, 20, 25, 30, 40]);
-        let rabaisB = Math.round((Math.random() < 0.5 ? rabaisA + ecart : rabaisA - ecart));
-        if (rabaisB <= 0 || rabaisB === rabaisA) continue;
+        const P = rand(obj.min, obj.max);
+        if (P % 10 === 0 || P % 25 === 0) continue;
+        const rabaisCt = P * pct;                                // centimes
+        if (rabaisCt % 5 !== 0) continue;
+        const rabaisA = rabaisCt / 100;
+        const rabaisB = Math.round(rabaisA) + choice([-3, -2, -1, 1, 2, 3]);
+        const ecart = Math.abs(rabaisA - rabaisB);
+        if (rabaisB <= 0 || ecart < 0.5 || ecart > 3) continue;
         const { prenom, genre } = pickPrenom();
         const faitIl = genre === 'M' ? 'il' : 'elle';
         const Obj = obj.nom.charAt(0).toUpperCase() + obj.nom.slice(1);
-        const concl = rabaisA > rabaisB
-          ? `${fmtCHF(rabaisA)} CHF > ${rabaisB} CHF : le magasin A est plus avantageux.`
-          : `${rabaisB} CHF > ${fmtCHF(rabaisA)} CHF : le magasin B est plus avantageux.`;
+        const bon = rabaisA > rabaisB ? 0 : 1;
+        const magasins = ['Magasin A', 'Magasin B'];
+        const [rb, rm] = bon === 0 ? [fmtPrix(rabaisA), rabaisB] : [rabaisB, fmtPrix(rabaisA)];
         return {
-          text: `${Obj} coûte ${fmtCHF(tirage.prixDepart)} CHF. Le magasin A propose une réduction de ${pct}%, le magasin B une réduction de ${rabaisB} CHF. Dans quel magasin ${prenom} fait-${faitIl} la meilleure affaire ?`,
-          answer: `Magasin A : ${fmtCHF(tirage.prixDepart)} × ${pct} ÷ 100 = ${fmtCHF(rabaisA)} CHF de réduction. Magasin B : ${rabaisB} CHF. ${concl}`
+          text: `${Obj} coûte ${P} CHF. Le magasin A propose une réduction de ${pct} %, le magasin B une réduction de ${rabaisB} CHF. Dans quel magasin ${prenom} fait-${faitIl} la meilleure affaire ?`,
+          answerType: 'choice',
+          choices: magasins,
+          correctIdx: bon,
+          answer: magasins[bon],
+          attenduExport: `${magasins[bon]} (${rb} CHF de réduction, contre ${rm} CHF)`,
+          solutionDetail: `Magasin A : ${P} × ${pct} ÷ 100 = ${fmtPrix(rabaisA)} CHF de réduction. Magasin B : ${rabaisB} CHF de réduction. Le magasin ${'AB'[bon]} fait la plus grande réduction.`
         };
       }
-      return { text: `Une trottinette coûte 360 CHF. Le magasin A propose une réduction de 25%, le magasin B une réduction de 80 CHF. Dans quel magasin Inès fait-elle la meilleure affaire ?`, answer: `Magasin A : 360 × 25 ÷ 100 = 90 CHF de réduction. Magasin B : 80 CHF. 90 CHF > 80 CHF : le magasin A est plus avantageux.` };
-    }
+      return { text: `Une trottinette coûte 317 CHF. Le magasin A propose une réduction de 15 %, le magasin B une réduction de 46 CHF. Dans quel magasin Inès fait-elle la meilleure affaire ?`,
+        answerType: 'choice', choices: ['Magasin A', 'Magasin B'], correctIdx: 0, answer: 'Magasin A',
+        attenduExport: 'Magasin A (47,55 CHF de réduction, contre 46 CHF)',
+        solutionDetail: 'Magasin A : 317 × 15 ÷ 100 = 47,55 CHF de réduction. Magasin B : 46 CHF de réduction. Le magasin A fait la plus grande réduction.' };
+    },
+    // Patron v520 : DOUBLE RABAIS — quel est le rabais total en % ? (demande
+    // d'Aurelio du 12.10). Le piège voulu : additionner les deux pourcentages
+    // (30 % puis 20 % ne font pas 50 %, mais 44 %). Deux formes à pile ou face :
+    //   · avec un prix (un article d'OBJETS_PROP) : on calcule le prix soldé,
+    //     le prix payé, puis le rabais en % ;
+    //   · sans prix : on raisonne sur 100.
+    // Paires retenues : le total tombe juste, sans décimale, et n'est pas rond
+    // au point de se deviner (pas de 50 % puis 20 % → 60 %, ni de 25 % puis
+    // 20 % → 40 %). Prix payé au 5 ct.
+    () => {
+      const paires = [[20, 10], [10, 20], [30, 10], [20, 15], [15, 20], [30, 20], [20, 30],
+                      [35, 20], [40, 15], [40, 10], [20, 5], [40, 20]];
+      const [a, b] = choice(paires);
+      const total = 100 - (100 - a) * (100 - b) / 100;
+      const k = (x) => ((100 - x) / 100).toFixed(2).replace('.', ',');
+      if (Math.random() < 0.5) {
+        for (let tries = 0; tries < 80; tries++) {
+          const obj = choice(OBJETS_PROP);
+          const P = 5 * rand(Math.ceil(obj.min / 5), Math.floor(obj.max / 5));
+          const payeCt = P * (100 - a) * (100 - b) / 100;           // centimes
+          if (!Number.isInteger(payeCt) || payeCt % 5 !== 0) continue;
+          const solde = P * (100 - a) / 100, paye = payeCt / 100;
+          const { prenom } = pickPrenom();
+          return {
+            text: `${prenom} achète ${obj.nom} à ${P} CHF. En soldes, l'article est réduit de ${a} %. À la caisse, ${prenom} obtient encore ${b} % de rabais sur le prix soldé. Quel est le rabais total en % ?`,
+            answer: `Prix soldé : ${P} × ${k(a)} = ${fmtPrix(solde)} CHF. Prix payé : ${fmtPrix(solde)} × ${k(b)} = ${fmtPrix(paye)} CHF. Rabais : ${P} − ${fmtPrix(paye)} = ${fmtPrix(P - paye)} CHF, soit ${fmtPrix(P - paye)} ÷ ${P} × 100 = ${total} %.`
+          };
+        }
+      }
+      const qui = choice(['Un magasin', "Un magasin d'électronique", 'Une boutique de sport', 'Un magasin de meubles']);
+      return {
+        text: `${qui} baisse ses prix de ${a} %, puis de ${b} % sur le nouveau prix. Quel est le rabais total en % ?`,
+        answer: `Sur 100 CHF : 100 × ${k(a)} = ${100 - a} CHF, puis ${100 - a} × ${k(b)} = ${fmtPrix(100 - total)} CHF. Rabais total : 100 − ${fmtPrix(100 - total)} = ${total} %.`
+      };
+    },
 ];
 
 // Modèles « pertes en cuisine » (perte à la cuisson, à l'épluchage/parage, puis
@@ -19443,7 +19545,7 @@ const ICONE_ENSEIGNANT = '<svg viewBox="0 0 24 24" width="21" height="21" fill="
 const ICONE_PDF = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJkAAACUCAMAAAC3HHtWAAAAk1BMVEXi5ef////xVkKwt73K0dji6OrxW0jyUDnG2eHlzczmgnrV2t/x8/T19vbxUTzwTDX4u7Xnvr28wsf+8/L84N3yYlD1jID1hXf1kYb4q6L4t7D96ujwQib1mY7++Pf70c3zcWHxSC/zeGn3pJv6ysX72dXy2Nbj1dXtgnfyaFf3sKj6w73UubvV4ebco6HkioPitLFLhhsqAAAElUlEQVR4nO3ca5eaOhQG4ICOtHUa7AAqIgiIbdVezv//dUcS7tlAXIYkq4v308xCzeNOCAEVZAzmKxKWj8Xi4324tVbQyGahsqdow7J3wbLFgp82LHsTLuOv2rBMIKyQ8dMGZQLHfyXjpsmX8dIUyDhpKmR8NCUyLpoa2eLjq64yjqqpko1XTZlstGrqZGM0hbIRmkrZME2pbJCmVjZEUywboKmW9dOUy3qnXPWyvqppIOupmg4yuGpayMCq6SGDqiZPthySAVWTJ1sPytiqyZMNdydbNYmykaJ1aRJlY0Xr0GTKnqNJlY3sn22aXBlaL4fr1qBJlpEsB/KmVDZEUywboKmW9dOUy3pp6mV9NA1kPTQdZDBNCxlI00MG0TSRATRdZCxNGxlD00fWpWkkQ/rKkL4ypK8M6StD+sqQvjKkrwzpK0P6ypC+MqSvDOkrQ/rKkL6ytbYyVF+tnWWiZW8T5jlZ4Lby/fN0+YFAGyxzw9hbyUoc/oBooOxi2tiUFmybEA2SRaklz5XH/slZs5PEgtGsPrNFg2R3W7YMf+OTbWbZLJtls2yWzbJWrORYJklaaxFs2WUsiznm1htpoIPySzK8PQVl3Oyc1gQrDX3/nMc/h/t0lbTb3vqthDGwkHlFhneO0YyTXYtHWdvWFsc9xA3b6m504nhs1V6R2QemhT192OrS3WJs4rLx7hvKcz8KlVkbpoWI9ovnMlsMN4ULSnJIJpA5gUNStL+qZRFN+RLBDvfJgpXY3qSy2zXOs/MpIbRLWeT/3OYJb0UFL7R9KnMOdXzRewCV+TYmsa8BKdqxku3oFsvGu4C+SFLL3MakwU4rgmTlv/u8ak5emEJWVcKOadmuuJYBmKlkmHpiQGZaMenrg61EZppknso9jMw8khnG9fSTWWletCjF9TizHnmMwsdInFqG6S4A9mY5keR7LpUFYRX4JFugLPHzf6OK0ZatTuWDmfnM2UO012XnI931zTMZ5KfGrNFsEGdkF0igmdaJgQ59XZaFZE1xO9GZlrx/QGYS2Q2UGdtJZO3c6+NmZ5yRg/wZ6k3j4rEvLlrm0h2NlRW7R17R4uh0qnIA1kCCZVF2pW2wMjvMH+BcG7MGmTbywBfmBMqcU2gWbQDzGSnZhfwpa6Y9nWn2qVm9d0ZGZxQyzOTJzkfaJc0+6cjwMSQ7bmRLrZkPbClkCSZoHG+iumQayIzs9lgV3g73YqYzsuJp6mWdXK7N1baMccYpy7xi2EmQ2ed8C3Q4Zs/qorA6CcFpLhu9WP7a1YNNFB3AdULqRjXKcU/bY+P5OHQiN51UhnG6gz/AsLxdndSz2s+249119IOPF68F9axHyZY6TzxNmGzCzLJZNstm2TSyTPpnwh7nZ8KBbBiOGVfPdw9u7DXeSWHHX785ZVGYJNV52ORJ8J/lmlP2WOv54b6VL5Pl73/LT0/Iunn/NF3yLzXyjjNAxvzkQWy0lQEwPWTAKOOXrScM5PoXvrM3y2bZLJtls+zfk3He90Do3TnFykTe0ZQr9Q8XRmTSi9a4zcyITOQNap+Djckk92fzbin/A8PQxx30Ei25AAAAAElFTkSuQmCC';
 
 // Numéro de version, affiché en pied de menu.
-const APP_VERSION = '519';
+const APP_VERSION = '521';
 
 const DOMAINS = [
   {
