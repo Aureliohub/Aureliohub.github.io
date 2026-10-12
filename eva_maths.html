@@ -8,7 +8,7 @@ générant des exercices de mathématiques pour adultes (programme PAI, Suisse).
 Product owner : Aurelio (Onex/Genève). Répondre en FRANÇAIS.
 
 ───────────────────────────────────────────────────────────────────────────────
-0. OÙ ON EN EST (v523, 12.10.2026) — à lire en premier
+0. OÙ ON EN EST (v525, 12.10.2026) — à lire en premier
 ───────────────────────────────────────────────────────────────────────────────
 L'application est en ligne : https://aureliohub.github.io/eva_maths.html
 Les fichiers de série et de test (.json) sont déposés à côté d'elle, et s'ouvrent
@@ -543,6 +543,49 @@ PDF de domaine :
 ───────────────────────────────────────────────────────────────────────────────
 Cette section décrit l'ÉTAT, non l'historique. Les numéros de version ne sont
 cités que lorsqu'ils aident à retrouver un choix dans le fichier.
+
+v525 — « % - RABAIS », DEUX REMISES (G) : PRIX FINAL AU 5 CT (12.10). La v524
+ le laissait au centime (340,34 CHF) ; Aurelio : « le prix final avec les deux
+ rabais doit tomber sur 0 ou 5 cts ». Trois scénarios lui ont été présentés ; il
+ a retenu le premier : prix multiple de 10 mais jamais de 50. Conséquence
+ arithmétique, MESURÉE au banc (plus stricte que ce qui lui avait été annoncé,
+ « presque toujours 15 % ») : la seconde remise vaut TOUJOURS 15 %, la
+ première 15, 35 ou 45 % — trois paires, à parts égales ; prix multiples de 20
+ (140 CHF, −45 % puis −15 % → 65,45 CHF). Signalé à Aurelio. Écartés : les multiples de 50 (de tête) et l'arrondi « comme à
+ la caisse » (une compétence de plus). Le tirage énumère les combinaisons
+ valables pour l'article tiré.
+ Banc au vrai navigateur : 10 000 exercices du niveau, paliers et exclusions
+ toujours respectés, treize modèles recalculés sans défaut ; G : 4 257 énoncés,
+ 659 distincts, prix final toujours au 5 ct, prix multiple de 10 et jamais de
+ 50 ; bonnes réponses frappées : 50 sur 50.
+
+v524 — NIVEAU « % - RABAIS » : PALIERS ET RÈGLE « PAS DE TÊTE » (12.10, accord
+ d'Aurelio sur le classement proposé et sur la règle).
+ · PALIERS a) 1, b) c) 2, d) e) 3 (RABAIS_PALIERS, CUISINE_PALIERS, à côté de
+   PROP_CONCRET_PCTS). Toujours UN problème de cuisine, placé à son palier.
+   Jamais ensemble : B et D (même calcul), G et le double rabais.
+   CHANGEMENT PAR RAPPORT AU CLASSEMENT PROPOSÉ : G (deux remises → prix
+   final) passe du palier 2 au palier 3. Sans cela, le palier 3 devait loger
+   deux questions parmi B, D et le double rabais, et G ne sortait presque
+   jamais (il est exclu avec le double rabais). Palier 3 : un modèle de {B, D}
+   et un de {G, double}, ou le poids cru (J).
+ · Les questions portent `_modele` (« rabais-A », « cuisine-K »…).
+ · RÈGLE (lire le commentaire de `tireRabaisDur`) : taux PCTS_DUR (8, 12, 15,
+   18, 22, 24, 35, 45 % — jamais 5, 10, 20, 25, 50) ; prix jamais multiple de
+   10 ni de 25, plafonné à 999 CHF ; rabais et prix payés au 5 ct, écrits par
+   fmtPrix (fmtCHF arrondissait au demi-franc). G (deux remises) : voir v525. Double rabais : paires sans 5 ni 10 %
+   (15 puis 20 % → 32 %, 24 puis 25 % → 43 %…). Cuisine : poids au décagramme,
+   jamais un demi-kilo rond (2,25 kg ; 3,15 kg), pertes sans 10, 20, 25 %,
+   portions de 45, 55, 65, 70 ou 85 g.
+ · CONSÉQUENCE : le test raccourci garde a), b) et c) de ce niveau
+   (COMPO_TEST_GLOBAL) — un palier 1 et deux paliers 2. Non modifié.
+ Banc au vrai navigateur : 10 000 exercices du niveau — paliers 1, 2, 2, 3, 3
+ toujours, une seule question de cuisine, aucune paire exclue ; chacun des
+ treize modèles recalculé en fractions exactes depuis son énoncé (taux de
+ PCTS_DUR, prix non ronds, 5 ct, plafond 999, poids au décagramme) : zéro
+ défaut, aucun nombre de quatre chiffres sans apostrophe. Bonnes réponses
+ FRAPPÉES dans 10 exercices : 50 sur 50. Écran et PDF du niveau regardés ; PDF
+ du domaine 2 produit (5 pages).
 
 v523 — FRACTIONS : LA RÈGLE « PAS DE TÊTE » À TOUS LES MODÈLES (12.10, « oui,
  même traitement »). Exemples qu'Aurelio jugeait trop simples : « les 9/10
@@ -11420,16 +11463,38 @@ function genPropConcretRabais() {
     }
     return idx.map(i => arr[i]);
   };
-  const chosen = [
-    ...pickDistinct(PROP_CONCRET_PATRONS, 4),   // 4 rabais / soldes
-    ...pickDistinct(PROP_PERTES_PATRONS, 1)     // 1 perte cuisine (parmi J, K, L)
-  ];
-  // Mélange les 4 rabais et le problème cuisine (proportion 4:1 conservée).
-  for (let i = chosen.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [chosen[i], chosen[j]] = [chosen[j], chosen[i]]; }
-  const questions = chosen.map((patron, i) => {
-    const q = patron();
+  // v524 : PALIERS a) simple, b) c) moyens, d) e) difficiles (RABAIS_PALIERS,
+  // CUISINE_PALIERS). Toujours UN problème de cuisine, placé à son palier ;
+  // jamais deux modèles de RABAIS_EXCLUS ensemble. Avant la v524, les cinq
+  // questions étaient tirées puis mélangées au hasard.
+  // `pickDistinct` reste pour mémoire : il n'est plus appelé.
+  void pickDistinct;
+  const paliers = [1, 2, 2, 3, 3];
+  const ic = Math.floor(Math.random() * PROP_PERTES_PATRONS.length);
+  const placesCuisine = paliers.map((t, k) => t === CUISINE_PALIERS[ic] ? k : -1).filter(k => k >= 0);
+  const posCuisine = choice(placesCuisine);
+  const pris = [];
+  const slots = paliers.map(() => null);
+  slots[posCuisine] = { patron: PROP_PERTES_PATRONS[ic], modele: `cuisine-${'JKL'[ic]}` };
+  // Les paliers les plus contraints d'abord (3, puis 2, puis 1).
+  [3, 2, 1].forEach(t => {
+    paliers.forEach((pt, k) => {
+      if (pt !== t || slots[k]) return;
+      const interdits = new Set(pris);
+      RABAIS_EXCLUS.forEach(g => { if (g.some(x => pris.includes(x))) g.forEach(x => interdits.add(x)); });
+      const dispo = RABAIS_PALIERS.map((p, i) => (p === t && !interdits.has(i)) ? i : -1).filter(i => i >= 0);
+      const i = choice(dispo.length ? dispo : RABAIS_PALIERS.map((p, j) => p === t ? j : -1).filter(j => j >= 0));
+      pris.push(i);
+      slots[k] = { patron: PROP_CONCRET_PATRONS[i], modele: `rabais-${'ABCDEFGHI'[i] || 'double'}` };
+    });
+  });
+  // À palier égal, l'ordre est libre : on mélange b)/c) et d)/e).
+  [[1, 2], [3, 4]].forEach(([x, y]) => { if (Math.random() < 0.5) [slots[x], slots[y]] = [slots[y], slots[x]]; });
+  const questions = slots.map((slot, i) => {
+    const q = slot.patron();
     // Les modèles à choisir (« meilleure affaire », v521) gardent leurs champs.
     return { label: labels[i], text: q.text, answer: q.answer,
+      _modele: slot.modele,
       ...(q.answerType ? { answerType: q.answerType } : {}),
       ...(q.choices ? { choices: q.choices, correctIdx: q.correctIdx } : {}),
       ...(q.attenduExport ? { attenduExport: q.attenduExport } : {}),
@@ -11944,19 +12009,59 @@ function genPropConcretProp() {
 
 const PROP_CONCRET_PCTS = [5, 10, 15, 20, 25, 30, 35, 40, 45];
 
+// ---------------------------------------------------------------------------
+// NIVEAU « % - RABAIS » : RÈGLE « PAS DE TÊTE » (v524, accord d'Aurelio du
+// 12.10, après celles des niveaux Proportionnalité (v517) et Fractions (v523)).
+// Exemples qui se faisaient de tête : « un manteau à 200 CHF, 15 % de
+// réduction » ; « 45 CHF de rabais sur 450 CHF ».
+//   · taux PCTS_DUR : jamais 5, 10, 20, 25, 50 % ;
+//   · prix entier mais jamais multiple de 10 ni de 25 ;
+//   · rabais et prix payé au 5 ct, écrits avec deux décimales (fmtPrix) —
+//     fmtCHF, qui arrondit au demi-franc, ne convient plus à ces modèles.
+// `tireRabaisDur(obj)` fournit { pct, prixDepart, paye, rabais } aux modèles A
+// à F et H ; G, I, le double rabais et la cuisine ont leur propre tirage.
+// ---------------------------------------------------------------------------
+const PCTS_DUR = [8, 12, 15, 18, 22, 24, 35, 45];
+function tireRabaisDur(obj) {
+  for (let i = 0; i < 400; i++) {
+    const pct = choice(PCTS_DUR);
+    // Plafond 999 CHF : une apostrophe des milliers dans la RÉPONSE tromperait
+    // les lecteurs génériques (« 1'295 » serait lu « 295 »).
+    const P = rand(obj.min, Math.min(obj.max, 999));
+    if (P % 10 === 0 || P % 25 === 0) continue;
+    const rabaisCt = P * pct;                                    // centimes
+    if (rabaisCt % 5 !== 0) continue;
+    return { pct, prixDepart: P, rabais: rabaisCt / 100, paye: (P * 100 - rabaisCt) / 100 };
+  }
+  return { pct: 15, prixDepart: 317, rabais: 47.55, paye: 269.45 };
+}
+// Paliers du niveau (1 = une étape ; 2 = deux étapes ou calcul « à l'envers »
+// simple ; 3 = pourcentage inverse ou deux réductions enchaînées), dans
+// l'ordre des tableaux PROP_CONCRET_PATRONS et PROP_PERTES_PATRONS.
+//   A % depuis prix et prix payé : 2   B prix initial depuis prix payé : 3
+//   C prix à payer : 1                 D prix affiché (variante de B) : 3
+//   E montant du rabais : 1            F % depuis le rabais en CHF : 2
+//   G deux remises → prix final : 3    H prix initial depuis le rabais : 2
+//   I meilleure affaire : 2            double rabais → % total : 3
+//   cuisine J poids cru : 3   K poids net : 1   L portions : 2
+const RABAIS_PALIERS = [2, 3, 1, 3, 1, 2, 3, 2, 2, 3];
+const CUISINE_PALIERS = [3, 1, 2];
+// Jamais dans le même exercice : B et D (même calcul), G et le double rabais
+// (deux réductions enchaînées).
+const RABAIS_EXCLUS = [[1, 3], [6, 9]];
+
 const PROP_CONCRET_PATRONS = [
     // Patron A : connaît prixDepart et paye, trouve la réduction en %
     // "X a payé un Y {paye} CHF. Calcule la réduction en %, sachant que cet article coûtait au départ {prixDepart} CHF."
     () => {
       for (let tries = 0; tries < 50; tries++) {
-        const pct = choice(PROP_CONCRET_PCTS);
         const obj = choice(OBJETS_PROP);
-        const tirage = tirePrixDepartEtPaye(obj.min, obj.max, pct);
-        if (!tirage) continue;
+        const tirage = tireRabaisDur(obj);                       // v524
+        const pct = tirage.pct;
         const { prenom } = pickPrenom();
         return {
-          text: `${prenom} a payé ${obj.nom} ${fmtCHF(tirage.paye)} CHF. Calcule la réduction en %, sachant que cet article coûtait au départ ${fmtCHF(tirage.prixDepart)} CHF.`,
-          answer: `Réduction en CHF : ${fmtCHF(tirage.prixDepart)} − ${fmtCHF(tirage.paye)} = ${fmtCHF(tirage.prixDepart - tirage.paye)} CHF. Réduction en % : (${fmtCHF(tirage.prixDepart - tirage.paye)} ÷ ${fmtCHF(tirage.prixDepart)}) × 100 = ${pct} %.`
+          text: `${prenom} a payé ${obj.nom} ${fmtPrix(tirage.paye)} CHF. Calcule la réduction en %, sachant que cet article coûtait au départ ${fmtPrix(tirage.prixDepart)} CHF.`,
+          answer: `Réduction en CHF : ${fmtPrix(tirage.prixDepart)} − ${fmtPrix(tirage.paye)} = ${fmtPrix(tirage.prixDepart - tirage.paye)} CHF. Réduction en % : (${fmtPrix(tirage.prixDepart - tirage.paye)} ÷ ${fmtPrix(tirage.prixDepart)}) × 100 = ${pct} %.`
         };
       }
       // Fallback (très rare) : objet sûr
@@ -11974,16 +12079,15 @@ const PROP_CONCRET_PATRONS = [
     // "X achète aux soldes Y qu'il/elle paie {paye} CHF. Calcule le prix qu'il/elle aurait payé si il/elle n'avait pas eu une réduction de {pct}%."
     () => {
       for (let tries = 0; tries < 50; tries++) {
-        const pct = choice(PROP_CONCRET_PCTS);
         const obj = choice(OBJETS_PROP);
-        const tirage = tirePrixDepartEtPaye(obj.min, obj.max, pct);
-        if (!tirage) continue;
+        const tirage = tireRabaisDur(obj);                       // v524
+        const pct = tirage.pct;
         const { prenom, genre } = pickPrenom();
         const pronomS = genre === 'M' ? 'il' : 'elle';
         const sIlElle = genre === 'M' ? "s'il" : "si elle";
         return {
-          text: `${prenom} achète aux soldes ${obj.nom} qu'${pronomS} paie ${fmtCHF(tirage.paye)} CHF. Calcule le prix qu'${pronomS} aurait payé ${sIlElle} n'avait pas eu une réduction de ${pct}%.`,
-          answer: `${fmtCHF(tirage.paye)} CHF représente (100 − ${pct}) = ${100 - pct} % du prix initial. Prix initial : ${fmtCHF(tirage.paye)} ÷ ${100 - pct} × 100 = ${fmtCHF(tirage.prixDepart)} CHF.`
+          text: `${prenom} achète aux soldes ${obj.nom} qu'${pronomS} paie ${fmtPrix(tirage.paye)} CHF. Calcule le prix qu'${pronomS} aurait payé ${sIlElle} n'avait pas eu une réduction de ${pct}%.`,
+          answer: `${fmtPrix(tirage.paye)} CHF représente (100 − ${pct}) = ${100 - pct} % du prix initial. Prix initial : ${fmtPrix(tirage.paye)} ÷ ${100 - pct} × 100 = ${fmtPrix(tirage.prixDepart)} CHF.`
         };
       }
       // Fallback
@@ -11998,15 +12102,14 @@ const PROP_CONCRET_PATRONS = [
     // "X souhaite acheter Y qui coûte {prixDepart} CHF. Sur la vitrine, il/elle lit : '{pct}% de réduction sur tous les articles.' Calcule le prix que X va payer à la caisse."
     () => {
       for (let tries = 0; tries < 50; tries++) {
-        const pct = choice(PROP_CONCRET_PCTS);
         const obj = choice(OBJETS_PROP);
-        const tirage = tirePrixDepartEtPaye(obj.min, obj.max, pct);
-        if (!tirage) continue;
+        const tirage = tireRabaisDur(obj);                       // v524
+        const pct = tirage.pct;
         const { prenom, genre } = pickPrenom();
         const ilElle = genre === 'M' ? 'il' : 'elle';
         return {
-          text: `${prenom} souhaite acheter ${obj.nom} qui coûte ${fmtCHF(tirage.prixDepart)} CHF. Sur la vitrine, ${ilElle} lit : « ${pct}% de réduction sur tous les articles. » Calcule le prix ${elideQue(prenom)} va payer à la caisse.`,
-          answer: `Réduction : ${fmtCHF(tirage.prixDepart)} × ${pct} ÷ 100 = ${fmtCHF(tirage.prixDepart - tirage.paye)} CHF. Prix payé : ${fmtCHF(tirage.prixDepart)} − ${fmtCHF(tirage.prixDepart - tirage.paye)} = ${fmtCHF(tirage.paye)} CHF.`
+          text: `${prenom} souhaite acheter ${obj.nom} qui coûte ${fmtPrix(tirage.prixDepart)} CHF. Sur la vitrine, ${ilElle} lit : « ${pct}% de réduction sur tous les articles. » Calcule le prix ${elideQue(prenom)} va payer à la caisse.`,
+          answer: `Réduction : ${fmtPrix(tirage.prixDepart)} × ${pct} ÷ 100 = ${fmtPrix(tirage.prixDepart - tirage.paye)} CHF. Prix payé : ${fmtPrix(tirage.prixDepart)} − ${fmtPrix(tirage.prixDepart - tirage.paye)} = ${fmtPrix(tirage.paye)} CHF.`
         };
       }
       // Fallback
@@ -12021,17 +12124,16 @@ const PROP_CONCRET_PATRONS = [
     // "X achète aux soldes Y qu'il/elle paie {paye} CHF. Calcule le prix qu'il/elle aurait payé si il/elle n'avait pas eu une réduction de {pct}%."
     () => {
       for (let tries = 0; tries < 50; tries++) {
-        const pct = choice(PROP_CONCRET_PCTS);
         const obj = choice(OBJETS_PROP);
-        const tirage = tirePrixDepartEtPaye(obj.min, obj.max, pct);
-        if (!tirage) continue;
+        const tirage = tireRabaisDur(obj);                       // v524
+        const pct = tirage.pct;
         const { prenom, genre } = pickPrenom();
         const ilElleMaj = genre === 'M' ? 'Il' : 'Elle';
         // L'accord du participe passé avec « l'a » dépend du genre de l'OBJET (COD antéposé), pas du sujet.
         const payeAccord = obj.genre === 'F' ? "l'a payée" : "l'a payé";
         return {
-          text: `${prenom} a profité des soldes pour acheter ${obj.nom}. ${ilElleMaj} ${payeAccord} ${fmtCHF(tirage.paye)} CHF grâce à une réduction de ${pct}%. Quel était le prix affiché avant la réduction ?`,
-          answer: `${fmtCHF(tirage.paye)} CHF représente (100 − ${pct}) = ${100 - pct} % du prix affiché. Prix affiché : ${fmtCHF(tirage.paye)} ÷ ${100 - pct} × 100 = ${fmtCHF(tirage.prixDepart)} CHF.`
+          text: `${prenom} a profité des soldes pour acheter ${obj.nom}. ${ilElleMaj} ${payeAccord} ${fmtPrix(tirage.paye)} CHF grâce à une réduction de ${pct}%. Quel était le prix affiché avant la réduction ?`,
+          answer: `${fmtPrix(tirage.paye)} CHF représente (100 − ${pct}) = ${100 - pct} % du prix affiché. Prix affiché : ${fmtPrix(tirage.paye)} ÷ ${100 - pct} × 100 = ${fmtPrix(tirage.prixDepart)} CHF.`
         };
       }
       // Fallback
@@ -12045,15 +12147,14 @@ const PROP_CONCRET_PATRONS = [
     // Patron E : connaît prixDepart et pct → trouve le MONTANT du rabais (en CHF).
     () => {
       for (let tries = 0; tries < 50; tries++) {
-        const pct = choice(PROP_CONCRET_PCTS);
         const obj = choice(OBJETS_PROP);
-        const tirage = tirePrixDepartEtPaye(obj.min, obj.max, pct);
-        if (!tirage) continue;
+        const tirage = tireRabaisDur(obj);                       // v524
+        const pct = tirage.pct;
         const rabais = tirage.prixDepart - tirage.paye;
         const { prenom } = pickPrenom();
         return {
-          text: `${prenom} voit ${obj.nom} au prix de ${fmtCHF(tirage.prixDepart)} CHF. Le magasin accorde une réduction de ${pct}%. Calcule le montant de la réduction, en CHF.`,
-          answer: `Réduction : ${fmtCHF(tirage.prixDepart)} × ${pct} ÷ 100 = ${fmtCHF(rabais)} CHF.`
+          text: `${prenom} voit ${obj.nom} au prix de ${fmtPrix(tirage.prixDepart)} CHF. Le magasin accorde une réduction de ${pct}%. Calcule le montant de la réduction, en CHF.`,
+          answer: `Réduction : ${fmtPrix(tirage.prixDepart)} × ${pct} ÷ 100 = ${fmtPrix(rabais)} CHF.`
         };
       }
       const { prenom } = pickPrenom();
@@ -12063,54 +12164,63 @@ const PROP_CONCRET_PATRONS = [
     // Patron F : connaît prixDepart et le rabais en CHF → trouve la réduction en %.
     () => {
       for (let tries = 0; tries < 50; tries++) {
-        const pct = choice(PROP_CONCRET_PCTS);
         const obj = choice(OBJETS_PROP);
-        const tirage = tirePrixDepartEtPaye(obj.min, obj.max, pct);
-        if (!tirage) continue;
+        const tirage = tireRabaisDur(obj);                       // v524
+        const pct = tirage.pct;
         const rabais = tirage.prixDepart - tirage.paye;
         const { prenom } = pickPrenom();
         const Obj = obj.nom.charAt(0).toUpperCase() + obj.nom.slice(1);
         return {
-          text: `${Obj} coûtait ${fmtCHF(tirage.prixDepart)} CHF. À la caisse, ${prenom} bénéficie d'un rabais de ${fmtCHF(rabais)} CHF. Calcule la réduction en %.`,
-          answer: `Réduction en % : (${fmtCHF(rabais)} ÷ ${fmtCHF(tirage.prixDepart)}) × 100 = ${pct} %.`
+          text: `${Obj} coûtait ${fmtPrix(tirage.prixDepart)} CHF. À la caisse, ${prenom} bénéficie d'un rabais de ${fmtPrix(rabais)} CHF. Calcule la réduction en %.`,
+          answer: `Réduction en % : (${fmtPrix(rabais)} ÷ ${fmtPrix(tirage.prixDepart)}) × 100 = ${pct} %.`
         };
       }
       return { text: `Un manteau coûtait 240 CHF. À la caisse, Tom bénéficie d'un rabais de 36 CHF. Calcule la réduction en %.`, answer: `Réduction en % : (36 ÷ 240) × 100 = 15 %.` };
     },
 
     // Patron G : double remise (deux pourcentages enchaînés) → trouve le prix final.
+    // v525 (décision d'Aurelio, « scénario 1 ») : le prix final DOIT tomber au
+    // 5 ct. C'est impossible avec un prix non multiple de 10 (il faut 2² × 5³
+    // dans prix × (100 − p1) × (100 − p2)). Le prix est donc un multiple de 10,
+    // mais JAMAIS de 50 (500 − 15 % se fait de tête). Conséquence arithmétique,
+    // mesurée : il faut DEUX facteurs 5 dans les taux, donc les deux remises
+    // parmi 15, 35, 45 % ; la seconde, plafonnée à 18 %, vaut toujours 15 %.
+    // Paires possibles : 15 + 15, 35 + 15, 45 + 15 % (prix multiples de 20).
+    // On énumère toutes les combinaisons valables pour l'article tiré.
     () => {
-      for (let tries = 0; tries < 80; tries++) {
-        const p1 = choice(PROP_CONCRET_PCTS);
+      for (let tries = 0; tries < 60; tries++) {
         const obj = choice(OBJETS_PROP);
-        const t1 = tirePrixDepartEtPaye(obj.min, obj.max, p1);
-        if (!t1) continue;
-        const v1 = t1.paye; // prix après la 1re remise (demi-CHF)
-        const p2 = choice([5, 10, 15, 20]);   // 2e remise plus réaliste (≤ 20 %)
-        const v2demis = (v1 * 2 * (100 - p2)) / 100;
-        if (!Number.isInteger(v2demis)) continue;
-        const v2 = v2demis / 2;
+        const combos = [];
+        for (let P = Math.ceil(obj.min / 10) * 10; P <= Math.min(obj.max, 999); P += 10) {
+          if (P % 50 === 0) continue;
+          PCTS_DUR.forEach(p1 => [8, 12, 15, 18].forEach(p2 => {
+            if ((P * (100 - p1) * (100 - p2)) % 500 === 0) combos.push([P, p1, p2]);
+          }));
+        }
+        if (!combos.length) continue;
+        const [P, p1, p2] = choice(combos);
+        const v1 = P * (100 - p1) / 100;
+        const v2 = P * (100 - p1) * (100 - p2) / 10000;
         const Obj = obj.nom.charAt(0).toUpperCase() + obj.nom.slice(1);
         return {
-          text: `${Obj} coûte ${fmtCHF(t1.prixDepart)} CHF. Le magasin applique d'abord une réduction de ${p1}%, puis ${p2}% supplémentaires à la caisse. Calcule le prix final payé.`,
-          answer: `Après la 1re réduction : ${fmtCHF(t1.prixDepart)} × (100 − ${p1}) ÷ 100 = ${fmtCHF(v1)} CHF. Après la 2e réduction : ${fmtCHF(v1)} × (100 − ${p2}) ÷ 100 = ${fmtCHF(v2)} CHF.`
+          text: `${Obj} coûte ${P} CHF. Le magasin applique d'abord une réduction de ${p1}%, puis ${p2}% supplémentaires à la caisse. Calcule le prix final payé.`,
+          answer: `Après la 1re réduction : ${P} × (100 − ${p1}) ÷ 100 = ${fmtPrix(v1)} CHF. Après la 2e réduction : ${fmtPrix(v1)} × (100 − ${p2}) ÷ 100 = ${fmtPrix(v2)} CHF.`
         };
       }
-      return { text: `Une veste coûte 200 CHF. Le magasin applique d'abord une réduction de 20%, puis 10% supplémentaires à la caisse. Calcule le prix final payé.`, answer: `Après la 1re réduction : 200 × (100 − 20) ÷ 100 = 160 CHF. Après la 2e réduction : 160 × (100 − 10) ÷ 100 = 144 CHF.` };
+      return { text: `Une veste coûte 240 CHF. Le magasin applique d'abord une réduction de 45%, puis 15% supplémentaires à la caisse. Calcule le prix final payé.`, answer: `Après la 1re réduction : 240 × (100 − 45) ÷ 100 = 132 CHF. Après la 2e réduction : 132 × (100 − 15) ÷ 100 = 112,20 CHF.` };
     },
 
     // Patron H : connaît le rabais en CHF et le pct → trouve le prix initial.
     () => {
       for (let tries = 0; tries < 50; tries++) {
-        const pct = choice(PROP_CONCRET_PCTS);
         const obj = choice(OBJETS_PROP);
-        const tirage = tirePrixDepartEtPaye(obj.min, obj.max, pct);
-        if (!tirage) continue;
+        const tirage = tireRabaisDur(obj);                       // v524
+        const pct = tirage.pct;
         const rabais = tirage.prixDepart - tirage.paye;
         const { prenom } = pickPrenom();
         return {
-          text: `Pendant les soldes, ${prenom} économise ${fmtCHF(rabais)} CHF sur ${obj.nom} grâce à une réduction de ${pct}%. Calcule le prix initial.`,
-          answer: `${fmtCHF(rabais)} CHF correspond à ${pct} % du prix initial. Prix initial : ${fmtCHF(rabais)} ÷ ${pct} × 100 = ${fmtCHF(tirage.prixDepart)} CHF.`
+          text: `Pendant les soldes, ${prenom} économise ${fmtPrix(rabais)} CHF sur ${obj.nom} grâce à une réduction de ${pct}%. Calcule le prix initial.`,
+          answer: `${fmtPrix(rabais)} CHF correspond à ${pct} % du prix initial. Prix initial : ${fmtPrix(rabais)} ÷ ${pct} × 100 = ${fmtPrix(tirage.prixDepart)} CHF.`
         };
       }
       const { prenom } = pickPrenom();
@@ -12131,7 +12241,7 @@ const PROP_CONCRET_PATRONS = [
       for (let tries = 0; tries < 300; tries++) {
         const pct = choice(pcts);
         const obj = choice(OBJETS_PROP);
-        const P = rand(obj.min, obj.max);
+        const P = rand(obj.min, Math.min(obj.max, 999));
         if (P % 10 === 0 || P % 25 === 0) continue;
         const rabaisCt = P * pct;                                // centimes
         if (rabaisCt % 5 !== 0) continue;
@@ -12170,17 +12280,20 @@ const PROP_CONCRET_PATRONS = [
     // au point de se deviner (pas de 50 % puis 20 % → 60 %, ni de 25 % puis
     // 20 % → 40 %). Prix payé au 5 ct.
     () => {
-      const paires = [[20, 10], [10, 20], [30, 10], [20, 15], [15, 20], [30, 20], [20, 30],
-                      [35, 20], [40, 15], [40, 10], [20, 5], [40, 20]];
+      // v524 : plus de 10 % ni de 5 % — « 20 % puis 10 % » se faisait de tête.
+      const paires = [[15, 20], [20, 15], [35, 20], [20, 35], [45, 20], [20, 45], [12, 25],
+                      [25, 12], [24, 25], [25, 24], [15, 40], [40, 15], [35, 40], [40, 35]];
       const [a, b] = choice(paires);
       const total = 100 - (100 - a) * (100 - b) / 100;
       const k = (x) => ((100 - x) / 100).toFixed(2).replace('.', ',');
       if (Math.random() < 0.5) {
-        for (let tries = 0; tries < 80; tries++) {
+        for (let tries = 0; tries < 400; tries++) {
           const obj = choice(OBJETS_PROP);
-          const P = 5 * rand(Math.ceil(obj.min / 5), Math.floor(obj.max / 5));
+          const P = rand(obj.min, Math.min(obj.max, 999));           // v524 : prix non rond
+          if (P % 10 === 0 || P % 25 === 0) continue;
           const payeCt = P * (100 - a) * (100 - b) / 100;           // centimes
           if (!Number.isInteger(payeCt) || payeCt % 5 !== 0) continue;
+          if ((P * (100 - a)) % 5 !== 0) continue;                   // prix soldé au 5 ct
           const solde = P * (100 - a) / 100, paye = payeCt / 100;
           const { prenom } = pickPrenom();
           return {
@@ -12205,15 +12318,17 @@ const PROP_PERTES_PATRONS = [
     //         cuit et qu'il a perdu 15% à la cuisson ? »  cru = cuit ÷ (100−perte) × 100.
     () => {
       const viandes = ['un carré de veau', 'un rôti de bœuf', "un gigot d'agneau", 'un filet de porc', 'un poulet fermier', 'un rosbif', 'un jambon'];
-      const pertes = [10, 15, 20, 25];
-      const crus = [1.6, 2, 2.4, 2.5, 2.8, 3, 3.2, 3.5, 4];
-      const fmtKg = v => { const r = Math.round(v * 10) / 10; return (Number.isInteger(r) ? String(r) : r.toFixed(1).replace('.', ',')) + ' kg'; };
-      for (let tries = 0; tries < 80; tries++) {
+      // v524 : poids cru au décagramme (2,25 kg, 2,76 kg…), jamais un demi-kilo
+      // rond ; pertes de 12 à 35 %, jamais 10, 20 ni 25 % ; poids cuit au
+      // décagramme lui aussi.
+      const pertes = [12, 15, 24, 28, 35];
+      const fmtKg = v => { const r = Math.round(v * 100) / 100; return (Number.isInteger(r) ? String(r) : r.toFixed(2).replace('.', ',')) + ' kg'; };
+      for (let tries = 0; tries < 400; tries++) {
         const perte = choice(pertes);
-        const cru = choice(crus);
-        const cuit = Math.round(cru * (100 - perte)) / 100;
-        if (Math.abs(cuit * 10 - Math.round(cuit * 10)) > 1e-9) continue; // cuit doit tomber juste (1 décimale)
-        if (cuit <= 0 || cuit >= cru) continue;
+        const cruDag = rand(120, 400);                              // décagrammes
+        if (cruDag % 50 === 0 || (cruDag * (100 - perte)) % 100 !== 0) continue;
+        const cru = cruDag / 100;
+        const cuit = cruDag * (100 - perte) / 10000;
         const nom = choice(viandes);
         return {
           text: `Quel était le poids d'${nom} cru sachant qu'il pèse ${fmtKg(cuit)} cuit et qu'il a perdu ${perte}% à la cuisson ?`,
@@ -12229,25 +12344,26 @@ const PROP_PERTES_PATRONS = [
     // Patron K : poids NET après épluchage/parage (diminution en % directe).
     // Ex. : « 3,5 kg de pommes de terre non épluchées, 20% de pertes → poids épluché. »
     () => {
-      const fmtKg = v => { const r = Math.round(v * 100) / 100; return (Number.isInteger(r) ? String(r) : String(r).replace('.', ',')) + ' kg'; };
+      const fmtKg = v => { const r = Math.round(v * 100) / 100; return (Number.isInteger(r) ? String(r) : r.toFixed(2).replace('.', ',')) + ' kg'; };
       // Chaque aliment porte sa fourchette de pertes réaliste :
       // épluchage 8–12 % ; parage (courge, céleri-rave) 20–30 %.
       const aliments = [
-        { brut: 'de pommes de terre non épluchées', net: 'des pommes de terre épluchées', perte: "à l'épluchage", pcts: [8, 10, 12] },
-        { brut: 'de carottes non épluchées',        net: 'des carottes épluchées',        perte: "à l'épluchage", pcts: [8, 10, 12] },
-        { brut: "d'oignons non épluchés",           net: 'des oignons épluchés',           perte: "à l'épluchage", pcts: [8, 10, 12] },
-        { brut: 'de navets non épluchés',           net: 'des navets épluchés',            perte: "à l'épluchage", pcts: [8, 10, 12] },
-        { brut: 'de courge non parée',              net: 'de la courge parée',             perte: 'au parage',      pcts: [20, 25, 30] },
-        { brut: 'de céleri-rave non paré',          net: 'du céleri-rave paré',            perte: 'au parage',      pcts: [20, 25, 30] }
+        { brut: 'de pommes de terre non épluchées', net: 'des pommes de terre épluchées', perte: "à l'épluchage", pcts: [8, 12, 15] },
+        { brut: 'de carottes non épluchées',        net: 'des carottes épluchées',        perte: "à l'épluchage", pcts: [8, 12, 15] },
+        { brut: "d'oignons non épluchés",           net: 'des oignons épluchés',           perte: "à l'épluchage", pcts: [8, 12, 15] },
+        { brut: 'de navets non épluchés',           net: 'des navets épluchés',            perte: "à l'épluchage", pcts: [8, 12, 15] },
+        { brut: 'de courge non parée',              net: 'de la courge parée',             perte: 'au parage',      pcts: [24, 28, 35] },
+        { brut: 'de céleri-rave non paré',          net: 'du céleri-rave paré',            perte: 'au parage',      pcts: [24, 28, 35] }
       ];
-      const bruts = [2, 2.5, 3, 3.5, 4, 4.5, 5, 6];
-      for (let tries = 0; tries < 80; tries++) {
+      // v524 : poids brut au décagramme, jamais un demi-kilo rond ; pertes sans
+      // 10, 20 ni 25 % ; poids net au décagramme.
+      for (let tries = 0; tries < 400; tries++) {
         const a = choice(aliments);
         const perte = choice(a.pcts);
-        const brut = choice(bruts);
-        const net = Math.round(brut * (100 - perte)) / 100;
-        if (Math.abs(net * 100 - Math.round(net * 100)) > 1e-9) continue; // net à ≤ 2 décimales
-        if (net <= 0 || net >= brut) continue;
+        const brutDag = rand(150, 650);
+        if (brutDag % 50 === 0 || (brutDag * (100 - perte)) % 100 !== 0) continue;
+        const brut = brutDag / 100;
+        const net = brutDag * (100 - perte) / 10000;
         return {
           text: `Vous avez ${fmtKg(brut)} ${a.brut}. Calculez le poids ${a.net} si vous avez ${perte}% de pertes ${a.perte}.`,
           answer: `Avec ${perte}% de pertes, il reste (100 − ${perte}) = ${100 - perte} % du poids. Poids net : ${fmtKg(brut)} × ${100 - perte} ÷ 100 = ${fmtKg(net)}.`
@@ -12262,26 +12378,32 @@ const PROP_PERTES_PATRONS = [
     // Patron L : pertes en % puis nombre de PORTIONS servies (division entière).
     // Ex. : « plateau de 1 kg de rampon, 8% à jeter, portions de 55 g → combien de portions ? »
     () => {
-      const fmtKg = v => (Number.isInteger(v) ? String(v) : String(v).replace('.', ',')) + ' kg';
+      const fmtKg = v => { const r = Math.round(v * 100) / 100; return (Number.isInteger(r) ? String(r) : r.toFixed(2).replace('.', ',')) + ' kg'; };
       const aliments = ['de rampon', 'de mâche', 'de roquette', 'de jeunes pousses', 'de cresson', "d'épinards"];
-      const pertes = [5, 8, 10, 12, 15, 20];
-      const plateaux = [1, 1.5, 2, 2.5, 3];
-      const portionsG = [40, 50, 55, 60, 75, 80];
-      for (let tries = 0; tries < 120; tries++) {
-        const T = choice(plateaux);
+      // v524 : plateau au décagramme (1,35 kg, 2,15 kg…), jamais un demi-kilo
+      // rond ; pertes et portions sans 5, 10, 20, 50, 75 ni 80.
+      const pertes = [8, 12, 15, 18];
+      const portionsG = [45, 55, 65, 70, 85];
+      for (let tries = 0; tries < 400; tries++) {
+        const TDag = rand(110, 380);
         const p = choice(pertes);
         const s = choice(portionsG);
-        const utilisable = T * 10 * (100 - p);            // grammes = T×1000×(100−p)/100, toujours entier
+        if (TDag % 50 === 0 || (TDag * 10 * (100 - p)) % 100 !== 0) continue;
+        const T = TDag / 100;
+        const utilisable = TDag * 10 * (100 - p) / 100;       // grammes
         const nb = Math.floor(utilisable / s);
         if (utilisable % s === 0) continue;                // pas de division exacte (ex. 800 ÷ 80 = 10 → trop simple)
         if (nb < 6 || nb > 40) continue;
         const a = choice(aliments);
         const exact = utilisable % s === 0;
         const approx = (utilisable / s).toFixed(1).replace('.', ',');
-        const calc = exact ? `${utilisable} ÷ ${s} = ${nb} portions` : `${utilisable} ÷ ${s} ≈ ${approx} → ${nb} portions`;
+        // Apostrophe des milliers (2'380 g) : la réponse lue reste le nombre de
+        // portions, dernier nombre du raisonnement.
+        const ug = String(utilisable).replace(/\B(?=(\d{3})+(?!\d))/g, "'");
+        const calc = exact ? `${ug} ÷ ${s} = ${nb} portions` : `${ug} ÷ ${s} ≈ ${approx} → ${nb} portions`;
         return {
           text: `Vous achetez un plateau de ${fmtKg(T)} ${a}. Vous devez malheureusement en jeter ${p}%. Calculez combien de portions de ${s} g vous allez pouvoir servir.`,
-          answer: `On jette ${p}%, il reste (100 − ${p}) = ${100 - p} %. Masse utilisable : ${fmtKg(T)} × ${100 - p} ÷ 100 = ${utilisable} g. Nombre de portions : ${calc}.`
+          answer: `On jette ${p}%, il reste (100 − ${p}) = ${100 - p} %. Masse utilisable : ${fmtKg(T)} × ${100 - p} ÷ 100 = ${ug} g. Nombre de portions : ${calc}.`
         };
       }
       return {
@@ -19602,7 +19724,7 @@ const ICONE_ENSEIGNANT = '<svg viewBox="0 0 24 24" width="21" height="21" fill="
 const ICONE_PDF = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJkAAACUCAMAAAC3HHtWAAAAk1BMVEXi5ef////xVkKwt73K0dji6OrxW0jyUDnG2eHlzczmgnrV2t/x8/T19vbxUTzwTDX4u7Xnvr28wsf+8/L84N3yYlD1jID1hXf1kYb4q6L4t7D96ujwQib1mY7++Pf70c3zcWHxSC/zeGn3pJv6ysX72dXy2Nbj1dXtgnfyaFf3sKj6w73UubvV4ebco6HkioPitLFLhhsqAAAElUlEQVR4nO3ca5eaOhQG4ICOtHUa7AAqIgiIbdVezv//dUcS7tlAXIYkq4v308xCzeNOCAEVZAzmKxKWj8Xi4324tVbQyGahsqdow7J3wbLFgp82LHsTLuOv2rBMIKyQ8dMGZQLHfyXjpsmX8dIUyDhpKmR8NCUyLpoa2eLjq64yjqqpko1XTZlstGrqZGM0hbIRmkrZME2pbJCmVjZEUywboKmW9dOUy3qnXPWyvqppIOupmg4yuGpayMCq6SGDqiZPthySAVWTJ1sPytiqyZMNdydbNYmykaJ1aRJlY0Xr0GTKnqNJlY3sn22aXBlaL4fr1qBJlpEsB/KmVDZEUywboKmW9dOUy3pp6mV9NA1kPTQdZDBNCxlI00MG0TSRATRdZCxNGxlD00fWpWkkQ/rKkL4ypK8M6StD+sqQvjKkrwzpK0P6ypC+MqSvDOkrQ/rKkL6ytbYyVF+tnWWiZW8T5jlZ4Lby/fN0+YFAGyxzw9hbyUoc/oBooOxi2tiUFmybEA2SRaklz5XH/slZs5PEgtGsPrNFg2R3W7YMf+OTbWbZLJtls2yWzbJWrORYJklaaxFs2WUsiznm1htpoIPySzK8PQVl3Oyc1gQrDX3/nMc/h/t0lbTb3vqthDGwkHlFhneO0YyTXYtHWdvWFsc9xA3b6m504nhs1V6R2QemhT192OrS3WJs4rLx7hvKcz8KlVkbpoWI9ovnMlsMN4ULSnJIJpA5gUNStL+qZRFN+RLBDvfJgpXY3qSy2zXOs/MpIbRLWeT/3OYJb0UFL7R9KnMOdXzRewCV+TYmsa8BKdqxku3oFsvGu4C+SFLL3MakwU4rgmTlv/u8ak5emEJWVcKOadmuuJYBmKlkmHpiQGZaMenrg61EZppknso9jMw8khnG9fSTWWletCjF9TizHnmMwsdInFqG6S4A9mY5keR7LpUFYRX4JFugLPHzf6OK0ZatTuWDmfnM2UO012XnI931zTMZ5KfGrNFsEGdkF0igmdaJgQ59XZaFZE1xO9GZlrx/QGYS2Q2UGdtJZO3c6+NmZ5yRg/wZ6k3j4rEvLlrm0h2NlRW7R17R4uh0qnIA1kCCZVF2pW2wMjvMH+BcG7MGmTbywBfmBMqcU2gWbQDzGSnZhfwpa6Y9nWn2qVm9d0ZGZxQyzOTJzkfaJc0+6cjwMSQ7bmRLrZkPbClkCSZoHG+iumQayIzs9lgV3g73YqYzsuJp6mWdXK7N1baMccYpy7xi2EmQ2ed8C3Q4Zs/qorA6CcFpLhu9WP7a1YNNFB3AdULqRjXKcU/bY+P5OHQiN51UhnG6gz/AsLxdndSz2s+249119IOPF68F9axHyZY6TzxNmGzCzLJZNstm2TSyTPpnwh7nZ8KBbBiOGVfPdw9u7DXeSWHHX785ZVGYJNV52ORJ8J/lmlP2WOv54b6VL5Pl73/LT0/Iunn/NF3yLzXyjjNAxvzkQWy0lQEwPWTAKOOXrScM5PoXvrM3y2bZLJtls+zfk3He90Do3TnFykTe0ZQr9Q8XRmTSi9a4zcyITOQNap+Djckk92fzbin/A8PQxx30Ei25AAAAAElFTkSuQmCC';
 
 // Numéro de version, affiché en pied de menu.
-const APP_VERSION = '523';
+const APP_VERSION = '525';
 
 const DOMAINS = [
   {
