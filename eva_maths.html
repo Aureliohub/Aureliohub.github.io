@@ -8,7 +8,7 @@ générant des exercices de mathématiques pour adultes (programme PAI, Suisse).
 Product owner : Aurelio (Onex/Genève). Répondre en FRANÇAIS.
 
 ───────────────────────────────────────────────────────────────────────────────
-0. OÙ ON EN EST (v521, 12.10.2026) — à lire en premier
+0. OÙ ON EN EST (v523, 12.10.2026) — à lire en premier
 ───────────────────────────────────────────────────────────────────────────────
 L'application est en ligne : https://aureliohub.github.io/eva_maths.html
 Les fichiers de série et de test (.json) sont déposés à côté d'elle, et s'ouvrent
@@ -543,6 +543,59 @@ PDF de domaine :
 ───────────────────────────────────────────────────────────────────────────────
 Cette section décrit l'ÉTAT, non l'historique. Les numéros de version ne sont
 cités que lorsqu'ils aident à retrouver un choix dans le fichier.
+
+v523 — FRACTIONS : LA RÈGLE « PAS DE TÊTE » À TOUS LES MODÈLES (12.10, « oui,
+ même traitement »). Exemples qu'Aurelio jugeait trop simples : « les 9/10
+ d'une parcelle mesurent 72 hectares », « 1/2 de 310 CHF ».
+ · RÈGLE COMMUNE en tête de genPropConcretFractions (lire son commentaire) :
+   FRAC (jamais 1/2, 1/3, 1/4, 3/4 ni dixièmes), `unite(u)` (la valeur d'une
+   part sort des tables, n'est pas multiple de 5), touts non ronds sous 1'000.
+ · Modèle par modèle : fraction d'un tout (m² seulement : « 150 hectares » pour
+   une parcelle n'était plus vraisemblable) ; deux dépenses → reste (achats
+   plus chers, la somme montant jusqu'à 990 CHF) ; partage à trois ; fraction
+   d'un nombre ; fraction d'une fraction ; fraction restante et paiement
+   échelonné (dénominateur commun jusqu'à 72 : 3/8 + 2/7 = 37/56) ; diminution ;
+   comparaison (résultats à 4–25 % l'un de l'autre ; un film devient une
+   série, 150 minutes et plus) ; complément (école, parking, verger,
+   bibliothèque, refuge : 100 à 600) ; reste connu → total.
+ · REMPLISSAGE (« En combien de temps … en entier ? ») : la réponse devient une
+   DURÉE, deux champs h / min (règle de la v513). Il demandait des minutes.
+   `dureeTroisEcritures` ne donne plus les heures décimales que si elles
+   tombent juste (minutes multiples de 3) : 104 min = « 1 h 44 min ou
+   104 min », sans « 1,73 h ».
+ · Paliers et paires interdites inchangés.
+ Banc au vrai navigateur : 10 000 exercices du niveau (paliers 1, 2, 2, 3
+ toujours respectés), CHAQUE modèle recalculé en fractions exactes depuis son
+ énoncé par un programme indépendant, qui vérifie aussi la règle (fractions
+ interdites, parts hors des tables et non multiples de 5, touts non ronds,
+ proximité de la comparaison, écritures de la durée) : zéro défaut sur les
+ treize modèles, de 204 énoncés distincts (fraction restante) à 3 504
+ (comparaison). Bonnes réponses FRAPPÉES dans 10 exercices, durée comprise :
+ 40 sur 40. Écran et PDF du niveau regardés.
+
+v522 — FRACTIONS, MODÈLE 1 « FRACTIONS SUCCESSIVES » : PLUS DE CALCUL DE TÊTE
+ (12.10). Retour d'Aurelio sur « On a vidé 1/2 du contenu d'un réservoir de 60
+ litres. Plus tard, on a vidé 3/5 de ce qui restait… » : « ce modèle est bien
+ mais les fractions et nombres sont trop simples, le calcul se fait de tête ».
+ · Fractions tirées dans FRAC_SUCC (jamais 1/2, 1/3, 1/4 ; 3/8, 4/7, 5/12…),
+   pas de dixièmes, la première au plus 3/5 ; total et reste jamais multiples
+   de 10 ; total de 150 à 900 ; les deux divisions sortent des tables
+   (quotient ≥ 11).
+ · Contextes à la taille de ces nombres : cuve de vin, citerne d'eau, stock de
+   farine d'une boulangerie (« Une boulangerie a un stock de 476 kg de farine.
+   Elle en utilise 2/7. Plus tard, elle utilise 3/8 de ce qui reste. »). Le
+   « sac de farine » et le « tonneau » ont disparu (un sac de 378 kg n'existe
+   pas).
+ · Accord corrigé au passage : « Quelle quantité d'eau a-t-on utilisée »
+   (« vidé » / « vendu » ne s'accordaient pas avec le COD placé avant).
+ · Le corrigé détaille « 378 ÷ 7 × 3 ». Palier inchangé (3).
+ Banc au vrai navigateur : 8 000 exercices du niveau, 2 671 énoncés de ce
+ modèle recalculés en fractions exactes (réponse, fractions interdites,
+ nombres ronds, tables, unité affichée) : zéro défaut, environ 2 000 énoncés
+ distincts. Saisie « 130 », « 130 litres » juste ; écran et PDF regardés.
+ VU AU PASSAGE, non touché : d'autres modèles du niveau gardent des nombres
+ qui se calculent de tête (« les 9/10 d'une parcelle mesurent 72 hectares »,
+ « 1/2 de 310 CHF »).
 
 v521 — « % - RABAIS », MODÈLE « MEILLEURE AFFAIRE » (patron I) : RÉPONSE À
  CHOISIR ET NOMBRES SERRÉS (12.10, demande d'Aurelio : « passer en choix […]
@@ -10771,7 +10824,11 @@ function dureeTroisEcritures(min) {
   const dec = (Math.round(min / 60 * 100) / 100).toString().replace('.', ',');
   const hm = m ? `${h} h ${m} min` : `${h} h`;
   // Heure pleine : « 2 h » dit déjà les heures décimales.
-  return (m ? [`${dec} h`, hm, `${min} min`] : [hm, `${min} min`]).join(' ou ');
+  // v523 : les heures décimales ne sont données que si elles TOMBENT JUSTE au
+  // centième (minutes multiples de 3 : 99 min = 1,65 h). 104 min = 1,7333… h :
+  // écrire « 1,73 h » serait faux, et la validation le refuserait.
+  const decJuste = (min * 100) % 60 === 0;
+  return (!m ? [hm, `${min} min`] : decJuste ? [`${dec} h`, hm, `${min} min`] : [hm, `${min} min`]).join(' ou ');
 }
 function dureeQuestion(min) {
   return { answerType: 'duree', dureeMin: min, attenduExport: dureeTroisEcritures(min) };
@@ -10868,77 +10925,100 @@ function genPropConcretFractions() {
   };
   // PGCD pour réduire / vérifier les fractions
   const pgcd = (a, b) => { a = Math.abs(a); b = Math.abs(b); while (b) { [a, b] = [b, a % b]; } return a; };
+  // -------------------------------------------------------------------------
+  // RÈGLE « PAS DE TÊTE » DU NIVEAU FRACTIONS (v523, demande d'Aurelio du
+  // 12.10 : « même traitement » que les fractions successives, v522).
+  // Exemples refusés : « les 9/10 d'une parcelle mesurent 72 hectares » ;
+  // « 1/2 de 310 CHF » ; 1/2 de 60 litres puis 3/5 du reste.
+  //   · FRAC : les fractions des énoncés — jamais 1/2, 1/3, 1/4, 3/4 ni de
+  //     dixièmes ; des cinquièmes, septièmes, huitièmes, neuvièmes, sixièmes
+  //     et douzièmes, souvent avec un numérateur supérieur à 1 ;
+  //   · `unite(u)` : la valeur d'UNE part (le 1/b) vaut au moins 11 et n'est
+  //     pas un multiple de 5 — la division sort des tables (378 ÷ 7, pas
+  //     84 ÷ 7, ni 45 ÷ 3) ;
+  //   · les touts et les quantités données ne sont pas des multiples de 10 et
+  //     restent sous 1'000 (une apostrophe des milliers dans la réponse
+  //     tromperait les lecteurs génériques, qui prennent le DERNIER nombre).
+  // -------------------------------------------------------------------------
+  const FRAC = [[2, 5], [3, 5], [3, 8], [5, 8], [7, 8], [2, 7], [3, 7], [4, 7], [5, 7],
+                [2, 9], [4, 9], [5, 9], [7, 9], [5, 6], [5, 12], [7, 12]];
+  const unite = (u) => u >= 11 && u % 5 !== 0;   // ni 15, ni 20, ni 25 : 45 ÷ 3 = 15 se fait de tête
+  const ppcm = (x, y) => x * y / pgcd(x, y);
 
   // --- Type 1 : fraction d'un tout (aire, etc.) connue → trouver le tout ---
   function patFractionTout() {
     // Les a/b d'un terrain mesurent V m². Quelle est l'aire du terrain ?
-    // On veut tout = V × b / a entier. On choisit a/b puis le "tout".
+    // v523 : fraction de FRAC, part de 1/b hors des tables, tout non rond.
+    // « hectares » a disparu : 150 hectares et plus, pour une parcelle, ce
+    // n'est plus vraisemblable.
     const contextes = [
       { intro: "d'un terrain", unite: "m²", sujet: "l'aire du terrain" },
       { intro: "d'un champ", unite: "m²", sujet: "l'aire du champ" },
-      { intro: "d'une parcelle", unite: "hectares", sujet: "l'aire de la parcelle" }
+      { intro: "d'une parcelle", unite: "m²", sujet: "l'aire de la parcelle" }
     ];
     const ctx = choice(contextes);
-    // Fraction a/b propre et réduite, avec numérateur ≥ 2 (pour que "les a/b"
-    // sonne naturellement). On re-tire si la réduction donne a = 1.
-    let a, b;
-    let safety = 30;
-    do {
-      b = rand(3, 12);
-      a = rand(2, b - 1);
-      const g = pgcd(a, b);
-      a /= g; b /= g;
-    } while (a < 2 && safety-- > 0);
-    if (a < 2) { a = 2; b = 3; }
-    // tout = multiple de b pour que la part a/b tombe ronde
-    const tout = b * rand(8, 40);
-    const part = tout * a / b;
+    let a = 3, b = 7, u = 47;                                   // secours : 329 m²
+    for (let i = 0; i < 400; i++) {
+      const [x, y] = choice(FRAC), v = rand(11, 99), t = v * y;
+      if (!unite(v) || t % 10 === 0 || t < 150 || t > 990) continue;
+      a = x; b = y; u = v; break;
+    }
+    const tout = u * b, part = u * a;
     return {
       text: `Les ${a}/${b} ${ctx.intro} mesurent ${fmt(part)} ${ctx.unite}. Quelle est ${ctx.sujet} ?`,
       answer: `${fmt(tout)} ${ctx.unite}`,
-      solutionDetail: `${a}/${b} → ${fmt(part)} ${ctx.unite}, donc 1/${b} → ${fmt(part / a)} ${ctx.unite}. Le tout (${b}/${b}) : ${fmt(part / a)} × ${b} = ${fmt(tout)} ${ctx.unite}.`
+      solutionDetail: `${a}/${b} → ${fmt(part)} ${ctx.unite}, donc 1/${b} → ${fmt(part)} ÷ ${a} = ${fmt(u)} ${ctx.unite}. Le tout (${b}/${b}) : ${fmt(u)} × ${b} = ${fmt(tout)} ${ctx.unite}.`
     };
   }
 
   // --- Type 2 : fractions successives (vendu a/b, puis c/d du reste) ---
+  // v522 (retour d'Aurelio : « les fractions et nombres sont trop simples, le
+  // calcul se fait de tête » — exemple refusé : 1/2 de 60 litres, puis 3/5 du
+  // reste). Désormais :
+  //   · fractions tirées dans FRAC_SUCC : jamais 1/2, 1/3, 1/4 ; souvent un
+  //     numérateur supérieur à 1 (3/8, 4/7, 5/12…) ;
+  //   · total jamais rond (ni multiple de 10), entre 150 et 900 ;
+  //   · les deux divisions sortent des tables (quotient d'au moins 11) :
+  //     3/7 de 378, c'est 378 ÷ 7 = 54, pas 84 ÷ 7 = 12 ;
+  //   · contextes à la taille de ces nombres : cuve de vin, citerne d'eau,
+  //     stock de farine d'une boulangerie (un sac de 378 kg n'existe pas).
+  // Accord corrigé : « Quelle quantité d'eau a-t-on vidée » (COD placé avant).
   function patFractionsSuccessives() {
+    const FRAC_SUCC = [[2, 5], [3, 5], [3, 8], [5, 8], [2, 7], [3, 7], [4, 7], [2, 9],
+                       [4, 9], [5, 9], [5, 12], [7, 12]];   // pas de dixièmes : ÷ 10 se fait de tête
     const contextes = [
-      { obj: "tonneau", contenu: "de vin", unite: "litres", verbe: "vendu" },
-      { obj: "réservoir", contenu: "d'eau", unite: "litres", verbe: "vidé" },
-      { obj: "sac", contenu: "de farine", unite: "kg", verbe: "utilisé" }
+      { debut: (f, t) => `On a vendu ${f} du vin d'une cuve de ${t} litres.`, unite: 'litres', contenu: 'de vin', verbe: 'vendu', accord: 'vendue' },
+      { debut: (f, t) => `On a utilisé ${f} de l'eau d'une citerne de ${t} litres.`, unite: 'litres', contenu: "d'eau", verbe: 'utilisé', accord: 'utilisée' },
+      { debut: (f, t) => `Une boulangerie a un stock de ${t} kg de farine. Elle en utilise ${f}.`, unite: 'kg', contenu: 'de farine', verbe: 'utilisé', accord: 'utilisée', plusTard: 'Plus tard, elle utilise' }
     ];
     const ctx = choice(contextes);
-    // 1/b1 du total, puis c/d du reste. On veut tout tomber rond.
-    const b1 = choice([2, 3, 4, 6]);   // première fraction 1/b1
-    // Deuxième fraction c/d du reste, DIFFÉRENTE en valeur de 1/b1
-    // (pas "1/2" puis "1/2", ni équivalentes comme 1/2 et 2/4).
-    let c, d;
-    let safetyF = 30;
-    do {
-      d = choice([2, 3, 4, 5]);
-      c = rand(1, d - 1);
-    } while ((Math.abs(c / d - 1 / b1) < 1e-9 || pgcd(c, d) > 1) && safetyF-- > 0);
-    // Filet : si on n'a pas trouvé, force une valeur sûre distincte
-    if (Math.abs(c / d - 1 / b1) < 1e-9 || pgcd(c, d) > 1) {
-      if (b1 === 2) { c = 1; d = 3; } else { c = 1; d = 2; }
+    let a1 = 3, b1 = 7, c = 2, d = 5, total = 378;                 // secours : 162 + 86,4 ✗ → recalculé plus bas
+    let ok = false;
+    for (let i = 0; i < 600 && !ok; i++) {
+      [a1, b1] = choice(FRAC_SUCC.filter(([x, y]) => x / y <= 0.6));
+      [c, d] = choice(FRAC_SUCC);
+      if (Math.abs(c / d - a1 / b1) < 1e-9) continue;
+      total = rand(150, 900);
+      if (total % 10 === 0 || total % b1 !== 0) continue;
+      const reste1 = total * (b1 - a1) / b1;
+      if (reste1 % d !== 0) continue;
+      if (total / b1 < 11 || reste1 / d < 11) continue;              // hors des tables
+      if (reste1 % 10 === 0) continue;                               // reste rond : se divise de tête
+      ok = true;
     }
-    // total multiple de b1 et tel que le reste soit multiple de d
-    // reste1 = total × (b1-1)/b1 ; on veut reste1 multiple de d
-    let total = 0;
-    for (let m = 1; m <= 60; m++) {
-      const t = b1 * m;
-      const reste1 = t * (b1 - 1) / b1;
-      if (reste1 % d === 0 && t >= 60 && t <= 600) { total = t; break; }
-    }
-    if (!total) total = b1 * d * rand(3, 8);
-    const vendu1 = total / b1;
+    if (!ok) { a1 = 3; b1 = 7; c = 2; d = 5; total = 385; }       // 165 + 88 = 253 (reste 220 : rond, secours seulement)
+    const vendu1 = total * a1 / b1;
     const reste1 = total - vendu1;
     const vendu2 = reste1 * c / d;
     const venduTotal = vendu1 + vendu2;
+    const u = ctx.unite;
+    const ensuite = ctx.plusTard
+      ? `${ctx.plusTard} ${c}/${d} de ce qui reste. Quelle quantité ${ctx.contenu} a-t-elle utilisée en tout ?`
+      : `Plus tard, on a ${ctx.verbe} ${c}/${d} de ce qui restait. Quelle quantité ${ctx.contenu} a-t-on ${ctx.accord} en tout ?`;
     return {
-      text: `On a ${ctx.verbe} 1/${b1} du contenu d'un ${ctx.obj} de ${fmt(total)} ${ctx.unite}. Plus tard, on a ${ctx.verbe} ${c}/${d} de ce qui restait. Quelle quantité ${ctx.contenu} a-t-on ${ctx.verbe} en tout ?`,
-      answer: `${fmt(venduTotal)} ${ctx.unite}`,
-      solutionDetail: `1/${b1} de ${fmt(total)} = ${fmt(vendu1)} ${ctx.unite}. Reste : ${fmt(reste1)} ${ctx.unite}. Puis ${c}/${d} de ${fmt(reste1)} = ${fmt(vendu2)} ${ctx.unite}. Total : ${fmt(vendu1)} + ${fmt(vendu2)} = ${fmt(venduTotal)} ${ctx.unite}.`
+      text: `${ctx.debut(`${a1}/${b1}`, fmt(total))} ${ensuite}`,
+      answer: `${fmt(venduTotal)} ${u}`,
+      solutionDetail: `${a1}/${b1} de ${fmt(total)} = ${fmt(total)} ÷ ${b1} × ${a1} = ${fmt(vendu1)} ${u}. Reste : ${fmt(total)} − ${fmt(vendu1)} = ${fmt(reste1)} ${u}. Puis ${c}/${d} de ${fmt(reste1)} = ${fmt(reste1)} ÷ ${d} × ${c} = ${fmt(vendu2)} ${u}. Total : ${fmt(vendu1)} + ${fmt(vendu2)} = ${fmt(venduTotal)} ${u}.`
     };
   }
 
@@ -10947,71 +11027,48 @@ function genPropConcretFractions() {
     const { prenom, genre } = pickPrenom();
     const pronom = genre === 'M' ? 'Il' : 'Elle';  // pour éviter de répéter le prénom
     // J'avais M CHF. Dépensé a/b pour X et c/d pour Y. Reste ?
-    // On veut a/b et c/d de M entiers, et a/b + c/d < 1.
-    const paires = [
-      { f1: [2, 5], f2: [1, 3] },   // 2/5 + 1/3 = 11/15
-      { f1: [1, 4], f2: [2, 5] },   // 1/4 + 2/5 = 13/20
-      { f1: [1, 3], f2: [1, 4] },   // 1/3 + 1/4 = 7/12
-      { f1: [3, 10], f2: [1, 5] },  // 3/10 + 1/5 = 1/2
-      { f1: [1, 2], f2: [1, 5] }    // 1/2 + 1/5 = 7/10
-    ];
-    const p = choice(paires);
-    const [a, b] = p.f1, [c, d] = p.f2;
-    const lcm = (b * d) / pgcd(b, d);
-    // M multiple de lcm (pour tout tomber rond) MAIS pas un multiple de 50
-    // (on évite 50, 100, 150… où les fractions sont triviales).
-    let M, safety = 80;
-    do {
-      M = lcm * rand(6, 45);
-      safety--;
-    } while (safety > 0 && (M % 50 === 0 || M < 60 || M > 600));
-    if (M % 50 === 0 || M < 60 || M > 600) M = lcm * 7;   // filet sûr
+    // v523 : deux fractions de FRAC, dénominateurs différents ; somme non
+    // ronde ; chaque division (M ÷ b, M ÷ d) hors des tables.
+    let a = 2, b = 7, c = 3, d = 8, M = 168;                    // secours
+    for (let i = 0; i < 600; i++) {
+      const [x, y] = choice(FRAC), [z, w] = choice(FRAC);
+      if (y === w || x / y + z / w >= 0.9 || x / y + z / w < 0.4) continue;
+      const L = ppcm(y, w), m = L * rand(1, 30);
+      if (m % 10 !== 0 && m >= 150 && m <= 990 && unite(m / y) && unite(m / w)) {
+        a = x; b = y; c = z; d = w; M = m; break;
+      }
+    }
     const dep1 = M * a / b;
     const dep2 = M * c / d;
     const reste = M - dep1 - dep2;
-    const objets = [['un CD', 'un livre'], ['un jeu', 'un cadeau'], ['des fleurs', 'un cahier']];
+    const objets = [['un vélo', 'un casque'], ['une console de jeux', 'un jeu'], ['un manteau', 'des chaussures']];
     const [o1, o2] = choice(objets);
     // « les 2/5 » mais « 1/4 » : pas d'article pluriel devant une fraction unitaire.
     const les = a > 1 ? 'les ' : '';
     return {
       text: `${prenom} avait ${fmt(M)} CHF. ${pronom} en a dépensé ${les}${a}/${b} pour acheter ${o1} et ${c}/${d} pour acheter ${o2}. Combien d'argent lui reste-t-il ?`,
       answer: `${fmt(reste)} CHF`,
-      solutionDetail: `${a}/${b} de ${fmt(M)} = ${fmt(dep1)} CHF ; ${c}/${d} de ${fmt(M)} = ${fmt(dep2)} CHF. Reste : ${fmt(M)} − ${fmt(dep1)} − ${fmt(dep2)} = ${fmt(reste)} CHF.`
+      solutionDetail: `${a}/${b} de ${fmt(M)} = ${fmt(M)} ÷ ${b} × ${a} = ${fmt(dep1)} CHF ; ${c}/${d} de ${fmt(M)} = ${fmt(M)} ÷ ${d} × ${c} = ${fmt(dep2)} CHF. Reste : ${fmt(M)} − ${fmt(dep1)} − ${fmt(dep2)} = ${fmt(reste)} CHF.`
     };
   }
 
   // --- Type 4 : partage, une part connue en valeur ---
   function patPartageFraction() {
     // 1re reçoit a/b de la somme, soit V CHF. 2e reçoit c/d. 3e le reste.
-    // On demande UNE part (2e ou dernière). On exige :
-    //   - a/b + c/d < 1 (pour qu'il reste une 3e part positive)
-    //   - les deux fractions RÉDUITES sont différentes (pas "2/5" et "4/10")
-    let a, b, c, d, aR, bR, cR, dR;
-    let safety = 40;
-    do {
-      b = choice([7, 5, 8, 10]);
-      a = rand(2, b - 1);
-      d = choice([10, 5, 4]);
-      c = rand(1, d - 1);
-      const ga = pgcd(a, b); aR = a / ga; bR = b / ga;
-      const gc = pgcd(c, d); cR = c / gc; dR = d / gc;
-    } while (
-      // Aucune des deux fractions ne doit se réduire à 1/2 : « la moitié, soit
-      // 190 CHF » se lit sans raisonnement. 4/8 et 5/10 sont donc écartés.
-      (a / b + c / d >= 1 || (aR === cR && bR === dR)
-        || (aR === 1 && bR === 2) || (cR === 1 && dR === 2))
-      && safety-- > 0
-    );
-    // Filet de secours : valeurs sûres et distinctes
-    if (a / b + c / d >= 1 || (aR === cR && bR === dR)
-        || (aR === 1 && bR === 2) || (cR === 1 && dR === 2)) {
-      a = 3; b = 7; c = 1; d = 5;
-      aR = 3; bR = 7; cR = 1; dR = 5;
+    // On demande UNE part (2e ou dernière).
+    // v523 : fractions de FRAC, dénominateurs différents, somme < 9/10 ;
+    // somme totale non ronde, sous 1'000 CHF ; divisions hors des tables.
+    let aR = 3, bR = 7, cR = 2, dR = 9, somme = 441;            // secours
+    for (let i = 0; i < 600; i++) {
+      const [x, y] = choice(FRAC), [z, w] = choice(FRAC);
+      if (y === w || x / y + z / w >= 0.9) continue;
+      const L = ppcm(y, w), t = L * rand(1, 30);
+      if (t % 10 !== 0 && t >= 200 && t <= 990 && unite(t / y) && unite(t / w)) {
+        aR = x; bR = y; cR = z; dR = w; somme = t; break;
+      }
     }
-    const lcm = (b * d) / pgcd(b, d);
-    const somme = lcm * rand(10, 60);
-    const part1 = somme * a / b;
-    const part2 = somme * c / d;
+    const part1 = somme * aR / bR;
+    const part2 = somme * cR / dR;
     const part3 = somme - part1 - part2;
     // On demande UNE seule part au hasard : la deuxième ou la dernière.
     // Réponse unique → un champ de saisie a du sens.
@@ -11024,27 +11081,24 @@ function genPropConcretFractions() {
       text: `On partage une certaine somme entre trois personnes. La première reçoit ${aR}/${bR} de la somme, soit ${fmt(part1)} CHF. La deuxième reçoit ${cR}/${dR} de la somme, et la dernière reçoit le reste. ${question}`,
       answer: `${fmt(reponse)} CHF`,
       // Détail du raisonnement pour le corrigé.
-      solutionDetail: `${aR}/${bR} → ${fmt(part1)} CHF, donc 1/${bR} → ${fmt(part1 / aR)} CHF. Somme totale : ${fmt(part1 / aR)} × ${bR} = ${fmt(somme)} CHF. 2e part : ${cR}/${dR} de ${fmt(somme)} = ${fmt(part2)} CHF. 3e part (le reste) : ${fmt(somme)} − ${fmt(part1)} − ${fmt(part2)} = ${fmt(part3)} CHF.`
+      solutionDetail: `${aR}/${bR} → ${fmt(part1)} CHF, donc 1/${bR} → ${fmt(part1)} ÷ ${aR} = ${fmt(part1 / aR)} CHF. Somme totale : ${fmt(part1 / aR)} × ${bR} = ${fmt(somme)} CHF. 2e part : ${cR}/${dR} de ${fmt(somme)} = ${fmt(part2)} CHF. 3e part (le reste) : ${fmt(somme)} − ${fmt(part1)} − ${fmt(part2)} = ${fmt(part3)} CHF.`
     };
   }
 
   // --- Type 5 : fraction d'un nombre = valeur → trouver le nombre ---
   function patFractionNombre() {
-    let a, b;
-    let safety = 30;
-    do {
-      b = rand(3, 9);
-      a = rand(2, b - 1);
-      const g0 = pgcd(a, b);
-      a /= g0; b /= g0;
-    } while (a < 2 && safety-- > 0);
-    if (a < 2) { a = 2; b = 3; }
-    const nombre = b * rand(10, 60);
-    const valeur = nombre * a / b;
+    // v523 : fraction de FRAC, 1/b hors des tables, nombre non rond.
+    let a = 5, b = 8, u = 37;                                   // secours : 296
+    for (let i = 0; i < 400; i++) {
+      const [x, y] = choice(FRAC), v = rand(11, 99), t = v * y;
+      if (!unite(v) || t % 10 === 0 || t < 150 || t > 990) continue;
+      a = x; b = y; u = v; break;
+    }
+    const nombre = u * b, valeur = u * a;
     return {
       text: `Les ${a}/${b} d'un nombre valent ${fmt(valeur)}. Quel est ce nombre ?`,
       answer: `${fmt(nombre)}`,
-      solutionDetail: `${a}/${b} → ${fmt(valeur)}, donc 1/${b} → ${fmt(valeur / a)}. Le nombre (${b}/${b}) : ${fmt(valeur / a)} × ${b} = ${fmt(nombre)}.`
+      solutionDetail: `${a}/${b} → ${fmt(valeur)}, donc 1/${b} → ${fmt(valeur)} ÷ ${a} = ${fmt(u)}. Le nombre (${b}/${b}) : ${fmt(u)} × ${b} = ${fmt(nombre)}.`
     };
   }
 
@@ -11055,15 +11109,14 @@ function genPropConcretFractions() {
       { lieu: 'Dans une école', groupe: 'élèves', sous: 'demi-pensionnaires', verbe: 'mangent végétarien' },
       { lieu: 'Dans un cinéma', groupe: 'spectateurs', sous: 'abonnés', verbe: 'viennent en train' }
     ]);
-    let a, b, c, d, num, den, g, safety = 90;
+    // v523 : les deux fractions viennent de FRAC (avant : dénominateurs de 2
+    // à 6, « 2/3 de 3/5 » se faisait de tête).
+    let a = 3, b = 8, c = 4, d = 7, safety = 200;
     do {
-      b = rand(2, 6); a = rand(1, b - 1);
-      d = rand(2, 6); c = rand(1, d - 1);
-      num = a * c; den = b * d; g = pgcd(num, den);
+      [a, b] = choice(FRAC); [c, d] = choice(FRAC);
       safety--;
-    } while (safety > 0 && ((a === 1 && c === 1) || (den / g) <= 2 || (a === c && b === d)
-      || pgcd(a, b) > 1 || pgcd(c, d) > 1));   // jamais « 2/4 des élèves » dans l'énoncé
-    if (pgcd(a, b) > 1 || pgcd(c, d) > 1 || (den / g) <= 2) { a = 2; b = 3; c = 3; d = 5; num = 6; den = 15; g = 3; }
+    } while (safety > 0 && (a * d === b * c || (b * d) / pgcd(a * c, b * d) <= 2));
+    const num = a * c, den = b * d, g = pgcd(num, den);
     const rn = num / g, rd = den / g;
     return {
       text: `${ctx.lieu}, ${a}/${b} des ${ctx.groupe} sont ${ctx.sous}. Parmi ces ${ctx.sous}, ${c}/${d} ${ctx.verbe}. Quelle fraction de l'ensemble des ${ctx.groupe} cela représente-t-il ?`,
@@ -11079,18 +11132,20 @@ function genPropConcretFractions() {
       { sujet: 'Un maçon',      quoi: 'du sac de ciment',   act: 'emploie', t1: 'le matin', t2: 'le soir' },
       { sujet: 'Un cuisinier',  quoi: 'du bidon de sirop',  act: 'verse',   t1: 'd\'abord', t2: 'ensuite' }
     ]);
-    let a, b, c, d, lcm, sumN, restN, restD, g, safety = 140;
+    // v523 : fractions de FRAC, dénominateurs différents, dénominateur commun
+    // jusqu'à 72 (3/8 + 2/7 = 37/56).
+    let a = 3, b = 8, c = 2, d = 7, safety = 300;
+    let lcm, sumN, restN, g;
     do {
-      b = rand(2, 6); a = rand(1, b - 1);
-      d = rand(2, 6); c = rand(1, d - 1);
-      lcm = b * d / pgcd(b, d);
+      [a, b] = choice(FRAC); [c, d] = choice(FRAC);
+      lcm = ppcm(b, d);
       sumN = a * (lcm / b) + c * (lcm / d);
-      restN = lcm - sumN; restD = lcm;
-      g = restN > 0 ? pgcd(restN, restD) : 1;
+      restN = lcm - sumN;
+      g = restN > 0 ? pgcd(restN, lcm) : 1;
       safety--;
-    } while (safety > 0 && (b === d || lcm <= Math.max(b, d) || restN <= 0 || (restD / g) <= 2
-      || pgcd(a, b) > 1 || pgcd(c, d) > 1));   // fractions écrites réduites
-    if (pgcd(a, b) > 1 || pgcd(c, d) > 1 || restN <= 0) { a = 1; b = 3; c = 2; d = 5; lcm = 15; sumN = 11; restN = 4; restD = 15; g = 1; }
+    } while (safety > 0 && (b === d || lcm > 72 || restN <= 0 || (lcm / g) <= 2));
+    if (safety <= 0) { a = 3; b = 8; c = 2; d = 7; lcm = 56; sumN = 37; restN = 19; g = 1; }
+    const restD = lcm;
     return {
       text: `${ctx.sujet} ${ctx.act} ${a}/${b} ${ctx.quoi} ${ctx.t1} et ${c}/${d} ${ctx.quoi} ${ctx.t2}. Quelle fraction ${ctx.quoi} reste-t-il ?`,
       answer: `${restN / g}/${restD / g}`,
@@ -11106,19 +11161,22 @@ function genPropConcretFractions() {
       { sujet: "Le nombre d'employés d'une entreprise", grp: 'employés' }
     ]);
     const verbe = choice(['diminué', 'baissé']);
-    let a, b, ar, br, rn, rd, w, V, depart, safety = 90;
-    do {
-      b = rand(3, 8); a = rand(1, b - 1);
-      const g = pgcd(a, b); ar = a / g; br = b / g;        // diminution réduite ar/br
-      let g2 = pgcd(br - ar, br); rn = (br - ar) / g2; rd = br / g2; // reste rn/rd
-      w = choice([10, 20, 30, 40, 50, 60, 80, 100]);
-      V = rn * w; depart = rd * w;
-      safety--;
-    } while (safety > 0 && (ar / br === 0.5 || depart > 2000 || V < 30));
+    // v523 : diminution tirée de FRAC ; la part qui reste vaut rn/rd et UN
+    // rd-ième (w) sort des tables ; départ non rond, sous 1'000.
+    let ar = 3, br = 8, rn = 5, rd = 8, w = 37, safety = 400;
+    while (safety-- > 0) {
+      const [x, y] = choice(FRAC);
+      const g2 = pgcd(y - x, y);
+      const n2 = (y - x) / g2, d2 = y / g2, v = rand(11, 99);
+      const dep = d2 * v;
+      if (!unite(v) || dep % 10 === 0 || dep < 150 || dep > 990 || n2 * v < 30) continue;
+      ar = x; br = y; rn = n2; rd = d2; w = v; break;
+    }
+    const V = rn * w, depart = rd * w;
     return {
       text: `${ctx.sujet} a ${verbe} de ${ar}/${br} ; il en reste ${V}. Combien y en avait-il au départ ?`,
       answer: `${depart} ${ctx.grp}`,
-      solutionDetail: `Diminuer de ${ar}/${br}, c'est garder ${rn}/${rd} du total. ${V} ÷ ${rn}/${rd} = ${V} × ${rd}/${rn} = ${depart} ${ctx.grp}.`
+      solutionDetail: `Diminuer de ${ar}/${br}, c'est garder ${rn}/${rd} du total. ${rn}/${rd} → ${V}, donc 1/${rd} → ${V} ÷ ${rn} = ${w}. Au départ (${rd}/${rd}) : ${w} × ${rd} = ${depart} ${ctx.grp}.`
     };
   }
 
@@ -11127,27 +11185,29 @@ function genPropConcretFractions() {
     // Une fille et un garçon, tirés dans les listes réglables (elles étaient
     // écrites en dur : ces énoncés échappaient au réglage des prénoms).
     const noms = [pickPrenom('F'), pickPrenom('M')];
+    // v523 : fractions de FRAC, touts non ronds, parts hors des tables, et
+    // deux résultats PROCHES (4 à 25 % d'écart) : il faut calculer.
     const o = choice([
-      { det: "d'un livre", unite: 'pages', verbe: 'a lu', part: 'lu' },
-      { det: "d'un trajet", unite: 'km', verbe: 'a parcouru', part: 'parcouru' },
-      { det: "d'un film", unite: 'minutes', verbe: 'a regardé', part: 'regardé' }
+      { det: "d'un livre", unite: 'pages', verbe: 'a lu', part: 'lu', min: 150, max: 600 },
+      { det: "d'un trajet", unite: 'km', verbe: 'a parcouru', part: 'parcouru', min: 150, max: 900 },
+      { det: "d'une série", unite: 'minutes', verbe: 'a regardé', part: 'regardé', min: 150, max: 600 }
     ]);
-    let ar1, br1, ar2, br2, t1, t2, v1, v2, safety = 200;
-    do {
-      let b1 = rand(2, 6), a1 = rand(1, b1 - 1); const g1 = pgcd(a1, b1); ar1 = a1 / g1; br1 = b1 / g1;
-      let b2 = rand(2, 6), a2 = rand(1, b2 - 1); const g2 = pgcd(a2, b2); ar2 = a2 / g2; br2 = b2 / g2;
-      t1 = br1 * choice([20, 30, 40, 50, 60, 80]);
-      t2 = br2 * choice([20, 30, 40, 50, 60, 80]);
-      v1 = ar1 * t1 / br1; v2 = ar2 * t2 / br2;
-      safety--;
-    } while (safety > 0 && (
-      ar1 / br1 === ar2 / br2 ||                                  // mêmes fractions (en valeur) → trivial
-      ar1 / br1 === 0.5 || ar2 / br2 === 0.5 ||                   // « la moitié » : trop simple
-      v1 === v2 || Math.abs(v1 - v2) < 0.12 * Math.max(v1, v2) || // écart trop faible
-      Math.abs(v1 - v2) > 0.60 * Math.max(v1, v2) ||              // écart si grand qu'on répond sans calculer
-      Math.max(t1, t2) > 3 * Math.min(t1, t2) ||                  // touts d'ordres de grandeur trop différents
-      t1 === t2                                                   // mêmes totaux
-    ));
+    let ar1 = 3, br1 = 8, ar2 = 4, br2 = 7, t1 = 296, t2 = 266, v1 = 111, v2 = 152, safety = 600;
+    while (safety-- > 0) {
+      const [x1, y1] = choice(FRAC), [x2, y2] = choice(FRAC);
+      if (x1 * y2 === x2 * y1) continue;
+      const u1 = rand(11, 99), u2 = rand(11, 99);
+      if (!unite(u1) || !unite(u2)) continue;
+      const T1 = y1 * u1, T2 = y2 * u2;
+      if ([T1, T2].some(t => t % 10 === 0 || t < o.min || t > o.max) || T1 === T2) continue;
+      const V1 = x1 * u1, V2 = x2 * u2;
+      const ecart = Math.abs(V1 - V2) / Math.max(V1, V2);
+      if (ecart < 0.04 || ecart > 0.25) continue;
+      // Une plus grande fraction d'un plus grand tout désigne le gagnant sans
+      // calcul : on écarte ce cas, chacun doit avoir un avantage.
+      if ((T1 - T2) * (x1 / y1 - x2 / y2) > 0) continue;
+      ar1 = x1; br1 = y1; ar2 = x2; br2 = y2; t1 = T1; t2 = T2; v1 = V1; v2 = V2; break;
+    }
     const [n1, n2] = noms;
     const gagnant = v1 > v2 ? n1 : n2;
     return {
@@ -11158,7 +11218,7 @@ function genPropConcretFractions() {
       choices: [n1, n2],
       correctIdx: (gagnant === n1) ? 0 : 1,
       answer: `${gagnant}`,
-      solutionDetail: `${n1} : ${ar1}/${br1} × ${t1} = ${v1} ${o.unite}. ${n2} : ${ar2}/${br2} × ${t2} = ${v2} ${o.unite}. ${gagnant} a ${o.part} le plus.`
+      solutionDetail: `${n1} : ${t1} ÷ ${br1} × ${ar1} = ${v1} ${o.unite}. ${n2} : ${t2} ÷ ${br2} × ${ar2} = ${v2} ${o.unite}. ${gagnant} a ${o.part} le plus.`
     };
   }
 
@@ -11169,42 +11229,47 @@ function genPropConcretFractions() {
       { sujet: 'Une pompe', verbe: 'vide', inv: 'vide-t-elle', obj: "d'un bassin", tout: 'le bassin' },
       { sujet: 'Un tapis roulant', verbe: 'remplit', inv: 'remplit-il', obj: "d'une benne", tout: 'la benne' }
     ]);
-    let ar, br, T, total, safety = 90;
-    do {
-      const b = rand(3, 8), a = rand(2, b - 1);
-      const g = pgcd(a, b); ar = a / g; br = b / g;
-      T = ar * choice([2, 3, 4, 5, 6, 8, 10]);    // minutes, ar | T
-      total = T / ar * br;
-      safety--;
-    } while (safety > 0 && (ar < 2 || ar / br === 0.5 || total > 180 || total === T));
+    // v523 : fraction de FRAC (numérateur ≥ 2), 1/b hors des tables (« les
+    // 3/8 en 39 minutes »), et la réponse est une DURÉE — « En combien de
+    // temps » se répond en heures et minutes (règle d'Aurelio, v513), avec les
+    // deux champs h / min.
+    let ar = 3, br = 8, u = 13;                                  // secours : 104 min
+    for (let i = 0; i < 400; i++) {
+      const [x, y] = choice(FRAC.filter(([n]) => n >= 2)), v = rand(11, 40), tot = y * v;
+      if (!unite(v) || tot < 70 || tot > 300 || tot % 10 === 0) continue;
+      ar = x; br = y; u = v; break;
+    }
+    const T = ar * u, total = br * u;
     return {
       text: `${ctx.sujet} ${ctx.verbe} les ${ar}/${br} ${ctx.obj} en ${T} minutes. En combien de temps ${ctx.inv} ${ctx.tout} en entier ?`,
       answer: `${total} minutes`,
-      solutionDetail: `${ar}/${br} en ${T} min → 1/${br} en ${T} ÷ ${ar} = ${T / ar} min → le tout : ${T / ar} × ${br} = ${total} min.`
+      solutionDetail: `${ar}/${br} en ${T} min → 1/${br} en ${T} ÷ ${ar} = ${u} min → le tout : ${u} × ${br} = ${total} min, soit ${Math.floor(total / 60)} h ${total % 60} min.`,
+      ...dureeQuestion(total)
     };
   }
 
   // --- Type 11 : complément exprimé en dénombrement ---
   function patComplementFraction() {
+    // v523 : des ensembles plus grands (100 à 600), pour que 1/b sorte des
+    // tables (« une classe de 24 élèves » ne le permettait pas).
     const ctx = choice([
-      { prep: 'Dans', lieu: 'une classe', total: 'élèves', pred: 'sont des filles', q: 'Combien y a-t-il de garçons ?', autre: 'garçons' },
+      { prep: 'Dans', lieu: 'une école', total: 'élèves', pred: 'sont des filles', q: 'Combien y a-t-il de garçons ?', autre: 'garçons' },
       { prep: 'Dans', lieu: 'un parking', total: 'voitures', pred: 'sont électriques', q: 'Combien ne sont pas électriques ?', autre: 'voitures' },
-      { prep: 'Dans', lieu: 'un panier', total: 'fruits', pred: 'sont des pommes', q: "Combien y a-t-il d'autres fruits ?", autre: 'autres fruits' },
-      { prep: 'Sur', lieu: 'une étagère', total: 'livres', pred: 'sont des romans', q: 'Combien ne sont pas des romans ?', autre: 'livres' },
+      { prep: 'Dans', lieu: 'un verger', total: 'arbres', pred: 'sont des pommiers', q: "Combien y a-t-il d'autres arbres ?", autre: 'autres arbres' },
+      { prep: 'Dans', lieu: 'une bibliothèque', total: 'livres', pred: 'sont des romans', q: 'Combien ne sont pas des romans ?', autre: 'livres' },
       { prep: 'Dans', lieu: 'un refuge', total: 'animaux', pred: 'sont des chats', q: "Combien y a-t-il d'autres animaux ?", autre: 'autres animaux' }
     ]);
-    let ar, br, N, part, autre, safety = 80;
-    do {
-      const b = rand(3, 8), a = rand(1, b - 1);
-      const g = pgcd(a, b); ar = a / g; br = b / g;
-      N = br * choice([3, 4, 5, 6, 7, 8]);          // divisible par br
-      part = ar * N / br; autre = N - part;
-      safety--;
-    } while (safety > 0 && (ar / br === 0.5 || N < 14 || N > 56));
+    let ar = 3, br = 7, u = 23;                                  // secours : 161
+    for (let i = 0; i < 400; i++) {
+      const [x, y] = choice(FRAC), v = rand(11, 99), n = y * v;
+      if (!unite(v) || n % 10 === 0 || n < 100 || n > 600) continue;
+      ar = x; br = y; u = v; break;
+    }
+    const N = br * u, part = ar * u, autre = N - part;
     return {
       text: `${ctx.prep} ${ctx.lieu} de ${N} ${ctx.total}, ${ar}/${br} ${ctx.pred}. ${ctx.q}`,
       answer: `${autre} ${ctx.autre}`,
-      solutionDetail: `Part comptée : ${ar}/${br} × ${N} = ${part}. Réponse : ${N} − ${part} = ${autre} (soit ${br - ar}/${br} × ${N}).`
+      solutionDetail: `Part comptée : ${N} ÷ ${br} × ${ar} = ${part}. Réponse : ${N} − ${part} = ${autre} (soit ${br - ar}/${br} × ${N}).`
     };
   }
 
@@ -11219,22 +11284,18 @@ function genPropConcretFractions() {
     const pronom = genre === 'M' ? 'Il' : 'Elle';
     const ctx = COMMANDES_METIER[metier]
       || { quoi: 'des meubles', pour: 'pour son appartement', payeur: pronom };
-    let a, b, c, d, lcm, sumN, restN, g, safety = 200;
-    do {
-      b = choice([3, 4, 5, 6, 10]); a = rand(1, b - 1);
-      d = choice([2, 3, 4, 5, 6]);  c = rand(1, d - 1);
-      lcm = b * d / pgcd(b, d);
-      sumN = a * (lcm / b) + c * (lcm / d);
-      restN = lcm - sumN;
-      g = restN > 0 ? pgcd(restN, lcm) : 1;
-      safety--;
-    } while (safety > 0 && (
-      pgcd(a, b) > 1 || pgcd(c, d) > 1 ||      // fractions écrites réduites
-      lcm <= Math.max(b, d) || lcm > 30 ||     // un vrai dénominateur commun, sans calcul lourd
-      a / b >= 0.5 ||                          // l'acompte reste inférieur à la moitié
-      restN <= 0 || (lcm / g) <= 2             // il reste quelque chose, et pas « la moitié »
-    ));
-    if (safety <= 0) { a = 1; b = 4; c = 2; d = 5; lcm = 20; sumN = 13; restN = 7; g = 1; }
+    // v523 : fractions de FRAC (avant : quarts, tiers, dixièmes), acompte
+    // sous la moitié, dénominateur commun jusqu'à 72.
+    let a = 2, b = 7, c = 3, d = 8, lcm = 56, sumN = 37, restN = 19, g = 1, safety = 400;
+    while (safety-- > 0) {
+      const [x, y] = choice(FRAC), [z, w] = choice(FRAC);
+      if (y === w || x / y >= 0.5) continue;
+      const L = ppcm(y, w), S = x * (L / y) + z * (L / w), R = L - S;
+      if (L > 72 || R <= 0) continue;
+      const G = pgcd(R, L);
+      if (L / G <= 2) continue;
+      a = x; b = y; c = z; d = w; lcm = L; sumN = S; restN = R; g = G; break;
+    }
     return {
       text: `${prenom} commande ${ctx.quoi} ${ctx.pour}. ${ctx.payeur} paie ${a}/${b} du montant à la commande, ${c}/${d} à la livraison et le reste à 30 jours. Quelle fraction du montant reste-t-il à payer à 30 jours ?`,
       answer: `${restN / g}/${lcm / g}`,
@@ -11250,46 +11311,39 @@ function genPropConcretFractions() {
     const { prenom, genre } = pickPrenom();
     const pronom = genre === 'M' ? 'Il' : 'Elle';
     const ctx = choice([
-      { unite: 'km', pas: [10, 20, 30, 40, 50], max: 900,
+      { unite: 'km',
         debut: (f1, f2) => `${prenom} fait un long trajet en voiture. ${pronom} parcourt ${f1} du trajet le matin et ${f2} l'après-midi.`,
         reste: (v) => `Il lui reste ${v} km à parcourir.`,
         q: 'Quelle est la longueur totale du trajet ?' },
-      { unite: 'kg', pas: [5, 10, 15, 20, 25], max: 600,
+      { unite: 'kg',
         debut: (f1, f2) => `Un agriculteur vend ${f1} de sa récolte de pommes au marché et ${f2} à un magasin.`,
         reste: (v) => `Il lui reste ${v} kg de pommes.`,
         q: 'Combien de kg de pommes a-t-il récoltés ?' },
-      { unite: 'CHF', pas: [10, 20, 30, 40, 50], max: 900,
+      { unite: 'CHF',
         debut: (f1, f2) => `Un club de sport dépense ${f1} de son budget pour le matériel et ${f2} pour une sortie.`,
         reste: (v) => `Il lui reste ${v} CHF.`,
         q: 'Quel était le budget du club au départ ?' }
     ]);
-    let a, b, c, d, lcm, sumN, restN, g, rn, rd, w, V, total, safety = 300;
-    do {
-      b = rand(2, 6); a = rand(1, b - 1);
-      d = rand(2, 6); c = rand(1, d - 1);
-      lcm = b * d / pgcd(b, d);
-      sumN = a * (lcm / b) + c * (lcm / d);
-      restN = lcm - sumN;
-      g = restN > 0 ? pgcd(restN, lcm) : 1;
-      rn = restN / g; rd = lcm / g;
-      w = choice(ctx.pas);
-      V = rn * w; total = rd * w;
-      safety--;
-    } while (safety > 0 && (
-      pgcd(a, b) > 1 || pgcd(c, d) > 1 ||
-      lcm <= Math.max(b, d) || lcm > 30 ||
-      restN <= 0 || rd <= 2 ||
-      total > ctx.max || total < 120 || V < 20
-    ));
-    if (safety <= 0) {
-      a = 1; b = 3; c = 2; d = 5; lcm = 15; sumN = 11; restN = 4; g = 1; rn = 4; rd = 15;
-      w = ctx.pas[1]; V = rn * w; total = rd * w;
+    // v523 : fractions de FRAC ; UN rd-ième du tout (w) hors des tables ;
+    // tout non rond, de 150 à 990.
+    let a = 2, b = 7, c = 3, d = 8, lcm = 56, sumN = 37, restN = 19, g = 1, rn = 19, rd = 56, w = 13;
+    for (let i = 0; i < 800; i++) {
+      const [x, y] = choice(FRAC), [z, v] = choice(FRAC);
+      if (y === v) continue;
+      const L = ppcm(y, v), S = x * (L / y) + z * (L / v), R = L - S;
+      if (L > 72 || R <= 0) continue;
+      const G = pgcd(R, L), n = R / G, dd = L / G;
+      if (dd <= 2) continue;
+      const k = rand(11, 99), tot = dd * k;
+      if (!unite(k) || tot % 10 === 0 || tot < 150 || tot > 990 || n * k < 20) continue;
+      a = x; b = y; c = z; d = v; lcm = L; sumN = S; restN = R; g = G; rn = n; rd = dd; w = k; break;
     }
+    const V = rn * w, total = rd * w;
     const u = ctx.unite;
     return {
       text: `${ctx.debut(`${a}/${b}`, `${c}/${d}`)} ${ctx.reste(V)} ${ctx.q}`,
       answer: `${total} ${u}`,
-      solutionDetail: `Parts retirées : ${a}/${b} + ${c}/${d} = ${a * (lcm / b)}/${lcm} + ${c * (lcm / d)}/${lcm} = ${sumN}/${lcm}. Reste : ${lcm}/${lcm} − ${sumN}/${lcm} = ${restN}/${lcm}${g > 1 ? ` = ${rn}/${rd}` : ''}. ${rn}/${rd} → ${V} ${u}${rn > 1 ? `, donc 1/${rd} → ${V / rn} ${u}` : ''}. Le tout (${rd}/${rd}) : ${V / rn} × ${rd} = ${total} ${u}.`
+      solutionDetail: `Parts retirées : ${a}/${b} + ${c}/${d} = ${a * (lcm / b)}/${lcm} + ${c * (lcm / d)}/${lcm} = ${sumN}/${lcm}. Reste : ${lcm}/${lcm} − ${sumN}/${lcm} = ${restN}/${lcm}${g > 1 ? ` = ${rn}/${rd}` : ''}. ${rn}/${rd} → ${V} ${u}${rn > 1 ? `, donc 1/${rd} → ${V} ÷ ${rn} = ${w} ${u}` : ''}. Le tout (${rd}/${rd}) : ${w} × ${rd} = ${total} ${u}.`
     };
   }
 
@@ -11340,7 +11394,10 @@ function genPropConcretFractions() {
       // par unifierPrenoms.
       ...(q.prenomFige ? { prenomFige: true } : {}),
       ...(q.answerType ? { answerType: q.answerType } : {}),
-      ...(q.choices ? { choices: q.choices, correctIdx: q.correctIdx } : {})
+      ...(q.choices ? { choices: q.choices, correctIdx: q.correctIdx } : {}),
+      // Réponse en durée (remplissage, v523).
+      ...(q.dureeMin != null ? { dureeMin: q.dureeMin } : {}),
+      ...(q.attenduExport ? { attenduExport: q.attenduExport } : {})
     };
   });
   return {
@@ -19545,7 +19602,7 @@ const ICONE_ENSEIGNANT = '<svg viewBox="0 0 24 24" width="21" height="21" fill="
 const ICONE_PDF = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJkAAACUCAMAAAC3HHtWAAAAk1BMVEXi5ef////xVkKwt73K0dji6OrxW0jyUDnG2eHlzczmgnrV2t/x8/T19vbxUTzwTDX4u7Xnvr28wsf+8/L84N3yYlD1jID1hXf1kYb4q6L4t7D96ujwQib1mY7++Pf70c3zcWHxSC/zeGn3pJv6ysX72dXy2Nbj1dXtgnfyaFf3sKj6w73UubvV4ebco6HkioPitLFLhhsqAAAElUlEQVR4nO3ca5eaOhQG4ICOtHUa7AAqIgiIbdVezv//dUcS7tlAXIYkq4v308xCzeNOCAEVZAzmKxKWj8Xi4324tVbQyGahsqdow7J3wbLFgp82LHsTLuOv2rBMIKyQ8dMGZQLHfyXjpsmX8dIUyDhpKmR8NCUyLpoa2eLjq64yjqqpko1XTZlstGrqZGM0hbIRmkrZME2pbJCmVjZEUywboKmW9dOUy3qnXPWyvqppIOupmg4yuGpayMCq6SGDqiZPthySAVWTJ1sPytiqyZMNdydbNYmykaJ1aRJlY0Xr0GTKnqNJlY3sn22aXBlaL4fr1qBJlpEsB/KmVDZEUywboKmW9dOUy3pp6mV9NA1kPTQdZDBNCxlI00MG0TSRATRdZCxNGxlD00fWpWkkQ/rKkL4ypK8M6StD+sqQvjKkrwzpK0P6ypC+MqSvDOkrQ/rKkL6ytbYyVF+tnWWiZW8T5jlZ4Lby/fN0+YFAGyxzw9hbyUoc/oBooOxi2tiUFmybEA2SRaklz5XH/slZs5PEgtGsPrNFg2R3W7YMf+OTbWbZLJtls2yWzbJWrORYJklaaxFs2WUsiznm1htpoIPySzK8PQVl3Oyc1gQrDX3/nMc/h/t0lbTb3vqthDGwkHlFhneO0YyTXYtHWdvWFsc9xA3b6m504nhs1V6R2QemhT192OrS3WJs4rLx7hvKcz8KlVkbpoWI9ovnMlsMN4ULSnJIJpA5gUNStL+qZRFN+RLBDvfJgpXY3qSy2zXOs/MpIbRLWeT/3OYJb0UFL7R9KnMOdXzRewCV+TYmsa8BKdqxku3oFsvGu4C+SFLL3MakwU4rgmTlv/u8ak5emEJWVcKOadmuuJYBmKlkmHpiQGZaMenrg61EZppknso9jMw8khnG9fSTWWletCjF9TizHnmMwsdInFqG6S4A9mY5keR7LpUFYRX4JFugLPHzf6OK0ZatTuWDmfnM2UO012XnI931zTMZ5KfGrNFsEGdkF0igmdaJgQ59XZaFZE1xO9GZlrx/QGYS2Q2UGdtJZO3c6+NmZ5yRg/wZ6k3j4rEvLlrm0h2NlRW7R17R4uh0qnIA1kCCZVF2pW2wMjvMH+BcG7MGmTbywBfmBMqcU2gWbQDzGSnZhfwpa6Y9nWn2qVm9d0ZGZxQyzOTJzkfaJc0+6cjwMSQ7bmRLrZkPbClkCSZoHG+iumQayIzs9lgV3g73YqYzsuJp6mWdXK7N1baMccYpy7xi2EmQ2ed8C3Q4Zs/qorA6CcFpLhu9WP7a1YNNFB3AdULqRjXKcU/bY+P5OHQiN51UhnG6gz/AsLxdndSz2s+249119IOPF68F9axHyZY6TzxNmGzCzLJZNstm2TSyTPpnwh7nZ8KBbBiOGVfPdw9u7DXeSWHHX785ZVGYJNV52ORJ8J/lmlP2WOv54b6VL5Pl73/LT0/Iunn/NF3yLzXyjjNAxvzkQWy0lQEwPWTAKOOXrScM5PoXvrM3y2bZLJtls+zfk3He90Do3TnFykTe0ZQr9Q8XRmTSi9a4zcyITOQNap+Djckk92fzbin/A8PQxx30Ei25AAAAAElFTkSuQmCC';
 
 // Numéro de version, affiché en pied de menu.
-const APP_VERSION = '521';
+const APP_VERSION = '523';
 
 const DOMAINS = [
   {
