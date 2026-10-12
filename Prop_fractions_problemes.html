@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nombres et opérations – Fractions, résolution de problèmes</title>
+
+<style>
+:root{
+  --encre:#1a1a1a;--navy:#1F3A5F;--bleu:#2E75B6;--magenta:#E6007E;--filet:#c9c9c9;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:#e9e9e9;color:var(--encre);
+  font-family:"Avenir Next","Avenir","Segoe UI","Trebuchet MS",Verdana,sans-serif;
+  font-size:0;line-height:1.5;
+}
+.barre{
+  position:sticky;top:0;z-index:10;
+  display:flex;gap:10px;align-items:center;justify-content:center;
+  padding:8px;background:var(--navy);color:#fff;font-size:10pt;
+}
+.barre button{font:inherit;font-weight:600;cursor:pointer;background:#fff;color:var(--navy);border:none;border-radius:3px;
+  padding:0;width:30px;height:30px;line-height:1;display:inline-flex;align-items:center;justify-content:center;font-size:13pt}
+.barre button svg{display:block}
+.barre button:focus-visible{outline:2px solid var(--magenta);outline-offset:2px}
+.barre span{opacity:.8}
+.barre .zoom-outils{opacity:1}
+.zoom-outils{display:flex;gap:6px;align-items:center}
+.zoom-taux{font-variant-numeric:tabular-nums;min-width:44px;text-align:center;opacity:.9}
+
+.page{
+  position:relative;zoom:var(--z,1);width:210mm;height:292mm;
+  margin:14px auto;padding:12mm 12mm 18mm 20mm;
+  background:#fff;overflow:hidden;font-size:11.5pt;
+}
+h1{font-size:15pt;font-weight:700;text-align:center;margin:0 0 1mm;letter-spacing:.1px}
+.sur-titre{text-align:center;font-size:11.5pt;margin:0 0 6mm}
+.etiquette-corrige{
+  display:none;position:absolute;top:13mm;right:12mm;margin:0;
+  color:var(--magenta);font-weight:700;font-size:11pt;letter-spacing:1px;
+}
+body.corrige .etiquette-corrige{display:block}
+p{margin:0 0 4mm}
+
+.exo-titre{display:flex;gap:3mm;align-items:flex-start;margin-bottom:2mm}
+.exo-titre .consigne{font-weight:700}
+.pastille{flex:0 0 auto;width:15px;height:15px;margin-top:2px}
+.item{margin:0 0 2mm 8mm}
+
+.fig{display:block;margin:2mm auto 0;width:170mm;height:auto}
+.sol{visibility:hidden}
+body.corrige .sol{visibility:visible}
+
+.pied{
+  position:absolute;left:20mm;right:12mm;bottom:10mm;
+  padding-top:2.5mm;border-top:1px solid var(--filet);
+  display:flex;justify-content:space-between;font-size:9.5pt;color:#333;
+}
+
+@page{size:A4;margin:0}
+@media print{
+  html,body{width:210mm;margin:0;padding:0;overflow:hidden}
+  body{background:#fff}
+  .barre{display:none}
+  .page{zoom:1;margin:0;page-break-after:always}
+  .page:last-of-type{page-break-after:auto}
+}
+@media screen{ .page{box-shadow:0 1px 6px rgba(0,0,0,.18)} }
+
+.page-corrige{display:none}
+@media print{
+  body.corrige .page:not(.page-corrige) .etiquette-corrige{display:none}
+  body.corrige .page:not(.page-corrige) .sol{visibility:hidden}
+  .page-corrige{display:block}
+  .page-corrige .etiquette-corrige{display:block}
+  .page-corrige .sol{visibility:visible}
+}
+</style>
+
+<!-- Propre à cette fiche -->
+<style>
+.fr{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;
+  line-height:1.15;font-size:.95em;margin:0 .18em;text-align:center}
+.fr>span{padding:0 .25em}
+.fr>span:first-child{border-bottom:1px solid currentColor}
+
+.exo-titre .texte{flex:1 1 auto}
+.exo-titre .texte p{margin:0 0 1.2mm;line-height:1.5}
+.exo-titre .texte p.simple{line-height:1.5}
+.exo-titre .texte p.question{font-weight:700;line-height:1.5;margin-top:.5mm}
+.nb{white-space:nowrap}
+sup{line-height:0}
+
+.item.gras{font-weight:700;margin-top:3mm}
+table.prix{border-collapse:separate;border-spacing:0;margin:0 0 0 8mm;width:170mm;table-layout:fixed;
+  border:1px solid var(--encre);border-radius:2.5mm}
+table.prix th,table.prix td{border:0 solid var(--encre);border-width:0 1px 1px 0;padding:1.5mm 2mm;text-align:center;
+  font-weight:400;line-height:1.3;height:13mm}
+table.prix th{height:11mm}
+table.prix tr>:last-child{border-right-width:0}
+table.prix tr:last-child>*{border-bottom-width:0}
+table.prix .lib{text-align:left;font-weight:700;width:46mm}
+
+.rep{margin:0 0 9mm calc(15px + 3mm);color:var(--magenta);font-weight:700}
+.rep p{margin:0 0 1.5mm}
+.rep .res{margin-top:1mm}
+td.sol,td .sol{color:var(--magenta);font-weight:700}
+</style>
+</head>
+<body>
+
+<div class="barre">
+  <button id="btn" type="button" title="Afficher le corrigé" aria-label="Afficher le corrigé"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.3 8S3.6 3.8 8 3.8 14.7 8 14.7 8 12.4 12.2 8 12.2 1.3 8 1.3 8z"></path><circle cx="8" cy="8" r="2.1"></circle></svg></button>
+  <span class="zoom-outils">
+    <button id="zoom-moins" type="button" title="Réduire">−</button>
+    <span class="zoom-taux" id="zoom-taux">100 %</span>
+    <button id="zoom-plus" type="button" title="Agrandir">+</button>
+    <button id="zoom-page" type="button" title="Page entière" aria-label="Page entière"><svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3.2" y="1.6" width="9.6" height="12.8" rx="1.2"></rect><path d="M8 4.6v6.8"></path><path d="M6.3 6.3L8 4.6l1.7 1.7"></path><path d="M6.3 9.7L8 11.4l1.7-1.7"></path></svg></button>
+    <button id="plein-ecran" type="button" title="Plein écran" aria-label="Plein écran"><svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6V2h4"></path><path d="M10 2h4v4"></path><path d="M14 10v4h-4"></path><path d="M6 14H2v-4"></path></svg></button>
+  </span>
+</div>
+
+<!-- ══════════════════ PAGE 1 ══════════════════ -->
+<section class="page" data-corrige="">
+  <h1>Nombres et opérations</h1>
+  <p class="sur-titre">Fractions – résolution de problèmes</p>
+  <p class="etiquette-corrige">CORRIGÉ</p>
+
+  <!-- 1 -->
+  <div class="exo-titre">
+    <svg class="pastille" viewBox="0 0 16 16" aria-hidden="true"><rect width="16" height="16" rx="2" fill="#1F3A5F"></rect><text x="8" y="12" text-anchor="middle" fill="#fff" font-size="11" font-weight="700" font-family="Verdana,sans-serif">1</text></svg>
+    <div class="texte">
+      <p>Pendant les soldes, un magasin offre une réduction de <span class="fr"><span>2</span><span>5</span></span> sur tous les articles en stock.</p>
+    </div>
+  </div>
+
+  <p class="item gras">a) Complétez le tableau ci-dessous :</p>
+  <table class="prix">
+    <tr><th class="lib"></th><th>téléviseur</th><th>smartphone</th><th>tablette</th><th>console de jeux</th></tr>
+    <tr><td class="lib">Prix affiché<br>(avant réduction)<br>(en CHF)</td><td>1'200.-</td><td>900.-</td><td>600.-</td><td>450.-</td></tr>
+    <tr><td class="lib">Prix soldé<br>(après réduction)<br>(en CHF)</td><td><span class="sol">720.-</span></td><td><span class="sol">540.-</span></td><td><span class="sol">360.-</span></td><td><span class="sol">270.-</span></td></tr>
+  </table>
+
+  <p class="item gras" style="margin-top:6mm">b) Complétez le tableau ci-dessous :</p>
+  <table class="prix">
+    <tr><th class="lib"></th><th>ordinateur portable</th><th>appareil photo</th><th>montre connectée</th><th>écouteurs sans fil</th></tr>
+    <tr><td class="lib">Prix affiché<br>(avant réduction)<br>(en CHF)</td><td><span class="sol">1'500.-</span></td><td><span class="sol">2'100.-</span></td><td><span class="sol">390.-</span></td><td><span class="sol">250.-</span></td></tr>
+    <tr><td class="lib">Prix soldé<br>(après réduction)<br>(en CHF)</td><td>900.-</td><td>1'260.-</td><td>234.-</td><td>150.-</td></tr>
+  </table>
+
+  <!-- 2 -->
+  <div class="exo-titre" style="margin-top:8mm">
+    <svg class="pastille" viewBox="0 0 16 16" aria-hidden="true"><rect width="16" height="16" rx="2" fill="#1F3A5F"></rect><text x="8" y="12" text-anchor="middle" fill="#fff" font-size="11" font-weight="700" font-family="Verdana,sans-serif">2</text></svg>
+    <div class="texte">
+      <p>Pour 2026, les dépenses de formation et de recherche budgétées par la Confédération s'élèvent à <span class="nb">8'652 millions</span> de francs et représentent les <span class="fr"><span>2</span><span>21</span></span> de ses dépenses totales.</p>
+      <p class="question">Quel est le montant des dépenses totales ?</p>
+    </div>
+  </div>
+  <div class="rep sol">
+    <p>8'652 : 2 = 4'326 &nbsp;&nbsp;;&nbsp;&nbsp; 4'326 × 21 = 90'846</p>
+    <p class="res">90'846 millions de francs</p>
+  </div>
+
+  <!-- 3 -->
+  <div class="exo-titre">
+    <svg class="pastille" viewBox="0 0 16 16" aria-hidden="true"><rect width="16" height="16" rx="2" fill="#1F3A5F"></rect><text x="8" y="12" text-anchor="middle" fill="#fff" font-size="11" font-weight="700" font-family="Verdana,sans-serif">3</text></svg>
+    <div class="texte">
+      <p>Une maison occupe les <span class="fr"><span>3</span><span>20</span></span> d'un terrain de <span class="nb">600 m<sup>2</sup></span>.</p>
+      <p class="question">Quelle est la surface de la maison ?</p>
+    </div>
+  </div>
+  <div class="rep sol">
+    <p>600 : 20 = 30 &nbsp;&nbsp;;&nbsp;&nbsp; 30 × 3 = 90</p>
+    <p class="res">90 m<sup>2</sup></p>
+  </div>
+
+  <div class="pied"><span>Nombres et opérations - Fractions - résolution de problèmes - UOG/AM</span><span>1</span></div>
+</section>
+
+<!-- ══════════════════ PAGE 2 ══════════════════ -->
+<section class="page" data-corrige="">
+  <h1>Nombres et opérations</h1>
+  <p class="sur-titre">Fractions – résolution de problèmes</p>
+  <p class="etiquette-corrige">CORRIGÉ</p>
+
+  <!-- 4 -->
+  <div class="exo-titre">
+    <svg class="pastille" viewBox="0 0 16 16" aria-hidden="true"><rect width="16" height="16" rx="2" fill="#1F3A5F"></rect><text x="8" y="12" text-anchor="middle" fill="#fff" font-size="11" font-weight="700" font-family="Verdana,sans-serif">4</text></svg>
+    <div class="texte">
+      <p class="simple">Une somme de CHF 420.- est partagée entre 3 personnes.</p>
+      <p>La première reçoit les <span class="fr"><span>2</span><span>5</span></span> de la somme. La deuxième reçoit le <span class="fr"><span>1</span><span>3</span></span> de la somme. <span class="nb">La troisième reçoit le reste.</span></p>
+      <p class="question">Combien chaque personne a-t-elle reçu ?</p>
+    </div>
+  </div>
+  <div class="rep sol">
+    <p>La première : 420 : 5 × 2 = CHF 168.-</p>
+    <p>La deuxième : 420 : 3 = CHF 140.-</p>
+    <p>La troisième : 420 − 168 − 140 = CHF 112.-</p>
+  </div>
+
+  <!-- 5 -->
+  <div class="exo-titre">
+    <svg class="pastille" viewBox="0 0 16 16" aria-hidden="true"><rect width="16" height="16" rx="2" fill="#1F3A5F"></rect><text x="8" y="12" text-anchor="middle" fill="#fff" font-size="11" font-weight="700" font-family="Verdana,sans-serif">5</text></svg>
+    <div class="texte">
+      <p class="simple">Un terrain de <span class="nb">960 m<sup>2</sup></span> est partagé en trois parties : une maison, une cour et un jardin.</p>
+      <p>La maison occupe les <span class="fr"><span>3</span><span>32</span></span> du terrain. La cour occupe le <span class="fr"><span>1</span><span>8</span></span> du terrain. <span class="nb">Le jardin occupe tout le reste.</span></p>
+      <p class="question">Quelle est la surface du jardin ?</p>
+    </div>
+  </div>
+  <div class="rep sol">
+    <p>La maison : 960 : 32 × 3 = 90 m<sup>2</sup></p>
+    <p>La cour : 960 : 8 = 120 m<sup>2</sup></p>
+    <p>Le jardin : 960 − 90 − 120 = 750 m<sup>2</sup></p>
+  </div>
+
+  <!-- 6 -->
+  <div class="exo-titre">
+    <svg class="pastille" viewBox="0 0 16 16" aria-hidden="true"><rect width="16" height="16" rx="2" fill="#1F3A5F"></rect><text x="8" y="12" text-anchor="middle" fill="#fff" font-size="11" font-weight="700" font-family="Verdana,sans-serif">6</text></svg>
+    <div class="texte">
+      <p class="simple">Albert gagne CHF 3'900.- par mois.</p>
+      <p>Il consacre <span class="fr"><span>3</span><span>20</span></span> de son salaire à son loyer et <span class="fr"><span>1</span><span>13</span></span> de son salaire aux impôts.</p>
+      <p class="simple">Il dépense en moyenne <span class="nb">CHF 2'000.-</span> pour la nourriture, les transports, et les loisirs. <span class="nb">Il économise le reste.</span></p>
+      <p class="question">Combien peut-il économiser chaque mois ?</p>
+    </div>
+  </div>
+  <div class="rep sol">
+    <p>Le loyer : 3'900 : 20 × 3 = CHF 585.-</p>
+    <p>Les impôts : 3'900 : 13 = CHF 300.-</p>
+    <p>Économies : 3'900 − 585 − 300 − 2'000 = CHF 1'015.-</p>
+  </div>
+
+  <!-- 7 -->
+  <div class="exo-titre">
+    <svg class="pastille" viewBox="0 0 16 16" aria-hidden="true"><rect width="16" height="16" rx="2" fill="#1F3A5F"></rect><text x="8" y="12" text-anchor="middle" fill="#fff" font-size="11" font-weight="700" font-family="Verdana,sans-serif">7</text></svg>
+    <div class="texte">
+      <p>En achetant un livre à CHF 28.-, j'ai dépensé les <span class="fr"><span>4</span><span>5</span></span> de ce que je possédais.</p>
+      <p class="question">Quelle somme avais-je ?</p>
+    </div>
+  </div>
+  <div class="rep sol">
+    <p>28 : 4 = 7 &nbsp;&nbsp;;&nbsp;&nbsp; 7 × 5 = 35</p>
+    <p class="res">CHF 35.-</p>
+  </div>
+
+  <div class="pied"><span>Nombres et opérations - Fractions - résolution de problèmes - UOG/AM</span><span>2</span></div>
+</section>
+
+<script>
+document.querySelectorAll('.page[data-corrige]').forEach(p => {
+  const c = p.cloneNode(true);          /* le corrigé garde le numéro de la page d'origine */
+  c.removeAttribute('data-corrige');
+  c.classList.add('page-corrige');
+  document.body.appendChild(c);
+});
+
+const btn = document.getElementById('btn');
+const OEIL = '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.3 8S3.6 3.8 8 3.8 14.7 8 14.7 8 12.4 12.2 8 12.2 1.3 8 1.3 8z"/><circle cx="8" cy="8" r="2.1"/></svg>';
+const OEIL_B = '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.3 8S3.6 3.8 8 3.8 14.7 8 14.7 8 12.4 12.2 8 12.2 1.3 8 1.3 8z"/><circle cx="8" cy="8" r="2.1"/><path d="M2.5 13.5L13.5 2.5"/></svg>';
+btn.addEventListener('click', () => {
+  const on = document.body.classList.toggle('corrige');
+  btn.innerHTML = on ? OEIL_B : OEIL;
+  btn.title = on ? 'Masquer le corrigé' : 'Afficher le corrigé';
+  btn.setAttribute('aria-label', btn.title);
+});
+
+(function(){
+  const racine = document.documentElement;
+  const barre = document.querySelector('.barre');
+  const taux = document.getElementById('zoom-taux');
+  let z = 1;
+  function applique(v){
+    z = Math.max(0.15, Math.min(v, 4));
+    racine.style.setProperty('--z', z);
+    if (taux) taux.textContent = Math.round(z * 100) + ' %';
+  }
+  function pageEntiere(){
+    racine.style.setProperty('--z', 1);
+    const p = document.querySelector('.page');
+    if (!p) return;
+    const r = p.getBoundingClientRect();
+    const hBarre = barre ? barre.getBoundingClientRect().height : 0;
+    applique(Math.min((window.innerWidth - 36) / r.width,
+                      (window.innerHeight - hBarre - 36) / r.height));
+  }
+  document.getElementById('zoom-moins').addEventListener('click', () => applique(z / 1.15));
+  document.getElementById('zoom-plus').addEventListener('click', () => applique(z * 1.15));
+  document.getElementById('zoom-page').addEventListener('click', pageEntiere);
+  let t; window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(pageEntiere, 150); });
+  pageEntiere();
+
+  const bpe = document.getElementById('plein-ecran');
+  if (bpe) {
+    bpe.addEventListener('click', () => {
+      if (document.fullscreenElement) document.exitFullscreen();
+      else document.documentElement.requestFullscreen();
+    });
+    document.addEventListener('fullscreenchange', () => {
+      const plein = !!document.fullscreenElement;
+      bpe.innerHTML = plein
+        ? '<svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2v4H2"/><path d="M14 6h-4V2"/><path d="M10 14v-4h4"/><path d="M2 10h4v4"/></svg>'
+        : '<svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6V2h4"/><path d="M10 2h4v4"/><path d="M14 10v4h-4"/><path d="M6 14H2v-4"/></svg>';
+      bpe.title = plein ? 'Quitter le plein écran' : 'Plein écran';
+      setTimeout(pageEntiere, 120);
+    });
+  }
+})();
+</script>
+</body>
+</html>
