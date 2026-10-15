@@ -110,6 +110,8 @@ body.corrige .sol{visibility:visible}
     margin-left:max(14px, calc((100% - var(--pw,210mm) * var(--z,1)) / 2));margin-right:0;
     margin-bottom:calc(14px + (var(--z,1) - 1) * var(--ph,292mm));
   }
+  /* empêche la marge négative de la dernière page de sortir du body (sinon vide sous la page en réduction) */
+  body{display:flow-root}
 }
 </style>
 </head>
