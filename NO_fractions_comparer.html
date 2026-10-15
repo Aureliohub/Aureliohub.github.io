@@ -219,7 +219,7 @@ btn.addEventListener('click', () => {
                       (window.innerHeight - hBarre - 36) / r.height));
   }
   /* auto = la page suit la taille de la fenêtre ; un zoom manuel coupe ce suivi
-     jusqu'au prochain clic sur « Page entière » ou au passage en plein écran */
+     jusqu'au prochain clic sur « Page entière » */
   let auto = true, lw = window.innerWidth, lh = window.innerHeight;
   document.getElementById('zoom-moins').addEventListener('click', () => { auto = false; applique(z / 1.15); });
   document.getElementById('zoom-plus').addEventListener('click', () => { auto = false; applique(z * 1.15); });
@@ -237,9 +237,18 @@ btn.addEventListener('click', () => {
   });
   pageEntiere();
 
+  /* position de lecture, mémorisée hors passage en plein écran pour être restituée ensuite */
+  let posY = 0, posH = 1, tPos, transition = false;
+  const notePos = () => { posY = window.scrollY; posH = document.documentElement.scrollHeight || 1; };
+  window.addEventListener('scroll', () => {
+    if (transition) return;
+    clearTimeout(tPos); tPos = setTimeout(notePos, 200);
+  }, { passive: true });
+
   const bpe = document.getElementById('plein-ecran');
   if (bpe) {
     bpe.addEventListener('click', () => {
+      clearTimeout(tPos); notePos();
       if (document.fullscreenElement) document.exitFullscreen();
       else document.documentElement.requestFullscreen();
     });
@@ -249,8 +258,15 @@ btn.addEventListener('click', () => {
         ? '<svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2v4H2"/><path d="M14 6h-4V2"/><path d="M10 14v-4h4"/><path d="M2 10h4v4"/></svg>'
         : '<svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6V2h4"/><path d="M10 2h4v4"/><path d="M14 10v4h-4"/><path d="M6 14H2v-4"/></svg>';
       bpe.title = plein ? 'Quitter le plein écran' : 'Plein écran';
-      auto = true;
-      setTimeout(() => { lw = window.innerWidth; lh = window.innerHeight; pageEntiere(); }, 120);
+      /* le zoom choisi avec + ou − est conservé ; sans zoom manuel, la page se recale en page entière.
+         La même portion de page reste à l'écran. */
+      clearTimeout(tPos); transition = true;
+      setTimeout(() => {
+        lw = window.innerWidth; lh = window.innerHeight;
+        if (auto) pageEntiere();
+        window.scrollTo(0, posY / posH * document.documentElement.scrollHeight);
+        setTimeout(() => { transition = false; notePos(); }, 400);
+      }, 120);
     });
   }
 })();
