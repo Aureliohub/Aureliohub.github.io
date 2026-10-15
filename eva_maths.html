@@ -8,7 +8,7 @@ générant des exercices de mathématiques pour adultes (programme PAI, Suisse).
 Product owner : Aurelio (Onex/Genève). Répondre en FRANÇAIS.
 
 ───────────────────────────────────────────────────────────────────────────────
-0. OÙ ON EN EST (v530, 14.10.2026) — à lire en premier
+0. OÙ ON EN EST (v531, 15.10.2026) — à lire en premier
 ───────────────────────────────────────────────────────────────────────────────
 L'application est en ligne : https://aureliohub.github.io/eva_maths.html
 Les fichiers de série et de test (.json) sont déposés à côté d'elle, et s'ouvrent
@@ -543,6 +543,39 @@ PDF de domaine :
 ───────────────────────────────────────────────────────────────────────────────
 Cette section décrit l'ÉTAT, non l'historique. Les numéros de version ne sont
 cités que lorsqu'ils aident à retrouver un choix dans le fichier.
+
+v531 — DÉCIMAUX, DIVISIONS DU NIVEAU 2 (15.10, demande d'Aurelio : « des
+ quotients en centaines au minimum et avec un nombre non fini après 2
+ décimales » ; « que le choix ne propose que 2 quotients avec un 0 sur les 4 »).
+ · `generateDivisionN2` (à côté de generateDivision, qui ne sert plus qu'au
+   niveau 1) : le dividende n'est plus un multiple du diviseur, la division se
+   mène en ENTIERS. Partie entière du quotient de 100 à 9'999 (au-delà, 31 129
+   sortait avec 0,15) ; reste NON NUL après les centièmes — la division ne
+   s'arrête pas là, sans fin le plus souvent (88 % des tirages), sinon à 3 ou
+   4 décimales (diviseur 0,8, 1,2…). Toujours : centièmes ≠ 0, dividende de 4-5
+   chiffres sans 0, mêmes neuf diviseurs.
+ · Réponse attendue : le quotient TRONQUÉ au centième (convention inchangée) ;
+   admis aussi : les troncatures à 3, 4, 5, 6 décimales. Un arrondi
+   (« 104,73 » pour 104,7285…) est REFUSÉ, comme avant.
+ · Corrigé : `quotientComplet` = « 1046,3333… » (4 décimales + points de
+   suspension) ou la valeur exacte quand elle tombe juste.
+ · VARIANTE « Divisions », niveau 2 : DEUX quotients avec un 0 intérieur, DEUX
+   sans, places tirées au hasard (`opDiv(avecZero)`). L'exercice « 4
+   opérations » garde son unique division avec 0 (différence N1/N2 de v405).
+ · DÉFAUT ANCIEN CORRIGÉ AU PASSAGE : le quotient complet en gris
+   (`.quotient-complet`) passait dans l'ÉNONCÉ des PDF quand les solutions
+   étaient affichées à l'écran au moment de l'export — il n'était pas dans la
+   liste des nettoyages. Ajouté aux trois chaînes (domaine, sous-domaine,
+   branche prop-concret) et aux aperçus de l'accueil. Latent jusqu'ici (peu de
+   quotients longs), il aurait sorti la réponse à chaque export.
+ Banc au vrai navigateur : 14 000 divisions N2 (3 000 exercices « Divisions »
+ + 2 000 « 4 opérations ») recalculées en BigInt depuis l'énoncé : réponse,
+ quotient ≥ 100 et < 10 000, reste non nul, 0 intérieur selon la règle,
+ toujours exactement 2 sur 4 dans la variante, diviseurs distincts,
+ troncatures admises, quotient complet — zéro défaut. N1 et N3 inchangés.
+ Saisie frappée : troncature 2 et 3 décimales justes, arrondi faux. Écran,
+ PDF du sous-domaine (énoncé + corrigé, solutions affichées ou non) et PDF
+ du domaine 1 regardés.
 
 v530 — EXERCICE FUSIONNÉ : PLUS DE MENTION DE NIVEAU (14.10, demande
  d'Aurelio : « il faut supprimer la mention du niveau si on fusionne »). Dans
@@ -4325,6 +4358,7 @@ ainsi (une remarque prise pour une consigne, une sélection ambiguë).
   .home-card-preview .feedback,
   .home-card-preview .exo-tip,
   .home-card-preview .inline-solution,
+  .home-card-preview .quotient-complet,
   .home-card-preview .no-print {
     display: none !important;
   }
@@ -7531,7 +7565,9 @@ function genDecimal(operation) {
   // ===========================================================
   // DIVISION
   // ===========================================================
-  const opDiv = () => {
+  // `avecZero` ne sert qu'au niveau 2 : vrai → le quotient porte un 0
+  // intérieur, faux → aucun 0. Absent → 0 exigé (exercice mélangé).
+  const opDiv = (avecZero) => {
     if (niveau === 3) {
       // Nombres entiers : division EXACTE (pas de reste, pas de quotient
       // décimal). Les diviseurs sont les MÊMES CHIFFRES que ceux des niveaux
@@ -7564,12 +7600,74 @@ function genDecimal(operation) {
         nbChiffresDividende: choice([4, 5]), quotientZero: false, diviseurs: DIVISEURS_N1
       });
     } else {
-      // N2 : quotient contient au moins un 0 (sauf le dernier chiffre)
-      return generateDivision({
-        nbChiffresDividende: choice([4, 5]), quotientZero: true, diviseurs: DIVISEURS_N2
-      });
+      // N2 (15.10, demande d'Aurelio) : quotient de 100 au moins, et une
+      // division qui NE S'ARRÊTE PAS au centième (elle continue, souvent sans
+      // fin). Le 0 intérieur du quotient est exigé, sauf dans la variante
+      // « Divisions », qui n'en met que dans deux calculs sur quatre.
+      return generateDivisionN2({ quotientZero: avecZero !== false, diviseurs: DIVISEURS_N2 });
     }
   };
+
+  // DIVISION DU NIVEAU 2 (v531). Le dividende est tiré LIBREMENT (ce n'est plus
+  // un multiple du diviseur) et la division se mène en ENTIERS, sans flottant :
+  // dividende N / 10^dDec, diviseur D / 10^decDiviseur, donc
+  // quotient = (N · 10^decDiviseur) / (D · 10^dDec).
+  // Règles : partie entière de 100 à 9'999 ; reste non nul après le chiffre des
+  // centièmes (la division ne s'arrête pas là) ; centièmes jamais 0 (refusé
+  // en v406) ; 0 intérieur exigé ou interdit selon `quotientZero` ; dividende
+  // de 4 ou 5 chiffres sans 0, 1 à 3 décimales.
+  // Réponse attendue : le quotient TRONQUÉ au centième, comme avant. Sont
+  // aussi admises les troncatures à 3, 4, 5 et 6 décimales (« au minimum deux
+  // décimales »). Le corrigé rappelle en gris le quotient poursuivi
+  // (« 121,9571… », ou sa valeur exacte quand elle tombe juste avant).
+  function generateDivisionN2({ quotientZero, diviseurs }) {
+    const fmt = (k, nbDec) => {
+      const sK = String(k).padStart(nbDec + 1, '0');
+      return nbDec ? sK.slice(0, sK.length - nbDec) + ',' + sK.slice(sK.length - nbDec) : sK;
+    };
+    const sansZero = (len) => {
+      let t = '';
+      for (let i = 0; i < len; i++) t += String(rand(1, 9));
+      return t;
+    };
+    let secours = null;
+    for (let essai = 0; essai < 2000; essai++) {
+      const divisor = choice(diviseurs);
+      const decDiviseur = divisor.length - divisor.indexOf(',') - 1;
+      const D = parseInt(divisor.replace(',', ''), 10);
+      const nbD = choice([4, 5]);
+      const dDec = rand(1, Math.min(3, nbD - 1));
+      const sN = sansZero(nbD);
+      const N = parseInt(sN, 10);
+      const num = N * Math.pow(10, decDiviseur);
+      const den = D * Math.pow(10, dDec);
+      const entier = Math.floor(num / den);
+      if (entier < 100 || entier > 9999) continue;      // centaines ou milliers
+      const q2 = Math.floor(num * 100 / den);
+      if ((num * 100) % den === 0) continue;          // s'arrête au centième
+      const chiffres = String(q2);
+      if (chiffres.endsWith('0')) continue;            // jamais 0 aux centièmes
+      const zeroInterieur = chiffres.slice(0, -1).includes('0');
+      const dividend = sN.slice(0, nbD - dDec) + ',' + sN.slice(nbD - dDec);
+      // Suite de la division : jusqu'à 6 décimales.
+      const alt = [];
+      let complet = null;
+      for (let k = 3; k <= 6; k++) {
+        const qk = Math.floor(num * Math.pow(10, k) / den);
+        alt.push(fmt(qk, k));
+        if ((num * Math.pow(10, k)) % den === 0) { complet = fmt(qk, k); break; }
+      }
+      if (!complet) complet = fmt(Math.floor(num * 10000 / den), 4) + '…';
+      const q = {
+        text: `${dividend} ÷ ${divisor} = `, answer: fmt(q2, 2),
+        acceptAlt: alt, quotientComplet: complet
+      };
+      if (zeroInterieur === quotientZero) return q;
+      if (!secours) secours = q;
+    }
+    return secours || { text: '85,37 ÷ 0,7 = ', answer: '121,95',
+      acceptAlt: ['121,957', '121,9571', '121,95714', '121,957142'], quotientComplet: '121,9571…' };
+  }
 
   // Helper division : choisit divisor (1 décimale) et dividende avec virgule placée
   // de sorte que le quotient ait AU MOINS 2 décimales (pas de quotient entier).
@@ -7715,6 +7813,10 @@ function genDecimal(operation) {
     // pour les divisions on impose quatre diviseurs différents (le niveau 1 en
     // propose 6, le niveau 2 en propose 9 : il y en a toujours assez).
     const dejaVus = new Set(), diviseursVus = new Set();
+    // Niveau 2, divisions : deux quotients avec un 0 intérieur, deux sans
+    // (demande d'Aurelio, 15.10), à des places tirées au hasard.
+    const zeros = [true, true, false, false];
+    for (let i = 3; i > 0; i--) { const j = rand(0, i); const t = zeros[i]; zeros[i] = zeros[j]; zeros[j] = t; }
     const diviseurDe = (t) => {
       const parts = String(t).split('÷');
       return parts.length > 1 ? parts[1].replace('=', '').trim() : '';
@@ -7722,13 +7824,13 @@ function genDecimal(operation) {
     for (let i = 0; i < 4; i++) {
       let q = null;
       for (let essai = 0; essai < 80; essai++) {
-        const cand = opSeule();
+        const cand = operation === 'division' ? opSeule(zeros[i]) : opSeule();
         if (dejaVus.has(cand.text)) continue;
         if (operation === 'division' && diviseursVus.has(diviseurDe(cand.text))) continue;
         q = cand;
         break;
       }
-      if (!q) q = opSeule();          // filet : plutôt un doublon qu'un trou
+      if (!q) q = operation === 'division' ? opSeule(zeros[i]) : opSeule();   // filet : plutôt un doublon qu'un trou
       dejaVus.add(q.text);
       if (operation === 'division') diviseursVus.add(diviseurDe(q.text));
       const qObj = { label: labels[i], text: q.text, answer: q.answer };
@@ -19770,7 +19872,7 @@ const ICONE_ENSEIGNANT = '<svg viewBox="0 0 24 24" width="21" height="21" fill="
 const ICONE_PDF = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJkAAACUCAMAAAC3HHtWAAAAk1BMVEXi5ef////xVkKwt73K0dji6OrxW0jyUDnG2eHlzczmgnrV2t/x8/T19vbxUTzwTDX4u7Xnvr28wsf+8/L84N3yYlD1jID1hXf1kYb4q6L4t7D96ujwQib1mY7++Pf70c3zcWHxSC/zeGn3pJv6ysX72dXy2Nbj1dXtgnfyaFf3sKj6w73UubvV4ebco6HkioPitLFLhhsqAAAElUlEQVR4nO3ca5eaOhQG4ICOtHUa7AAqIgiIbdVezv//dUcS7tlAXIYkq4v308xCzeNOCAEVZAzmKxKWj8Xi4324tVbQyGahsqdow7J3wbLFgp82LHsTLuOv2rBMIKyQ8dMGZQLHfyXjpsmX8dIUyDhpKmR8NCUyLpoa2eLjq64yjqqpko1XTZlstGrqZGM0hbIRmkrZME2pbJCmVjZEUywboKmW9dOUy3qnXPWyvqppIOupmg4yuGpayMCq6SGDqiZPthySAVWTJ1sPytiqyZMNdydbNYmykaJ1aRJlY0Xr0GTKnqNJlY3sn22aXBlaL4fr1qBJlpEsB/KmVDZEUywboKmW9dOUy3pp6mV9NA1kPTQdZDBNCxlI00MG0TSRATRdZCxNGxlD00fWpWkkQ/rKkL4ypK8M6StD+sqQvjKkrwzpK0P6ypC+MqSvDOkrQ/rKkL6ytbYyVF+tnWWiZW8T5jlZ4Lby/fN0+YFAGyxzw9hbyUoc/oBooOxi2tiUFmybEA2SRaklz5XH/slZs5PEgtGsPrNFg2R3W7YMf+OTbWbZLJtls2yWzbJWrORYJklaaxFs2WUsiznm1htpoIPySzK8PQVl3Oyc1gQrDX3/nMc/h/t0lbTb3vqthDGwkHlFhneO0YyTXYtHWdvWFsc9xA3b6m504nhs1V6R2QemhT192OrS3WJs4rLx7hvKcz8KlVkbpoWI9ovnMlsMN4ULSnJIJpA5gUNStL+qZRFN+RLBDvfJgpXY3qSy2zXOs/MpIbRLWeT/3OYJb0UFL7R9KnMOdXzRewCV+TYmsa8BKdqxku3oFsvGu4C+SFLL3MakwU4rgmTlv/u8ak5emEJWVcKOadmuuJYBmKlkmHpiQGZaMenrg61EZppknso9jMw8khnG9fSTWWletCjF9TizHnmMwsdInFqG6S4A9mY5keR7LpUFYRX4JFugLPHzf6OK0ZatTuWDmfnM2UO012XnI931zTMZ5KfGrNFsEGdkF0igmdaJgQ59XZaFZE1xO9GZlrx/QGYS2Q2UGdtJZO3c6+NmZ5yRg/wZ6k3j4rEvLlrm0h2NlRW7R17R4uh0qnIA1kCCZVF2pW2wMjvMH+BcG7MGmTbywBfmBMqcU2gWbQDzGSnZhfwpa6Y9nWn2qVm9d0ZGZxQyzOTJzkfaJc0+6cjwMSQ7bmRLrZkPbClkCSZoHG+iumQayIzs9lgV3g73YqYzsuJp6mWdXK7N1baMccYpy7xi2EmQ2ed8C3Q4Zs/qorA6CcFpLhu9WP7a1YNNFB3AdULqRjXKcU/bY+P5OHQiN51UhnG6gz/AsLxdndSz2s+249119IOPF68F9axHyZY6TzxNmGzCzLJZNstm2TSyTPpnwh7nZ8KBbBiOGVfPdw9u7DXeSWHHX785ZVGYJNV52ORJ8J/lmlP2WOv54b6VL5Pl73/LT0/Iunn/NF3yLzXyjjNAxvzkQWy0lQEwPWTAKOOXrScM5PoXvrM3y2bZLJtls+zfk3He90Do3TnFykTe0ZQr9Q8XRmTSi9a4zcyITOQNap+Djckk92fzbin/A8PQxx30Ei25AAAAAElFTkSuQmCC';
 
 // Numéro de version, affiché en pied de menu.
-const APP_VERSION = '530';
+const APP_VERSION = '531';
 
 const DOMAINS = [
   {
@@ -33197,7 +33299,7 @@ async function downloadDomainPdf(domainNum, compoImposee) {
       if (el.tagName === 'INPUT') replaceInputBlank(el, el.classList.contains('answer-input-inline'));
       else el.remove();
     });
-    exoDiv.querySelectorAll('.feedback, .inline-solution, .exo-tip, .frac-sol-detail').forEach(el => el.remove());
+    exoDiv.querySelectorAll('.feedback, .inline-solution, .quotient-complet, .exo-tip, .frac-sol-detail').forEach(el => el.remove());
     droiteFractionsPourPdf(exoDiv);   // droite « Fractions » : cases dessinées
     // Unité d'aide à la saisie : écran seulement (voir la chaîne sous-domaine).
     exoDiv.querySelectorAll('.answer-unite').forEach(el => el.remove());
@@ -34855,7 +34957,7 @@ async function downloadPdf(opts) {
           el.remove();
         }
       });
-      exoDiv.querySelectorAll('.feedback, .inline-solution, .exo-tip, .frac-sol-detail').forEach(el => el.remove());
+      exoDiv.querySelectorAll('.feedback, .inline-solution, .quotient-complet, .exo-tip, .frac-sol-detail').forEach(el => el.remove());
       droiteFractionsPourPdf(exoDiv);   // droite « Fractions » : cases dessinées
       // L'unité affichée à droite du champ (« CHF », « g », « m² ») guide la
       // SAISIE à l'écran ; sur papier elle souffle la réponse et n'a pas lieu
@@ -35582,7 +35684,7 @@ async function downloadPdf(opts) {
           if (el.tagName === 'INPUT') replaceInputBlank(el, el.classList.contains('answer-input-inline'));
           else el.remove();
         });
-        exoDiv.querySelectorAll('.feedback, .inline-solution, .exo-tip, .frac-sol-detail').forEach(el => el.remove());
+        exoDiv.querySelectorAll('.feedback, .inline-solution, .quotient-complet, .exo-tip, .frac-sol-detail').forEach(el => el.remove());
         droiteFractionsPourPdf(exoDiv);   // droite « Fractions » : cases dessinées
         // Unité d'aide à la saisie : écran seulement. Cette branche (v504) avait
         // échappé au retrait fait dans les trois chaînes.
