@@ -81,8 +81,6 @@
   .bouton:hover{background:#0077ED}
   .bouton:focus-visible{outline:2px solid var(--bleu);outline-offset:3px}
   .bouton svg{width:17px;height:17px}
-  /* évaluation pas encore publiée : pastille inerte, même gabarit */
-  .bouton.attente{background:var(--filet);color:var(--gris);cursor:default;pointer-events:none}
 
   @media (max-width:1000px){
     body{overflow:auto}
@@ -142,16 +140,14 @@
     <section class="bloc b-eval">
       <div class="entete">
         <span class="num">3</span>
-        <!-- Correcteur à publier. Pour l'activer : remplacer le <span> par
-             <a class="bouton" href="https://aureliohub.github.io/evaluation_recette_crepes.html"> … </a> -->
-        <span class="bouton attente">
+        <a class="bouton" href="https://aureliohub.github.io/evaluation_crepes.html">
           Évaluation
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path>
           </svg>
-        </span>
+        </a>
       </div>
-      <p class="consigne" style="color:var(--gris)">Bientôt disponible.</p>
+      <p class="consigne" style="color:var(--gris)">Déposez votre fichier Word terminé&nbsp;: vous obtenez votre note et la liste de ce qui reste à reprendre.</p>
     </section>
   </div>
 </div>
