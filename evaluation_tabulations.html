@@ -434,7 +434,7 @@ kbd{
       <tr><td><b>E. Montants</b></td><td>Taquet <b>droit à 14 cm</b> — le taquet décimal est également accepté.</td><td class="pts">1</td></tr>
       <tr><td><b>F. Signatures</b></td><td>Taquet <b>gauche à 7,5 cm</b> pour « Visa du formateur ».</td><td class="pts">1</td></tr>
       <tr><td><b>G. Propreté de l’alignement</b></td><td>Aucun alignement obtenu à la barre d’espace (trois espaces ou plus) ni par des tabulations sans taquet posé.</td><td class="pts">2</td></tr>
-      <tr><td><b>H. Points de suite</b></td><td>Les taquets à 8 cm, 14 cm et 16 cm portent des points de suite.</td><td class="pts">4</td></tr>
+      <tr><td><b>H. Points de suite</b></td><td>Les taquets à 8 cm, 14 cm et 16 cm portent des points de suite, de genre point au pied de la ligne (.......). Des tirets ou un trait à la place coûtent 1,5 point.</td><td class="pts">4</td></tr>
       <tr class="total"><td>Total</td><td></td><td class="pts">20</td></tr>
     </tbody>
   </table>
@@ -841,6 +841,7 @@ function analyser(paras, page, police){
   }
 
   const suites = [];          // état des taquets à points de suite, tous blocs confondus
+  const genresSuite = new Set();   // genres de points de suite autres que « ..... »
   for(const [nom, b] of Object.entries(blocs)){
     const bareme = BAREME.find(x => x.c === b.crit).pts;
     const presentes = b.lignes.filter(Boolean);
@@ -854,7 +855,10 @@ function analyser(paras, page, police){
         if(r.etat === "ok") ok++;
         else if(r.etat === "type") typeFaux = r.tr;
         // les points de suite sont jugés à part : un taquet du bon rang suffit
-        if(r.etat !== "absent" && r.suite) avecSuite++;
+        if(r.etat !== "absent" && r.suite){
+          avecSuite++;
+          if(r.tr.points !== "dot") genresSuite.add(r.tr.points);
+        }
       }
       const part = presentes.length ? ok / presentes.length : 0;
       acquis += part;
@@ -887,6 +891,18 @@ function analyser(paras, page, police){
     corr.push({ t:"Points de suite", cible: (blocs.double && blocs.double.lignes.filter(Boolean)[0]) || null,
       d:"Les taquets à " + [...new Set(sManquants)].join(", ") +
       " doivent porter des points de suite. Double-cliquez sur le taquet dans la règle, puis choisissez le point dans la zone « Points de suite »." });
+  const LIB_SUITE = {
+    hyphen:    "des tirets (- - - -), placés à mi-hauteur de la ligne",
+    middleDot: "des points placés à mi-hauteur de la ligne (· · · ·)",
+    underscore:"un trait continu (____)",
+    heavy:     "un trait épais"
+  };
+  if(genresSuite.size){                 // un défaut distinct : 1,5 point
+    res.H = Math.max(0, res.H - 1.5);
+    corr.push({ t:"Genre des points de suite", cible: (blocs.double && blocs.double.lignes.filter(Boolean)[0]) || null,
+      d:"Vos points de suite sont " + [...genresSuite].map(g => LIB_SUITE[g] || g).join(" et ") +
+      ". Le modèle demande des points au pied de la ligne (.......). Double-cliquez sur le taquet dans la règle, puis choisissez l’option 2 de la zone « Points de suite »." });
+  }
 
   /* --- G : propreté de l’alignement --- */
   let espaces = 0, defaut = 0, pEsp = null, pDef = null;
@@ -956,7 +972,7 @@ function apercu(r){
   /* un seul passage : sinon la deuxième substitution frappe le balisage produit */
   const marquerBlancs = h => h.replace(/[ \u00A0]/g, () => '<span class="mk-esp"> </span>');
 
-  let html = "", y = 0, aOK = false, aKO = false, aSuite = false;
+  let html = "", y = 0, aOK = false, aKO = false, aSuite = false, aGenre = false;
   const hauteurLigne = corps * 1.25;
 
   // règle : union des taquets rencontrés + taquets attendus jamais posés
@@ -1027,8 +1043,11 @@ function apercu(r){
       const larg = Math.max(0, debut - x);
       if(larg > 0.5){
         if(suite){
-          const n = Math.max(1, Math.round(larg / mesure(".", false)));
-          ligne += `<span class="suite" style="left:${x}mm;width:${larg}mm">${".".repeat(n)}</span>`;
+          const car = { hyphen:"-", middleDot:"·", underscore:"_", heavy:"_" }[t.points] || ".";
+          const n = Math.max(1, Math.round(larg / mesure(car, false)));
+          const fauxGenre = attendSuite && t.points !== "dot";
+          if(fauxGenre) aGenre = true;
+          ligne += `<span class="suite${fauxGenre ? " absente" : ""}" style="left:${x}mm;width:${larg}mm">${car.repeat(n)}</span>`;
         }else if(attendSuite){
           aSuite = true;
           ligne += `<span class="suite absente" style="left:${x}mm;width:${larg}mm">&nbsp;</span>`;
@@ -1054,6 +1073,7 @@ function apercu(r){
   if(aOK)    legende.push('<span><i class="ok">▏</i> taquet correct</span>');
   if(aKO)    legende.push('<span><i class="ko">▏</i> taquet erroné, absent ou par défaut</span>');
   if(aSuite) legende.push('<span><i class="jn">points</i> points de suite manquants</span>');
+  if(aGenre) legende.push('<span><i class="jn">- - -</i> points de suite à remplacer par des points</span>');
   legende.push('<span><i style="color:var(--marque)">¶ · →</i> marques de mise en forme, toujours affichées</span>');
   return {
     legende: legende.join(""),
