@@ -18,7 +18,6 @@
   --jaune:#FBE38E;         /* surligneur */
   --sans:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
   --lettre:Arial,"Liberation Sans",Helvetica,sans-serif;
-  --np:#9BA3B4;            /* caractères non imprimables */
 }
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
@@ -285,32 +284,17 @@ kbd{
   box-shadow:0 1px 3px rgba(0,0,0,.08),0 12px 32px rgba(0,0,0,.10);
   padding:20mm 20mm 16mm;width:210mm;
 }
-.ap-l{position:relative;margin:0 0 2.2mm;white-space:break-spaces;overflow-wrap:break-word;tab-size:8;-moz-tab-size:8}
-.ap-l .puce{display:inline-block;text-align:left;color:var(--encre);pointer-events:none}
-/* caractères non imprimables, toujours affichés comme dans Word */
-.np,.np-esp,.np-tab{color:var(--np);-webkit-user-select:none;user-select:none;
-  print-color-adjust:exact;-webkit-print-color-adjust:exact}
-.np{font-weight:400;font-style:normal;font-family:var(--sans)}
-.np-esp,.np-tab{position:relative}
-.np-esp::after,.np-tab::after{
-  position:absolute;top:0;color:var(--np);font-weight:400;font-style:normal;
-  text-decoration:none;pointer-events:none;
-  print-color-adjust:exact;-webkit-print-color-adjust:exact;
-}
-.np-esp::after{content:"·";left:0;right:0;text-align:center}
-.np-insec::after{content:"°";font-size:.8em}
-.legende-apercu .np-leg{color:var(--gris)}
-.legende-apercu .np-leg b{color:var(--np);font-weight:600}
-.np-tab::after{content:"→";left:0;font-family:var(--sans)}
+.ap-l{position:relative;margin:0 0 2.2mm}
+.ap-l .puce{position:absolute;left:-7mm;width:6mm;text-align:right;color:var(--encre);pointer-events:none}
 .ap-img{
   display:inline-flex;align-items:center;justify-content:center;border-radius:1mm;
   background:#ECECF0;color:var(--gris);font-family:var(--sans);font-size:3mm;margin:3mm 0;
   min-width:20mm;min-height:12mm;
 }
-.ap-tab{border-collapse:collapse;margin:0 0 3mm;width:100%;table-layout:fixed}
-.ap-tab td{border:.3mm solid var(--encre);padding:0 1.9mm;vertical-align:top}
+.ap-tab{border-collapse:collapse;margin:3mm 0;width:100%}
+.ap-tab td{border:.3mm solid var(--encre);padding:.8mm 1.6mm;vertical-align:top}
 .ap-num{
-  position:absolute;left:calc(0mm - var(--gouttiere,19mm));top:-.4mm;width:18mm;display:flex;justify-content:flex-end;gap:.7mm;
+  position:absolute;left:-19mm;top:-.4mm;width:18mm;display:flex;justify-content:flex-end;gap:.7mm;
   font-family:var(--sans);font-size:3.2mm;color:var(--revision);font-weight:600;line-height:1;z-index:3;
 }
 .ap-num span{
@@ -449,7 +433,7 @@ ol.corrections li{cursor:pointer}
       <tr><td><b>A. Fidélité du texte</b></td><td>Tout le texte est saisi sans omission ni faute de frappe, tableau compris.</td><td class="pts">2</td></tr>
       <tr><td><b>B. Titre</b></td><td>« Comment s’occuper de Tarama la tortue d’eau douce ? » en <b>Arial 20, gras, souligné, centré</b>.</td><td class="pts">3</td></tr>
       <tr><td><b>C. Image</b></td><td>L’image est <b>insérée</b> dans le document et son paragraphe est <b>centré</b>.</td><td class="pts">2</td></tr>
-      <tr><td><b>D. Titres de rubrique</b></td><td>Les trois titres forment une <b>liste à numéros</b> automatique, en <b>Arial 18, gras, souligné</b>.</td><td class="pts">4</td></tr>
+      <tr><td><b>D. Titres de rubrique</b></td><td>Les trois titres forment une <b>liste à numéros</b> automatique, en <b>Arial 18, gras, souligné</b>, <b>alignés à gauche</b> (non centrés).</td><td class="pts">4</td></tr>
       <tr><td><b>E. Liste à puces</b></td><td>Les trois consignes d’entretien forment une <b>liste à puces</b> automatique, en <b>Arial 11</b>.</td><td class="pts">3</td></tr>
       <tr><td><b>F. Tableau</b></td><td>Un <b>tableau de 2 lignes et 2 colonnes</b> est inséré ; sa ligne d’en-tête est en <b>gras</b> et le contenu des cellules est en <b>liste à puces</b>.</td><td class="pts">2</td></tr>
       <tr><td><b>G. Mises en forme ponctuelles</b></td><td>« Attention… » et « Quentin, ton frérot » en <b>italique</b> ; « Si tu as un doute… » et la signature en <b>Arial 12</b> ; « Merci encore pour ton aide ! » en <b>Arial 18 gras</b>.</td><td class="pts">2</td></tr>
@@ -460,7 +444,7 @@ ol.corrections li{cursor:pointer}
   <h3>Remarques non notées, signalées à l’apprenant</h3>
   <ul>
         <li>Taille et proportions de l’image.</li>
-    <li>Police du corps de texte, quand le document entier s’écarte d’Arial.</li>
+    <li>Marges de la page.</li>
   </ul>
 </section>
 
@@ -581,14 +565,15 @@ function lireParagraphes(xml, defaultTab){
     if(sz) st.taille = (parseInt(att(sz, "val"), 10) || 0) / 2;
     const f = rPr.getElementsByTagNameNS(W, "rFonts")[0];
     if(f) st.police = att(f, "ascii") || null;
+    // un attribut posé à « 0 » est noté faux : il l'emporte sur le style du paragraphe
     const b = rPr.getElementsByTagNameNS(W, "b")[0];
-    if(b && att(b, "val") !== "0" && att(b, "val") !== "false") st.gras = true;
+    if(b) st.gras = att(b, "val") !== "0" && att(b, "val") !== "false";
     const c = rPr.getElementsByTagNameNS(W, "color")[0];
     if(c){ const v = att(c, "val"); if(v && v !== "auto") st.couleur = v.toUpperCase(); }
     const u = rPr.getElementsByTagNameNS(W, "u")[0];
-    if(u && att(u, "val") !== "none") st.souligne = true;
+    if(u) st.souligne = att(u, "val") !== "none";
     const i = rPr.getElementsByTagNameNS(W, "i")[0];
-    if(i && att(i, "val") !== "0" && att(i, "val") !== "false") st.ital = true;
+    if(i) st.ital = att(i, "val") !== "0" && att(i, "val") !== "false";
     return st;
   };
 
@@ -653,21 +638,6 @@ function lireParagraphes(xml, defaultTab){
         if(!e) return null;
         return { l: (+e.getAttribute("cx") || 0) / 36000, h: (+e.getAttribute("cy") || 0) / 36000 };
       })(),
-      ancre: (() => {                       // image ancrée : position posée à la main
-        const WP = "http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing";
-        const a = p.getElementsByTagNameNS(WP, "anchor")[0];
-        if(!a) return null;
-        const pos = nom => {
-          const e = a.getElementsByTagNameNS(WP, nom)[0];
-          if(!e) return null;
-          const off = e.getElementsByTagNameNS(WP, "posOffset")[0];
-          const al  = e.getElementsByTagNameNS(WP, "align")[0];
-          return { mm: off ? (parseInt(off.textContent, 10) || 0) / 36000 : null,
-                   align: al ? (al.textContent || "").trim() : null,
-                   depuis: e.getAttribute("relativeFrom") || "" };
-        };
-        return { h: pos("positionH"), v: pos("positionV") };
-      })(),
       cellule: ancetres(p, body).includes("tc"),
       place: (() => {                       // position dans le tableau : ligne / colonne
         let tc = p.parentNode;
@@ -676,13 +646,8 @@ function lireParagraphes(xml, defaultTab){
         const tr = tc.parentNode, tbl = tr.parentNode;
         const lignes = [...tbl.children].filter(x => x.localName === "tr");
         const cases  = [...tr.children].filter(x => x.localName === "tc");
-        const grille = tbl.getElementsByTagNameNS(W, "tblGrid")[0];
-        const largeurs = grille
-          ? [...grille.children].filter(c => c.localName === "gridCol").map(c => num(c, "w", 0))
-          : null;
         return { ligne: lignes.indexOf(tr), colonne: cases.indexOf(tc),
-                 nbLignes: lignes.length, nbColonnes: cases.length,
-                 largeurs: (largeurs && largeurs.some(x => x > 0)) ? largeurs : null };
+                 nbLignes: lignes.length, nbColonnes: cases.length };
       })()
     });
   }
@@ -762,50 +727,51 @@ function lireNumerotation(xml){
   return m;
 }
 
-/* Mise en forme portée par un style de paragraphe (word/styles.xml), chaîne basedOn
-   suivie. Word n'écrit sur le passage que ce qui diffère de ce qu'il hérite : un
-   document entièrement en Arial 11 n'a aucun w:sz. Sans cette lecture, la taille
-   et la police d'un tel document sont invisibles pour le correcteur. */
+/* mise en forme héritée d'un style de paragraphe (word/styles.xml), chaîne basedOn
+   suivie, puis valeurs par défaut du document (docDefaults) : un titre au style
+   « Titre 1 » est en 20 pt et une ligne sans taille posée est en 11 pt sans
+   qu'aucune taille n'apparaisse dans le paragraphe lui-même */
 function lireStyles(xml){
   const m = new Map();
+  const vide = { couleur:null, taille:null, gras:null, ital:null, souligne:null, jc:null };
+  m.defaut = null;                                 // style de paragraphe par défaut (Normal)
+  m.base = { ...vide };                            // docDefaults
   if(!xml) return m;
   const doc = new DOMParser().parseFromString(xml, "application/xml");
   if(doc.getElementsByTagName("parsererror").length) return m;
   const att = (el, n) => el ? (el.getAttributeNS(W, n) || el.getAttribute("w:" + n)) : null;
-  const vrai = el => el && att(el, "val") !== "0" && att(el, "val") !== "false" && att(el, "val") !== "none";
+  const enfant = (el, n) => el ? [...el.children].find(x => x.localName === n) : null;
+  const vrai = el => el ? (att(el, "val") !== "0" && att(el, "val") !== "false") : null;
   const lireRPr = rpr => {
-    const o = { couleur:null, taille:null, police:null, gras:null, ital:null, souligne:null };
+    const o = { ...vide };
     if(!rpr) return o;
-    const c = rpr.getElementsByTagNameNS(W, "color")[0];
-    const v = c ? att(c, "val") : null;
+    const c = enfant(rpr, "color"); const v = c ? att(c, "val") : null;
     if(v && v !== "auto") o.couleur = v.toUpperCase();
-    const sz = rpr.getElementsByTagNameNS(W, "sz")[0];
-    if(sz){ const n = parseInt(att(sz, "val"), 10); if(n) o.taille = n / 2; }
-    const f = rpr.getElementsByTagNameNS(W, "rFonts")[0];
-    if(f) o.police = att(f, "ascii") || null;
-    const b = rpr.getElementsByTagNameNS(W, "b")[0];
-    if(b) o.gras = !!vrai(b);
-    const i = rpr.getElementsByTagNameNS(W, "i")[0];
-    if(i) o.ital = !!vrai(i);
-    const u = rpr.getElementsByTagNameNS(W, "u")[0];
-    if(u) o.souligne = !!vrai(u);
+    const sz = enfant(rpr, "sz"); if(sz) o.taille = (parseInt(att(sz, "val"), 10) || 0) / 2;
+    const b = enfant(rpr, "b"); if(b) o.gras = vrai(b);
+    const i = enfant(rpr, "i"); if(i) o.ital = vrai(i);
+    const u = enfant(rpr, "u"); if(u) o.souligne = att(u, "val") !== "none";
     return o;
   };
+  const dd = doc.getElementsByTagNameNS(W, "rPrDefault")[0];
+  m.base = lireRPr(dd && enfant(dd, "rPr"));
   const brut = new Map();
   for(const s of doc.getElementsByTagNameNS(W, "style")){
     const id = att(s, "styleId");
-    const base = s.getElementsByTagNameNS(W, "basedOn")[0];
-    brut.set(id, { ...lireRPr(s.getElementsByTagNameNS(W, "rPr")[0]), base: base ? att(base, "val") : null });
+    if(att(s, "type") === "paragraph" && att(s, "default") === "1") m.defaut = id;
+    const o = lireRPr(enfant(s, "rPr"));
+    const ppr = enfant(s, "pPr"), j = enfant(ppr, "jc");
+    if(j) o.jc = att(j, "val");
+    const base = enfant(s, "basedOn");
+    brut.set(id, { o, base: base ? att(base, "val") : null });
   }
-  const CHAMPS = ["couleur", "taille", "police", "gras", "ital", "souligne"];
   const resoudre = (id, vus) => {
     const e = brut.get(id);
-    if(!e || vus.has(id)) return {};
+    if(!e || vus.has(id)) return { ...m.base, jc:null };
     vus.add(id);
-    const parent = e.base ? resoudre(e.base, vus) : {};
-    const o = {};
-    for(const k of CHAMPS) o[k] = (e[k] === null || e[k] === undefined) ? (parent[k] ?? null) : e[k];
-    return o;
+    const parent = resoudre(e.base, vus), r = {};
+    for(const k of Object.keys(vide)) r[k] = e.o[k] !== null ? e.o[k] : parent[k];
+    return r;
   };
   for(const id of brut.keys()) m.set(id, resoudre(id, new Set()));
   return m;
@@ -851,7 +817,7 @@ const BAREME = [
   { c:"A", lib:"Fidélité du texte", pts:2 },
   { c:"B", lib:"Titre — Arial 20, gras, souligné, centré", pts:3 },
   { c:"C", lib:"Image — insérée et centrée", pts:2 },
-  { c:"D", lib:"Titres de rubrique — liste à numéros, Arial 18, gras, souligné", pts:4 },
+  { c:"D", lib:"Titres de rubrique — liste à numéros, Arial 18, gras, souligné, alignés à gauche", pts:4 },
   { c:"E", lib:"Liste à puces — puces automatiques, Arial 11", pts:3 },
   { c:"F", lib:"Tableau — 2 lignes et 2 colonnes, en-têtes en gras, puces dans les cellules", pts:2 },
   { c:"G", lib:"Mises en forme ponctuelles — italique, Arial 12, Arial 18 gras", pts:2 },
@@ -861,14 +827,14 @@ const BAREME = [
 /* =========================================================
    3. Outils de texte
    ========================================================= */
-const APOS = /[\u2018\u2019\u201B\u02BC\u0060\u00B4]/g;
-const INSEC = /[\u00A0\u202F\u2007\u2009]/g;
+const APOS = /[‘’‛ʼ`´]/g;
+const INSEC = /[    ]/g;
 function norm(s){
   return (s || "").normalize("NFC")
     .replace(APOS, "'")
-    .replace(/[\u2010\u2011\u2012\u2013\u2014]/g, "-")
+    .replace(/[‐‑‒–—]/g, "-")
     .replace(INSEC, " ")
-    .replace(/\u2026/g, "...")
+    .replace(/…/g, "...")
     .replace(/[\t\n]/g, " ")
     .replace(/\s+/g, " ")
     .trim();
@@ -922,44 +888,22 @@ function diffMots(ref, app){
 /* style dominant d’un paragraphe */
 function styleP(p){
   const st = { taille:null, police:null, gras:false, ital:false, souligne:false, couleur:null };
-  let meilleurT = 0, meilleurP = 0;
+  const h = p.herite || {};                     // ce que le style du paragraphe apporte
+  const val = (s, k) => s[k] !== undefined ? s[k] : h[k];
+  let meilleur = 0;
   for(const s of (p.styles || [])){
     const l = (s.fin - s.debut) || 0;
-    if(l > meilleurT && s.taille){ meilleurT = l; st.taille = s.taille; }
-    if(l > meilleurP && s.police){ meilleurP = l; st.police = s.police; }
+    const taille = val(s, "taille");
+    if(l > meilleur && taille){ meilleur = l; st.taille = taille; st.police = s.police; }
     if(l > 0 && s.couleur && !st.couleur) st.couleur = s.couleur;
     if(l > 0){
-      if(s.gras) st.gras = true;
-      if(s.ital) st.ital = true;
-      if(s.souligne) st.souligne = true;
+      if(val(s, "gras")) st.gras = true;
+      if(val(s, "ital")) st.ital = true;
+      if(val(s, "souligne")) st.souligne = true;
     }
   }
-  /* ce que le passage ne dit pas, il l'hérite : style de paragraphe, puis
-     valeurs par défaut du document. Word n'écrit que les différences. */
-  const h = p.herite || {};
-  if(!st.couleur)        st.couleur  = h.couleur || null;
-  if(st.taille === null) st.taille   = (h.taille != null) ? h.taille : (p.tailleBase != null ? p.tailleBase : null);
-  if(!st.police)         st.police   = h.police || p.policeBase || null;
-  if(!st.gras     && h.gras)     st.gras     = true;
-  if(!st.ital     && h.ital)     st.ital     = true;
-  if(!st.souligne && h.souligne) st.souligne = true;
+  if(!st.couleur && p.couleurStyle) st.couleur = p.couleurStyle;
   return st;
-}
-
-/* « Arial N » est une seule exigence : la police et la taille. Elle ne coûte
-   qu'un défaut, et le message dit lequel des deux manque.
-   Une police que le document ne déclare nulle part n'est pas jugée. */
-const ARIAL = /arial|helvetica|liberation sans|nimbus sans/i;
-const policeOK = s => !s.police || ARIAL.test(s.police);
-const tailleOK = (s, n) => s.taille !== null && Math.abs(s.taille - n) < .6;
-const arialOK  = (s, n) => policeOK(s) && tailleOK(s, n);
-/* ce qu'il faut corriger, ou null si le passage est conforme */
-function ecartArial(s, n){
-  const p = policeOK(s), t = tailleOK(s, n);
-  if(p && t) return null;
-  if(!p && !t) return "Arial " + n;
-  if(!t)       return "taille " + n;
-  return "Arial, et non " + s.police;
 }
 
 /* famille de couleur : on juge la teinte, pas la nuance exacte */
@@ -987,7 +931,7 @@ function famille(hex){
    Un mot remplacé par un mot voisin est une faute d'orthographe, pas une
    omission : on surligne le mot entier et on dit lequel écrire. */
 const LETTRE = /[\p{L}\p{N}]/u;
-const jetons = s => s.match(/[\p{L}\p{N}'\u2019-]+|\s+|[^\s\p{L}\p{N}]/gu) || [];
+const jetons = s => s.match(/[\p{L}\p{N}'’-]+|\s+|[^\s\p{L}\p{N}]/gu) || [];
 const estMot = t => LETTRE.test(t);
 const estBlanc = t => /^\s+$/.test(t);
 
@@ -1088,7 +1032,7 @@ function analyser(paras, page, police, formats){
     const p = app.get(m.id);
     if(!p){ fautives++; corr.push({ t:"Élément manquant", d:"« " + norm(m.ref).slice(0,60) + " » n’a pas été trouvé." }); continue; }
     // une puce ou un numéro tapé au clavier relève des critères de liste, pas du texte
-    const sansMarque = t => norm(t).replace(/^([-\u2013\u2014\u2022*]|\d+[.)])\s*/, "");
+    const sansMarque = t => norm(t).replace(/^([-–—•*]|\d+[.)])\s*/, "");
     const ref = sansMarque(m.ref), saisi = sansMarque(p.texte);
     if(ref === saisi) continue;
     const ops = comparer(ref, saisi);
@@ -1106,7 +1050,7 @@ function analyser(paras, page, police, formats){
     const ex = [], manque = [];
     if(ti){
       const s = styleP(ti);
-      ex.push([ecartArial(s, 20) || "Arial 20", !ecartArial(s, 20)]);
+      ex.push(["Arial 20", s.taille !== null && Math.abs(s.taille - 20) < .6]);
       ex.push(["gras", s.gras]);
       ex.push(["souligné", s.souligne]);
       ex.push(["centré", ti.jc === "center"]);
@@ -1132,17 +1076,20 @@ function analyser(paras, page, police, formats){
     const ps = ["r1","r2","r3"].map(i => app.get(i)).filter(Boolean);
     const n = ps.length || 1;
     const liste = ps.filter(p => fmt(p) === "decimal").length / n;
-    const ecart = ps.map(p => ecartArial(styleP(p), 18)).find(Boolean) || null;
+    const taille = ps.filter(p => { const s = styleP(p); return s.taille !== null && Math.abs(s.taille - 18) < .6; }).length / n;
     const gras  = ps.filter(p => styleP(p).gras).length / n;
     const soul  = ps.filter(p => styleP(p).souligne).length / n;
+    // les rubriques restent alignées à gauche, sous leur numéro : un titre centré est un défaut
+    const centres = ps.filter(p => p.jc === "center" || p.jc === "right" || p.jc === "end");
     const manque = [];
     if(liste < 1)  manque.push("appliquer la liste numérotée automatique (Accueil ▸ Liste numérotée)");
-    if(ecart)      manque.push("mettre les titres en " + ecart);
+    if(taille < 1) manque.push("mettre les titres en Arial 18");
     if(gras < 1)   manque.push("mettre les titres en gras");
     if(soul < 1)   manque.push("souligner les titres");
+    if(centres.length) manque.push("aligner les titres à gauche, ils ne doivent pas être centrés (Accueil ▸ Aligner à gauche)");
     res.D = Math.max(0, 4 - PENALITE * manque.length);
     if(manque.length){
-      corr.push({ t:"Titres de rubrique", d:"À corriger : " + manque.join(" ; ") + ".", cible: ps[0] || null }); }
+      corr.push({ t:"Titres de rubrique", d:"À corriger : " + manque.join(" ; ") + ".", cible: centres[0] || ps[0] || null }); }
   }
 
   /* --- E : la liste à puces --- */
@@ -1150,10 +1097,10 @@ function analyser(paras, page, police, formats){
     const ps = ["b1","b2","b3"].map(i => app.get(i)).filter(Boolean);
     const n = ps.length || 1;
     const liste = ps.filter(p => fmt(p) === "bullet").length / n;
-    const ecart = ps.map(p => ecartArial(styleP(p), 11)).find(Boolean) || null;
+    const taille = ps.filter(p => { const s = styleP(p); return s.taille !== null && Math.abs(s.taille - 11) < .6; }).length / n;
     const manque = [];
     if(liste < 1)  manque.push("appliquer la liste à puces automatique (Accueil ▸ Liste à puces)");
-    if(ecart)      manque.push("mettre ces trois lignes en " + ecart);
+    if(taille < 1) manque.push("mettre ces trois lignes en Arial 11");
     res.E = Math.max(0, 3 - PENALITE * manque.length);
     if(manque.length){
       corr.push({ t:"Liste à puces", d:"À corriger : " + manque.join(" ; ") + ".", cible: ps[0] || null }); }
@@ -1183,19 +1130,16 @@ function analyser(paras, page, police, formats){
   /* --- G : mises en forme ponctuelles --- */
   {
     const tests = [
-      ["att",  p => styleP(p).ital ? null : "italique de « Attention… »"],
-      ["sign", p => styleP(p).ital ? null : "italique de la signature"],
-      ["vet",  p => { const e = ecartArial(styleP(p), 12); return e && "« Si tu as un doute… » en " + e; }],
-      ["sign", p => { const e = ecartArial(styleP(p), 12); return e && "signature en " + e; }],
-      ["merci",p => { const s = styleP(p), e = ecartArial(s, 18);
-                      if(e) return "remerciement en " + e + (s.gras ? "" : " gras");
-                      return s.gras ? null : "remerciement en gras"; }]
+      ["att",  "italique de « Attention… »",           p => styleP(p).ital],
+      ["sign", "italique de la signature",             p => styleP(p).ital],
+      ["vet",  "Arial 12 de « Si tu as un doute… »",   p => { const s = styleP(p); return s.taille !== null && Math.abs(s.taille - 12) < .6; }],
+      ["sign", "Arial 12 de la signature",             p => { const s = styleP(p); return s.taille !== null && Math.abs(s.taille - 12) < .6; }],
+      ["merci","Arial 18 gras du remerciement",        p => { const s = styleP(p); return s.gras && s.taille !== null && Math.abs(s.taille - 18) < .6; }]
     ];
     const manque = []; let premierFautif = null;
-    for(const [id, f] of tests){
+    for(const [id, lib, f] of tests){
       const p = app.get(id);
-      const d = p ? f(p) : "élément « " + id + " » introuvable";
-      if(d){ manque.push(d); premierFautif = premierFautif || p; }
+      if(!(p && f(p))){ manque.push(lib); premierFautif = premierFautif || p; }
     }
     res.G = Math.max(0, 2 - PENALITE * manque.length);
     if(manque.length)
@@ -1225,19 +1169,20 @@ function analyser(paras, page, police, formats){
 
   for(const x of BAREME) if(res[x.c] === undefined) res[x.c] = 0;
 
-  /* --- remarques non notées ---
-     Les marges ne figurent pas dans la consigne : elles ne sont ni notées ni signalées.
-     La police du corps de texte, elle, n'est pas notée non plus — seuls les passages
-     du barème le sont — mais elle est signalée quand le document entier s'en écarte. */
-  if(police.nomBase && !ARIAL.test(police.nomBase))
+  /* --- remarques non notées --- */
+  if(police.nomBase && !/arial|helvetica|liberation sans/i.test(police.nomBase))
     remarques.push({ t:"Police", d:"Le document est en " + police.nomBase + ". Le modèle est en Arial." });
+  const gcm = page.gauche / 566.93, dcm = page.droite / 566.93;
+  if(Math.abs(gcm - 3) > 0.6 || Math.abs(dcm - 1.5) > 0.6)
+    remarques.push({ t:"Marges", d:"Marges de " + gcm.toFixed(1) + " cm à gauche et " + dcm.toFixed(1) +
+      " cm à droite. Le modèle utilise 3 cm et 1,5 cm." });
 
   // les corrections sont numérotées dans l'ordre du document, de haut en bas
   const rang = new Map(lignes.map((p, i) => [p, i]));
   corr.sort((a, b) => (a.cible ? rang.get(a.cible) : 1e6) - (b.cible ? rang.get(b.cible) : 1e6));
 
   const total = BAREME.reduce((s, x) => s + res[x.c], 0);
-  return { res, total, corr, remarques, lignes, tous: paras, page, police, formats };
+  return { res, total, corr, remarques, lignes, page, police, formats };
 }
 
 /* =========================================================
@@ -1246,85 +1191,22 @@ function analyser(paras, page, police, formats){
 const $ = id => document.getElementById(id);
 const echapper = s => s.replace(/[&<>]/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;" }[c]));
 
-/* marques de Word pour les caractères non imprimables : un seul passage,
-   sinon la deuxième substitution frappe les espaces du balisage produit */
-const marquerBlancs = h => h.replace(/[ \t\n\u00A0]/g, c =>
-    c === " "  ? '<span class="np-esp"> </span>'
-  : c === "\t" ? '<span class="np-tab">\t</span>'
-  : c === "\n" ? '<span class="np">\u21B5</span>\n'
-  :              '<span class="np-esp np-insec">\u00A0</span>');
-
 const texteMarque = p => {
-  if(!p.marques) return marquerBlancs(echapper(p.texte));
+  if(!p.marques) return echapper(p.texte);
   let h = "";
   for(const o of p.marques){
-    if(o.t === "=")                          h += marquerBlancs(echapper(o.c));
-    else if(o.t === "+" || o.t === "sub")    h += '<span class="ap-faux">' + marquerBlancs(echapper(o.c)) + '</span>';
+    if(o.t === "=")                          h += echapper(o.c);
+    else if(o.t === "+" || o.t === "sub")    h += '<span class="ap-faux">' + echapper(o.c) + '</span>';
     else if(!estBlanc(o.c))                  h += '<span class="caret"></span>';
   }
   return h;
 };
 
-/* ---------- géométrie : le document tel qu'il est, pas un gabarit ---------- */
-const PT_MM = 0.35278, TW_MM = 56.6929;          // point et twip, en millimètres
-const pileFont = nom => {
-  const n = (nom || "").toLowerCase();
-  const q = (nom || "Arial").replace(/['"\\]/g, "");     // le style est un attribut HTML
-  if(/times|garamond|georgia|cambria|serif/.test(n)) return `'${q}',Cambria,Georgia,serif`;
-  if(/courier|consolas|mono/.test(n))               return `'${q}',Menlo,Consolas,monospace`;
-  if(/calibri|carlito/.test(n))                     return `'${q}',Carlito,'Segoe UI',-apple-system,sans-serif`;
-  return `'${q}',Arial,'Liberation Sans',Helvetica,sans-serif`;
-};
-
 function apercu(r){
-  const ptmm = PT_MM;
-  const pg = r.page || {};
-  const lgPage = (pg.pgW || 11906) / TW_MM;
-  const mg = { g:(pg.gauche || 1417) / TW_MM, d:(pg.droite || 1417) / TW_MM,
-               h:(pg.haut || 1417) / TW_MM,   b:(pg.bas || 1417) / TW_MM };
-  const pol = r.police || {};
-  const apresDefaut = (pol.apres == null ? 160 : pol.apres) / 20 * ptmm;   // en mm
-  const interDefaut = pol.interligne || 1.15;
-  const tailleDefaut = pol.tailleBase || 11;
-
-  /* un paragraphe, cellule ou non : mêmes règles de rendu */
-  const paraHTML = (p, dedans) => {
-    const s = styleP(p);
-    const f = r.formats.get(p.numero ? p.numero.id : null);
-    const taille = s.taille || tailleDefaut;
-    const avant = (p.avant || 0) / 20 * ptmm;
-    const apres = (p.apres == null ? (dedans ? 0 : apresDefaut) : p.apres / 20 * ptmm);
-    const inter = p.interligne || interDefaut;
-    let retrait = (p.ind || 0) / TW_MM;
-    let premiere = (p.indP || 0) / TW_MM;
-    if(p.numero && !p.ind){ retrait = 12.7; premiere = -6.35; }   // liste sans retrait déclaré
-    const largeurPuce = premiere < 0 ? -premiere : 6;
-    let puce = "";
-    if(p.numero){
-      if(f === "bullet") puce = "\u2022";
-      else { const k = p.numero.id; compteurs[k] = (compteurs[k] || 0) + 1; puce = compteurs[k] + "."; }
-    }
-    if(p.marques) aFaux = true;
-    return `<p class="ap-l" style="`
-      + (s.couleur ? `color:#${s.couleur};` : "")
-      + `font-family:${pileFont(s.police || pol.nomBase)};`
-      + `font-size:${(taille * ptmm).toFixed(3)}mm;`
-      + `line-height:${inter};`
-      + `font-weight:${s.gras ? 700 : 400};`
-      + `font-style:${s.ital ? "italic" : "normal"};`
-      + `text-decoration:${s.souligne ? "underline" : "none"};`
-      + `text-align:${p.jc === "center" ? "center" : (p.jc === "right" ? "right" : (p.jc === "both" ? "justify" : "left"))};`
-      + `margin:${avant.toFixed(2)}mm 0 ${apres.toFixed(2)}mm ${retrait.toFixed(2)}mm;`
-      + `text-indent:${premiere.toFixed(2)}mm">`
-      + (p.numeros && p.numeros.length ? `<i class="ap-num">${p.numeros.map(n=>'<span data-n="'+n+'">'+n+"</span>").join("")}</i>` : "")
-      + (puce ? `<span class="puce" style="width:${largeurPuce.toFixed(2)}mm">${puce}</span>` : "")
-      + texteMarque(p)
-      + `<span class="np">\u00B6</span></p>`;
-  };
-
+  const ptmm = 0.35278;
   let html = "", aFaux = false, i = 0;
   const compteurs = {};
-  const lignes = r.tous || r.lignes;
+  const lignes = r.lignes;
 
   while(i < lignes.length){
     const p = lignes[i];
@@ -1339,15 +1221,24 @@ function apercu(r){
         const l = c.place ? c.place.ligne : 0, k = c.place ? c.place.colonne : 0;
         if(cases[l] && cases[l][k]) cases[l][k].push(c);
       }
-      const lg = bloc[0].place && bloc[0].place.largeurs;
-      const totalmm = lg ? lg.reduce((a, b) => a + b, 0) / TW_MM : 0;
-      let t = `<table class="ap-tab" style="width:${totalmm ? totalmm.toFixed(2) + "mm" : "100%"}">`;
-      if(lg) t += "<colgroup>" + lg.map(w => `<col style="width:${(w / TW_MM).toFixed(2)}mm">`).join("") + "</colgroup>";
+      let t = '<table class="ap-tab">';
       for(const ligne of cases){
         t += "<tr>";
         for(const contenu of ligne){
           t += "<td>";
-          for(const c of contenu) t += paraHTML(c, true);
+          for(const c of contenu){
+            const s = styleP(c);
+            const f = r.formats.get(c.numero ? c.numero.id : null);
+            if(c.marques) aFaux = true;
+            t += `<p class="ap-l" style="margin:0 0 .6mm ${c.numero ? 5 : 0}mm;`
+               + (s.couleur ? `color:#${s.couleur};` : "")
+               + `font-size:${(s.taille || 11) * ptmm}mm;font-weight:${s.gras ? 700 : 400};`
+               + `font-style:${s.ital ? "italic" : "normal"};`
+               + `text-decoration:${s.souligne ? "underline" : "none"}">`
+               + (c.numeros && c.numeros.length ? `<i class="ap-num">${c.numeros.map(n=>'<span data-n="'+n+'">'+n+"</span>").join("")}</i>` : "")
+               + (f === "bullet" ? '<span class="puce">•</span>' : "")
+               + texteMarque(c) + `</p>`;
+          }
           t += "</td>";
         }
         t += "</tr>";
@@ -1362,35 +1253,38 @@ function apercu(r){
       const dedans = r.imageURL
         ? `<img src="${r.imageURL}" alt="" style="width:${t.l}mm;height:${t.h}mm">`
         : "image insérée";
-      const a = p.ancre;
-      let cale = 0, haut = 0;
-      let cadrage = p.jc === "center" ? "center" : (p.jc === "right" ? "right" : "left");
-      if(a && a.h){
-        if(a.h.align) cadrage = a.h.align === "center" ? "center" : (a.h.align === "right" ? "right" : "left");
-        else if(a.h.mm != null){ cale = a.h.mm - (a.h.depuis === "page" ? mg.g : 0); cadrage = "left"; }
-      }
-      if(a && a.v && a.v.mm != null) haut = Math.max(0, a.v.mm);
-      html += `<div class="ap-l" style="margin:${haut.toFixed(2)}mm 0 ${apresDefaut.toFixed(2)}mm ${Math.max(0, cale).toFixed(2)}mm;`
-            + `text-align:${cadrage}">`
+      html += `<div class="ap-l" style="text-align:${p.jc === "center" ? "center" : "left"}">`
             + (p.numeros && p.numeros.length ? `<i class="ap-num">${p.numeros.map(n=>'<span data-n="'+n+'">'+n+"</span>").join("")}</i>` : "")
-            + `<span class="ap-img">${dedans}</span><span class="np">\u00B6</span></div>`;
+            + `<span class="ap-img">${dedans}</span></div>`;
       continue;
     }
 
-    html += paraHTML(p, false);
+    const s = styleP(p);
+    const f = r.formats.get(p.numero ? p.numero.id : null);
+    if(p.marques) aFaux = true;
+    let puce = "";
+    if(p.numero){
+      if(f === "bullet") puce = "•";
+      else { const k = p.numero.id; compteurs[k] = (compteurs[k] || 0) + 1; puce = compteurs[k] + "."; }
+    }
+    html += `<p class="ap-l" style="`
+          + (s.couleur ? `color:#${s.couleur};` : "")
+          + `font-size:${(s.taille || 11) * ptmm}mm;`
+          + `line-height:1.35;`
+          + `font-weight:${s.gras ? 700 : 400};`
+          + `font-style:${s.ital ? "italic" : "normal"};`
+          + `text-decoration:${s.souligne ? "underline" : "none"};`
+          + `text-align:${p.jc === "center" ? "center" : (p.jc === "right" ? "right" : "left")};`
+          + `margin-left:${p.numero ? 8 : 0}mm">`
+          + (p.numeros && p.numeros.length ? `<i class="ap-num"${p.numero ? ' style="left:-27mm"' : ""}>${p.numeros.map(n=>'<span data-n="'+n+'">'+n+"</span>").join("")}</i>` : "")
+          + (puce ? `<span class="puce">${puce}</span>` : "")
+          + (texteMarque(p) || "&nbsp;") + `</p>`;
   }
 
   const legende = '<span>Ce qui est à corriger est <span class="ex">surligné</span> ; '
                 + 'un <span class="cr">V</span> marque un mot ou un signe oublié ; '
-                + 'les numéros en marge renvoient aux corrections numérotées.</span>'
-                + ' <span class="np-leg">Les caractères non imprimables sont affichés : '
-                + '<b>¶</b> paragraphe, <b>·</b> espace, <b>→</b> tabulation.</span>';
-  const style = `--gouttiere:${Math.min(19, Math.max(5, mg.g - 3)).toFixed(1)}mm;`
-              + `width:${lgPage.toFixed(1)}mm;`
-              + `padding:${mg.h.toFixed(1)}mm ${mg.d.toFixed(1)}mm ${mg.b.toFixed(1)}mm ${mg.g.toFixed(1)}mm;`
-              + `font-family:${pileFont(pol.nomBase)};`
-              + `font-size:${(tailleDefaut * ptmm).toFixed(3)}mm;line-height:${interDefaut}`;
-  return { html: `<div class="apercu-page" style="${style}">${html}</div>`, legende };
+                + 'les numéros en marge renvoient aux corrections numérotées.</span>';
+  return { html: `<div class="apercu-page">${html}</div>`, legende };
 }
 
 function ajusterEchelle(){
@@ -1407,8 +1301,8 @@ window.addEventListener("resize", ajusterEchelle);
 
 function reglesImpression(largeurPx, hauteurPx){
   const mmPx = v => v * 96 / 25.4;
-  const paliers = [[null, 170, 120], [200, 160, 114], [190, 150, 108],
-                   [180, 140, 102], [170, 130,  96], [160, 120,  90]];
+  const paliers = [[null, 170, 138], [200, 160, 131], [190, 150, 124],
+                   [180, 140, 118], [170, 130, 111], [160, 120, 104]];
   return paliers.map(([lim, lmm, hmm]) => {
     const f = Math.min(mmPx(lmm) / largeurPx, mmPx(hmm) / hauteurPx);
     return "@media print" + (lim ? " and (max-width:" + lim + "mm)" : "") + "{" +
@@ -1505,11 +1399,11 @@ async function traiter(f){
     if(!bonDocument(paragraphes)) throw new Error("horssujet");
     const police = lirePolice(xml, styles, theme);
     const formats = lireNumerotation(numxml);
-    const stylesPara = lireStyles(styles);
+    const stylesP = lireStyles(styles);
     for(const p of paragraphes){
-      p.herite = stylesPara.get(p.style) || null;
-      p.tailleBase = police.tailleBase;          // docDefaults : ce que tout hérite
-      p.policeBase = police.nomBase;
+      p.herite = stylesP.get(p.style || stylesP.defaut) || stylesP.base;
+      p.couleurStyle = p.herite.couleur || null;
+      if(!p.jc && p.herite.jc) p.jc = p.herite.jc;          // alignement porté par le style
     }
 
     // l'image du document, pour l'aperçu
