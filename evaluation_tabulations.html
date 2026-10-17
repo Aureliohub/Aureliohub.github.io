@@ -356,7 +356,7 @@ kbd{
 <header class="tete">
   <span class="pil">Informatique · PAI · traitement de texte</span>
   <div class="tete-texte">
-    <h1 title="v2">Demande de stage : contrôle de vos tabulations</h1>
+    <h1 title="v4">Demande de stage : contrôle de vos tabulations</h1>
     <p><span class="insecable">Déposez votre fichier, il est analysé dans votre navigateur (rien n’est envoyé sur Internet).</span>
       <span class="insecable">Vous obtenez votre note ainsi que la liste des corrections à apporter.</span></p>
   </div>
@@ -429,7 +429,7 @@ kbd{
   <table class="grille">
     <thead><tr><th>Critère</th><th>Indicateurs observables</th><th class="pts">Pts</th></tr></thead>
     <tbody>
-      <tr><td><b>A. Fidélité du texte</b></td><td>Tous les intitulés, les quatre titres de rubrique, les neuf domaines de stage, les trois montants et la phrase d’engagement sont saisis sans omission ni faute de frappe. Le numéro des titres n’est pas contrôlé.</td><td class="pts">4</td></tr>
+      <tr><td><b>A. Fidélité du texte</b></td><td>Tous les intitulés, les quatre titres de rubrique, les neuf domaines de stage, les trois montants et la phrase d’engagement sont saisis sans omission ni faute de frappe. Le numéro des titres n’est pas contrôlé. Une espace oubliée après les cases ☐ coûte 1 point, une seule fois.</td><td class="pts">4</td></tr>
       <tr><td><b>B. Ligne de titre</b></td><td>Taquet <b>centré à 8 cm</b> pour « DEMANDE DE STAGE » et taquet <b>droit à 16 cm</b> pour la date.</td><td class="pts">2</td></tr>
       <tr><td><b>C. Lignes à deux colonnes</b></td><td>Taquet <b>droit à 8 cm</b>, taquet <b>gauche à 8,5 cm</b> pour le second intitulé, taquet <b>droit à 16 cm</b>.</td><td class="pts">4</td></tr>
       <tr><td><b>D. Domaines de stage</b></td><td>Taquets <b>gauches à 5,5 cm et 10 cm</b> pour les deuxième et troisième colonnes de cases à cocher.</td><td class="pts">2</td></tr>
@@ -442,7 +442,6 @@ kbd{
   <h3>Remarques non notées, signalées à l’apprenant</h3>
   <ul>
     <li>Police du document (Arial 12 pt attendue).</li>
-    <li>Marges de la page (3 cm à gauche, 2 cm à droite).</li>
     <li>Soulignement de la ligne de titre.</li>
   </ul>
 </section>
@@ -866,7 +865,14 @@ function analyser(paras, page, police){
     if(trop.length)   d += (d ? " ; " : "") + "écrit à tort : « " + trop.join(" ") + " »";
     corr.push({ t:"Texte : « " + norm(m.ref).slice(0,40) + " »", d, cible:p });
   }
-  res.A = Math.max(0, 4 - (total - justes));   // une ligne fautive = un point de moins
+  /* espace oublié après une case ☐ : un seul défaut, même répété sur plusieurs lignes */
+  const CASE = /[\u2610\u2611\u2612\u25A1\u25AA\u25CF\u00A4\uF0A8\uF06F]/;
+  const sansEspace = ["c1","c2","c3"].map(id => app.get(id)).filter(Boolean)
+    .filter(p => new RegExp(CASE.source + "(?![ \\u00A0\\t])").test(p.texte));
+  if(sansEspace.length)
+    corr.push({ t:"Espace après les cases à cocher", cible: sansEspace[0],
+      d:"Laissez une espace entre la case ☐ et le mot qui suit : « ☐ Administration », et non « ☐Administration »." });
+  res.A = Math.max(0, 4 - (total - justes) - (sansEspace.length ? 1 : 0));   // une ligne fautive = un point de moins
 
   /* --- B à E : chaque taquet attendu est jugé une seule fois --- */
   const blocs = {};
@@ -883,11 +889,13 @@ function analyser(paras, page, police){
     const presentes = b.lignes.filter(Boolean);
     let acquis = 0;
     const aPoser = [], aCorriger = [];
+    const fautives = new Set();
 
     for(const a of b.attendus){
       let ok = 0, typeFaux = null, avecSuite = 0;
       for(const p of presentes){
         const r = chercher(p, a);
+        if(r.etat !== "ok") fautives.add(p);
         if(r.etat === "ok") ok++;
         else if(r.etat === "type") typeFaux = r.tr;
         // les points de suite sont jugés à part : un taquet du bon rang suffit
@@ -910,7 +918,11 @@ function analyser(paras, page, police){
       const d = [];
       if(aPoser.length)    d.push("taquet(s) à poser : " + aPoser.join(", "));
       if(aCorriger.length) d.push("taquet(s) à corriger : " + aCorriger.join(" ; "));
-      corr.push({ t: LIB_BLOC[nom], d: d.join(". "), cible: presentes[0] || null });
+      const enCause = presentes.filter(p => fautives.has(p));      // dans l'ordre du document
+      const noms = enCause.map(p => "« " + norm(p.texte.split(/[:\t]/)[0]).trim() + " »");
+      const ou = enCause.length && enCause.length < presentes.length
+        ? (enCause.length === 1 ? "Ligne " : "Lignes ") + noms.join(", ") + " : " : "";
+      corr.push({ t: LIB_BLOC[nom], d: ou + d.join(". "), cible: enCause[0] || presentes[0] || null });
     }
   }
   for(const x of BAREME) if(res[x.c] === undefined) res[x.c] = 0;
@@ -945,6 +957,8 @@ function analyser(paras, page, police){
   for(const p of lignes){
     if(/ {3,}/.test(p.texte)){ espaces++; pEsp = pEsp || p; }
     const n = (p.texte.match(/\t/g) || []).length;
+    // ligne sans consigne de taquet (signatures) : tabulations sans taquet acceptées
+    if(p.modele && !p.modele.taquets) continue;
     if(n > 0 && p.taquets.length === 0){ defaut++; pDef = pDef || p; }
     else if(/\t{3,}/.test(p.texte)){ defaut++; pDef = pDef || p; }
   }
@@ -964,9 +978,6 @@ function analyser(paras, page, police){
     remarques.push({ t:"Police", d:"Le document est en " + police.nomBase + ". Le modèle est en Arial." });
   if(police.tailleBase && Math.abs(police.tailleBase - 12) > 0.4)
     remarques.push({ t:"Taille", d:"Le corps du texte est en " + police.tailleBase + " pt. Le modèle est en 12 pt." });
-  const gcm = page.gauche / 566.93, dcm = page.droite / 566.93;
-  if(Math.abs(gcm - 3) > 0.3 || Math.abs(dcm - 2) > 0.3)
-    remarques.push({ t:"Marges", d:"Marges de " + gcm.toFixed(1) + " cm à gauche et " + dcm.toFixed(1) + " cm à droite. Le modèle utilise 3 cm et 2 cm." });
   const ti = app.get("titre");
   if(ti && !(ti.styles || []).some(s => s.souligne))
     remarques.push({ t:"Ligne de titre", d:"La ligne de titre du modèle est soulignée sur toute sa largeur, tabulations comprises." });
@@ -1097,7 +1108,7 @@ function apercu(r){
       }
       ligne += `<span class="mk mk-pos" style="left:${x}mm">\u2192</span>`;
       ligne += `<span class="seg" style="left:${debut}mm">${marquerBlancs(echapper(s))}</span>`;
-      const libre = !!t && !(p.modele && p.modele.taquets);
+      const libre = !(p.modele && p.modele.taquets);   // ligne sans consigne de taquet
       const etatT = libre ? "libre" : (poseOK ? "ok" : "ko");
       if(etatT === "ok") aOK = true; else if(etatT === "ko") aKO = true; else aLibre = true;
       marques += `<i class="marque-taquet ${etatT}" style="left:${cible}mm"></i>`;
@@ -1173,6 +1184,9 @@ function afficher(r, nomFichier){
   }).join("") + `<tr class="total"><td>Total</td><td class="pts">${r.total.toFixed(1).replace(".0","").replace(".",",")} / 20</td></tr>`;
 
   for(const p of r.lignes) p.numeros = [];
+  // corrections classées de haut en bas, dans l'ordre du document ; sans ligne visée : à la fin
+  const rang = c => { const i = c.cible ? (r.tous || r.lignes).indexOf(c.cible) : -1; return i < 0 ? 1e9 : i; };
+  r.corr = r.corr.map((c, k) => [c, k]).sort((x, y) => rang(x[0]) - rang(y[0]) || x[1] - y[1]).map(x => x[0]);
   r.corr.forEach((c, i) => { c.n = i + 1; if(c.cible) c.cible.numeros.push(i + 1); });
 
   $("resultat").hidden = false;            // visible avant d'être mesuré

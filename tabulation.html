@@ -81,14 +81,24 @@
     align-self:flex-start;display:inline-flex;align-items:center;gap:10px;flex:none;
     font:inherit;font-size:.95rem;font-weight:500;background:var(--bleu);color:#fff;
     border:none;border-radius:999px;padding:11px 22px;cursor:pointer;text-decoration:none;
+    white-space:nowrap;
   }
   .bouton:hover{background:#0077ED}
   .bouton:focus-visible{outline:2px solid var(--bleu);outline-offset:3px}
   .bouton svg{width:17px;height:17px}
 
+  /* fenêtre réduite : les deux colonnes rétrécissent progressivement, sans saut */
   @media (max-width:1000px){
     body{overflow:auto}
-    .page{height:auto;padding:20px 18px 44px}
+  }
+  /* colonnes étroites : bouton plus compact */
+  @media (max-width:800px) and (min-width:641px){
+    .bouton{font-size:.85rem;padding:10px 16px;gap:8px}
+    .si-large{display:none}
+  }
+  /* téléphone seulement : une colonne */
+  @media (max-width:640px){
+    .page{padding:20px 18px 44px}
     .contenu{grid-template-columns:1fr;grid-template-rows:none}
     .b-video,.b-formulaire,.b-eval{grid-column:1;grid-row:auto}
     .apercu-zone{flex:none;height:clamp(190px,45svh,340px)}
@@ -98,7 +108,7 @@
 <body>
 <div class="page">
   <header class="tete">
-    <h1 title="v1">Tabulation</h1>
+    <h1 title="v2">Tabulation</h1>
     <p>Une tabulation est un repère d'alignement qui permet de positionner précisément du texte
     à des endroits spécifiques sur une même ligne, sans avoir à utiliser d'espaces multiples ni de tableau.</p>
   </header>
@@ -125,7 +135,7 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="M12 3v12"></path><path d="m7 11 5 5 5-5"></path><path d="M4 20h16"></path>
         </svg>
-        Télécharger le formulaire (PDF)
+        Télécharger le formulaire<span class="si-large"> (PDF)</span>
       </button>
     </section>
 
