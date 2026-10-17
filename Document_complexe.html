@@ -71,8 +71,12 @@
   .bouton:focus-visible{outline:2px solid var(--bleu);outline-offset:3px}
   .bouton svg{width:17px;height:17px}
 
+  /* fenêtre réduite : le bloc rétrécit progressivement, sans saut */
   @media (max-width:1000px){
     body{overflow:auto}
+  }
+  /* téléphone seulement : pleine largeur, page qui défile */
+  @media (max-width:640px){
     .page{height:auto;padding:20px 18px 44px}
     .contenu .bloc{max-width:none}
     .pages{overflow:visible}
@@ -83,7 +87,7 @@
 <div class="page">
 
   <header class="tete">
-    <h1>Document complexe</h1>
+    <h1 title="v1">Document complexe</h1>
   </header>
 
   <div class="contenu">
