@@ -305,11 +305,13 @@ kbd{
 .marque-taquet{position:absolute;width:0;border-left:1.5px solid;top:0;bottom:0}
 .marque-taquet.ok{border-color:var(--acquis)}
 .marque-taquet.ko{border-color:var(--revision)}
+.marque-taquet.libre{border-color:#B9B9BE}
 .regle-page{position:relative;height:16px;margin-bottom:4px}
 .regle-page .fond{position:absolute;left:0;right:0;top:9px;height:1px;background:var(--filet)}
 .regle-page b{position:absolute;top:0;width:0;border-left:2px solid;height:9px}
 .regle-page b.ok{border-color:var(--acquis)}
 .regle-page b.ko{border-color:var(--revision)}
+.regle-page b.libre{border-color:#B9B9BE}
 .regle-page b.abs{border-color:#B9B9BE;border-left-style:dotted}
 .regle-page span{position:absolute;top:10px;font-size:9px;color:var(--gris);transform:translateX(-50%);font-family:var(--sans)}
 .legende-apercu{display:flex;gap:16px;flex-wrap:wrap;font-size:.86rem;color:var(--gris);margin-bottom:10px}
@@ -354,7 +356,7 @@ kbd{
 <header class="tete">
   <span class="pil">Informatique · PAI · traitement de texte</span>
   <div class="tete-texte">
-    <h1>Demande de stage : contrôle de vos tabulations</h1>
+    <h1 title="v1">Demande de stage : contrôle de vos tabulations</h1>
     <p><span class="insecable">Déposez votre fichier, il est analysé dans votre navigateur (rien n’est envoyé sur Internet).</span>
       <span class="insecable">Vous obtenez votre note ainsi que la liste des corrections à apporter.</span></p>
   </div>
@@ -423,18 +425,17 @@ kbd{
 <!-- ================= GRILLE ================= -->
 <section class="panneau" id="p-grille" role="tabpanel" aria-labelledby="t-grille" hidden>
   <h2>Grille d’évaluation — reproduction du formulaire « Demande de stage »</h2>
-  <p class="leg">Total 20 points. Note = 1 + 5 × (points / 20), arrondie au demi-point. Chaque taquet attendu est jugé une seule fois : une erreur répétée sur plusieurs lignes ne compte qu’une fois.</p>
+  <p class="leg">Total 20 points. Note = 1 + 5 × (points / 20), arrondie au demi-point. Chaque taquet attendu est jugé une seule fois : une erreur répétée sur plusieurs lignes ne compte qu’une fois. Les taquets sont contrôlés sur les lignes où le verso du modèle montre une règle ; la ligne des signatures n’est pas notée.</p>
   <table class="grille">
     <thead><tr><th>Critère</th><th>Indicateurs observables</th><th class="pts">Pts</th></tr></thead>
     <tbody>
-      <tr><td><b>A. Fidélité du texte</b></td><td>Tous les intitulés, les trois titres de rubrique, les neuf domaines de stage, les trois montants et la phrase d’engagement sont saisis sans omission ni faute de frappe.</td><td class="pts">4</td></tr>
+      <tr><td><b>A. Fidélité du texte</b></td><td>Tous les intitulés, les quatre titres de rubrique, les neuf domaines de stage, les trois montants et la phrase d’engagement sont saisis sans omission ni faute de frappe. Le numéro des titres n’est pas contrôlé.</td><td class="pts">4</td></tr>
       <tr><td><b>B. Ligne de titre</b></td><td>Taquet <b>centré à 8 cm</b> pour « DEMANDE DE STAGE » et taquet <b>droit à 16 cm</b> pour la date.</td><td class="pts">2</td></tr>
       <tr><td><b>C. Lignes à deux colonnes</b></td><td>Taquet <b>droit à 8 cm</b>, taquet <b>gauche à 8,5 cm</b> pour le second intitulé, taquet <b>droit à 16 cm</b>.</td><td class="pts">4</td></tr>
       <tr><td><b>D. Domaines de stage</b></td><td>Taquets <b>gauches à 5,5 cm et 10 cm</b> pour les deuxième et troisième colonnes de cases à cocher.</td><td class="pts">2</td></tr>
-      <tr><td><b>E. Montants</b></td><td>Taquet <b>droit à 14 cm</b> — le taquet décimal est également accepté.</td><td class="pts">1</td></tr>
-      <tr><td><b>F. Signatures</b></td><td>Taquet <b>gauche à 7,5 cm</b> pour « Visa du formateur ».</td><td class="pts">1</td></tr>
-      <tr><td><b>G. Propreté de l’alignement</b></td><td>Aucun alignement obtenu à la barre d’espace (trois espaces ou plus) ni par des tabulations sans taquet posé.</td><td class="pts">2</td></tr>
-      <tr><td><b>H. Points de suite</b></td><td>Les taquets à 8 cm, 14 cm et 16 cm portent des points de suite, de genre point au pied de la ligne (.......). Des tirets ou un trait à la place coûtent 1,5 point.</td><td class="pts">4</td></tr>
+      <tr><td><b>E. Montants</b></td><td>Taquet <b>droit à 14 cm</b> — le taquet décimal est également accepté.</td><td class="pts">2</td></tr>
+      <tr><td><b>F. Propreté de l’alignement</b></td><td>Aucun alignement obtenu à la barre d’espace (trois espaces ou plus) ni par des tabulations sans taquet posé.</td><td class="pts">2</td></tr>
+      <tr><td><b>G. Points de suite</b></td><td>Les taquets à 8 cm, 14 cm et 16 cm portent des points de suite, de genre point au pied de la ligne (.......). Des tirets ou un trait à la place coûtent 1,5 point.</td><td class="pts">4</td></tr>
       <tr class="total"><td>Total</td><td></td><td class="pts">20</td></tr>
     </tbody>
   </table>
@@ -460,7 +461,7 @@ kbd{
   <table class="grille">
     <thead><tr><th>Type</th><th>Le texte…</th><th>Dans ce formulaire</th></tr></thead>
     <tbody>
-      <tr><td><b>Gauche</b></td><td>commence au taquet</td><td>8,5 cm (second intitulé), 5,5 et 10 cm (cases), 7,5 cm (visa)</td></tr>
+      <tr><td><b>Gauche</b></td><td>commence au taquet</td><td>8,5 cm (second intitulé), 5,5 et 10 cm (cases), 8,5 cm (visa)</td></tr>
       <tr><td><b>Centré</b></td><td>se répartit de part et d’autre</td><td>8 cm (DEMANDE DE STAGE)</td></tr>
       <tr><td><b>Droit</b></td><td>se termine au taquet</td><td>8 et 16 cm (fins de lignes), 14 cm (montants)</td></tr>
       <tr><td><b>Décimal</b></td><td>aligne la virgule ou le point décimal</td><td>alternative acceptée pour les montants</td></tr>
@@ -681,39 +682,39 @@ const T_DOUBLE  = [ {p:mm(80),  t:"right",  d:true },
                     {p:mm(160), t:"right",  d:true } ];
 const T_CASES   = [ {p:mm(55),  t:"left",   d:false}, {p:mm(100), t:"left", d:false} ];
 const T_MONTANT = [ {p:mm(140), t:"right",  d:true } ];
-const T_SIGN    = [ {p:mm(75),  t:"left",   d:false} ];
 
 /* bloc : groupe de lignes qui doivent porter les mêmes taquets */
 const MODELE = [
   { id:"titre", bloc:"titre", crit:"B", taquets:T_TITRE, tabs:2,
     ref:"UOG – PAI\tDEMANDE DE STAGE\tDate : «date»" },
 
-  { id:"h1", bloc:null, crit:null, taquets:null, tabs:0, ref:"1. Personne en formation" },
+  { id:"h1", bloc:null, crit:null, taquets:null, tabs:0, num:true, ref:"1. Personne en formation" },
   { id:"nom",     bloc:"double", crit:"C", taquets:T_DOUBLE, tabs:3, ref:"Nom :\t\tPrénom :\t" },
   { id:"naiss",   bloc:"double", crit:"C", taquets:T_DOUBLE, tabs:3, ref:"Date de naissance :\t\tTéléphone :\t" },
   { id:"adresse", bloc:"double", crit:"C", taquets:T_DOUBLE, tabs:3, ref:"Adresse :\t\tEmail :\t" },
   { id:"npa",     bloc:"double", crit:"C", taquets:T_DOUBLE, tabs:3, ref:"NPA - Localité :\t\tClasse :\t" },
 
-  { id:"h2", bloc:null, crit:null, taquets:null, tabs:0, ref:"2. Domaine de stage souhaité" },
+  { id:"h2", bloc:null, crit:null, taquets:null, tabs:0, num:true, ref:"2. Domaine de stage souhaité" },
   { id:"c1", bloc:"cases", crit:"D", taquets:T_CASES, tabs:2, ref:"☐ Administration\t☐ Agriculture\t☐ Commerce de détail" },
   { id:"c2", bloc:"cases", crit:"D", taquets:T_CASES, tabs:2, ref:"☐ Intendance\t☐ Logistique\t☐ Hôtellerie et restauration" },
   { id:"c3", bloc:"cases", crit:"D", taquets:T_CASES, tabs:1, ref:"☐ Propreté\t☐ Santé" },
   { id:"periode", bloc:"double", crit:"C", taquets:T_DOUBLE, tabs:3, ref:"Période souhaitée : du\t\tau\t" },
 
-  { id:"h3", bloc:null, crit:null, taquets:null, tabs:0, ref:"3. Entreprise" },
+  { id:"h3", bloc:null, crit:null, taquets:null, tabs:0, num:true, ref:"3. Entreprise" },
   { id:"raison",  bloc:"double", crit:"C", taquets:T_DOUBLE, tabs:3, ref:"Raison sociale :\t\tTéléphone :\t" },
   { id:"form",    bloc:"double", crit:"C", taquets:T_DOUBLE, tabs:3, ref:"Formateur :\t\tEmail :\t" },
   { id:"adresse2",bloc:"double", crit:"C", taquets:T_DOUBLE, tabs:1, ref:"Adresse :\t" },
   { id:"npa2",    bloc:"double", crit:"C", taquets:T_DOUBLE, tabs:1, ref:"NPA - Localité :\t" },
 
-  { id:"h4", bloc:null, crit:null, taquets:null, tabs:0, ref:"4. Frais de déplacement et de repas" },
+  { id:"h4", bloc:null, crit:null, taquets:null, tabs:0, num:true, ref:"4. Frais de déplacement et de repas" },
   { id:"m1", bloc:"montant", crit:"E", taquets:T_MONTANT, tabs:1, ref:"Abonnement TPG mensuel :\t45.00" },
   { id:"m2", bloc:"montant", crit:"E", taquets:T_MONTANT, tabs:1, ref:"Repas de midi (20 jours) :\t240.00" },
   { id:"m3", bloc:"montant", crit:"E", taquets:T_MONTANT, tabs:1, ref:"Total pris en charge par l’entreprise :\t285.00" },
 
   { id:"engage", bloc:null, crit:null, taquets:null, tabs:0,
     ref:"Par sa signature, l’élève s’engage à respecter les horaires de l’entreprise et à annoncer toute absence le jour même au formateur et à l’entreprise." },
-  { id:"sign", bloc:"signature", crit:"F", taquets:T_SIGN, tabs:1, ref:"Date et signature de l’élève\tVisa du formateur" }
+  /* ligne non notée pour les taquets : le visa était à 7,5 cm dans l’ancien modèle, à 8,5 cm dans le nouveau */
+  { id:"sign", bloc:null, crit:null, taquets:null, tabs:1, ref:"Date et signature de l’élève\tVisa du formateur" }
 ];
 
 const LIB_BLOC = {
@@ -726,10 +727,9 @@ const BAREME = [
   { c:"B", lib:"Ligne de titre — centré 8, droit 16", pts:2 },
   { c:"C", lib:"Deux colonnes — droit 8, gauche 8,5, droit 16", pts:4 },
   { c:"D", lib:"Domaines de stage — gauches 5,5 et 10", pts:2 },
-  { c:"E", lib:"Montants — droit 14", pts:1 },
-  { c:"F", lib:"Signatures — gauche 7,5", pts:1 },
-  { c:"G", lib:"Alignement propre — ni espaces, ni taquets par défaut", pts:2 },
-  { c:"H", lib:"Points de suite — taquets 8, 14 et 16", pts:4 }
+  { c:"E", lib:"Montants — droit 14", pts:2 },
+  { c:"F", lib:"Alignement propre — ni espaces, ni taquets par défaut", pts:2 },
+  { c:"G", lib:"Points de suite — taquets 8, 14 et 16", pts:4 }
 ];
 
 /* =========================================================
@@ -795,6 +795,10 @@ function chercher(p, a){
   return { etat: typeOK ? "ok" : "type", tr:m, suite: !!(m.points && m.points !== "none") };
 }
 
+/* numéro de rubrique tapé (« 2. »), absent ou produit par une liste Word : non contrôlé */
+const sansNum = s => (s || "").replace(/^\s*\d+\s*[.)]?[\s\t]*/, "");
+const refTexte = (m, t) => m.num ? sansNum(t) : t;
+
 function analyser(paras, page, police){
   const lignes = paras.filter(p => p.texte.replace(/[\s\t]/g,"") !== "");
 
@@ -804,7 +808,7 @@ function analyser(paras, page, police){
   for(const m of MODELE){
     let best = -1, bs = 0;
     for(let i = curseur; i < Math.min(lignes.length, curseur + 6); i++){
-      const s = similitude(m.ref, lignes[i].texte);
+      const s = similitude(refTexte(m, m.ref), refTexte(m, lignes[i].texte));
       if(s > bs){ bs = s; best = i; }
     }
     if(best >= 0 && bs >= 0.5){ app.set(m.id, lignes[best]); curseur = best + 1; lignes[best].modele = m; }
@@ -818,10 +822,11 @@ function analyser(paras, page, police){
     total++;
     const p = app.get(m.id);
     if(!p){ corr.push({ t:"Ligne manquante", d:"« " + norm(m.ref).slice(0,60) + " » n’a pas été trouvée." }); continue; }
-    const refT = m.id === "titre" ? cle(m.ref) : norm(m.ref).toLowerCase();
-    const appT = m.id === "titre" ? cle(p.texte) : norm(p.texte).toLowerCase();
+    const refM = refTexte(m, m.ref), appM = refTexte(m, p.texte);
+    const refT = m.id === "titre" ? cle(refM) : norm(refM).toLowerCase();
+    const appT = m.id === "titre" ? cle(appM) : norm(appM).toLowerCase();
     if(refT === appT){ justes++; continue; }
-    const ops = diffMots(norm(m.ref), norm(p.texte));
+    const ops = diffMots(norm(refM), norm(appM));
     const manque = ops.filter(o=>o.t==="-").map(o=>o.m);
     const trop   = ops.filter(o=>o.t==="+").map(o=>o.m);
     if(!manque.length && !trop.length){ justes++; continue; }
@@ -832,7 +837,7 @@ function analyser(paras, page, police){
   }
   res.A = Math.max(0, 4 - (total - justes));   // une ligne fautive = un point de moins
 
-  /* --- B à F : chaque taquet attendu est jugé une seule fois --- */
+  /* --- B à E : chaque taquet attendu est jugé une seule fois --- */
   const blocs = {};
   for(const m of MODELE){
     if(!m.bloc) continue;
@@ -879,14 +884,14 @@ function analyser(paras, page, police){
   }
   for(const x of BAREME) if(res[x.c] === undefined) res[x.c] = 0;
 
-  /* --- H : les points de suite, comptés une fois par taquet --- */
+  /* --- G : les points de suite, comptés une fois par taquet --- */
   let sTot = 0;
   const sManquants = [];
   for(const s of suites){
     sTot += s.suite;
     if(s.suite < 1) sManquants.push(libPos(s.a.p));
   }
-  res.H = suites.length ? Math.round(4 * sTot / suites.length * 2) / 2 : 0;
+  res.G = suites.length ? Math.round(4 * sTot / suites.length * 2) / 2 : 0;
   if(sManquants.length)
     corr.push({ t:"Points de suite", cible: (blocs.double && blocs.double.lignes.filter(Boolean)[0]) || null,
       d:"Les taquets à " + [...new Set(sManquants)].join(", ") +
@@ -898,13 +903,13 @@ function analyser(paras, page, police){
     heavy:     "un trait épais"
   };
   if(genresSuite.size){                 // un défaut distinct : 1,5 point
-    res.H = Math.max(0, res.H - 1.5);
+    res.G = Math.max(0, res.G - 1.5);
     corr.push({ t:"Genre des points de suite", cible: (blocs.double && blocs.double.lignes.filter(Boolean)[0]) || null,
       d:"Vos points de suite sont " + [...genresSuite].map(g => LIB_SUITE[g] || g).join(" et ") +
       ". Le modèle demande des points au pied de la ligne (.......). Double-cliquez sur le taquet dans la règle, puis choisissez l’option 2 de la zone « Points de suite »." });
   }
 
-  /* --- G : propreté de l’alignement --- */
+  /* --- F : propreté de l’alignement --- */
   let espaces = 0, defaut = 0, pEsp = null, pDef = null;
   for(const p of lignes){
     if(/ {3,}/.test(p.texte)){ espaces++; pEsp = pEsp || p; }
@@ -912,16 +917,16 @@ function analyser(paras, page, police){
     if(n > 0 && p.taquets.length === 0){ defaut++; pDef = pDef || p; }
     else if(/\t{3,}/.test(p.texte)){ defaut++; pDef = pDef || p; }
   }
-  res.G = 2;
+  res.F = 2;
   if(espaces){
-    res.G -= 1;
+    res.F -= 1;
     corr.push({ t:"Alignement à la barre d’espace", cible:pEsp, d: espaces + " ligne(s) contiennent trois espaces ou plus à la suite. Remplacez-les par une tabulation posée sur un taquet." });
   }
   if(defaut){
-    res.G -= 1;
+    res.F -= 1;
     corr.push({ t:"Tabulations par défaut", cible:pDef, d: defaut + " ligne(s) utilisent des tabulations sans taquet posé. Posez un taquet à la position voulue : une seule tabulation suffit alors." });
   }
-  if(res.G < 0) res.G = 0;
+  if(res.F < 0) res.F = 0;
 
   /* --- remarques non notées --- */
   if(police.nomBase && !/arial|helvetica|liberation sans/i.test(police.nomBase))
@@ -972,7 +977,7 @@ function apercu(r){
   /* un seul passage : sinon la deuxième substitution frappe le balisage produit */
   const marquerBlancs = h => h.replace(/[ \u00A0]/g, () => '<span class="mk-esp"> </span>');
 
-  let html = "", y = 0, aOK = false, aKO = false, aSuite = false, aGenre = false;
+  let html = "", y = 0, aOK = false, aKO = false, aLibre = false, aSuite = false, aGenre = false;
   const hauteurLigne = corps * 1.25;
 
   // règle : union des taquets rencontrés + taquets attendus jamais posés
@@ -983,7 +988,10 @@ function apercu(r){
       const a = p.modele && p.modele.taquets && p.modele.taquets.find(x => Math.abs(x.p - t.pos) <= TOL
                  && (t.type === x.t || (x.t === "right" && x.d && t.type === "decimal")));
       const cle = Math.round(t.pos / 10) * 10;
-      if(!vus.has(cle) || !a) vus.set(cle, { pos:t.pos, ok: !!a });
+      // ligne sans taquets attendus (signatures) : taquet non noté, en gris
+      const etat = a ? "ok" : (p.modele && p.modele.taquets ? "ko" : "libre");
+      const rang = { libre:0, ok:1, ko:2 };
+      if(!vus.has(cle) || rang[etat] > rang[vus.get(cle).etat]) vus.set(cle, { pos:t.pos, etat });
     }
   }
   let regle = `<div class="regle-page" style="margin-left:${mgG}mm;width:${zone}mm"><i class="fond"></i>`;
@@ -993,7 +1001,7 @@ function apercu(r){
     if(![...vus.values()].some(v => Math.abs(v.pos - a.p) <= TOL))
       regle += `<b class="abs" style="left:${a.p/TW}mm"></b>`;
   for(const [, v] of vus)
-    regle += `<b class="${v.ok ? "ok" : "ko"}" style="left:${v.pos/TW}mm"></b>`;
+    regle += `<b class="${v.etat}" style="left:${v.pos/TW}mm"></b>`;
   regle += `</div>`;
 
   for(const p of r.lignes){
@@ -1055,8 +1063,10 @@ function apercu(r){
       }
       ligne += `<span class="mk mk-pos" style="left:${x}mm">\u2192</span>`;
       ligne += `<span class="seg" style="left:${debut}mm">${marquerBlancs(echapper(s))}</span>`;
-      if(poseOK) aOK = true; else aKO = true;
-      marques += `<i class="marque-taquet ${poseOK ? "ok" : "ko"}" style="left:${cible}mm"></i>`;
+      const libre = !!t && !(p.modele && p.modele.taquets);
+      const etatT = libre ? "libre" : (poseOK ? "ok" : "ko");
+      if(etatT === "ok") aOK = true; else if(etatT === "ko") aKO = true; else aLibre = true;
+      marques += `<i class="marque-taquet ${etatT}" style="left:${cible}mm"></i>`;
       x = debut + l;
     }
     ligne += `<span class="mk mk-pos" style="left:${x}mm">\u00B6</span>`;
@@ -1072,6 +1082,7 @@ function apercu(r){
   const legende = [];
   if(aOK)    legende.push('<span><i class="ok">▏</i> taquet correct</span>');
   if(aKO)    legende.push('<span><i class="ko">▏</i> taquet erroné, absent ou par défaut</span>');
+  if(aLibre) legende.push('<span><i style="color:#B9B9BE">▏</i> taquet non noté</span>');
   if(aSuite) legende.push('<span><i class="jn">points</i> points de suite manquants</span>');
   if(aGenre) legende.push('<span><i class="jn">- - -</i> points de suite à remplacer par des points</span>');
   legende.push('<span><i style="color:var(--marque)">¶ · →</i> marques de mise en forme, toujours affichées</span>');
