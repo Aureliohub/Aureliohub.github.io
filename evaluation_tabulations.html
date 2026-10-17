@@ -356,7 +356,7 @@ kbd{
 <header class="tete">
   <span class="pil">Informatique · PAI · traitement de texte</span>
   <div class="tete-texte">
-    <h1 title="v1">Demande de stage : contrôle de vos tabulations</h1>
+    <h1 title="v2">Demande de stage : contrôle de vos tabulations</h1>
     <p><span class="insecable">Déposez votre fichier, il est analysé dans votre navigateur (rien n’est envoyé sur Internet).</span>
       <span class="insecable">Vous obtenez votre note ainsi que la liste des corrections à apporter.</span></p>
   </div>
@@ -636,7 +636,9 @@ function lirePolice(xmlDoc, xmlStyles, xmlTheme){
     return e ? e[0] : null;
   };
   const bloc = (xml, re) => { if(!xml) return null; const m = xml.match(re); return m ? m[0] : null; };
-  const normalStyle = bloc(xmlStyles, /<w:style[^>]*w:styleId="Normal"[\s\S]*?<\/w:style>/);
+  // le style Normal n'a pas toujours l'identifiant « Normal » (ONLYOFFICE : 619…)
+  const normalStyle = bloc(xmlStyles, /<w:style(?=[^>]*w:type="paragraph")(?=[^>]*w:default="1")[^>]*>[\s\S]*?<\/w:style>/)
+                   || bloc(xmlStyles, /<w:style[^>]*w:styleId="Normal"[\s\S]*?<\/w:style>/);
   const defauts = bloc(xmlStyles, /<w:docDefaults[\s\S]*?<\/w:docDefaults>/);
   let nom = dominant(xmlDoc, /w:ascii="([^"]+)"/g)
          || dominant(normalStyle, /w:ascii="([^"]+)"/g)
@@ -653,21 +655,49 @@ function lirePolice(xmlDoc, xmlStyles, xmlTheme){
   // valeurs héritées par les passages qui ne précisent rien : c'est la base du rendu
   const szBase = dominant(normalStyle, /<w:sz w:val="(\d+)"/g)
               || dominant(defauts, /<w:sz w:val="(\d+)"/g) || sz;
+  const policeTheme = xml => {                 // asciiTheme="minorHAnsi" → police du thème
+    const t = xml && (xml.match(/w:asciiTheme="([^"]+)"/) || [])[1];
+    if(!t || !xmlTheme) return null;
+    const cible = /major/i.test(t) ? "majorFont" : "minorFont";
+    const m = xmlTheme.match(new RegExp("<a:" + cible + ">[\\s\\S]*?<a:latin[^>]*typeface=\"([^\"]*)\""));
+    return m && m[1] ? m[1] : null;
+  };
   let nomBase = dominant(normalStyle, /w:ascii="([^"]+)"/g)
-             || dominant(defauts, /w:ascii="([^"]+)"/g);
+             || dominant(defauts, /w:ascii="([^"]+)"/g)
+             || policeTheme(normalStyle) || policeTheme(defauts);
   if(!nomBase) nomBase = nom;
+  const espN = bloc(normalStyle, /<w:spacing[^>]*\/>/) || "";
   const esp = bloc(defauts, /<w:spacing[^>]*\/>/) || "";
-  const apres = (esp.match(/w:after="(\d+)"/) || [])[1];
-  const ligne = (esp.match(/w:line="(\d+)"/) || [])[1];
+  const apres = (espN.match(/w:after="(\d+)"/) || [])[1] ?? (esp.match(/w:after="(\d+)"/) || [])[1];
+  const ligne = (espN.match(/w:line="(\d+)"/) || [])[1] ?? (esp.match(/w:line="(\d+)"/) || [])[1];
   return {
     nom, taille: sz ? parseInt(sz, 10) / 2 : null,
     nomBase, tailleBase: szBase ? parseInt(szBase, 10) / 2 : null,
-    apres: apres === undefined ? 160 : parseInt(apres, 10),
+    apres: apres === undefined ? 0 : parseInt(apres, 10),   // absent = 0 dans Word
     interligne: ligne ? parseInt(ligne, 10) / 240 : 1.15
   };
 }
 
 
+
+/* police et taille dominantes du texte saisi, pondérées par le nombre de caractères */
+function policeDuTexte(paragraphes, police){
+  const f = {}, t = {};
+  for(const p of paragraphes){
+    let deb = 0;
+    for(const s of p.styles){
+      const n = p.texte.slice(deb, s.fin).replace(/[\s\t☐\u2610-\u2612\u25A1]/g, "").length;
+      deb = s.fin;
+      if(!n) continue;
+      const nom = s.police || police.nomBase, taille = s.taille || police.tailleBase;
+      if(nom) f[nom] = (f[nom] || 0) + n;
+      if(taille) t[taille] = (t[taille] || 0) + n;
+    }
+  }
+  const max = o => { const e = Object.entries(o).sort((a, b) => b[1] - a[1])[0]; return e ? e[0] : null; };
+  if(max(f)) police.nomBase = police.nom = max(f);
+  if(max(t)) police.tailleBase = police.taille = parseFloat(max(t));
+}
 
 /* =========================================================
    2. Le modèle de référence
@@ -745,6 +775,7 @@ function norm(s){
     .replace(/[\u2010\u2011\u2012\u2013\u2014]/g, "-")
     .replace(INSEC, " ")
     .replace(/[\u2610\u2611\u2612\u25A1\u25AA\u25CF\u00A4\uF0A8\uF06F]/g, "☐")
+    .replace(/☐[ \t]*/g, "☐ ")              // « ☐Administration » = « ☐ Administration »
     .replace(/[\t\n]/g, " ")
     .replace(/\s+/g, " ")
     .trim();
@@ -941,7 +972,7 @@ function analyser(paras, page, police){
     remarques.push({ t:"Ligne de titre", d:"La ligne de titre du modèle est soulignée sur toute sa largeur, tabulations comprises." });
 
   const points = BAREME.reduce((s, x) => s + res[x.c], 0);
-  return { res, total: points, corr, remarques, lignes, page, police };
+  return { res, total: points, corr, remarques, lignes, tous: paras, page, police };
 }
 
 /* =========================================================
@@ -1004,18 +1035,21 @@ function apercu(r){
     regle += `<b class="${v.etat}" style="left:${v.pos/TW}mm"></b>`;
   regle += `</div>`;
 
-  for(const p of r.lignes){
+  // espacements : ceux du paragraphe, sinon ceux du style Normal / du document
+  const apresDe = p => ((p.apres === null || p.apres === undefined) ? (r.police.apres || 0) : p.apres) / 20 * ptmm;
+  const avantDe = p => ((p.avant === null || p.avant === undefined) ? 0 : p.avant) / 20 * ptmm;
+  for(const p of (r.tous || r.lignes)){            // lignes vides comprises : elles comptent dans la page
     const segs = p.texte.split("\t");
     const gras = (p.styles || []).some(s => s.gras);
     const num = (p.numeros && p.numeros.length)
       ? `<i class="apercu-num">${p.numeros.map(n => "<span>" + n + "</span>").join("")}</i>` : "";
     if(segs.length === 1){                       // paragraphe sans tabulation : texte au fil
-      const marge = (p.apres === null || p.apres === undefined ? 0 : p.apres / 20 * ptmm);
+      const marge = apresDe(p), avant = avantDe(p);
       html += `<div class="apercu-ligne plein" style="margin-left:${mgG}mm;width:${zone}mm;`
-            + `margin-bottom:${marge}mm;font-size:${corps}mm;line-height:${hauteurLigne}mm;`
+            + `margin-top:${avant}mm;margin-bottom:${marge}mm;font-size:${corps}mm;line-height:${hauteurLigne}mm;`
             + `font-weight:${gras ? 600 : 400}">${num}${marquerBlancs(echapper(p.texte))}`
             + `<span class="mk">\u00B6</span></div>`;
-      y += hauteurLigne * Math.max(1, Math.ceil(mesure(p.texte, gras) / zone)) + marge;
+      y += hauteurLigne * Math.max(1, Math.ceil(mesure(p.texte, gras) / zone)) + marge + avant;
       continue;
     }
     let x = 0, ligne = "", marques = "";
@@ -1071,11 +1105,11 @@ function apercu(r){
     }
     ligne += `<span class="mk mk-pos" style="left:${x}mm">\u00B6</span>`;
 
-    const h = hauteurLigne + (p.apres === null || p.apres === undefined ? 0 : p.apres / 20 * ptmm);
-    html += `<div class="apercu-ligne" style="margin-left:${mgG}mm;width:${zone}mm;height:${h}mm;`
+    const h = hauteurLigne + apresDe(p), avantL = avantDe(p);
+    html += `<div class="apercu-ligne" style="margin-left:${mgG}mm;width:${zone}mm;height:${h}mm;margin-top:${avantL}mm;`
           + `font-size:${corps}mm;line-height:${hauteurLigne}mm;font-weight:${gras ? 600 : 400}">`
           + num + marques + ligne + `</div>`;
-    y += h;
+    y += h + avantL;
   }
 
   const hautPage = Math.min(297, Math.max(120, mgH + y + 20));
@@ -1186,6 +1220,7 @@ async function traiter(f){
     const { paragraphes, page } = lireParagraphes(xml, dt ? parseInt(dt, 10) : 708);
     if(!bonDocument(paragraphes)) throw new Error("horssujet");
     const police = lirePolice(xml, styles, theme);
+    policeDuTexte(paragraphes, police);
     afficher(analyser(paragraphes, page, police), f.name);
   }catch(e){
     const msg = {
