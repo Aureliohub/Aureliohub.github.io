@@ -8,7 +8,7 @@ générant des exercices de mathématiques pour adultes (programme PAI, Suisse).
 Product owner : Aurelio (Onex/Genève). Répondre en FRANÇAIS.
 
 ───────────────────────────────────────────────────────────────────────────────
-0. OÙ ON EN EST (v531, 15.10.2026) — à lire en premier
+0. OÙ ON EN EST (v533, 20.10.2026) — à lire en premier
 ───────────────────────────────────────────────────────────────────────────────
 L'application est en ligne : https://aureliohub.github.io/eva_maths.html
 Les fichiers de série et de test (.json) sont déposés à côté d'elle, et s'ouvrent
@@ -543,6 +543,73 @@ PDF de domaine :
 ───────────────────────────────────────────────────────────────────────────────
 Cette section décrit l'ÉTAT, non l'historique. Les numéros de version ne sont
 cités que lorsqu'ils aident à retrouver un choix dans le fichier.
+
+v533 — DÉCIMAUX FUSIONNÉS : 4 QUESTIONS PAR PAGE D'ÉNONCÉ (20.10, PDF de
+ l'atelier envoyé par Aurelio : deux exercices fusionnés en 6 questions,
+ « les lettres e et f devraient figurer sur une autre page »).
+ · CAUSE : `Q_PAR_PAGE.decimaux` valait 6 ; un exercice de 6 questions n'était
+   donc pas coupé et, avec l'écart de 400 px, la rangée e) f) tombait en pied
+   de page, sans place pour poser.
+ · Désormais 4 dans le PDF à pages FIXES (sous-domaine, atelier d'un seul
+   sous-domaine), 6 conservé en FLUX (`rendreBlocs`, série mêlant plusieurs
+   sous-domaines, qui coupe par rangées). Les tranches reprennent la mise en
+   page ORDINAIRE (a)/b) en haut, c)/d) au milieu, écart 400 px) : les rangées
+   de 283 px ne servent plus qu'au flux. `_trancheDe` reste posé, sans effet.
+ · 6 questions → page 1 a)–d), page 2 « Exercice 1. (suite) » e) f) ; 8 → a)–d)
+   puis e)–h) ; corrigé inchangé (une page, opérations posées).
+ Vérifié au vrai navigateur par le chemin de l'atelier
+ (atelierGenererPdfInterne) avec 5, 6 et 8 questions fusionnées, pages
+ regardées. NON-RÉGRESSION, 34 documents à graine fixe contre la v532 : 33
+ identiques ; « unités » alterne entre deux tirages d'une exécution à l'autre
+ dans les DEUX versions (hasard hors graine) — ce n'est pas un écart.
+
+v532 — DÉCIMAUX : LE CORRIGÉ PDF POSE TOUTES LES OPÉRATIONS (20.10, demande
+ d'Aurelio : « que le corrigé pdf affiche le détail des calculs pour tous les
+ calculs, comme pour les nombres entiers »). Niveaux 1 et 2, les quatre
+ variantes.
+ · MOTEUR À PART (bloc « OPÉRATIONS POSÉES AVEC DES DÉCIMAUX », juste avant
+   poseOperationHtml) : poseAdditionDecHtml (2 ou 3 termes, retenue jusqu'à 2),
+   poseSoustractionDecHtml, poseMultiplicationDecHtml, poseDivisionDecHtml.
+   Les fonctions des ENTIERS ne sont pas touchées ; poseOperationHtml aiguille
+   sur `pose.dec`. `q.pose` porte les nombres TELS QU'ÉCRITS (« 78,67 »),
+   calculs en entiers sur leurs chiffres, aucun flottant.
+ · CONVENTIONS RETENUES (choix de Claude, à faire valider) : virgules alignées
+   et termes complétés par des 0 (à l'encre : en gris ils se confondaient avec
+   les chiffres barrés) ; multiplication calée à droite, virgule placée au
+   produit, une ligne de 0 pour un chiffre 0 du multiplicateur ; division :
+   diviseur rendu entier (ligne grise « 294,49 ÷ 0,12 = 29449 ÷ 12 » au-dessus
+   de la potence), 0 ajoutés au dividende, quotient jusqu'aux centièmes (plus
+   loin si le dividende continue : 4,125 au niveau 1).
+ · LA VIRGULE NE PREND PAS DE COLONNE : posée en absolu contre le chiffre des
+   unités (`_poseCellsDec`), les colonnes restent alignées.
+ · EMPRUNTS EN CASCADE : le niveau entier les écarte (v480), ici ils sont
+   inévitables — le niveau 2 impose un 0 dans le premier terme (1 783
+   soustractions sur 2 500 au banc). Notation : l'emprunteur seul garde son
+   chiffre avec « 10 » au-dessus (règle d'Aurelio) ; une colonne qui prête ET
+   emprunte est barrée, sa valeur de travail au-dessus (0 → 9, 1 → 10, 5 → 14).
+   C'est le repli déjà écrit dans poseSoustractionHtml. SIGNALÉ à Aurelio.
+ · `_poseColonne` vaut maintenant pour tous les niveaux de genDecimal ; ajouté
+   à CLES_AFFICHAGE_EXERCICE (fusion de l'atelier). Corrigé rendu par
+   `poseColonneDecCorrigeHtml` : une rangée `data-pose-rangee` par paire.
+ · PAGINATION (piège n°2) : deux exercices de divisions faisaient jusqu'à
+   1 331 px pour une page de 1 123 — le second corrigé aurait été coupé SANS
+   ERREUR. `corrigeEnPages` (downloadPdf, décimaux seulement) reporte sur des
+   pages suivantes, par exercices entiers puis par rangées (« (suite) »).
+   Série à la carte : `placerEnFlux` coupe aussi entre deux rangées
+   (`unitesDeCoupe`) — sans effet sur ce qui n'en a pas.
+ · PDF DE DOMAINE NON TOUCHÉ : son corrigé du domaine 1 reste une liste de
+   réponses (il n'appelle espaceCorrigeInner que pour le domaine 5).
+ Banc au vrai navigateur : 8 000 opérations posées (N1 et N2, 4 variantes)
+ relues cellule par cellule — pose = énoncé, résultat = réponse, virgules
+ alignées, chaque colonne d'addition et de soustraction refaite (retenues,
+ emprunts, cascades), produits partiels et leurs retenues, quotient, produits
+ et reste final de la potence : zéro défaut ; quatre sabotages détectés.
+ Mesure : plus aucun corrigé ne déborde (contenu le plus bas à 901 px), les 8
+ opérations toujours présentes. PDF regardés : sous-domaine (mélange N1/N2,
+ soustractions, multiplications, divisions sur 2 pages) et série à la carte
+ avec 8 divisions fusionnées (coupées a–d / e–f / g–h). NON-RÉGRESSION, 34
+ documents à graine fixe contre la v531 : 33 identiques au bloc près ; le
+ 34e (décimaux) ne diffère que par son corrigé.
 
 v531 — DÉCIMAUX, DIVISIONS DU NIVEAU 2 (15.10, demande d'Aurelio : « des
  quotients en centaines au minimum et avec un nombre non fini après 2
@@ -7441,7 +7508,7 @@ function genDecimal(operation) {
       const a = randDecimal(ce, 1);
       const b = randDecimal(ce, 1);
       const r = +(a + b).toFixed(2);
-      return { text: `${toFr(a)} + ${toFr(b)} = `, answer: toFr(r) };
+      return { text: `${toFr(a)} + ${toFr(b)} = `, answer: toFr(r), pose: { termes: [toFr(a), toFr(b)], op: '+', dec: true } };
     } else {
       // N2 : 3 termes, décimales différentes, un des trois sans décimale (0 décimale).
       const decsPool = [1, 2, 3];
@@ -7457,7 +7524,7 @@ function genDecimal(operation) {
       const b = randDecimal(ce(decs[1]), decs[1]);
       const c = randDecimal(ce(decs[2]), decs[2]);
       const r = +(a + b + c).toFixed(4);
-      return { text: `${toFr(a)} + ${toFr(b)} + ${toFr(c)} = `, answer: toFr(r) };
+      return { text: `${toFr(a)} + ${toFr(b)} + ${toFr(c)} = `, answer: toFr(r), pose: { termes: [toFr(a), toFr(b), toFr(c)], op: '+', dec: true } };
     }
   };
 
@@ -7502,7 +7569,7 @@ function genDecimal(operation) {
         const tmp = premier; premier = second; second = tmp;
       }
       const r = +(premier - second).toFixed(3);
-      return { text: `${toFr(premier)} − ${toFr(second)} = `, answer: toFr(r) };
+      return { text: `${toFr(premier)} − ${toFr(second)} = `, answer: toFr(r), pose: { a: toFr(premier), b: toFr(second), op: '−', dec: true } };
     } else {
       // N2 : décimales différentes, premier terme contient au moins un 0,
       // limite : 6 chiffres maximum pour le premier terme (entiers + décimales).
@@ -7524,7 +7591,7 @@ function genDecimal(operation) {
       const b = randDecimal(2, decB); // 2 chiffres entiers pour b
       const [big, small] = a >= b ? [a, b] : [b, a];
       const r = +(big - small).toFixed(4);
-      return { text: `${toFr(big)} − ${toFr(small)} = `, answer: toFr(r) };
+      return { text: `${toFr(big)} − ${toFr(small)} = `, answer: toFr(r), pose: { a: toFr(big), b: toFr(small), op: '−', dec: true } };
     }
   };
 
@@ -7547,7 +7614,7 @@ function genDecimal(operation) {
       const b = randDecimal(1, 1);
       const r = +(a * b).toFixed(6);
       // Force max 4 décimales pour l'affichage
-      return { text: `${toFr(a)} × ${toFr(b)} = `, answer: toFr(r) };
+      return { text: `${toFr(a)} × ${toFr(b)} = `, answer: toFr(r), pose: { a: toFr(a), b: toFr(b), op: '×', dec: true } };
     } else {
       // N2 : premier facteur à 4 chiffres (entier + décimales = 4 chiffres totaux)
       // Par exemple : 3 chiffres entiers + 1 décimale, ou 2 chiffres entiers + 2 décimales.
@@ -7558,7 +7625,7 @@ function genDecimal(operation) {
       const a = randDecimal(config[0], config[1]);
       const b = randDecimal(1, 2);
       const r = +(a * b).toFixed(6);
-      return { text: `${toFr(a)} × ${toFr(b)} = `, answer: toFr(r) };
+      return { text: `${toFr(a)} × ${toFr(b)} = `, answer: toFr(r), pose: { a: toFr(a), b: toFr(b), op: '×', dec: true } };
     }
   };
 
@@ -7660,13 +7727,15 @@ function genDecimal(operation) {
       if (!complet) complet = fmt(Math.floor(num * 10000 / den), 4) + '…';
       const q = {
         text: `${dividend} ÷ ${divisor} = `, answer: fmt(q2, 2),
-        acceptAlt: alt, quotientComplet: complet
+        acceptAlt: alt, quotientComplet: complet,
+        pose: { a: dividend, b: divisor, op: '÷', dec: true }
       };
       if (zeroInterieur === quotientZero) return q;
       if (!secours) secours = q;
     }
     return secours || { text: '85,37 ÷ 0,7 = ', answer: '121,95',
-      acceptAlt: ['121,957', '121,9571', '121,95714', '121,957142'], quotientComplet: '121,9571…' };
+      acceptAlt: ['121,957', '121,9571', '121,95714', '121,957142'], quotientComplet: '121,9571…',
+      pose: { a: '85,37', b: '0,7', op: '÷', dec: true } };
   }
 
   // Helper division : choisit divisor (1 décimale) et dividende avec virgule placée
@@ -7786,7 +7855,8 @@ function genDecimal(operation) {
     // corrigé rappelle la valeur complète en gris (`quotientComplet`).
     // acceptAlt n'existe QUE si les deux écritures diffèrent, sans quoi le
     // corrigé affichait « 11,84 ou 11,84 ».
-    const q = { text: `${tirage.dividend} ÷ ${divisor} = `, answer: tirage.quotient };
+    const q = { text: `${tirage.dividend} ÷ ${divisor} = `, answer: tirage.quotient,
+      pose: { a: tirage.dividend, b: divisor, op: '÷', dec: true } };
     if (tirage.quotientExact && tirage.quotientExact !== tirage.quotient) {
       q.acceptAlt = [tirage.quotientExact];
       q.quotientComplet = tirage.quotientExact;
@@ -7839,7 +7909,7 @@ function genDecimal(operation) {
       if (q.pose) qObj.pose = q.pose;      // corrigé : opération posée en colonne
       questions.push(qObj);
     }
-    return { multi: true, intro: CONSIGNE[operation], questions, _poseColonne: niveau === 3 };
+    return { multi: true, intro: CONSIGNE[operation], questions, _poseColonne: true };
   }
   const ops = [opAdd, opSub, opMul, opDiv];
   for (let i = 0; i < 4; i++) {
@@ -7852,7 +7922,7 @@ function genDecimal(operation) {
   }
   return {
     multi: true,
-    _poseColonne: niveau === 3,
+    _poseColonne: true,
     intro: niveau === 3
       ? "Pose les opérations en colonne"
       : "Pose les opérations en colonne (pour les divisions, quotient à deux décimales au minimum)",
@@ -19872,7 +19942,7 @@ const ICONE_ENSEIGNANT = '<svg viewBox="0 0 24 24" width="21" height="21" fill="
 const ICONE_PDF = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJkAAACUCAMAAAC3HHtWAAAAk1BMVEXi5ef////xVkKwt73K0dji6OrxW0jyUDnG2eHlzczmgnrV2t/x8/T19vbxUTzwTDX4u7Xnvr28wsf+8/L84N3yYlD1jID1hXf1kYb4q6L4t7D96ujwQib1mY7++Pf70c3zcWHxSC/zeGn3pJv6ysX72dXy2Nbj1dXtgnfyaFf3sKj6w73UubvV4ebco6HkioPitLFLhhsqAAAElUlEQVR4nO3ca5eaOhQG4ICOtHUa7AAqIgiIbdVezv//dUcS7tlAXIYkq4v308xCzeNOCAEVZAzmKxKWj8Xi4324tVbQyGahsqdow7J3wbLFgp82LHsTLuOv2rBMIKyQ8dMGZQLHfyXjpsmX8dIUyDhpKmR8NCUyLpoa2eLjq64yjqqpko1XTZlstGrqZGM0hbIRmkrZME2pbJCmVjZEUywboKmW9dOUy3qnXPWyvqppIOupmg4yuGpayMCq6SGDqiZPthySAVWTJ1sPytiqyZMNdydbNYmykaJ1aRJlY0Xr0GTKnqNJlY3sn22aXBlaL4fr1qBJlpEsB/KmVDZEUywboKmW9dOUy3pp6mV9NA1kPTQdZDBNCxlI00MG0TSRATRdZCxNGxlD00fWpWkkQ/rKkL4ypK8M6StD+sqQvjKkrwzpK0P6ypC+MqSvDOkrQ/rKkL6ytbYyVF+tnWWiZW8T5jlZ4Lby/fN0+YFAGyxzw9hbyUoc/oBooOxi2tiUFmybEA2SRaklz5XH/slZs5PEgtGsPrNFg2R3W7YMf+OTbWbZLJtls2yWzbJWrORYJklaaxFs2WUsiznm1htpoIPySzK8PQVl3Oyc1gQrDX3/nMc/h/t0lbTb3vqthDGwkHlFhneO0YyTXYtHWdvWFsc9xA3b6m504nhs1V6R2QemhT192OrS3WJs4rLx7hvKcz8KlVkbpoWI9ovnMlsMN4ULSnJIJpA5gUNStL+qZRFN+RLBDvfJgpXY3qSy2zXOs/MpIbRLWeT/3OYJb0UFL7R9KnMOdXzRewCV+TYmsa8BKdqxku3oFsvGu4C+SFLL3MakwU4rgmTlv/u8ak5emEJWVcKOadmuuJYBmKlkmHpiQGZaMenrg61EZppknso9jMw8khnG9fSTWWletCjF9TizHnmMwsdInFqG6S4A9mY5keR7LpUFYRX4JFugLPHzf6OK0ZatTuWDmfnM2UO012XnI931zTMZ5KfGrNFsEGdkF0igmdaJgQ59XZaFZE1xO9GZlrx/QGYS2Q2UGdtJZO3c6+NmZ5yRg/wZ6k3j4rEvLlrm0h2NlRW7R17R4uh0qnIA1kCCZVF2pW2wMjvMH+BcG7MGmTbywBfmBMqcU2gWbQDzGSnZhfwpa6Y9nWn2qVm9d0ZGZxQyzOTJzkfaJc0+6cjwMSQ7bmRLrZkPbClkCSZoHG+iumQayIzs9lgV3g73YqYzsuJp6mWdXK7N1baMccYpy7xi2EmQ2ed8C3Q4Zs/qorA6CcFpLhu9WP7a1YNNFB3AdULqRjXKcU/bY+P5OHQiN51UhnG6gz/AsLxdndSz2s+249119IOPF68F9axHyZY6TzxNmGzCzLJZNstm2TSyTPpnwh7nZ8KBbBiOGVfPdw9u7DXeSWHHX785ZVGYJNV52ORJ8J/lmlP2WOv54b6VL5Pl73/LT0/Iunn/NF3yLzXyjjNAxvzkQWy0lQEwPWTAKOOXrScM5PoXvrM3y2bZLJtls+zfk3He90Do3TnFykTe0ZQr9Q8XRmTSi9a4zcyITOQNap+Djckk92fzbin/A8PQxx30Ei25AAAAAElFTkSuQmCC';
 
 // Numéro de version, affiché en pied de menu.
-const APP_VERSION = '531';
+const APP_VERSION = '533';
 
 const DOMAINS = [
   {
@@ -23318,7 +23388,12 @@ async function downloadCartePdf(items) {
     el.querySelectorAll('.multi-item').forEach(it => { dansItems += it.querySelectorAll('svg').length; });
     return el.querySelectorAll('svg').length > dansItems;
   };
-  const secable = (el) => !!el && el.querySelectorAll('.multi-item').length >= 2 && !figureCommune(el);
+  // Corrigé d'opérations posées (décimaux, v532) : il n'a pas de .multi-item,
+  // ses unités de coupe sont les rangées `data-pose-rangee` (une par ligne).
+  const unitesDeCoupe = (el) => (el && el.querySelector && el.querySelector('[data-pose-rangee]'))
+    ? Array.from(el.querySelectorAll('[data-pose-rangee]'))
+    : Array.from(el.querySelectorAll('.multi-item'));
+  const secable = (el) => !!el && unitesDeCoupe(el).length >= 2 && !figureCommune(el);
   const ajusterHauteurs = (bloc, part) => {
     [bloc].concat(Array.from(bloc.querySelectorAll('*'))).forEach(n => {
       if (!n.style) return;
@@ -23338,7 +23413,8 @@ async function downloadCartePdf(items) {
     const enHautDePage = premiereEcriture || cursorY <= MH;
     const tientIci = enHautDePage || m.hUtile <= restant;
     if ((m.hUtile <= hauteurUtile && tientIci) || p >= 4) { await placer(el, null, m); return; }
-    const items = Array.from(el.querySelectorAll('.multi-item'));
+    const pose = !!el.querySelector('[data-pose-rangee]');
+    const items = unitesDeCoupe(el);
     const tropHaut = m.hUtile > hauteurUtile;
     // Rien à couper, ou trop peu de place pour que la coupure serve.
     if (items.length < 2 || !el.parentNode
@@ -23349,7 +23425,7 @@ async function downloadCartePdf(items) {
     const grille = el.querySelector('.multi-grid');
     const uneColonne = !!grille && (grille.style.gridTemplateColumns === '1fr'
       || /stacked|fullwidth|propfig/.test(grille.className || ''));
-    const colonnes = uneColonne ? 1 : 2;
+    const colonnes = (uneColonne || pose) ? 1 : 2;
     const rangees = Math.ceil(items.length / colonnes);
     // Une seule rangée : il n'y a rien à couper qui ne casse la rangée en deux.
     if (rangees < 2) {
@@ -23361,8 +23437,9 @@ async function downloadCartePdf(items) {
       : Math.max(1, Math.min(rangees - 1, Math.floor(rangees * restant / m.hUtile)));
     const coupe = Math.min(items.length - 1, rCoupe * colonnes);
     const haut = el.cloneNode(true), bas = el.cloneNode(true);
-    Array.from(haut.querySelectorAll('.multi-item')).slice(coupe).forEach(n => n.remove());
-    Array.from(bas.querySelectorAll('.multi-item')).slice(0, coupe).forEach(n => n.remove());
+    Array.from(unitesDeCoupe(haut)).slice(coupe).forEach(n => n.remove());
+    Array.from(unitesDeCoupe(bas)).slice(0, coupe).forEach(n => n.remove());
+    if (pose) suiteCorrigePose(bas);
     // La suite d'un exercice ne reprend ni son titre ni sa consigne : elle
     // continue la même liste de questions.
     bas.querySelectorAll('.exercise-num, .exo-consigne').forEach(n => n.remove());
@@ -23974,7 +24051,7 @@ const CLES_CONTENU_EXERCICE = ['svg', 'svgCorrige', 'svgId', 'placePoints', 'poi
 // Réglages d'affichage à reprendre sur l'exercice fusionné.
 const CLES_AFFICHAGE_EXERCICE = ['champsLarges', 'stackedStatements', 'singleColumn',
   'introInTitle', 'threeColsByColumn', 'fillBlanks', 'tableMode', 'unitesTemps',
-  'sideLayout', 'multi'];
+  'sideLayout', 'multi', '_poseColonne'];
 
 // Sous-domaines dont le rendu ne survit pas à une fusion (constaté au banc
 // d'essai, pas supposé) : leur gabarit suppose un nombre de questions fixe ou
@@ -32058,8 +32135,226 @@ function poseDivisionHtml(a, d) {
   return `<div style="display:flex; align-items:flex-start;"><div>${g}</div>${droite}</div>`;
 }
 
+// ---------------------------------------------------------------------------
+// OPÉRATIONS POSÉES AVEC DES DÉCIMAUX (v532, niveaux 1 et 2)
+// ---------------------------------------------------------------------------
+// Même moteur de cellules que les entiers ; les fonctions des entiers
+// ci-dessus ne sont PAS touchées. `q.pose` porte ici les nombres tels qu'ils
+// sont ÉCRITS dans l'énoncé (« 78,67 ») et `dec: true` : tout se calcule en
+// entiers sur leurs chiffres, sans flottant.
+// · La VIRGULE ne prend pas de colonne : elle est posée en absolu contre le
+//   chiffre des unités, si bien que les colonnes restent alignées.
+// · Addition, soustraction : virgules alignées, termes complétés par des 0,
+//   écrits à l'encre comme les autres chiffres (en gris, ils se confondaient
+//   avec les chiffres barrés de la soustraction).
+// · Multiplication : nombres calés à droite, on multiplie sans virgule, puis
+//   on la place au produit (décimales des deux facteurs).
+// · Division : diviseur rendu entier (× 10 ou × 100, la ligne au-dessus de
+//   la potence le dit), puis division jusqu'aux CENTIÈMES du quotient (plus
+//   loin seulement si le dividende a encore des chiffres), en ajoutant au
+//   dividende les 0 nécessaires.
+// · Soustraction : la notation d'Aurelio (prêteur barré + nouvelle valeur,
+//   « 10 » au-dessus de l'emprunteur). Les emprunts EN CASCADE, que le niveau
+//   entier écarte, sont inévitables ici (le niveau 2 impose un 0 dans le
+//   premier terme) : une colonne qui prête ET emprunte est barrée, avec sa
+//   valeur de travail au-dessus (0 → 9, 1 → 10).
+function _poseDecLire(str) {
+  const s = String(str).trim();
+  const i = s.indexOf(',');
+  return i < 0 ? { chiffres: s, dec: 0 } : { chiffres: s.slice(0, i) + s.slice(i + 1), dec: s.length - i - 1 };
+}
+
+// Écrit l'entier `n` (BigInt ou nombre) avec `dec` décimales, chiffres seuls,
+// complété à gauche pour qu'il reste au moins un chiffre avant la virgule.
+function _poseDecChiffres(n, dec) {
+  return String(n).padStart(dec + 1, '0');
+}
+
+// Cellules d'un nombre calé à droite, virgule accolée au chiffre des unités.
+function _poseCellsDec(chiffres, dec, W, decal, style) {
+  const out = _poseCells(chiffres, W, decal, style);
+  const colDernier = W - 1 - (decal || 0);
+  if (dec > 0) {
+    const col = colDernier - dec;
+    if (col >= 0 && out[col]) {
+      out[col].t = `${out[col].t}<span style="position:absolute; left:100%; top:0; margin-left:-4px; ${style && /color/.test(style) ? '' : `color:${POSE_ENC};`}">,</span>`;
+      out[col].style = (out[col].style || '') + 'position:relative;';
+    }
+  }
+  return out;
+}
+
+// Aligne des écritures décimales sur le même nombre de décimales.
+function _poseDecAligner(nombres) {
+  const lus = nombres.map(_poseDecLire);
+  const D = Math.max(...lus.map(l => l.dec));
+  return { D, termes: lus.map(l => ({ chiffres: l.chiffres + '0'.repeat(D - l.dec) })) };
+}
+
+function poseAdditionDecHtml(nombres) {
+  const { D, termes } = _poseDecAligner(nombres);
+  const somme = termes.reduce((t, x) => t + BigInt(x.chiffres), 0n);
+  const S = _poseDecChiffres(somme, D);
+  const W = Math.max(S.length, ...termes.map(t => t.chiffres.length)) + 1;
+  // Retenues : avec trois termes, une retenue peut valoir 2.
+  const ret = new Array(W).fill(null);
+  let r = 0;
+  for (let k = 0; k < W - 1; k++) {
+    let col = r;
+    termes.forEach(t => { col += +(t.chiffres[t.chiffres.length - 1 - k] || 0); });
+    r = Math.floor(col / 10);
+    if (r && W - 2 - k >= 0) ret[W - 2 - k] = { t: String(r), style: `color:${POSE_RET}; font-weight:700;` };
+  }
+  let out = _poseLigne(ret, { h: 12, fs: POSE_FP });
+  termes.forEach((t, i) => {
+    const cells = _poseCellsDec(t.chiffres, D, W, 0, '');
+    if (i > 0) cells[0] = { t: '+' };
+    out += _poseLigne(cells);
+  });
+  return out + _poseLigne(_poseCellsDec(S, D, W, 0, POSE_RES), { trait: true });
+}
+
+function poseSoustractionDecHtml(x, y) {
+  const { D, termes } = _poseDecAligner([x, y]);
+  const [ta, tb] = termes;
+  const a = Number(ta.chiffres), b = Number(tb.chiffres);
+  const { A, trav, preteur, emprunteur, n } = _poseSoustractionRoles(a, b);
+  const W = Math.max(n, tb.chiffres.length) + 1;
+  const haut = new Array(W).fill(null);
+  const ligneA = _poseCellsDec(ta.chiffres, D, W, 0, '');
+  const barre = 'text-decoration:line-through; color:#9CA3AF;';
+  const vert = `color:${POSE_RET}; font-weight:700;`;
+  for (let i = 0; i < n; i++) {
+    const col = W - n + i;
+    const virg = /<span/.test(String(ligneA[col].t)) ? 'position:relative;' : '';
+    if (emprunteur[i] && !preteur[i]) {
+      haut[col] = { t: '10', style: vert };
+    } else if (preteur[i] || emprunteur[i]) {
+      ligneA[col].style = barre + virg;
+      haut[col] = { t: trav[i], style: vert };
+    }
+  }
+  const ligneB = _poseCellsDec(tb.chiffres, D, W, 0, '');
+  ligneB[0] = { t: '−' };
+  return _poseLigne(haut, { h: 12, fs: POSE_FP })
+       + _poseLigne(ligneA)
+       + _poseLigne(ligneB)
+       + _poseLigne(_poseCellsDec(_poseDecChiffres(a - b, D), D, W, 0, POSE_RES), { trait: true });
+}
+
+function poseMultiplicationDecHtml(x, y) {
+  const la = _poseDecLire(x), lb = _poseDecLire(y);
+  const a = Number(la.chiffres), A = la.chiffres, B = lb.chiffres;
+  const bd = B.split('').map(Number), nb = bd.length, nA = A.length;
+  const D = la.dec + lb.dec;
+  const prods = [];
+  for (let k = 0; k < nb; k++) {
+    const d = bd[nb - 1 - k];
+    // Un chiffre 0 au multiplicateur : une ligne de 0, comme au cahier.
+    prods.push({ d, decal: k, txt: d === 0 ? '0'.repeat(nA) : String(a * d) });
+  }
+  const tot = _poseDecChiffres(BigInt(A) * BigInt(B), D);
+  const W = Math.max(nA, B.length, tot.length, ...prods.map(p => p.txt.length + p.decal)) + 1;
+  let out = '';
+  for (let k = nb - 1; k >= 0; k--) {
+    const ret = _poseRetenuesProduit(a, bd[nb - 1 - k]);
+    const cells = new Array(W).fill(null);
+    for (let i = 0; i < nA; i++) {
+      if (ret[i] != null) cells[W - nA + i] = { t: ret[i], style: `color:${POSE_RET_LIGNES[k % 3]}; font-weight:700;` };
+    }
+    out += _poseLigne(cells, { h: 12, fs: POSE_FP });
+  }
+  out += _poseLigne(_poseCellsDec(A, la.dec, W, 0, ''));
+  const ligneB = _poseCellsDec(B, lb.dec, W, 0, '');
+  ligneB[0] = { t: '×' };
+  out += _poseLigne(ligneB);
+  prods.forEach((p, k) => {
+    const cells = _poseCells(p.txt, W, p.decal);
+    if (k > 0) cells[0] = { t: '+' };
+    out += _poseLigne(cells, k === 0 ? { trait: true } : {});
+  });
+  return out + _poseLigne(_poseCellsDec(tot, D, W, 0, POSE_RES), { trait: true });
+}
+
+function poseDivisionDecHtml(x, y) {
+  const la = _poseDecLire(x), lb = _poseDecLire(y);
+  const d = parseInt(lb.chiffres, 10);
+  // Diviseur rendu entier : la virgule du dividende avance d'autant.
+  let chif = la.chiffres, dec = la.dec - lb.dec;
+  if (dec < 0) { chif += '0'.repeat(-dec); dec = 0; }
+  chif = chif.replace(/^0+(?=\d)/, '');
+  const nInt = chif.length - dec;
+  const ecritDividende = dec > 0 ? chif.slice(0, nInt) + ',' + chif.slice(nInt) : chif;
+  // Jusqu'aux centièmes du quotient, plus loin si le dividende continue.
+  const nb = Math.max(chif.length, nInt + 2);
+  const ds = (chif + '0'.repeat(nb - chif.length)).split('').map(Number);
+  const W = ds.length + 1;
+  const qd = [], blocs = [];
+  let reste = 0, prevIdx = -1, prevReste = 0;
+  for (let i = 0; i < ds.length; i++) {
+    const cur = reste * 10 + ds[i];
+    const q = Math.floor(cur / d);
+    qd.push(q);
+    if (q > 0) {
+      const txt = blocs.length === 0 ? ds.slice(0, i + 1).join('').replace(/^0+(?=\d)/, '')
+                                     : String(prevReste) + ds.slice(prevIdx + 1, i + 1).join('');
+      blocs.push({ i, col: W - ds.length + i, txt, prod: q * d, reste: cur - q * d });
+      prevIdx = i; prevReste = cur - q * d;
+    }
+    reste = cur - q * d;
+  }
+  const qEnt = qd.slice(0, nInt).join('').replace(/^0+/, '') || '0';
+  const quotient = qEnt + ',' + qd.slice(nInt).join('');
+  let g = _poseLigne(_poseCellsDec(ds.join(''), ds.length - nInt, W, 0, ''));
+  blocs.forEach((bl, k) => {
+    const decal = W - 1 - bl.col;
+    const lp = _poseCells(String(bl.prod), W, decal);
+    const gauche = lp.findIndex(c => c !== null);
+    if (gauche > 0) lp[gauche - 1] = { t: '−' };
+    g += _poseLigne(lp);
+    const suivant = blocs[k + 1];
+    // Dernier bloc : son reste, suivi des chiffres encore abaissés sans
+    // donner de chiffre au quotient (quotient terminé par un 0).
+    const suite = suivant ? suivant.txt : String(bl.reste) + ds.slice(bl.i + 1).join('');
+    const decalS = suivant ? (W - 1 - suivant.col) : 0;
+    g += _poseLigne(_poseCells(suite, W, decalS), { traitCols: [Math.max(0, gauche - 1), bl.col] });
+  });
+  const L = `height:${POSE_FS + 5}px; line-height:${POSE_FS + 5}px; font-size:${POSE_FS}px;`;
+  const droite = `<div style="display:flex; flex-direction:column; border-left:1.3px solid ${POSE_ENC}; padding-left:6px; margin-left:2px;">`
+    + `<div style="${L} color:${POSE_ENC};">${d}</div>`
+    + `<div style="${L} color:${POSE_RET}; font-weight:700; border-top:1.3px solid ${POSE_ENC};">${quotient}</div>`
+    + `</div>`;
+  const avant = lb.dec > 0
+    ? `<div style="font-size:12px; line-height:16px; color:#6B7280; margin-bottom:4px; white-space:nowrap;">${x} ÷ ${y} = ${ecritDividende} ÷ ${d}</div>`
+    : '';
+  return `${avant}<div style="display:flex; align-items:flex-start;"><div>${g}</div>${droite}</div>`;
+}
+
+// Suite d'un corrigé d'opérations posées coupé entre deux rangées : la
+// première rangée restante perd sa marge, et le titre « Exercice N. »
+// (premier enfant du bloc) prend « (suite) ».
+function suiteCorrigePose(bloc) {
+  const rangees = bloc.querySelectorAll('[data-pose-rangee]');
+  if (rangees[0]) rangees[0].style.marginTop = '0px';
+  const titre = bloc.firstElementChild;
+  if (titre && !titre.hasAttribute('data-pose-grille') && !/\(suite\)/.test(titre.textContent)) {
+    titre.appendChild(document.createTextNode(' (suite)'));
+  }
+}
+
+function poseOperationDecHtml(pose) {
+  switch (pose.op) {
+    case '+': return poseAdditionDecHtml(pose.termes || [pose.a, pose.b]);
+    case '−': return poseSoustractionDecHtml(pose.a, pose.b);
+    case '×': return poseMultiplicationDecHtml(pose.a, pose.b);
+    case '÷': return poseDivisionDecHtml(pose.a, pose.b);
+    default:  return '';
+  }
+}
+
 function poseOperationHtml(pose) {
   if (!pose) return '';
+  if (pose.dec) return poseOperationDecHtml(pose);
   switch (pose.op) {
     case '+': return poseAdditionHtml(pose.a, pose.b);
     case '−': return poseSoustractionHtml(pose.a, pose.b);
@@ -32082,6 +32377,23 @@ function poseColonneCorrigeHtml(ex) {
   return out + `</div>`;
 }
 
+// Décimaux (v532) : même présentation, mais une RANGÉE par paire
+// d'opérations (`data-pose-rangee`) — une potence décimale est bien plus
+// haute qu'une potence d'entiers, et le PDF du sous-domaine répartit ces
+// rangées sur plusieurs pages quand elles ne tiennent pas sur une.
+function poseColonneDecCorrigeHtml(ex) {
+  const cellule = q => `<div style="display:flex; align-items:flex-start; gap:8px;">`
+    + `<strong style="font-size:14px; line-height:22px;">${q.label}</strong>`
+    + `<div>${q.pose ? poseOperationHtml(q.pose) : `<span style="color:${POSE_RET}; font-weight:800; line-height:22px;">${q.answer}</span>`}</div>`
+    + `</div>`;
+  let out = `<div data-pose-grille="1">`;
+  for (let i = 0; i < ex.questions.length; i += 2) {
+    out += `<div data-pose-rangee="1" style="display:grid; grid-template-columns:1fr 1fr; gap:0 24px; padding-left:16px; margin-top:${i ? 14 : 0}px;">`
+      + ex.questions.slice(i, i + 2).map(cellule).join('') + `</div>`;
+  }
+  return out + `</div>`;
+}
+
 function espaceCorrigeInner(ex, opts) {
   // Instruments de géométrie : leur corrigé n'est pas une liste de réponses
   // mais une planche calquée au pixel près sur l'énoncé, avec la construction
@@ -32093,7 +32405,9 @@ function espaceCorrigeInner(ex, opts) {
   // Niveau « Nombres entiers » : le corrigé n'est pas une liste de réponses
   // mais les quatre opérations POSÉES, retenues et cassages compris. Marqueur
   // posé par genDecimal ; aucun autre sous-domaine ne le porte.
-  if (ex && ex._poseColonne && Array.isArray(ex.questions)) return poseColonneCorrigeHtml(ex);
+  if (ex && ex._poseColonne && Array.isArray(ex.questions)) {
+    return ex.questions.some(q => q.pose && q.pose.dec) ? poseColonneDecCorrigeHtml(ex) : poseColonneCorrigeHtml(ex);
+  }
   opts = opts || {};
   let out = '';
       if (ex.fillBlanks) {
@@ -34556,7 +34870,13 @@ async function downloadPdf(opts) {
     // les suivantes portent la mention « suite ».
     // Le CORRIGÉ, lui, continue de travailler sur `exercisesForPdf` : les
     // réponses a) à h) restent groupées sous un seul « Exercice 2 ».
-    const Q_PAR_PAGE = { decimaux: 6 };
+    // v533 : 4 questions par page dans le PDF à pages FIXES (atelier d'un seul
+    // sous-domaine, PDF du sous-domaine) — avec 6, un exercice fusionné de 6
+    // questions n'était pas coupé et e) f) tombaient en pied de page, sans
+    // place pour poser (vu par Aurelio). Chaque page a alors la mise en page
+    // ordinaire : a)/b) en haut, c)/d) au milieu. En FLUX (série mêlant des
+    // sous-domaines, `rendreBlocs`), on garde 6 : le flux coupe par rangées.
+    const Q_PAR_PAGE = { decimaux: opts.rendreBlocs ? 6 : 4 };
     // Hauteur d'une rangée de décimaux : trois rangées remplissent la zone
     // d'exercices d'une page (≈ 850 px sous l'en-tête, le titre et la consigne).
     const RANGEE_DECIMAUX = 283;
@@ -34576,9 +34896,8 @@ async function downloadPdf(opts) {
             questions: qs.slice(d, d + maxParPage),
             _numeroPdf: i + 1,
             _suitePdf: d > 0,
-            // Marque une tranche : sa mise en page donne à chaque RANGÉE la
-            // même hauteur, pour que la page 2 (2 questions) laisse le même
-            // blanc sous sa rangée que les trois rangées de la page 1.
+            // Marque une tranche (nombre de questions de l'exercice entier).
+            // Depuis la v533 elle garde la mise en page ordinaire de la page.
             _trancheDe: qs.length
           });
         }
@@ -35004,7 +35323,7 @@ async function downloadPdf(opts) {
             // Décimaux : a)/b) en haut, c)/d) au milieu de la page – le blanc
             // entre les deux rangées sert à poser les opérations en colonne.
             if (state.activeSubId === 'decimaux') {
-              if (ex._trancheDe || opts.rendreBlocs) {
+              if (opts.rendreBlocs) {
                 // Exercice découpé (fusion N1+N2, 8 questions) OU bloc destiné
                 // à une série en flux : chaque rangée reçoit la MÊME hauteur —
                 // 3 rangées remplissent la page, et la dernière rangée garde le
@@ -35631,6 +35950,50 @@ async function downloadPdf(opts) {
       await addContainerPages(cont, isFirst);
     };
 
+    // DÉCIMAUX (v532) : le corrigé pose les opérations, et deux exercices de
+    // divisions dépassent la page (mesuré : jusqu'à 1 331 px pour 1 123). Le
+    // conteneur étant à hauteur FIXE, la fin serait coupée sans erreur. On
+    // reporte donc sur des pages suivantes, d'abord par exercices entiers,
+    // puis par rangées d'opérations si un exercice seul ne tient pas.
+    // Rien ne bouge quand tout tient sur une page.
+    const corrigeEnPages = (cont) => {
+      const pages = [cont];
+      if (found.sub.id !== 'decimaux') return pages;
+      const deborde = c => c.scrollHeight > c.clientHeight + 1;
+      let cur = cont;
+      for (let garde = 0; garde < 12 && deborde(cur); garde++) {
+        const nxt = document.createElement('div');
+        nxt.className = 'pdf-mode';
+        nxt.style.cssText = commonStyle;
+        nxt.appendChild(headerCor.cloneNode(true));
+        document.body.appendChild(nxt);
+        let suite = null;
+        for (let pas = 0; pas < 40 && deborde(cur); pas++) {
+          const kids = Array.from(cur.children).slice(1);
+          const dernier = kids[kids.length - 1];
+          if (!dernier) break;
+          if (kids.length >= 2) {
+            nxt.insertBefore(dernier, nxt.children[1] || null);
+            continue;
+          }
+          const rangees = dernier.querySelectorAll('[data-pose-rangee]');
+          if (rangees.length < 2) break;
+          if (!suite) {
+            suite = dernier.cloneNode(true);
+            suite.querySelectorAll('[data-pose-rangee]').forEach(r => r.remove());
+            nxt.insertBefore(suite, nxt.children[1] || null);
+          }
+          const g = suite.querySelector('[data-pose-grille]');
+          g.insertBefore(rangees[rangees.length - 1], g.firstChild);
+          suiteCorrigePose(suite);
+        }
+        if (nxt.children.length < 2) { document.body.removeChild(nxt); break; }
+        pages.push(nxt);
+        cur = nxt;
+      }
+      return pages;
+    };
+
     // Force le rendu KaTeX sur tous les <span data-tex> qui pourraient être
     // présents dans nos conteneurs hors-écran (typiquement les racines).
     // Sans ça, html2canvas capturerait des spans vides.
@@ -35994,10 +36357,12 @@ async function downloadPdf(opts) {
           await addContainerPages(c, false);                  // pages suivantes : N2, N3...
         }
         const corrigeStartPagePA = pdf.internal.getNumberOfPages() + 1;
-        await poserCorrige(cCor, false);                 // corrigé
+        const pagesCorPA = corrigeEnPages(cCor);     // [cCor] hors décimaux
+        for (const c of pagesCorPA) await poserCorrige(c, false);   // corrigé
         for (const c of extraCorr) {
           await poserCorrige(c, false);
         }
+        pagesCorPA.slice(1).forEach(c => extraCorr.push(c));   // nettoyés plus bas
 
         numeroter(corrigeStartPagePA);
         const safeNamePA = title.replace(/[^\w\sÀ-ÿ-]/g, '').replace(/\s+/g, '_').slice(0, 60);
@@ -36018,7 +36383,9 @@ async function downloadPdf(opts) {
 
     await addContainerPages(cExo, debutNeuf(true));   // énoncés (commence page 1)
     const corrigeStartPageStd = pdf.internal.getNumberOfPages() + 1;
-    await poserCorrige(cCor, false);  // corrigé (nouvelle page)
+    const pagesCorStd = corrigeEnPages(cCor);
+    for (const c of pagesCorStd) await poserCorrige(c, false);  // corrigé (nouvelle page)
+    pagesCorStd.slice(1).forEach(c => { if (c.parentNode) c.parentNode.removeChild(c); });
 
     // Numérotation (énoncés / corrigé indépendants)
     numeroter(corrigeStartPageStd);
