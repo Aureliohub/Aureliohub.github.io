@@ -356,7 +356,7 @@ kbd{
 <header class="tete">
   <span class="pil">Informatique · PAI · traitement de texte</span>
   <div class="tete-texte">
-    <h1 title="v5">Demande de stage : contrôle de vos tabulations</h1>
+    <h1 title="v7">Demande de stage : contrôle de vos tabulations</h1>
     <p><span class="insecable">Déposez votre fichier, il est analysé dans votre navigateur (rien n’est envoyé sur Internet).</span>
       <span class="insecable">Vous obtenez votre note ainsi que la liste des corrections à apporter.</span></p>
   </div>
@@ -434,7 +434,7 @@ kbd{
       <tr><td><b>C. Lignes à deux colonnes</b></td><td>Taquet <b>droit à 8 cm</b>, taquet <b>gauche à 8,5 cm</b> pour le second intitulé, taquet <b>droit à 16 cm</b>.</td><td class="pts">4</td></tr>
       <tr><td><b>D. Domaines de stage</b></td><td>Taquets <b>gauches à 5,5 cm et 10 cm</b> pour les deuxième et troisième colonnes de cases à cocher.</td><td class="pts">2</td></tr>
       <tr><td><b>E. Montants</b></td><td>Taquet <b>droit à 14 cm</b> — le taquet décimal est également accepté.</td><td class="pts">2</td></tr>
-      <tr><td><b>F. Propreté de l’alignement</b></td><td>Aucun alignement obtenu à la barre d’espace (trois espaces ou plus) ni par des tabulations sans taquet posé.</td><td class="pts">2</td></tr>
+      <tr><td><b>F. Propreté de l’alignement</b></td><td>Aucun alignement obtenu à la barre d’espace (trois espaces ou plus) ni par des tabulations sans taquet posé. Des espaces tapés à la place d’une tabulation coûtent 1,5 point.</td><td class="pts">2</td></tr>
       <tr><td><b>G. Points de suite</b></td><td>Les taquets à 8 cm, 14 cm et 16 cm portent des points de suite, de genre point au pied de la ligne (.......). Des tirets ou un trait à la place coûtent 1,5 point.</td><td class="pts">4</td></tr>
       <tr class="total"><td>Total</td><td></td><td class="pts">20</td></tr>
     </tbody>
@@ -860,6 +860,14 @@ function chercher(p, a){
   return { etat: typeOK ? "ok" : "type", tr:m, suite: !!(m.points && m.points !== "none") };
 }
 
+/* espaces tapés là où le modèle met une tabulation : renvoie le mot qui suit */
+function espacesPourTab(p){
+  if(!p.modele || !p.modele.taquets) return null;
+  if((p.texte.match(/\t/g) || []).length >= p.modele.tabs) return null;
+  const m = p.texte.match(/ {2,}(\S+)/);
+  return m ? m[1] : null;
+}
+
 /* numéro de rubrique tapé (« 2. »), absent ou produit par une liste Word : non contrôlé */
 const sansNum = s => (s || "").replace(/^\s*\d+\s*[.)]?[\s\t]*/, "");
 const refTexte = (m, t) => m.num ? sansNum(t) : t;
@@ -919,7 +927,7 @@ function analyser(paras, page, police){
   const genresSuite = new Set();   // genres de points de suite autres que « ..... »
   for(const [nom, b] of Object.entries(blocs)){
     const bareme = BAREME.find(x => x.c === b.crit).pts;
-    const presentes = b.lignes.filter(Boolean);
+    const presentes = b.lignes.filter(p => p && !espacesPourTab(p));
     let acquis = 0;
     const phrases = [];
     const fautives = new Set();
@@ -958,17 +966,8 @@ function analyser(paras, page, police){
       const enCause = presentes.filter(p => fautives.has(p));      // dans l'ordre du document
       const noms = enCause.map(p => "« " + norm(p.texte.split(/[:\t]/)[0]).trim() + " »");
       const titre = enCause.length && enCause.length < presentes.length
-        ? (enCause.length === 1 ? "Taquets de la ligne " : "Taquets des lignes ") + noms.join(", ")
+        ? (enCause.length === 1 ? "Ligne " : "Lignes ") + noms.join(", ")
         : "Taquets : " + LIB_BLOC[nom].toLowerCase();
-      // des espaces tapés là où le modèle met une tabulation
-      const esp = [];
-      for(const p of enCause){
-        const m = p.texte.match(/ {2,}(\S+)/);
-        if(m && (p.texte.match(/\t/g) || []).length < p.modele.tabs) esp.push(m[1]);
-      }
-      if(esp.length)
-        phrases.unshift("Avant « " + [...new Set(esp)].join(" », « ") + " », vous avez tapé des espaces : " +
-          "effacez-les et appuyez une fois sur la touche Tab.");
       corr.push({ t: titre, d: phrases.join(" "), cible: enCause[0] || presentes[0] || null });
     }
   }
@@ -1001,7 +1000,10 @@ function analyser(paras, page, police){
 
   /* --- F : propreté de l’alignement --- */
   let espaces = 0, defaut = 0, pEsp = null, pDef = null;
+  const aLaPlace = [];          // lignes où des espaces remplacent une tabulation
   for(const p of lignes){
+    const mot = espacesPourTab(p);
+    if(mot){ aLaPlace.push([p, mot]); continue; }
     if(/ {3,}/.test(p.texte)){ espaces++; pEsp = pEsp || p; }
     const n = (p.texte.match(/\t/g) || []).length;
     // ligne sans consigne de taquet (signatures) : tabulations sans taquet acceptées
@@ -1010,8 +1012,13 @@ function analyser(paras, page, police){
     else if(/\t{3,}/.test(p.texte)){ defaut++; pDef = pDef || p; }
   }
   res.F = 2;
+  for(const [p, mot] of aLaPlace)
+    corr.push({ t:"Ligne « " + norm(p.texte.split(/[:\t]/)[0]).trim() + " »", cible:p,
+      d:"Vous avez tapé des espaces avant « " + mot + " » : effacez-les et utilisez la touche Tab." });
+  // espaces à la place d'une tabulation : un défaut distinct, 1,5 point, compté une fois
+  if(aLaPlace.length) res.F -= 1.5;
   if(espaces){
-    res.F -= 1;
+    if(!aLaPlace.length) res.F -= 1;
     corr.push({ t:"Alignement à la barre d’espace", cible:pEsp, d: (espaces > 1 ? espaces + " lignes contiennent" : "Une ligne contient") + " trois espaces ou plus à la suite. Remplacez-les par une tabulation posée sur un taquet." });
   }
   if(defaut){
@@ -1078,7 +1085,7 @@ function apercu(r){
                  && (t.type === x.t || (x.t === "right" && x.d && t.type === "decimal")));
       const cle = Math.round(t.pos / 10) * 10;
       // ligne sans taquets attendus (signatures) : taquet non noté, en gris
-      const etat = a ? "ok" : (p.modele && p.modele.taquets ? "ko" : "libre");
+      const etat = (!(p.modele && p.modele.taquets) || espacesPourTab(p)) ? "libre" : (a ? "ok" : "ko");
       const rang = { libre:0, ko:1, ok:2 };
       if(!vus.has(cle) || rang[etat] > rang[vus.get(cle).etat]) vus.set(cle, { pos:t.pos, etat });
     }
@@ -1155,7 +1162,7 @@ function apercu(r){
       }
       ligne += `<span class="mk mk-pos" style="left:${x}mm">\u2192</span>`;
       ligne += `<span class="seg" style="left:${debut}mm">${marquerBlancs(echapper(s))}</span>`;
-      const libre = !(p.modele && p.modele.taquets);   // ligne sans consigne de taquet
+      const libre = !(p.modele && p.modele.taquets) || !!espacesPourTab(p);   // ligne sans consigne de taquet, ou jugée en F
       const etatT = libre ? "libre" : (poseOK ? "ok" : "ko");
       if(etatT === "ok") aOK = true; else if(etatT === "ko") aKO = true; else aLibre = true;
       marques += `<i class="marque-taquet ${etatT}" style="left:${cible}mm"></i>`;
