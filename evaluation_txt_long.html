@@ -304,7 +304,7 @@ kbd{font-family:var(--sans);font-size:.82rem;background:var(--gris-fond);border:
 <header class="tete">
   <span class="pil">Informatique · PAI · traitement de texte</span>
   <div class="tete-texte">
-    <h1 title="v1">Texte long : contrôle de votre mise en forme</h1>
+    <h1 title="v2">Texte long : contrôle de votre mise en forme</h1>
     <p><span class="insecable">Déposez votre fichier, il est analysé dans votre navigateur (rien n’est envoyé sur Internet).</span>
       <span class="insecable">Vous obtenez votre note ainsi que la liste des corrections à apporter.</span></p>
   </div>
@@ -380,9 +380,9 @@ kbd{font-family:var(--sans);font-size:.82rem;background:var(--gris-fond);border:
       <tr><td><b>B. Corps du texte</b></td><td>Tous les paragraphes de texte sont en <b>Arial 12</b> et <b>justifiés</b>.</td><td class="pts">3</td></tr>
       <tr><td><b>C. Mise en forme des titres</b></td><td>Titre : <b>Arial 24, gras, à gauche, couleur A31D1D</b>.<br>Sous-titres : <b>Arial 18, gras, à gauche, couleur RVB(43,133,154)</b>.<br>Sous-sous-titres : <b>Arial 15, gras, à gauche, noir</b>.<br><span class="sous">Une couleur très proche est acceptée. Un sous-titre d’une seule ligne justifié est accepté : il s’affiche comme s’il était aligné à gauche.</span></td><td class="pts">4</td></tr>
       <tr><td><b>D. Styles</b></td><td>Le titre porte le style <b>Titre 1</b>, les 12 sous-titres le style <b>Titre 2</b>, les 6 sous-sous-titres le style <b>Titre 3</b>, comme dans le modèle. Aucun paragraphe de texte ne porte un style de titre.</td><td class="pts">4</td></tr>
-      <tr><td><b>E. Table des matières</b></td><td>Une table des matières <b>automatique</b> (Références ▸ Table des matières), <b>à jour</b>, placée <b>à la fin du document, en page 6</b>.</td><td class="pts">3</td></tr>
+      <tr><td><b>E. Table des matières</b></td><td>Une table des matières <b>automatique</b> (Références ▸ Table des matières), <b>à jour</b>, placée <b>à la fin du document, en page 6</b>.<br><span class="sous">La page retenue est celle que Word enregistre dans le fichier (nombre de pages du document).</span></td><td class="pts">3</td></tr>
       <tr><td><b>F. En-tête</b></td><td>« <b>généré par ChatGPT_</b> » suivi de <b>vos initiales</b> (et non AM), <b>aligné à droite</b>.</td><td class="pts">2</td></tr>
-      <tr><td><b>G. Pied de page</b></td><td>« <b>Page X / Y</b> » où X et Y sont des <b>numéros automatiques</b> (numéro de la page et nombre de pages), <b>aligné à droite</b>.</td><td class="pts">2</td></tr>
+      <tr><td><b>G. Pied de page</b></td><td>« <b>Page X / Y</b> » où X et Y sont des <b>numéros automatiques</b> (numéro de la page et nombre de pages), <b>aligné à droite</b>.<br><span class="sous">Les modèles de la galerie Word « Page X | Y » et « Page X sur Y » sont acceptés.</span></td><td class="pts">2</td></tr>
       <tr class="total"><td>Total</td><td></td><td class="pts">20</td></tr>
     </tbody>
   </table>
@@ -420,7 +420,7 @@ kbd{font-family:var(--sans);font-size:.82rem;background:var(--gris-fond);border:
 
   <h3>En-tête et pied de page</h3>
   <p>Double-cliquez dans la marge du haut (ou <b>Insertion ▸ En-tête ▸ Modifier l’en-tête</b>), écrivez « généré par ChatGPT_ » suivi de vos initiales, puis alignez à droite (<kbd>Ctrl</kbd>+<kbd>R</kbd>).</p>
-  <p>Pour le pied de page : <b>Insertion ▸ Numéro de page ▸ Bas de page</b> ▸ « Page X sur Y », à droite. Remplacez ensuite le mot « sur » par « / ». Ne tapez pas les numéros au clavier : un numéro tapé reste le même sur toutes les pages.</p>
+  <p>Pour le pied de page : <b>Insertion ▸ Numéro de page ▸ Bas de page</b> ▸ « Page X sur Y », à droite. Le modèle « Page X | Y » convient aussi. Ne tapez pas les numéros au clavier : un numéro tapé reste le même sur toutes les pages.</p>
 </section>
 
 </td></tr></tbody></table>
@@ -1112,11 +1112,16 @@ function analyser(paras, zones, appPages){
         corr.push({ crit:"E", t:"Place de la table des matières", cible:"tdm",
           d:"La table est au début ou au milieu du texte. Elle doit se trouver à la fin du document, en page 6, après la conclusion." });
       }else{
-        // page de la table : sauts de page enregistrés par Word, sinon nombre de pages du document
+        // page de la table : quand elle termine le document, c'est le nombre de pages que Word
+        // enregistre (docProps/app.xml). Les repères lastRenderedPageBreak ne servent pas :
+        // Word n'en écrit pas à chaque page (3 repères pour 6 pages dans un vrai fichier).
         const apres = paras.slice(paras.indexOf(tdm[tdm.length - 1]) + 1).some(p => p.texte.trim());
-        let page = null;
-        if(paras.lrpb) page = tdm.find(p => p.page !== null)?.page ?? null;
-        else if(appPages && !apres) page = appPages;
+        const page = appPages && !apres ? appPages : null;
+        // à défaut, des lignes vides entre la fin du texte et la table valent un passage de page
+        const iTdm = paras.indexOf(tdm[0]);
+        let iFin = iTdm - 1;
+        while(iFin >= 0 && !paras[iFin].texte.trim()) iFin--;
+        const lignesVides = iTdm - iFin - 1;
         vue.pageTdm = page;
         vue.sautAvantTdm = paras.sautAvantTdm;
         if(page !== null && page !== 6){
@@ -1124,7 +1129,7 @@ function analyser(paras, zones, appPages){
           corr.push({ crit:"E", t:"Page de la table des matières", cible:"tdm",
             d:"La table est en page " + page + ". Elle doit commencer en page 6 : " +
               (page < 6 ? "ajoutez un saut de page avant elle (Ctrl+Entrée)." : "vérifiez la mise en forme du texte et supprimez les lignes vides ou sauts de page en trop.") });
-        }else if(page === null && !paras.sautAvantTdm){
+        }else if(page === null && !paras.sautAvantTdm && lignesVides < 2){
           n++;
           corr.push({ crit:"E", t:"Page de la table des matières", cible:"tdm",
             d:"La table ne commence pas sur une nouvelle page. Placez un saut de page avant elle (Ctrl+Entrée) pour qu’elle soit seule en page 6." });
@@ -1162,7 +1167,7 @@ function analyser(paras, zones, appPages){
     if(!ps.length){
       res.G = 0;
       corr.push({ crit:"G", t:"Pied de page absent", cible:"pied",
-        d:"Le document n’a pas de pied de page. Insertion ▸ Numéro de page ▸ Bas de page ▸ « Page X sur Y » à droite, puis remplacez « sur » par « / »." });
+        d:"Le document n’a pas de pied de page. Insertion ▸ Numéro de page ▸ Bas de page ▸ « Page X sur Y » à droite (ou « Page X | Y »)." });
     }else{
       const segs = ps.flatMap(p => p.segs);
       const motif = norm(segs.map(s => s.champ === "PAGE" ? "{X}" : (s.champ === "NUMPAGES" || s.champ === "SECTIONPAGES") ? "{Y}" : s.t).join(""))
@@ -1171,8 +1176,9 @@ function analyser(paras, zones, appPages){
       const tape = /\d/.test(motif.replace(/\{[XY]\}/g, ""));
       if(!aX){ n++; d.push(tape ? "le numéro de page est tapé au clavier : il sera le même sur toutes les pages — insérez un numéro automatique (Insertion ▸ Numéro de page)"
                                : "insérer le numéro de page automatique (Insertion ▸ Numéro de page)"); }
-      if(!aY){ n++; d.push("le nombre total de pages doit être automatique : utilisez le modèle « Page X sur Y » puis remplacez « sur » par « / »"); }
-      if(aX && aY && !/^page\s*\{X\}\s*\/\s*\{Y\}$/i.test(motif)){
+      if(!aY){ n++; d.push("le nombre total de pages doit être automatique : utilisez le modèle « Page X | Y » ou « Page X sur Y » de la galerie (Insertion ▸ Numéro de page)"); }
+      // le séparateur est libre : « / », « | », « sur » ou « de » (modèles de la galerie Word)
+      if(aX && aY && !/^page\s*\{X\}\s*(\/|\||sur|de)\s*\{Y\}$/i.test(motif)){
         n++; d.push("écrire « Page X / Y » comme le modèle (trouvé : « " + norm(segs.map(s => s.t).join("")) + " »)");
       }
       if(!aDroite(ps[0])){ n++; d.push("aligner le pied de page à droite (Ctrl+R)"); }
