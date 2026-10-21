@@ -356,7 +356,7 @@ kbd{
 <header class="tete">
   <span class="pil">Informatique · PAI · traitement de texte</span>
   <div class="tete-texte">
-    <h1 title="v4">Demande de stage : contrôle de vos tabulations</h1>
+    <h1 title="v5">Demande de stage : contrôle de vos tabulations</h1>
     <p><span class="insecable">Déposez votre fichier, il est analysé dans votre navigateur (rien n’est envoyé sur Internet).</span>
       <span class="insecable">Vous obtenez votre note ainsi que la liste des corrections à apporter.</span></p>
   </div>
@@ -805,6 +805,41 @@ function diffMots(ref, app){
   return out.reverse();
 }
 
+/* écarts de texte regroupés, avec un mot juste de part et d'autre pour les situer ;
+   deux écarts séparés par un seul mot n'en font qu'un */
+function ecarts(ops){
+  const out = [];
+  let i = 0;
+  while(i < ops.length){
+    if(ops[i].t === "="){ i++; continue; }
+    let j = i;
+    for(;;){
+      let k = j; while(k < ops.length && ops[k].t !== "=") k++;
+      let g = k; while(g < ops.length && ops[g].t === "=") g++;
+      if(g < ops.length && g - k <= 1){ j = g; continue; }
+      j = k; break;
+    }
+    // un signe seul (« : ») ne situe rien : on prend le mot d'avant ou d'après
+    let deb = Math.max(0, i - 1), fin = Math.min(ops.length, j + 1);
+    const signe = o => o && o.t === "=" && !/[\p{L}\p{N}]/u.test(o.m);
+    while(deb > 0 && signe(ops[deb])) deb--;
+    while(fin < ops.length && signe(ops[fin - 1])) fin++;
+    const seg = ops.slice(deb, fin);
+    const net = t => t.replace(/[,;:]$/, "");          // pas de virgule pendante dans la citation
+    out.push({ juste: net(seg.filter(o => o.t !== "+").map(o => o.m).join(" ")),
+               faux:  net(seg.filter(o => o.t !== "-").map(o => o.m).join(" ")) });
+    i = j;
+  }
+  return out;
+}
+const enumeration = l => l.length > 1 ? l.slice(0, -1).join(", ") + " et " + l[l.length - 1] : (l[0] || "");
+/* début de phrase coupé entre deux mots */
+function debutPhrase(s, n = 32){
+  if(s.length <= n) return s;
+  const c = s.slice(0, n), k = c.lastIndexOf(" ");
+  return (k > 10 ? c.slice(0, k) : c).replace(/[,;:]$/, "") + "…";
+}
+
 /* =========================================================
    4. Analyse
    ========================================================= */
@@ -857,13 +892,11 @@ function analyser(paras, page, police){
     const appT = m.id === "titre" ? cle(appM) : norm(appM).toLowerCase();
     if(refT === appT){ justes++; continue; }
     const ops = diffMots(norm(refM), norm(appM));
-    const manque = ops.filter(o=>o.t==="-").map(o=>o.m);
-    const trop   = ops.filter(o=>o.t==="+").map(o=>o.m);
-    if(!manque.length && !trop.length){ justes++; continue; }
-    let d = "";
-    if(manque.length) d += "à écrire : « " + manque.join(" ") + " »";
-    if(trop.length)   d += (d ? " ; " : "") + "écrit à tort : « " + trop.join(" ") + " »";
-    corr.push({ t:"Texte : « " + norm(m.ref).slice(0,40) + " »", d, cible:p });
+    if(!ops.some(o => o.t !== "=")){ justes++; continue; }
+    const d = ecarts(ops).map(e => e.faux
+        ? "Écrivez « " + e.juste + " » et non « " + e.faux + " »."
+        : "Écrivez « " + e.juste + " ».").join(" ");
+    corr.push({ t:"Texte : « " + debutPhrase(norm(m.ref)) + " »", d, cible:p });
   }
   /* espace oublié après une case ☐ : un seul défaut, même répété sur plusieurs lignes */
   const CASE = /[\u2610\u2611\u2612\u25A1\u25AA\u25CF\u00A4\uF0A8\uF06F]/;
@@ -888,16 +921,21 @@ function analyser(paras, page, police){
     const bareme = BAREME.find(x => x.c === b.crit).pts;
     const presentes = b.lignes.filter(Boolean);
     let acquis = 0;
-    const aPoser = [], aCorriger = [];
+    const phrases = [];
     const fautives = new Set();
 
     for(const a of b.attendus){
-      let ok = 0, typeFaux = null, avecSuite = 0;
+      let ok = 0, typeFaux = null, avecSuite = 0, decale = null;
       for(const p of presentes){
         const r = chercher(p, a);
         if(r.etat !== "ok") fautives.add(p);
         if(r.etat === "ok") ok++;
         else if(r.etat === "type") typeFaux = r.tr;
+        else if(!decale){       // absent : un taquet du même type posé un peu à côté ?
+          decale = p.taquets.filter(t => t.type === a.t && Math.abs(t.pos - a.p) <= mm(20)
+                     && !b.attendus.some(x => x !== a && Math.abs(x.p - t.pos) <= TOL))
+                   .sort((u, v) => Math.abs(u.pos - a.p) - Math.abs(v.pos - a.p))[0] || null;
+        }
         // les points de suite sont jugés à part : un taquet du bon rang suffit
         if(r.etat !== "absent" && r.suite){
           avecSuite++;
@@ -907,22 +945,31 @@ function analyser(paras, page, police){
       const part = presentes.length ? ok / presentes.length : 0;
       acquis += part;
       if(part < 1){
-        if(typeFaux) aCorriger.push(libTaquet(a) + " — trouvé " + libTrouve(typeFaux));
-        else aPoser.push(libTaquet(a));
+        if(typeFaux) phrases.push("Le taquet à " + libPos(a.p) + " doit être un taquet " + NOMS[a.t] +
+                       " : vous avez posé un taquet " + (NOMS[typeFaux.type] || typeFaux.type) + ".");
+        else if(decale) phrases.push("Déplacez le taquet " + NOMS[a.t] + " de " + libPos(decale.pos) + " à " + libPos(a.p) + ".");
+        else phrases.push("Posez un taquet " + NOMS[a.t] + " à " + libPos(a.p) + ".");
       }
       if(a.d) suites.push({ bloc:nom, a, part, suite: presentes.length ? avecSuite / presentes.length : 0 });
     }
 
     res[b.crit] = Math.round(bareme * acquis / b.attendus.length * 2) / 2;
     if(acquis < b.attendus.length){
-      const d = [];
-      if(aPoser.length)    d.push("taquet(s) à poser : " + aPoser.join(", "));
-      if(aCorriger.length) d.push("taquet(s) à corriger : " + aCorriger.join(" ; "));
       const enCause = presentes.filter(p => fautives.has(p));      // dans l'ordre du document
       const noms = enCause.map(p => "« " + norm(p.texte.split(/[:\t]/)[0]).trim() + " »");
-      const ou = enCause.length && enCause.length < presentes.length
-        ? (enCause.length === 1 ? "Ligne " : "Lignes ") + noms.join(", ") + " : " : "";
-      corr.push({ t: LIB_BLOC[nom], d: ou + d.join(". "), cible: enCause[0] || presentes[0] || null });
+      const titre = enCause.length && enCause.length < presentes.length
+        ? (enCause.length === 1 ? "Taquets de la ligne " : "Taquets des lignes ") + noms.join(", ")
+        : "Taquets : " + LIB_BLOC[nom].toLowerCase();
+      // des espaces tapés là où le modèle met une tabulation
+      const esp = [];
+      for(const p of enCause){
+        const m = p.texte.match(/ {2,}(\S+)/);
+        if(m && (p.texte.match(/\t/g) || []).length < p.modele.tabs) esp.push(m[1]);
+      }
+      if(esp.length)
+        phrases.unshift("Avant « " + [...new Set(esp)].join(" », « ") + " », vous avez tapé des espaces : " +
+          "effacez-les et appuyez une fois sur la touche Tab.");
+      corr.push({ t: titre, d: phrases.join(" "), cible: enCause[0] || presentes[0] || null });
     }
   }
   for(const x of BAREME) if(res[x.c] === undefined) res[x.c] = 0;
@@ -932,12 +979,12 @@ function analyser(paras, page, police){
   const sManquants = [];
   for(const s of suites){
     sTot += s.suite;
-    if(s.suite < 1) sManquants.push(libPos(s.a.p));
+    if(s.suite < 1) sManquants.push(s.a.p);
   }
   res.G = suites.length ? Math.round(4 * sTot / suites.length * 2) / 2 : 0;
   if(sManquants.length)
     corr.push({ t:"Points de suite", cible: (blocs.double && blocs.double.lignes.filter(Boolean)[0]) || null,
-      d:"Les taquets à " + [...new Set(sManquants)].join(", ") +
+      d:"Les taquets à " + enumeration([...new Set(sManquants)].sort((x, y) => x - y).map(libPos)) +
       " doivent porter des points de suite. Double-cliquez sur le taquet dans la règle, puis choisissez le point dans la zone « Points de suite »." });
   const LIB_SUITE = {
     hyphen:    "des tirets (- - - -), placés à mi-hauteur de la ligne",
@@ -965,11 +1012,11 @@ function analyser(paras, page, police){
   res.F = 2;
   if(espaces){
     res.F -= 1;
-    corr.push({ t:"Alignement à la barre d’espace", cible:pEsp, d: espaces + " ligne(s) contiennent trois espaces ou plus à la suite. Remplacez-les par une tabulation posée sur un taquet." });
+    corr.push({ t:"Alignement à la barre d’espace", cible:pEsp, d: (espaces > 1 ? espaces + " lignes contiennent" : "Une ligne contient") + " trois espaces ou plus à la suite. Remplacez-les par une tabulation posée sur un taquet." });
   }
   if(defaut){
     res.F -= 1;
-    corr.push({ t:"Tabulations par défaut", cible:pDef, d: defaut + " ligne(s) utilisent des tabulations sans taquet posé. Posez un taquet à la position voulue : une seule tabulation suffit alors." });
+    corr.push({ t:"Tabulations par défaut", cible:pDef, d: (defaut > 1 ? defaut + " lignes utilisent" : "Une ligne utilise") + " des tabulations sans taquet posé. Posez un taquet à la position voulue : une seule tabulation suffit alors." });
   }
   if(res.F < 0) res.F = 0;
 
@@ -1032,7 +1079,7 @@ function apercu(r){
       const cle = Math.round(t.pos / 10) * 10;
       // ligne sans taquets attendus (signatures) : taquet non noté, en gris
       const etat = a ? "ok" : (p.modele && p.modele.taquets ? "ko" : "libre");
-      const rang = { libre:0, ok:1, ko:2 };
+      const rang = { libre:0, ko:1, ok:2 };
       if(!vus.has(cle) || rang[etat] > rang[vus.get(cle).etat]) vus.set(cle, { pos:t.pos, etat });
     }
   }
