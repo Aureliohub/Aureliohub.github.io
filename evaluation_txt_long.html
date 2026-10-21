@@ -1,0 +1,1462 @@
+<!DOCTYPE html>
+<html lang="fr-CH">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Texte long — contrôle de la mise en forme</title>
+<style>
+:root{
+  --papier:#FFFFFF;
+  --gris-fond:#F5F5F7;
+  --encre:#1D1D1F;
+  --gris:#6E6E73;
+  --filet:#D2D2D7;
+  --bleu:#0071E3;
+  --marque:#2B579A;
+  --revision:#C22B34;
+  --acquis:#1D8A4E;
+  --jaune:#FBE38E;
+  --champ:#E3E3E8;          /* trame grise des champs, comme dans Word */
+  --sans:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --lettre:Arial,"Liberation Sans",Helvetica,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--papier);color:var(--encre);font-family:var(--sans);
+  font-size:17px;line-height:1.5;-webkit-font-smoothing:antialiased;letter-spacing:-.01em;
+}
+.wrap{max-width:900px;margin:0 auto;padding:0 22px 90px}
+
+/* ---------- en-tête ---------- */
+header.tete{padding:22px 0 24px;text-align:center;transition:padding .35s ease}
+.pil{display:block;font-size:.82rem;color:var(--gris);margin-bottom:10px;text-align:left}
+.tete-texte{max-height:300px;opacity:1;overflow:hidden;transition:max-height .38s ease,opacity .22s ease}
+body.compact .tete-texte{max-height:0;opacity:0}
+body.compact header.tete{padding-bottom:10px}
+header.tete h1{
+  font-size:clamp(1.15rem,3.3vw,2.1rem);white-space:nowrap;
+  line-height:1.15;margin:0 0 10px;font-weight:600;letter-spacing:-.025em;
+}
+header.tete p{margin:0 auto;color:var(--gris);max-width:74ch;font-size:1rem}
+.insecable{white-space:nowrap}
+
+/* ---------- onglets ---------- */
+nav.onglets{
+  display:flex;gap:2px;flex-wrap:wrap;
+  background:var(--gris-fond);border-radius:999px;padding:3px;margin:18px auto 0;width:max-content;max-width:100%;
+}
+nav.onglets button{
+  font:inherit;font-size:.92rem;font-weight:500;background:transparent;color:var(--gris);
+  border:none;border-radius:999px;padding:8px 20px;cursor:pointer;transition:background .2s ease,color .2s ease;
+}
+nav.onglets button:hover{color:var(--encre)}
+nav.onglets button[aria-selected="true"]{background:var(--papier);color:var(--encre);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+nav.onglets button:focus-visible{outline:2px solid var(--bleu);outline-offset:2px}
+section.panneau{padding:40px 0 0}
+section.panneau[hidden]{display:none}
+.cadre,.cadre>thead,.cadre>tfoot,.cadre>tbody,
+.cadre>thead>tr,.cadre>tfoot>tr,.cadre>tbody>tr,
+.cadre>thead>tr>td,.cadre>tfoot>tr>td,.cadre>tbody>tr>td{display:block;padding:0;margin:0;border:0}
+.bande{display:none}
+
+/* deux colonnes : l'aperçu à gauche, les corrections à droite (en premier dans le code,
+   pour qu'elles passent en tête à l'impression) */
+.deux-col{display:grid;grid-template-columns:minmax(0,1fr);gap:10px}
+.deux-col > div{min-width:0}
+.bloc-corr{grid-row:2}
+.bloc-apercu{grid-row:3}
+@media (min-width:1060px){
+  .wrap{max-width:1260px}
+  header.tete,#p-grille,#p-aide,#p-eval .depot,#p-eval .erreur{max-width:900px;margin-left:auto;margin-right:auto}
+  .deux-col{grid-template-columns:minmax(0,1.12fr) minmax(0,1fr);gap:44px;align-items:start}
+  .bloc-apercu{grid-column:1;grid-row:1}
+  .bloc-corr{grid-column:2;grid-row:1;position:sticky;top:16px;max-height:calc(100vh - 32px);overflow-y:auto;padding:2px 4px 2px 2px}
+  .deux-col h2{margin-top:0}
+}
+#p-grille,#p-aide{padding-top:24px;font-size:.95rem}
+#p-grille table.grille th,#p-grille table.grille td,
+#p-aide table.grille th,#p-aide table.grille td{padding:8px 10px}
+#p-grille h3,#p-aide h3{margin:20px 0 6px;font-size:1rem}
+#p-grille p,#p-aide p{margin-bottom:8px}
+
+h2{font-size:1.3rem;margin:52px 0 14px;font-weight:600;letter-spacing:-.02em}
+h2:first-child{margin-top:0}
+h3{font-size:1.05rem;margin:28px 0 8px;font-weight:600;letter-spacing:-.015em}
+p{margin:0 0 12px}
+ul,ol{margin:0 0 12px;padding-left:22px}
+li{margin-bottom:6px}
+a{color:var(--bleu);text-decoration:none}
+a:hover{text-decoration:underline}
+
+/* ---------- dépôt ---------- */
+.depot{
+  border:1px dashed var(--filet);border-radius:18px;background:var(--gris-fond);
+  padding:46px 24px;text-align:center;cursor:pointer;transition:background .15s,border-color .15s;
+}
+.depot[hidden]{display:none}
+.depot:hover,.depot.survol{border-color:var(--bleu);background:#F0F6FE}
+.depot:focus-visible{outline:2px solid var(--bleu);outline-offset:3px}
+.pilcrow{font-family:Georgia,serif;font-size:2.6rem;line-height:1;color:var(--marque);display:block;margin-bottom:10px}
+.depot b{display:block;font-size:1.15rem;font-weight:590;letter-spacing:-.02em}
+.depot .aide{display:block;color:var(--gris);font-size:.9rem;margin-top:8px}
+input[type=file]{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+.erreur{background:var(--gris-fond);border-radius:14px;padding:16px 20px;margin-top:18px;color:var(--revision)}
+.erreur[hidden]{display:none}
+
+/* ---------- note ---------- */
+#resultat[hidden]{display:none}
+.bandeau{display:flex;align-items:baseline;gap:20px;flex-wrap:wrap;padding:6px 0 4px}
+.note{font-size:4rem;font-weight:600;line-height:1;letter-spacing:-.04em}
+.note small{display:block;font-size:.8rem;font-weight:400;letter-spacing:0;color:var(--gris);margin-top:8px}
+.bandeau .detail{flex:1;min-width:220px;cursor:pointer;border-radius:10px;padding:6px 10px;margin:-6px -10px;transition:background .15s}
+.bandeau .detail:hover{background:var(--gris-fond)}
+.bandeau .detail:focus-visible{outline:2px solid var(--bleu);outline-offset:2px}
+.chev{display:inline-block;margin-left:8px;color:var(--gris);font-size:1.1rem;transform:rotate(90deg);transition:transform .3s ease}
+.detail[aria-expanded="true"] .chev{transform:rotate(-90deg)}
+.repli{max-height:0;overflow:hidden;transition:max-height .4s ease}
+.repli.ouvert{max-height:1200px}
+.bandeau .detail b{font-size:1.15rem;font-weight:590;letter-spacing:-.02em}
+.jauge{height:6px;border-radius:99px;background:#E8E8ED;margin-top:12px;overflow:hidden;max-width:420px}
+.jauge i{display:block;height:100%;border-radius:99px;transition:width .6s ease-out}
+.fichier{color:var(--gris);font-size:.88rem;margin-top:10px}
+
+/* ---------- tableaux ---------- */
+table.grille{width:100%;border-collapse:collapse;font-size:.96rem;margin-bottom:14px}
+table.grille th,table.grille td{border-bottom:1px solid var(--filet);padding:14px 12px;text-align:left;vertical-align:top}
+table.grille th{font-weight:590;font-size:.82rem;color:var(--gris);border-bottom:1px solid var(--encre)}
+table.grille td.pts{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums;width:70px}
+table.grille tr.total td{font-weight:600;border-bottom:none}
+#detail-criteres table.grille{font-size:.88rem;margin-bottom:8px}
+#detail-criteres table.grille th,#detail-criteres table.grille td{padding:6px 8px;line-height:1.3}
+#detail-criteres table.grille td.pts{width:82px}
+.etat{display:inline-block;width:1.2em;font-weight:700}
+table.grille .sous{color:var(--gris);font-size:.88em}
+.ok{color:var(--acquis)}
+.partiel{color:#9A6B00}
+.ko{color:var(--revision)}
+.coul{display:inline-block;width:.8em;height:.8em;border-radius:2px;vertical-align:-.05em;margin:0 .15em;
+  print-color-adjust:exact;-webkit-print-color-adjust:exact}
+
+/* ---------- corrections ---------- */
+ol.corrections{list-style:none;padding:0;margin:0}
+ol.corrections li{
+  position:relative;padding:16px 20px 16px 58px;margin:0 0 8px;border-radius:14px;
+  background:var(--gris-fond);cursor:pointer;transition:background .15s,box-shadow .15s;
+}
+ol.corrections li:hover{background:#EDEDF0}
+ol.corrections li b{display:block;font-size:1rem;font-weight:590;letter-spacing:-.015em}
+ol.corrections li b i{
+  position:absolute;left:18px;top:16px;width:26px;height:26px;border-radius:50%;
+  background:var(--papier);color:var(--revision);font-style:normal;font-weight:600;font-size:.82rem;
+  display:flex;align-items:center;justify-content:center;box-shadow:inset 0 0 0 1.5px var(--revision);
+}
+ol.corrections li em{font-style:normal;color:var(--gris);display:block;font-size:.95rem;margin-top:4px}
+ol.corrections li.remarque{padding-left:20px;cursor:default}
+ol.corrections li.remarque b{color:var(--gris);font-weight:500}
+ol.corrections li.remarque em{color:var(--encre)}
+ol.corrections li.rien{cursor:default;padding-left:20px}
+ol.corrections li.vise{box-shadow:0 0 0 2px var(--revision)}
+.bloc-remarques{margin-top:34px}
+.bloc-remarques[hidden]{display:none}
+.bloc-remarques h2{font-size:1.1rem;margin-bottom:10px}
+
+/* ---------- aperçu du document ---------- */
+.legende-apercu{font-size:.9rem;color:var(--gris);margin-bottom:10px;max-width:70ch}
+.legende-apercu .ex{background:var(--jaune);color:var(--encre);border-radius:2px;padding:0 2px;
+  print-color-adjust:exact;-webkit-print-color-adjust:exact}
+.legende-apercu .cr{color:var(--revision);font-weight:700}
+.apercu-wrap{position:relative;background:var(--gris-fond);border-radius:18px;padding:16px;overflow:hidden}
+.apercu-scale{transform-origin:top left}
+.apercu-page{
+  position:relative;background:#fff;color:#000;font-family:var(--lettre);letter-spacing:normal;
+  box-shadow:0 1px 3px rgba(0,0,0,.08),0 12px 32px rgba(0,0,0,.10);
+  width:210mm;padding:0 15mm 0 30mm;
+}
+.ap-zone{position:relative;font-size:3.2mm;line-height:1.25;color:#000;min-height:8mm}
+.ap-zone.haut{padding:10mm 0 3mm;border-bottom:.25mm dashed #B9B9C0;margin-bottom:8mm}
+.ap-zone.bas{padding:3mm 0 10mm;border-top:.25mm dashed #B9B9C0;margin-top:8mm}
+.ap-zone .etiq{position:absolute;left:0;font-family:var(--sans);font-size:2.6mm;color:#8E8E93;letter-spacing:0}
+.ap-zone.haut .etiq{bottom:-4.2mm}
+.ap-zone.bas .etiq{top:-4.2mm}
+.ap-zone .vide{color:#8E8E93;font-family:var(--sans);font-style:italic}
+.champ{background:var(--champ);border-radius:.4mm;padding:0 .3mm;print-color-adjust:exact;-webkit-print-color-adjust:exact}
+.ap-l{position:relative;margin:0 0 3.5mm}
+.ap-l.titre{margin-top:6mm;break-after:avoid}
+.ap-ext{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;overflow:hidden}
+.ap-ext.court{-webkit-line-clamp:4;line-clamp:4}
+.ap-saut{
+  position:relative;margin:8mm 0 6mm;border-top:.3mm dotted #8E8E93;text-align:center;height:0;
+}
+.ap-saut span{position:relative;top:-2.1mm;background:#fff;padding:0 2mm;font-family:var(--sans);font-size:2.6mm;color:#8E8E93;letter-spacing:0}
+.ap-tdm{position:relative}
+.ap-tdm .ent{display:flex;align-items:baseline;gap:1mm;margin:0 0 1.2mm}
+.ap-tdm .ent .txt{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ap-tdm .ent .pts{flex:1;border-bottom:.3mm dotted #555;transform:translateY(-.6mm);min-width:4mm}
+.ap-tdm .tete-tdm{margin:0 0 3mm}
+.ap-manque{
+  position:relative;border:.35mm dashed var(--revision);border-radius:1.5mm;padding:6mm;margin:6mm 0;
+  text-align:center;font-family:var(--sans);font-size:3.4mm;color:var(--revision);letter-spacing:0;
+}
+.ap-faux{background:var(--jaune);border-radius:2px;print-color-adjust:exact;-webkit-print-color-adjust:exact}
+.caret{display:inline-block;width:0;position:relative}
+.caret::after{
+  content:"V";position:absolute;left:-.34em;top:-1.25em;font-size:1em;font-weight:700;color:var(--revision);line-height:1;
+  print-color-adjust:exact;-webkit-print-color-adjust:exact;
+}
+.ap-num{
+  position:absolute;left:-19mm;top:-.4mm;width:18mm;display:flex;justify-content:flex-end;gap:.7mm;
+  font-family:var(--sans);font-size:3.2mm;color:var(--revision);font-weight:600;line-height:1;z-index:3;
+  font-style:normal;letter-spacing:0;text-align:left;
+}
+.ap-num span{
+  display:inline-flex;align-items:center;justify-content:center;width:5.2mm;height:5.2mm;
+  border-radius:50%;box-shadow:inset 0 0 0 .32mm var(--revision);cursor:pointer;background:#fff;
+}
+.ap-num span.vise{background:var(--revision);color:#fff;print-color-adjust:exact;-webkit-print-color-adjust:exact}
+.ap-zone .ap-num{top:auto}
+.ap-zone.haut .ap-num{bottom:2.6mm}
+.ap-zone.bas .ap-num{top:2.6mm}
+
+/* ---------- divers ---------- */
+.leg{font-size:.94rem;color:var(--gris);margin-bottom:14px;max-width:70ch}
+kbd{font-family:var(--sans);font-size:.82rem;background:var(--gris-fond);border:1px solid var(--filet);border-radius:5px;padding:1px 6px;white-space:nowrap}
+.bouton{font:inherit;font-size:.95rem;background:var(--bleu);color:#fff;border:none;padding:11px 22px;cursor:pointer;border-radius:999px;font-weight:500}
+.bouton:hover{background:#0077ED}
+.bouton.secondaire{background:transparent;color:var(--bleu);padding-left:6px}
+.bouton.secondaire:hover{background:transparent;text-decoration:underline}
+.bouton:focus-visible{outline:2px solid var(--bleu);outline-offset:3px}
+.actions{display:flex;gap:14px;align-items:center;margin-top:40px;flex-wrap:wrap}
+
+@media (max-width:640px){
+  body{font-size:16px}
+  .wrap{padding:0 16px 50px}
+  header.tete{padding:16px 0 18px}
+  header.tete h1{white-space:normal;font-size:1.35rem}
+  .insecable{white-space:normal}
+  nav.onglets{width:100%}
+  nav.onglets button{flex:1;padding:8px 10px;font-size:.86rem}
+  .note{font-size:3rem}
+  .apercu-wrap{padding:10px;border-radius:12px}
+  ol.corrections li{padding:14px 16px 14px 50px}
+}
+
+@media print{
+  @page{size:A4;margin:0}
+  body{background:#fff;font-size:10pt;letter-spacing:0}
+  nav.onglets,.depot,.actions,.noprint{display:none!important}
+  .wrap{max-width:none;padding:0 20mm}
+  .cadre{display:table;table-layout:fixed;width:100%}
+  .cadre>thead{display:table-header-group}
+  .cadre>tfoot{display:table-footer-group}
+  .cadre>tbody{display:table-row-group}
+  .cadre>thead>tr,.cadre>tfoot>tr,.cadre>tbody>tr{display:table-row}
+  .cadre>thead>tr>td,.cadre>tfoot>tr>td,.cadre>tbody>tr>td{display:table-cell}
+  .bande{display:block;height:16mm}
+  body.compact .tete-texte{max-height:none;opacity:1}
+  header.tete{padding:0 0 4pt;text-align:left;border-bottom:.75pt solid var(--filet)}
+  header.tete p,.pil{display:none}
+  header.tete h1{font-size:12.5pt;margin-bottom:0}
+  section.panneau{padding:0}
+  h2{font-size:10.5pt;margin:8pt 0 4pt;break-after:avoid}
+  .bandeau{break-inside:avoid;margin:4pt 0 3pt;gap:12pt}
+  .note{font-size:16pt}
+  .note small{display:inline;font-size:7.5pt;margin:0 0 0 4pt}
+  .bandeau .detail{padding:0;margin:0}
+  .bandeau .detail b{font-size:10pt}
+  .fichier{margin-top:2pt;font-size:8pt}
+  .jauge,.chev{display:none}
+  .repli{max-height:none!important;overflow:visible}
+  #detail-criteres table.grille th,#detail-criteres table.grille td{padding:1.5pt 6pt;font-size:8.8pt;line-height:1.25}
+  .deux-col{display:block}
+  .bloc-corr{position:static;max-height:none;overflow:visible;padding:0}
+  ol.corrections li{
+    break-inside:avoid;background:none!important;box-shadow:none!important;
+    padding:3pt 0 3pt 24pt;margin-bottom:5pt;font-size:9pt;
+  }
+  ol.corrections li b{font-size:9.5pt}
+  ol.corrections li em{font-size:9pt;margin-top:1pt}
+  ol.corrections li b i{left:0;top:2pt;width:15pt;height:15pt;box-shadow:none;border:.75pt solid var(--revision);font-size:7.5pt}
+  ol.corrections li.remarque,ol.corrections li.rien{padding-left:0}
+  .bloc-remarques{margin-top:8pt;break-inside:avoid}
+  /* l'aperçu commence sur une nouvelle page, en vraie grandeur : le texte long n'y tient
+     pas sur une seule feuille, il se poursuit de page en page */
+  .bloc-apercu{break-before:page}
+  .bloc-apercu h2{margin-top:0}
+  .legende-apercu{font-size:8.2pt;margin-bottom:6pt}
+  .apercu-wrap{background:none;padding:0;border-radius:0;overflow:visible;height:auto!important}
+  #apercu-scale{transform:none!important}
+  .apercu-page{width:auto;padding:0 5mm 0 0;box-shadow:none}
+  .ap-zone.haut{padding-top:0}
+  .ap-zone.bas{padding-bottom:0}
+  .ap-l,.ap-tdm .ent,.ap-manque{break-inside:avoid}
+  .ap-faux{background:var(--jaune)!important}
+  .ap-num span{background:#fff!important;color:var(--revision)!important}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<table class="cadre"><thead><tr><td><div class="bande"></div></td></tr></thead>
+<tfoot><tr><td><div class="bande"></div></td></tr></tfoot><tbody><tr><td>
+
+<header class="tete">
+  <span class="pil">Informatique · PAI · traitement de texte</span>
+  <div class="tete-texte">
+    <h1 title="v1">Texte long : contrôle de votre mise en forme</h1>
+    <p><span class="insecable">Déposez votre fichier, il est analysé dans votre navigateur (rien n’est envoyé sur Internet).</span>
+      <span class="insecable">Vous obtenez votre note ainsi que la liste des corrections à apporter.</span></p>
+  </div>
+</header>
+
+<nav class="onglets" role="tablist">
+  <button role="tab" id="t-eval" aria-controls="p-eval" aria-selected="true">Corriger mon fichier</button>
+  <button role="tab" id="t-grille" aria-controls="p-grille" aria-selected="false">Grille d’évaluation</button>
+  <button role="tab" id="t-aide" aria-controls="p-aide" aria-selected="false">Mémento Word</button>
+</nav>
+
+<!-- ================= ÉVALUATION ================= -->
+<section class="panneau" id="p-eval" role="tabpanel" aria-labelledby="t-eval">
+
+  <div class="depot" id="depot" tabindex="0" role="button" aria-label="Choisir le fichier Word à corriger">
+    <span class="pilcrow" aria-hidden="true">¶</span>
+    <b>Déposez ici votre fichier .docx</b>
+    <span class="aide">ou cliquez pour le choisir — enregistrez d’abord votre document dans Word (Ctrl+S)</span>
+  </div>
+  <input type="file" id="fichier" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
+  <div id="probleme" class="erreur" hidden></div>
+
+  <div id="resultat" hidden>
+    <div class="bandeau">
+      <div class="note" id="note">–</div>
+      <div class="detail" id="bascule-detail" role="button" tabindex="0"
+           aria-expanded="false" aria-controls="detail-criteres" title="Afficher le détail par critère">
+        <b id="points">0 / 20 points</b><span class="chev" aria-hidden="true">›</span>
+        <div class="jauge"><i id="jauge" style="width:0"></i></div>
+        <div class="fichier" id="nom-fichier"></div>
+      </div>
+    </div>
+
+    <div class="repli" id="detail-criteres">
+      <table class="grille" id="tab-criteres">
+        <thead><tr><th>Détail par critère</th><th class="pts">Points</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div class="deux-col">
+      <div class="bloc-corr">
+        <h2>Corrections à apporter</h2>
+        <ol class="corrections" id="liste-corrections"></ol>
+        <div class="bloc-remarques" id="bloc-remarques" hidden>
+          <h2>Remarques, non comptées</h2>
+          <ol class="corrections" id="liste-remarques"></ol>
+        </div>
+      </div>
+
+      <div class="bloc-apercu">
+        <h2>Aperçu de votre document</h2>
+        <p class="legende-apercu" id="legende-apercu"></p>
+        <div class="apercu-wrap" id="apercu-wrap"><div class="apercu-scale" id="apercu-scale"></div></div>
+      </div>
+    </div>
+
+    <div class="actions noprint">
+      <button class="bouton" onclick="window.print()">Imprimer / enregistrer en PDF</button>
+      <button class="bouton secondaire" id="recommencer">Corriger un autre fichier</button>
+    </div>
+  </div>
+</section>
+
+<!-- ================= GRILLE ================= -->
+<section class="panneau" id="p-grille" role="tabpanel" aria-labelledby="t-grille" hidden>
+  <h2>Grille d’évaluation — « L’évolution du traitement de texte »</h2>
+  <p class="leg">Total 20 points. Note = 1 + 5 × (points / 20), arrondie au demi-point. Chaque défaut coûte 1,5 point ; une erreur répétée sur plusieurs lignes ne compte qu’une fois.</p>
+  <table class="grille">
+    <thead><tr><th>Critère</th><th>Indicateurs observables</th><th class="pts">Pts</th></tr></thead>
+    <tbody>
+      <tr><td><b>A. Chercher - remplacer</b></td><td>Les <b>27</b> « traîtement » sont devenus « traitement » ; il n’en reste aucun et le mot est bien orthographié.</td><td class="pts">2</td></tr>
+      <tr><td><b>B. Corps du texte</b></td><td>Tous les paragraphes de texte sont en <b>Arial 12</b> et <b>justifiés</b>.</td><td class="pts">3</td></tr>
+      <tr><td><b>C. Mise en forme des titres</b></td><td>Titre : <b>Arial 24, gras, à gauche, couleur A31D1D</b>.<br>Sous-titres : <b>Arial 18, gras, à gauche, couleur RVB(43,133,154)</b>.<br>Sous-sous-titres : <b>Arial 15, gras, à gauche, noir</b>.<br><span class="sous">Une couleur très proche est acceptée. Un sous-titre d’une seule ligne justifié est accepté : il s’affiche comme s’il était aligné à gauche.</span></td><td class="pts">4</td></tr>
+      <tr><td><b>D. Styles</b></td><td>Le titre porte le style <b>Titre 1</b>, les 12 sous-titres le style <b>Titre 2</b>, les 6 sous-sous-titres le style <b>Titre 3</b>, comme dans le modèle. Aucun paragraphe de texte ne porte un style de titre.</td><td class="pts">4</td></tr>
+      <tr><td><b>E. Table des matières</b></td><td>Une table des matières <b>automatique</b> (Références ▸ Table des matières), <b>à jour</b>, placée <b>à la fin du document, en page 6</b>.</td><td class="pts">3</td></tr>
+      <tr><td><b>F. En-tête</b></td><td>« <b>généré par ChatGPT_</b> » suivi de <b>vos initiales</b> (et non AM), <b>aligné à droite</b>.</td><td class="pts">2</td></tr>
+      <tr><td><b>G. Pied de page</b></td><td>« <b>Page X / Y</b> » où X et Y sont des <b>numéros automatiques</b> (numéro de la page et nombre de pages), <b>aligné à droite</b>.</td><td class="pts">2</td></tr>
+      <tr class="total"><td>Total</td><td></td><td class="pts">20</td></tr>
+    </tbody>
+  </table>
+  <h3>Remarques non notées, signalées à l’apprenant</h3>
+  <ul>
+    <li>Mots ou paragraphes modifiés, supprimés ou ajoutés par erreur.</li>
+  </ul>
+</section>
+
+<!-- ================= AIDE ================= -->
+<section class="panneau" id="p-aide" role="tabpanel" aria-labelledby="t-aide" hidden>
+  <h2>Mémento</h2>
+
+  <h3>Rechercher et remplacer</h3>
+  <p><kbd>Ctrl</kbd>+<kbd>F</kbd> cherche un mot et compte ses occurrences. <kbd>Ctrl</kbd>+<kbd>H</kbd> ouvre <b>Remplacer</b> : écrivez « traîtement » dans <b>Rechercher</b>, « traitement » dans <b>Remplacer par</b>, puis cliquez sur <b>Remplacer tout</b>. Word indique le nombre de remplacements : il doit en annoncer 27.</p>
+
+  <h3>Mettre en forme tout le texte</h3>
+  <p><kbd>Ctrl</kbd>+<kbd>A</kbd> sélectionne tout le document. Choisissez ensuite la police <b>Arial</b>, la taille <b>12</b> et l’alignement <b>Justifier</b> (<kbd>Ctrl</kbd>+<kbd>J</kbd>) dans l’onglet Accueil.</p>
+
+  <h3>Styles de titre</h3>
+  <p>Mettez en forme <b>un</b> titre (police, taille, gras, couleur, alignement), laissez-le sélectionné, puis faites un clic droit sur le style <b>Titre 1</b> dans la galerie de l’onglet Accueil ▸ <b>Mettre à jour Titre 1 pour correspondre à la sélection</b>. Pour les autres titres du même niveau, il suffit ensuite de cliquer dans le paragraphe puis sur le style.</p>
+  <table class="grille">
+    <thead><tr><th>Style</th><th>Pour</th><th>Mise en forme</th></tr></thead>
+    <tbody>
+      <tr><td>Titre 1</td><td>le titre du document</td><td>Arial 24, gras, à gauche, A31D1D</td></tr>
+      <tr><td>Titre 2</td><td>les 12 sous-titres</td><td>Arial 18, gras, à gauche, RVB(43,133,154)</td></tr>
+      <tr><td>Titre 3</td><td>les 6 sous-sous-titres</td><td>Arial 15, gras, à gauche, noir</td></tr>
+    </tbody>
+  </table>
+  <p>Pour une couleur précise : Couleur de police ▸ <b>Autres couleurs</b> ▸ <b>Personnalisées</b>, puis saisissez les valeurs RVB ou le code hexadécimal.</p>
+
+  <h3>Table des matières</h3>
+  <p>Placez le curseur à la fin du texte et passez à la page suivante avec <kbd>Ctrl</kbd>+<kbd>Entrée</kbd> (saut de page), jusqu’à la page 6. Puis <b>Références ▸ Table des matières</b> et choisissez une table automatique. Elle est construite à partir des styles Titre 1, 2 et 3.</p>
+  <p>Si vous modifiez un titre ensuite, la table ne change pas toute seule : clic droit dans la table ▸ <b>Mettre à jour les champs</b> ▸ <b>Mettre à jour toute la table</b>.</p>
+
+  <h3>En-tête et pied de page</h3>
+  <p>Double-cliquez dans la marge du haut (ou <b>Insertion ▸ En-tête ▸ Modifier l’en-tête</b>), écrivez « généré par ChatGPT_ » suivi de vos initiales, puis alignez à droite (<kbd>Ctrl</kbd>+<kbd>R</kbd>).</p>
+  <p>Pour le pied de page : <b>Insertion ▸ Numéro de page ▸ Bas de page</b> ▸ « Page X sur Y », à droite. Remplacez ensuite le mot « sur » par « / ». Ne tapez pas les numéros au clavier : un numéro tapé reste le même sur toutes les pages.</p>
+</section>
+
+</td></tr></tbody></table>
+</div>
+
+<script>
+"use strict";
+
+/* =========================================================
+   1. Lecture du .docx (ZIP + XML) sans bibliothèque externe
+   ========================================================= */
+const W = "http://schemas.openxmlformats.org/wordprocessingml/2006/main";
+const NS_R = "http://schemas.openxmlformats.org/officeDocument/2006/relationships";
+
+async function lireZip(buffer){
+  const dv = new DataView(buffer), u8 = new Uint8Array(buffer);
+  let eocd = -1;
+  const min = Math.max(0, u8.length - 66000);
+  for(let i = u8.length - 22; i >= min; i--){
+    if(dv.getUint32(i, true) === 0x06054b50){ eocd = i; break; }
+  }
+  if(eocd < 0) throw new Error("archive");
+  const n = dv.getUint16(eocd + 10, true);
+  let off = dv.getUint32(eocd + 16, true);
+  const entrees = new Map();
+  for(let i = 0; i < n; i++){
+    if(off + 46 > u8.length || dv.getUint32(off, true) !== 0x02014b50) break;
+    const methode = dv.getUint16(off + 10, true);
+    const taille  = dv.getUint32(off + 20, true);
+    const lNom    = dv.getUint16(off + 28, true);
+    const lExtra  = dv.getUint16(off + 30, true);
+    const lComm   = dv.getUint16(off + 32, true);
+    const lho     = dv.getUint32(off + 42, true);
+    const nom     = new TextDecoder("utf-8").decode(u8.subarray(off + 46, off + 46 + lNom));
+    const lNom2   = dv.getUint16(lho + 26, true);
+    const lExtra2 = dv.getUint16(lho + 28, true);
+    const debut   = lho + 30 + lNom2 + lExtra2;
+    entrees.set(nom, { methode, data: u8.subarray(debut, debut + taille) });
+    off += 46 + lNom + lExtra + lComm;
+  }
+  return entrees;
+}
+
+async function texteEntree(e){
+  if(!e) return null;
+  if(e.methode === 0) return new TextDecoder("utf-8").decode(e.data);
+  if(typeof DecompressionStream === "undefined") throw new Error("navigateur");
+  const flux = new Blob([e.data]).stream().pipeThrough(new DecompressionStream("deflate-raw"));
+  return await new Response(flux).text();
+}
+
+const analyseXML = xml => {
+  if(!xml) return null;
+  const d = new DOMParser().parseFromString(xml, "application/xml");
+  return d.getElementsByTagName("parsererror").length ? null : d;
+};
+const att = (el, n) => el ? (el.getAttributeNS(W, n) || el.getAttribute("w:" + n)) : null;
+const enfant = (el, n) => { if(!el) return null; for(const c of el.children) if(c.localName === n) return c; return null; };
+const enfants = (el, n) => el ? [...el.children].filter(c => c.localName === n) : [];
+const vrai = el => { if(!el) return undefined; const v = att(el, "val"); return !(v === "0" || v === "false" || v === "off"); };
+
+/* =========================================================
+   2. Styles, thème et mise en forme effective
+   Une propriété vient, dans l'ordre : des valeurs par défaut du document,
+   du style de paragraphe (chaîne basedOn), du style de caractère, puis du texte lui-même.
+   ========================================================= */
+function lireTheme(xml){
+  const t = { polices:{ major:null, minor:null }, couleurs:{} };
+  const d = analyseXML(xml);
+  if(!d) return t;
+  const A = "http://schemas.openxmlformats.org/drawingml/2006/main";
+  for(const [k, tag] of [["major","majorFont"],["minor","minorFont"]]){
+    const f = d.getElementsByTagNameNS(A, tag)[0];
+    const l = f && f.getElementsByTagNameNS(A, "latin")[0];
+    if(l) t.polices[k] = l.getAttribute("typeface");
+  }
+  const sch = d.getElementsByTagNameNS(A, "clrScheme")[0];
+  if(sch) for(const c of sch.children){
+    const s = c.getElementsByTagNameNS(A, "srgbClr")[0], y = c.getElementsByTagNameNS(A, "sysClr")[0];
+    t.couleurs[c.localName] = s ? s.getAttribute("val").toUpperCase() : (y ? (y.getAttribute("lastClr") || "000000").toUpperCase() : null);
+  }
+  return t;
+}
+
+const ALIAS_THEME = { text1:"dk1", dark1:"dk1", background1:"lt1", light1:"lt1", text2:"dk2", dark2:"dk2",
+  background2:"lt2", light2:"lt2", hyperlink:"hlink", followedHyperlink:"folHlink" };
+
+function versTSL(hex){
+  const n = parseInt(hex, 16);
+  let r = ((n >> 16) & 255) / 255, g = ((n >> 8) & 255) / 255, b = (n & 255) / 255;
+  const max = Math.max(r, g, b), min = Math.min(r, g, b), l = (max + min) / 2;
+  let h = 0, s = 0;
+  if(max !== min){
+    const d = max - min;
+    s = l > .5 ? d / (2 - max - min) : d / (max + min);
+    h = max === r ? (g - b) / d + (g < b ? 6 : 0) : max === g ? (b - r) / d + 2 : (r - g) / d + 4;
+    h /= 6;
+  }
+  return [h, s, l];
+}
+function deTSL(h, s, l){
+  const f = (p, q, t) => { if(t < 0) t += 1; if(t > 1) t -= 1;
+    if(t < 1/6) return p + (q - p) * 6 * t; if(t < 1/2) return q; if(t < 2/3) return p + (q - p) * (2/3 - t) * 6; return p; };
+  let r, g, b;
+  if(s === 0) r = g = b = l;
+  else { const q = l < .5 ? l * (1 + s) : l + s - l * s, p = 2 * l - q; r = f(p, q, h + 1/3); g = f(p, q, h); b = f(p, q, h - 1/3); }
+  return [r, g, b].map(x => Math.round(x * 255).toString(16).padStart(2, "0")).join("").toUpperCase();
+}
+
+function lireStyles(xml, theme){
+  const st = { map:new Map(), defR:null, defP:null, paraDefaut:null, theme, cacheR:new Map(), cacheP:new Map() };
+  const d = analyseXML(xml);
+  if(!d) return st;
+  const dd = d.getElementsByTagNameNS(W, "docDefaults")[0];
+  if(dd){
+    const r = dd.getElementsByTagNameNS(W, "rPrDefault")[0], p = dd.getElementsByTagNameNS(W, "pPrDefault")[0];
+    st.defR = r ? enfant(r, "rPr") : null;
+    st.defP = p ? enfant(p, "pPr") : null;
+  }
+  for(const s of d.getElementsByTagNameNS(W, "style")){
+    const id = att(s, "styleId"), type = att(s, "type");
+    const nom = att(enfant(s, "name"), "val") || id;
+    const e = { id, type, nom:(nom || "").toLowerCase(), base:att(enfant(s, "basedOn"), "val"),
+                pPr:enfant(s, "pPr"), rPr:enfant(s, "rPr") };
+    st.map.set(id, e);
+    if(type === "paragraph" && (att(s, "default") === "1" || att(s, "default") === "true")) st.paraDefaut = id;
+  }
+  return st;
+}
+
+function chaine(st, id){                    // du style le plus général au plus précis
+  const l = [], vus = new Set();
+  while(id && st.map.has(id) && !vus.has(id)){ vus.add(id); const e = st.map.get(id); l.unshift(e); id = e.base; }
+  return l;
+}
+
+function couleurDe(el, theme){
+  if(!el) return undefined;
+  const tc = att(el, "themeColor");
+  if(tc){
+    const cle = ALIAS_THEME[tc] || tc;
+    let hex = theme.couleurs[cle] || att(el, "val");
+    if(hex && /^[0-9A-F]{6}$/i.test(hex)){
+      let [h, s, l] = versTSL(hex);
+      const sh = att(el, "themeShade"), ti = att(el, "themeTint");
+      if(sh) l = l * parseInt(sh, 16) / 255;
+      if(ti) l = l * parseInt(ti, 16) / 255 + (1 - parseInt(ti, 16) / 255);
+      return deTSL(h, s, l);
+    }
+  }
+  const v = att(el, "val");
+  if(!v || v === "auto") return "auto";
+  return v.toUpperCase();
+}
+
+function propsR(rPr, theme){
+  const o = {};
+  if(!rPr) return o;
+  const f = enfant(rPr, "rFonts");
+  if(f){
+    const th = att(f, "asciiTheme") || att(f, "hAnsiTheme");
+    if(th) o.police = /major/i.test(th) ? theme.polices.major : theme.polices.minor;
+    else { const a = att(f, "ascii") || att(f, "hAnsi"); if(a) o.police = a; }
+  }
+  const sz = enfant(rPr, "sz");
+  if(sz){ const v = parseInt(att(sz, "val"), 10); if(!isNaN(v)) o.taille = v / 2; }
+  const b = enfant(rPr, "b"); if(b) o.gras = vrai(b);
+  const i = enfant(rPr, "i"); if(i) o.ital = vrai(i);
+  const c = enfant(rPr, "color"); if(c) o.couleur = couleurDe(c, theme);
+  return o;
+}
+
+function propsP(pPr, base){
+  const o = Object.assign({}, base, { tabs:(base.tabs || []).slice() });
+  if(!pPr) return o;
+  const jc = enfant(pPr, "jc"); if(jc) o.jc = att(jc, "val");
+  const pb = enfant(pPr, "pageBreakBefore"); if(pb) o.sautAvant = vrai(pb);
+  const tabs = enfant(pPr, "tabs");
+  if(tabs) for(const t of enfants(tabs, "tab")){
+    const pos = parseInt(att(t, "pos"), 10), type = att(t, "val") || "left";
+    o.tabs = o.tabs.filter(x => Math.abs(x.pos - pos) > 2);
+    if(type !== "clear") o.tabs.push({ pos, type });
+  }
+  o.tabs.sort((a, b) => a.pos - b.pos);
+  return o;
+}
+
+function rStyle(st, id){                     // propriétés de caractère d'un style (chaîne)
+  if(st.cacheR.has(id)) return st.cacheR.get(id);
+  const o = {};
+  for(const e of chaine(st, id)) Object.assign(o, propsR(e.rPr, st.theme));
+  st.cacheR.set(id, o);
+  return o;
+}
+function pStyle(st, id){                     // propriétés de paragraphe d'un style (chaîne)
+  if(st.cacheP.has(id)) return st.cacheP.get(id);
+  let o = propsP(st.defP, { tabs:[] });
+  for(const e of chaine(st, id)) o = propsP(e.pPr, o);
+  st.cacheP.set(id, o);
+  return o;
+}
+
+/* niveau de titre d'un style : « heading 2 » / « Titre 2 », en remontant la chaîne */
+function niveauStyle(st, id){
+  const l = chaine(st, id).reverse();
+  for(const e of l){
+    const m = e.nom.match(/^(?:heading|titre)\s*([1-9])$/);
+    if(m) return +m[1];
+  }
+  return 0;
+}
+
+/* =========================================================
+   3. Lecture des paragraphes, champs et sauts de page
+   ========================================================= */
+function lireParagraphes(racine, st, ctx){
+  const paras = [];
+  const tous = racine.getElementsByTagNameNS(W, "p");
+  const pile = ctx.pile;                      // champs ouverts : { code, resultat }
+  for(const p of tous){
+    if(p.parentNode && p.parentNode.closest && p.parentNode.closest("txbxContent")) continue;
+    const pPr = enfant(p, "pPr");
+    const idStyle = att(enfant(pPr, "pStyle"), "val") || st.paraDefaut;
+    const pp = propsP(pPr, pStyle(st, idStyle));
+    const baseR = Object.assign({}, propsR(st.defR, st.theme), rStyle(st, idStyle));
+    const e = { texte:"", segs:[], styleId:idStyle, nomStyle:(st.map.get(idStyle) || {}).nom || "",
+                niveau:niveauStyle(st, idStyle), jc:pp.jc || "", tabs:pp.tabs, tdm:false, page:null,
+                ptabDroite:false };
+    // table des matières placée dans un contrôle de contenu « Table of Contents »
+    let a = p.parentNode;
+    while(a && a !== racine){
+      if(a.localName === "sdt"){
+        const g = a.getElementsByTagNameNS(W, "docPartGallery")[0];
+        if(g && /table of contents/i.test(att(g, "val") || "")) e.tdm = true;
+      }
+      if(a.localName === "fldSimple" && /^\s*TOC\b/i.test(att(a, "instr") || "")) e.tdm = true;
+      a = a.parentNode;
+    }
+    if(pp.sautAvant){ ctx.attente = true; ctx.sautDepuis = true; }
+
+    for(const el of p.getElementsByTagName("*")){
+      const n = el.localName;
+      // ce qui est dans les propriétés, une suppression suivie ou une zone de texte est ignoré
+      let x = el.parentNode, ignore = false, simple = null;
+      while(x && x !== p){
+        const ln = x.localName;
+        if(ln === "pPr" || ln === "rPr" || ln === "del" || ln === "txbxContent" || ln === "sdtPr"){ ignore = true; break; }
+        if(ln === "fldSimple" && !simple) simple = x;
+        x = x.parentNode;
+      }
+      if(ignore) continue;
+      if(n === "fldChar"){
+        const t = att(el, "fldCharType");
+        if(t === "begin") pile.push({ code:"", resultat:false });
+        else if(t === "separate"){ if(pile.length) pile[pile.length - 1].resultat = true; }
+        else if(t === "end") pile.pop();
+        continue;
+      }
+      if(n === "instrText"){ if(pile.length) pile[pile.length - 1].code += el.textContent; continue; }
+      if(n === "lastRenderedPageBreak"){ ctx.lrpb = true; ctx.page++; ctx.attente = false; continue; }
+      let t = null;
+      if(n === "t") t = el.textContent;
+      else if(n === "tab" && el.parentNode.localName === "r") t = "\t";
+      else if(n === "ptab"){ t = "\t"; if(/right/i.test(att(el, "alignment") || "")) e.ptabDroite = true; }
+      else if(n === "noBreakHyphen") t = "-";
+      else if(n === "br" || n === "cr"){
+        const ty = att(el, "type");
+        if(ty === "page"){ ctx.attente = true; ctx.sautDepuis = true; continue; }
+        if(ty === "column") continue;
+        t = "\n";
+      }
+      if(t === null || t === "") continue;
+      if(ctx.attente && /\S/.test(t)){ ctx.page++; ctx.attente = false; }
+      if(e.page === null && /\S/.test(t)){ e.page = ctx.page; e.sautAvant = !!ctx.sautDepuis; ctx.sautDepuis = false; }
+      // champ dans lequel se trouve ce texte (résultat affiché)
+      let champ = null;
+      for(const f of pile) if(f.resultat){
+        const c = (f.code.trim().split(/\s+/)[0] || "").toUpperCase();
+        if(c === "TOC") e.tdm = true;
+        champ = c;                              // le plus intérieur l'emporte
+      }
+      if(simple){ const c = ((att(simple, "instr") || "").trim().split(/\s+/)[0] || "").toUpperCase(); champ = c; }
+      // mise en forme effective du texte
+      let r = el.parentNode;
+      while(r && r.localName !== "r" && r !== p) r = r.parentNode;
+      const rPr = r && r.localName === "r" ? enfant(r, "rPr") : null;
+      const idR = att(enfant(rPr, "rStyle"), "val");
+      const pr = Object.assign({}, baseR, idR ? rStyle(st, idR) : {}, propsR(rPr, st.theme));
+      const debut = e.texte.length;
+      e.texte += t;
+      const der = e.segs[e.segs.length - 1];
+      if(der && der.champ === champ && der.police === pr.police && der.taille === pr.taille &&
+         der.gras === pr.gras && der.couleur === pr.couleur && der.ital === pr.ital){ der.t += t; der.fin = e.texte.length; }
+      else e.segs.push({ t, debut, fin:e.texte.length, champ, police:pr.police, taille:pr.taille,
+                         gras:!!pr.gras, ital:!!pr.ital, couleur:pr.couleur });
+    }
+    // un saut de section placé dans ce paragraphe fait commencer une nouvelle page
+    const sp = enfant(pPr, "sectPr");
+    if(sp){ const ty = att(enfant(sp, "type"), "val"); if(ty !== "continuous"){ ctx.attente = true; ctx.sautDepuis = true; } }
+    paras.push(e);
+  }
+  return paras;
+}
+
+/* style dominant d'un paragraphe, pesé au nombre de caractères */
+function dominant(p){
+  const poids = { police:{}, taille:{}, couleur:{} };
+  let g = 0, n = 0;
+  for(const s of p.segs){
+    const l = s.t.replace(/\s/g, "").length;
+    if(!l) continue;
+    n += l;
+    if(s.gras) g += l;
+    for(const k of ["police", "taille", "couleur"]){
+      const v = s[k] === undefined || s[k] === null ? "?" : String(s[k]);
+      poids[k][v] = (poids[k][v] || 0) + l;
+    }
+  }
+  const max = o => { const e = Object.entries(o).sort((a, b) => b[1] - a[1])[0]; return e ? e[0] : null; };
+  const t = max(poids.taille);
+  return { police: max(poids.police) === "?" ? null : max(poids.police),
+           taille: t && t !== "?" ? parseFloat(t) : null,
+           couleur: max(poids.couleur) === "?" ? "auto" : max(poids.couleur),
+           gras: n > 0 && g / n >= .5 };
+}
+
+/* =========================================================
+   4. Le modèle de référence (niveau 0 = texte, 1-3 = titres)
+   ========================================================= */
+const MODELE = [[1, "L'évolution du traitement de Texte : \nDe la Machine à Écrire à l'Ère Numérique"], [2, "Introduction"], [0, "L'histoire du traitement de texte témoigne de l'évolution des outils d'écriture, de la machine à écrire à l'ère numérique. Cette transition a remodelé notre approche de la création de documents et la manière dont nous interagissons avec le processus d'écriture. En explorant cette évolution, nous découvrons les avancées technologiques qui ont façonné le monde du traitement de texte."], [2, "L'Ère de la Machine à Écrire"], [0, "Au tournant du 20e siècle, la machine à écrire a apporté une révolution majeure dans la production de documents. Inventée par Christopher Latham Sholes en 1867, cette invention mécanique a considérablement accéléré le processus d'écriture. Elle a offert une alternative plus rapide et plus lisible à la plume et à l'encre. Cependant, la machine à écrire avait ses limites, notamment en ce qui concerne les corrections. Les erreurs nécessitaient des correcteurs liquides ou des rubans spéciaux, ce qui rendait le processus laborieux."], [2, "L'Émergence des Correcteurs Automatiques"], [0, "Les années 1950 et 1960 ont vu l'avènement des correcteurs automatiques, marquant un pas de géant dans l'amélioration de l'efficacité des machines à écrire. Ces dispositifs ont permis aux utilisateurs de supprimer rapidement des erreurs sans recourir à des méthodes manuelles. Les correcteurs électriques et électroniques ont ensuite été intégrés aux machines à écrire, rendant les corrections plus rapides et plus simples."], [2, "L'avènement des Ordinateurs Personnels"], [0, "Les années 1970 ont été témoins de l'avènement des ordinateurs personnels, inaugurant une nouvelle ère dans l'histoire du traitement de texte. Des programmes tels que WordStar et WordPerfect sont devenus populaires, offrant des fonctionnalités avancées. Cependant, ces premiers logiciels nécessitaient souvent l'utilisation de commandes complexes, limitant leur accessibilité."], [2, "L'Ère des Logiciels de traitement de Texte"], [0, "Les années 1980 ont marqué un tournant majeur avec l'avènement des logiciels de traitement de texte, ouvrant la voie à une ère numérique novatrice. Parmi ces pionniers, Microsoft Word a joué un rôle central dans la transformation de la manière dont nous abordons l'écriture et l'édition de documents."], [3, "Interface Graphique et Accessibilité"], [0, "L'introduction d'interfaces graphiques a été un élément essentiel de cette transition. À la différence des programmes précédents qui utilisaient principalement des commandes en ligne, les logiciels de traitement de texte de cette époque ont adopté des interfaces visuelles, facilitant ainsi l'interaction pour un public plus large. Cette révolution graphique a permis aux utilisateurs d'éditer du texte en utilisant des actions intuitives, telles que le glisser-déposer et le formatage visuel."], [3, "Utilisation du Clavier et de la Souris"], [0, "L'usage du clavier et de la souris a également connu une augmentation significative. Alors que les premiers programmes de traitement de texte nécessitaient souvent des commandes complexes basées sur le clavier, les logiciels des années 1980 ont simplifié cette interaction en intégrant des raccourcis clavier plus conviviaux. L'utilisation de la souris pour sélectionner, copier et coller du texte a considérablement amélioré la productivité des utilisateurs."], [3, "Évolution des Fonctionnalités"], [0, "L'une des caractéristiques déterminantes de cette ère a été l'expansion des fonctionnalités offertes par les logiciels de traitement de texte. Les utilisateurs ont eu accès à des outils tels que la mise en forme avancée, les tableaux, les graphiques, et l'insertion d'images, offrant une palette complète pour l'expression créative. Ces fonctionnalités ont également ouvert la voie à la production de documents plus sophistiqués."], [3, "Standardisation des Formats de Fichier"], [0, "Une autre avancée cruciale a été la standardisation des formats de fichier. Microsoft Word a introduit des extensions de fichiers telles que .doc, établissant un standard qui est devenu largement adopté dans l'industrie. Cela a facilité l'échange de documents entre différents utilisateurs et systèmes, créant une cohérence dans la manière dont les données étaient partagées et préservées."], [3, "Impacts sur le Monde Professionnel et Académique"], [0, "L'ère des logiciels de traitement de texte a également eu des répercussions profondes sur le monde professionnel et académique. Les entreprises ont adopté ces outils pour simplifier la rédaction de rapports, de correspondances et d'autres documents professionnels. Dans le domaine académique, la production de travaux de recherche et de thèses a été grandement facilitée, permettant aux chercheurs de consacrer moins de temps à la forme et davantage à la substance."], [3, "L'Intégration d'Internet et la Collaboration en Ligne"], [0, "Les années 1990 ont assisté à l'intégration d'Internet dans le traitement de texte. L'émergence de plateformes en ligne comme Google Docs a révolutionné la collaboration en temps réel. Cette innovation a permis à plusieurs utilisateurs de travailler simultanément sur un même document, éliminant les barrières géographiques et facilitant la coopération."], [2, "Les Fonctionnalités Avancées et l'IA"], [0, "Aujourd'hui, les logiciels de traitement de texte offrent des fonctionnalités avancées qui transforment fondamentalement notre manière d'interagir avec les documents. La reconnaissance vocale, la correction automatique alimentée par l'intelligence artificielle (IA) et les outils d'analyse de texte sont désormais monnaie courante. Ces avancées continuent de remodeler notre expérience d'écriture, anticipant nos besoins et nous offrant des outils plus intelligents et efficaces."], [2, "Impact sur la Créativité et l'Expression"], [0, "L'évolution du traitement de texte a également eu un impact significatif sur la créativité et l'expression individuelle. Les outils de mise en forme, les polices variées et les fonctionnalités graphiques ont élargi les possibilités artistiques des utilisateurs. La conception visuelle des documents est devenue un aspect clé, permettant une communication plus riche et diversifiée."], [2, "Sécurité et Confidentialité dans l'Ère Numérique"], [0, "Avec l'avènement des logiciels de traitement de texte numériques, la question de la sécurité et de la confidentialité est devenue cruciale. Les risques liés aux fuites de données, aux accès non autorisés et aux attaques de logiciels malveillants ont mis en lumière la nécessité de protéger les documents numériques. Des fonctionnalités de cryptage et de gestion des autorisations ont été intégrées pour renforcer la sécurité des informations sensibles."], [2, "Évolution des Plates-formes et des Périphériques"], [0, "L'histoire du traitement de texte est également liée à l'évolution des plates-formes et des périphériques. Du passage des ordinateurs personnels aux tablettes et aux smartphones, la mobilité est devenue un aspect crucial. Les applications de traitement de texte ont dû s'adapter à divers écrans et systèmes d'exploitation, transformant ainsi la manière dont nous créons et éditons des documents en déplacement."], [2, "Éducation et Accessibilité"], [0, "L'ère numérique a également apporté des changements significatifs dans l'éducation et l'accessibilité aux outils de traitement de texte. Les programmes éducatifs intègrent désormais l'apprentissage des logiciels de traitement de texte dès les premières années. Cela a permis aux étudiants d'acquérir des compétences essentielles pour leur parcours académique et professionnel."], [2, "Défis et Opportunités Futures"], [0, "Alors que le traitement de texte continue d'évoluer, des défis et des opportunités émergent. Les préoccupations liées à la dépendance à la technologie, à la gestion durable des ressources électroniques et aux implications éthiques de l'IA dans le traitement de texte sont des domaines qui exigent une réflexion et une action continues."], [2, "Conclusion"], [0, "L'évolution du traitement de texte, de la machine à écrire à l'ère numérique, est une saga remarquable qui a profondément influencé notre interaction avec l'écriture et la création de documents. Ce parcours, marqué par des avancées technologiques majeures, a transformé la manière dont nous concevons, éditons et partageons des idées."], [0, "La machine à écrire a symbolisé une ère où l'écriture était mécanique, mais malgré ses limitations, elle a ouvert la voie à une communication plus rapide et plus accessible. L'avènement des correcteurs automatiques a représenté une étape clé, simplifiant le processus d'édition et offrant une efficacité accrue."], [0, "L'introduction des ordinateurs personnels et des logiciels de traitement de texte a propulsé le monde de l'écriture dans l'ère numérique. Microsoft Word et ses homologues ont rendu l'écriture plus intuitive, introduisant des interfaces graphiques et facilitant l'accès aux fonctionnalités avancées."], [0, "L'intégration d'Internet et la collaboration en ligne ont transformé la manière dont les individus et les équipes interagissent avec les documents. La possibilité de travailler en temps réel, sans frontières géographiques, a ouvert de nouvelles perspectives pour la coopération et la créativité."], [0, "Les fonctionnalités avancées et l'intelligence artificielle ont apporté une dimension nouvelle à l'écriture numérique, offrant des outils de correction automatique intelligents, de reconnaissance vocale et d'analyse de texte. Ces avancées révèlent le potentiel impressionnant des technologies émergentes."], [0, "L'impact du traitement de texte sur la créativité et l'expression individuelle est indéniable. La conception visuelle des documents a acquis une importance croissante, offrant une palette d'outils pour une communication plus riche et plus dynamique."], [0, "La sécurité et la confidentialité dans l'ère numérique ont posé des défis, mais l'intégration de fonctionnalités de cryptage et de gestion des autorisations démontre une réponse proactive à ces préoccupations."], [0, "L'évolution des plates-formes et des périphériques, l'intégration de l'éducation et l'accessibilité accrue témoignent de la manière dont le traitement de texte a façonné l'apprentissage et l'accès à l'information."], [0, "Cependant, ce voyage n'est pas exempt de défis. La dépendance croissante à la technologie, la gestion durable des ressources électroniques et les implications éthiques de l'IA soulèvent des questions importantes pour lesquelles des réponses éclairées sont nécessaires."], [0, "Alors que nous contemplons l'avenir du traitement de texte, il est impératif de rester vigilants face aux développements technologiques et aux impacts sociétaux. Une réflexion continue sur l'éthique de l'utilisation des technologies émergentes, ainsi que sur la manière de garantir une accessibilité équitable et durable, est essentielle."], [0, "En conclusion, le traitement de texte a été le moteur d'une transformation profonde dans la manière dont nous interagissons avec les mots. Que nous soyons au début d'un nouveau chapitre ou au milieu de l'histoire, l'évolution du traitement de texte continue de façonner notre avenir éditorial, ouvrant la voie à une communication plus fluide, plus créative et plus inclusive."]];
+
+const PENALITE = 1.5;
+const BAREME = [
+  { c:"A", lib:"Chercher - remplacer : « traîtement » → « traitement » (27 fois)", pts:2 },
+  { c:"B", lib:"Corps du texte — Arial 12, justifié", pts:3 },
+  { c:"C", lib:"Titres — taille, couleur, gras, alignement", pts:4 },
+  { c:"D", lib:"Styles Titre 1, Titre 2 et Titre 3", pts:4 },
+  { c:"E", lib:"Table des matières automatique, à jour, en page 6", pts:3 },
+  { c:"F", lib:"En-tête — « généré par ChatGPT_ » et vos initiales, à droite", pts:2 },
+  { c:"G", lib:"Pied de page — « Page X / Y » automatique, à droite", pts:2 }
+];
+const NIVEAUX = {
+  1: { nom:"Titre 1", qui:"le titre", taille:24, couleur:"A31D1D", lib:"A31D1D (rouge foncé)" },
+  2: { nom:"Titre 2", qui:"les sous-titres", taille:18, couleur:"2B859A", lib:"RVB(43,133,154) (bleu-vert)" },
+  3: { nom:"Titre 3", qui:"les sous-sous-titres", taille:15, couleur:"000000", lib:"noir" }
+};
+
+/* =========================================================
+   5. Outils de texte
+   ========================================================= */
+const APOS = /[‘’‛ʼ`´]/g;
+const INSEC = /[    ]/g;
+function norm(s){
+  return (s || "").normalize("NFC").replace(APOS, "'").replace(/[‐‑‒–—]/g, "-")
+    .replace(INSEC, " ").replace(/…/g, "...").replace(/[\t\n]/g, " ").replace(/\s+/g, " ").trim();
+}
+const cle = s => norm(s).toLowerCase().replace(/traîtement/g, "traitement");
+const mots = s => cle(s).split(" ").filter(Boolean);
+function lcs(a, b){
+  const n = a.length, m = b.length;
+  const d = Array.from({length:n+1}, () => new Uint16Array(m+1));
+  for(let i=1;i<=n;i++) for(let j=1;j<=m;j++)
+    d[i][j] = a[i-1]===b[j-1] ? d[i-1][j-1]+1 : Math.max(d[i-1][j], d[i][j-1]);
+  return d;
+}
+function similitude(x, y){
+  const a = mots(x), b = mots(y);
+  if(!a.length || !b.length) return 0;
+  return 2 * lcs(a,b)[a.length][b.length] / (a.length + b.length);
+}
+const LETTRE = /[\p{L}\p{N}]/u;
+const jetons = s => s.match(/[\p{L}\p{N}'’-]+|\s+|[^\s\p{L}\p{N}]/gu) || [];
+const estMot = t => LETTRE.test(t);
+const estBlanc = t => /^\s+$/.test(t);
+function diffJetons(a, b){
+  const d = lcs(a, b), out = [];
+  let i = a.length, j = b.length;
+  while(i > 0 || j > 0){
+    if(i > 0 && j > 0 && a[i-1] === b[j-1]){ out.push({ t:"=", c:a[i-1] }); i--; j--; }
+    else if(j > 0 && (i === 0 || d[i][j-1] >= d[i-1][j])){ out.push({ t:"+", c:b[j-1] }); j--; }
+    else { out.push({ t:"-", c:a[i-1] }); i--; }
+  }
+  return out.reverse();
+}
+function proche(x, y){
+  const a = [...x.toLowerCase()], b = [...y.toLowerCase()];
+  if(Math.abs(a.length - b.length) > Math.max(a.length, b.length) / 2) return false;
+  return 2 * lcs(a, b)[a.length][b.length] / (a.length + b.length) >= 0.55;
+}
+function comparer(ref, saisi){
+  const ops = diffJetons(jetons(ref), jetons(saisi));
+  const pris = new Set(), out = [];
+  const voisin = (k, sens, cible) => {
+    for(let i = k + sens; i >= 0 && i < ops.length; i += sens){
+      if(pris.has(i)) continue;
+      if(ops[i].t === "=" && estBlanc(ops[i].c)) continue;
+      if(ops[i].t === cible && estMot(ops[i].c)) return i;
+      return -1;
+    }
+    return -1;
+  };
+  for(let k = 0; k < ops.length; k++){
+    if(pris.has(k)) continue;
+    const o = ops[k];
+    if(o.t === "-" && estMot(o.c)){
+      let m = voisin(k, 1, "+");
+      if(m < 0) m = voisin(k, -1, "+");
+      if(m >= 0 && proche(o.c, ops[m].c)){ pris.add(m); out.push({ t:"sub", ref:o.c, c:ops[m].c }); continue; }
+    }
+    if(!pris.has(k)) out.push(o);
+  }
+  return out;
+}
+function messages(ops){
+  const dits = [], manque = [], trop = [];
+  for(const o of ops){
+    if(o.t === "sub") dits.push("écrire « " + o.ref + " » et non « " + o.c + " »");
+    else if(o.t === "-" && !estBlanc(o.c)) manque.push(o.c);
+    else if(o.t === "+" && !estBlanc(o.c)) trop.push(o.c);
+  }
+  const u = l => [...new Set(l.map(x => x.trim()).filter(Boolean))];
+  const d = [];
+  if(dits.length)   d.push(u(dits).join(" ; "));
+  if(manque.length) d.push("il manque : " + u(manque).slice(0, 6).map(x => "« " + x + " »").join(", ") + (u(manque).length > 6 ? "…" : ""));
+  if(trop.length)   d.push("à supprimer : " + u(trop).slice(0, 6).map(x => "« " + x + " »").join(", ") + (u(trop).length > 6 ? "…" : ""));
+  return d.join(" ; ");
+}
+const estTraitement = o => o.t === "sub" && o.ref.toLowerCase() === "traitement";
+const extrait = (s, n) => { s = norm(s); return s.length > n ? s.slice(0, n).replace(/\s+\S*$/, "") + "…" : s; };
+const pluriel = (n, s, p) => n + " " + (n > 1 ? (p || s + "s") : s);
+
+/* famille de couleur, pour nommer une couleur trouvée */
+function famille(hex){
+  if(!hex || hex === "auto") return "noir";
+  const n = parseInt(hex, 16);
+  const r = (n >> 16) & 255, v = (n >> 8) & 255, b = n & 255;
+  const max = Math.max(r, v, b), min = Math.min(r, v, b);
+  if(max < 60) return "noir";
+  if(max - min < 40) return max > 200 ? "blanc" : "gris";
+  let t;
+  if(max === r)      t = 60 * (((v - b) / (max - min)) % 6);
+  else if(max === v) t = 60 * ((b - r) / (max - min) + 2);
+  else               t = 60 * ((r - v) / (max - min) + 4);
+  if(t < 0) t += 360;
+  if(t < 20 || t >= 330) return "rouge";
+  if(t < 45)  return "orange";
+  if(t < 70)  return "jaune";
+  if(t < 170) return "vert";
+  if(t < 200) return "bleu-vert";
+  if(t < 260) return "bleu";
+  return "violet";
+}
+function couleurOK(trouvee, attendue){
+  if(attendue === "000000"){
+    if(!trouvee || trouvee === "auto") return true;
+    const n = parseInt(trouvee, 16), c = [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+    return Math.max(...c) <= 0x40 && Math.max(...c) - Math.min(...c) <= 0x20;
+  }
+  if(!trouvee || trouvee === "auto") return false;
+  const a = parseInt(trouvee, 16), b = parseInt(attendue, 16);
+  return [16, 8, 0].every(s => Math.abs(((a >> s) & 255) - ((b >> s) & 255)) <= 24);
+}
+const nomCouleur = h => (!h || h === "auto") ? "noir (automatique)" : h + " (" + famille(h) + ")";
+const estArial = p => !!p && /^arial(\s*mt)?$/i.test(p.trim());
+
+/* le paragraphe est-il aligné à droite, par l'alignement ou par des tabulations ? */
+function aDroite(p){
+  if(p.jc === "right" || p.jc === "end") return true;
+  if(p.ptabDroite) return true;
+  const m = p.texte.match(/^\t+/);
+  if(m){ const t = p.tabs[m[0].length - 1]; if(t && (t.type === "right" || t.type === "end")) return true; }
+  return false;
+}
+
+/* =========================================================
+   6. En-têtes et pieds de page
+   ========================================================= */
+async function lireZones(zip, docXml, st, lireSi){
+  const rels = analyseXML(await lireSi("word/_rels/document.xml.rels"));
+  const cible = new Map();
+  if(rels) for(const r of rels.getElementsByTagName("Relationship"))
+    cible.set(r.getAttribute("Id"), r.getAttribute("Target").replace(/^\/?word\//, "").replace(/^\//, ""));
+  const sects = [...docXml.getElementsByTagNameNS(W, "sectPr")];
+  const res = { entete:[], pied:[], premiereSansEntete:false, premiereSansPied:false };
+  const herite = { header:null, footer:null };
+  for(const s of sects){
+    const premiere = !!enfant(s, "titlePg") && vrai(enfant(s, "titlePg"));
+    for(const k of ["header", "footer"]){
+      const refs = enfants(s, k + "Reference");
+      const def = refs.find(r => (att(r, "type") || "default") === "default");
+      if(def) herite[k] = def.getAttributeNS(NS_R, "id") || def.getAttribute("r:id");
+      const liste = k === "header" ? res.entete : res.pied;
+      if(herite[k] && !liste.includes(herite[k])) liste.push(herite[k]);
+      if(premiere){
+        const fr = refs.find(r => att(r, "type") === "first");
+        if(!fr){ if(k === "header") res.premiereSansEntete = true; else res.premiereSansPied = true; }
+      }
+    }
+  }
+  const lire = async ids => {
+    const out = [];
+    for(const id of ids){
+      const nom = cible.get(id);
+      const x = analyseXML(nom ? await lireSi("word/" + nom) : null);
+      if(!x) continue;
+      const ps = lireParagraphes(x.documentElement, st, { pile:[], page:1, attente:false, lrpb:false });
+      out.push(ps);
+    }
+    return out;
+  };
+  return { entetes: await lire(res.entete), pieds: await lire(res.pied),
+           premiereSansEntete: res.premiereSansEntete, premiereSansPied: res.premiereSansPied };
+}
+
+/* =========================================================
+   7. Analyse
+   ========================================================= */
+function analyser(paras, zones, appPages){
+  // les paragraphes du texte (hors table des matières, lignes vides ignorées)
+  const lignes = paras.filter(p => !p.tdm && p.texte.replace(/\s/g, "") !== "");
+  lignes.forEach(p => { p.rang = paras.indexOf(p); });
+
+  /* --- appariement avec le modèle, dans l'ordre --- */
+  const app = new Map();
+  let curseur = 0;
+  MODELE.forEach(([niv, ref], k) => {
+    let best = -1, bs = 0;
+    for(let i = curseur; i < Math.min(lignes.length, curseur + 10); i++){
+      if(lignes[i].modele) continue;
+      const s = similitude(ref, lignes[i].texte);
+      if(s > bs){ bs = s; best = i; }
+    }
+    if(best >= 0 && bs >= .5){ app.set(k, lignes[best]); lignes[best].modele = { niv, ref, k }; curseur = best + 1; }
+  });
+
+  const corr = [], remarques = [], res = {};
+  const titres = n => MODELE.map((m, k) => [m, k]).filter(([m]) => m[0] === n).map(([, k]) => app.get(k)).filter(Boolean);
+  const corps = MODELE.map((m, k) => [m, k]).filter(([m]) => m[0] === 0).map(([, k]) => app.get(k)).filter(Boolean);
+
+  /* --- A : chercher - remplacer --- */
+  let restants = 0, premier = null;
+  const fautes = new Set(); let premiereFaute = null;
+  const ecarts = [];
+  for(const p of lignes){
+    const m = (p.texte.match(/traîtement/gi) || []).length;
+    if(m){ restants += m; premier = premier || p; }
+    if(!p.modele) continue;
+    if(norm(p.texte) === norm(p.modele.ref)) continue;
+    const ops = comparer(norm(p.modele.ref), norm(p.texte));
+    p.marques = ops;
+    for(const o of ops) if(estTraitement(o) && o.c.toLowerCase() !== "traîtement"){ fautes.add(o.c); premiereFaute = premiereFaute || p; }
+    const autres = ops.filter(o => !estTraitement(o));
+    const d = messages(autres);
+    if(d) ecarts.push({ p, d });
+  }
+  {
+    let n = 0;
+    if(restants){
+      n++;
+      corr.push({ crit:"A", t:"Chercher - remplacer : « traîtement »", cible:premier,
+        d:"« traîtement » apparaît encore " + pluriel(restants, "fois", "fois") + ". Ctrl+H : Rechercher « traîtement », Remplacer par « traitement », puis « Remplacer tout »." });
+    }
+    if(fautes.size){
+      n++;
+      corr.push({ crit:"A", t:"Mot de remplacement mal orthographié", cible:premiereFaute,
+        d:"Le mot a été remplacé par « " + [...fautes].join(" », « ") + " » : écrire « traitement »." });
+    }
+    res.A = Math.max(0, 2 - PENALITE * n);
+  }
+
+  /* --- B : corps du texte --- */
+  let policeCorps = null;
+  {
+    const nonArial = [], mauvaiseTaille = [], nonJustif = [];
+    for(const p of corps){
+      const s = dominant(p);
+      if(!estArial(s.police)) nonArial.push([p, s.police]);
+      if(s.taille === null || Math.abs(s.taille - 12) > .25) mauvaiseTaille.push([p, s.taille]);
+      if(!(p.jc === "both" || p.jc === "distribute")) nonJustif.push([p, p.jc]);
+    }
+    const plusFrequent = l => { const c = {}; for(const [, v] of l) c[v] = (c[v] || 0) + 1;
+      return Object.entries(c).sort((a, b) => b[1] - a[1])[0][0]; };
+    const n = corps.length;
+    const sur = l => l.length === n ? "tout le texte" : pluriel(l.length, "paragraphe") + " sur " + n;
+    const items = [];
+    if(nonArial.length){ policeCorps = plusFrequent(nonArial);
+      items.push([nonArial[0][0], sur(nonArial) + " en " + (policeCorps === "null" ? "police indéterminée" : policeCorps) + " au lieu d’Arial"]); }
+    if(mauvaiseTaille.length){ const v = plusFrequent(mauvaiseTaille);
+      items.push([mauvaiseTaille[0][0], sur(mauvaiseTaille) + " en taille " + String(v).replace(".", ",") + " au lieu de 12"]); }
+    if(nonJustif.length) items.push([nonJustif[0][0], nonJustif.length === n ? "le texte n’est pas justifié"
+      : sur(nonJustif) + " non justifié" + (nonJustif.length > 1 ? "s" : "")]);
+    res.B = Math.max(0, 3 - PENALITE * items.length);
+    if(items.length){
+      items.sort((a, b) => a[0].rang - b[0].rang);
+      corr.push({ crit:"B", t:"Corps du texte", cible:items[0][0],
+        d:items.map(x => x[1]).join(" ; ").replace(/^./, c => c.toUpperCase()) + ". Ctrl+A, puis Arial, 12 et Justifier (Ctrl+J) — et remettez ensuite les titres en forme." });
+    }
+  }
+
+  /* --- C : mise en forme des titres --- */
+  {
+    let n = 0;
+    const policesFausses = [];
+    for(const niv of [1, 2, 3]){
+      const ps = titres(niv), cfg = NIVEAUX[niv], pb = [];
+      let cible = null;
+      const marque = (cond, texte, p) => { if(cond){ pb.push(texte); cible = cible || p; } };
+      const tl = ps.map(p => [p, dominant(p)]);
+      const fT = tl.filter(([, s]) => s.taille === null || Math.abs(s.taille - cfg.taille) > .25);
+      marque(fT.length, "taille " + (fT.length ? String(fT[0][1].taille).replace(".", ",") : "") + " au lieu de " + cfg.taille, fT.length ? fT[0][0] : null);
+      const fG = tl.filter(([, s]) => !s.gras);
+      marque(fG.length, "pas en gras", fG.length ? fG[0][0] : null);
+      const fC = tl.filter(([, s]) => !couleurOK(s.couleur, cfg.couleur));
+      marque(fC.length, "couleur " + (fC.length ? nomCouleur(fC[0][1].couleur) : "") + " au lieu de " + cfg.lib, fC.length ? fC[0][0] : null);
+      const fA = ps.filter(p => {
+        const j = p.jc || "left";
+        if(j === "left" || j === "start") return false;
+        return !(niv > 1 && (j === "both" || j === "distribute"));   // une ligne justifiée s'affiche à gauche
+      });
+      marque(fA.length, "pas aligné à gauche", fA[0]);
+      for(const [p, s] of tl) if(!estArial(s.police)) policesFausses.push([p, s.police]);
+      if(pb.length){
+        n += pb.length;
+        corr.push({ crit:"C", t:"Mise en forme : " + (niv === 1 ? "titre" : niv === 2 ? "sous-titres" : "sous-sous-titres"),
+          cible: cible || ps[0], d: pb.join(" ; ").replace(/^./, c => c.toUpperCase()) +
+          ". Attendu : Arial " + cfg.taille + ", gras, à gauche, " + cfg.lib + "." });
+      }
+    }
+    // la police des titres n'est signalée que si le corps du texte, lui, est en Arial
+    if(policesFausses.length && !policeCorps){
+      n++;
+      policesFausses.sort((a, b) => a[0].rang - b[0].rang);
+      corr.push({ crit:"C", t:"Police des titres", cible:policesFausses[0][0],
+        d:pluriel(policesFausses.length, "titre") + " en " + (policesFausses[0][1] || "police indéterminée") + " au lieu d’Arial." });
+    }
+    res.C = Math.max(0, 4 - PENALITE * n);
+  }
+
+  /* --- D : styles --- */
+  {
+    let n = 0;
+    for(const niv of [1, 2, 3]){
+      const ps = titres(niv), cfg = NIVEAUX[niv];
+      const faux = ps.filter(p => p.niveau !== niv);
+      if(!faux.length) continue;
+      n++;
+      const desc = faux.slice(0, 3).map(p => "« " + extrait(p.texte, 38) + " »" + (p.niveau ? " (style Titre " + p.niveau + ")" : "")).join(", ")
+                 + (faux.length > 3 ? " et " + (faux.length - 3) + " autre" + (faux.length > 4 ? "s" : "") : "");
+      corr.push({ crit:"D", t:"Style " + cfg.nom, cible:faux[0],
+        d:(niv === 1 ? "Le titre n’a pas le style Titre 1" : faux.length + " sur " + ps.length + (niv === 2 ? " sous-titres" : " sous-sous-titres") + " sans le style " + cfg.nom) +
+          " : " + desc + ". Cliquez dans le paragraphe, puis sur « " + cfg.nom + " » dans la galerie des styles." });
+    }
+    const intrus = corps.filter(p => p.niveau >= 1 && p.niveau <= 3);
+    if(intrus.length){
+      n++;
+      corr.push({ crit:"D", t:"Style de titre sur du texte", cible:intrus[0],
+        d:pluriel(intrus.length, "paragraphe") + " de texte " + (intrus.length > 1 ? "portent" : "porte") + " un style de titre et " +
+          (intrus.length > 1 ? "apparaissent" : "apparaît") + " dans la table des matières : « " + extrait(intrus[0].texte, 40) + " ». Appliquez-lui le style Normal." });
+    }
+    res.D = Math.max(0, 4 - PENALITE * n);
+  }
+
+  /* --- E : table des matières --- */
+  const tdm = paras.filter(p => p.tdm);
+  const vue = { tdm, sautAvantTdm:false, pageTdm:null };
+  {
+    let n = 0, absente = false;
+    if(!tdm.length){
+      absente = true;
+      corr.push({ crit:"E", t:"Table des matières absente", cible:"tdm",
+        d:"Aucune table des matières automatique. Placez le curseur en page 6, puis Références ▸ Table des matières. Une table tapée au clavier ne compte pas." });
+    }else{
+      const debut = paras.indexOf(tdm[0]);
+      // entrées : le texte avant la tabulation, sans le numéro de page
+      const entrees = tdm.filter(p => p.niveau === 0 && !/en-tête de table|toc heading/i.test(p.nomStyle))
+        .map(p => norm(p.texte.split("\t")[0]).replace(/[.\s]*\d+$/, "").trim())
+        .filter(t => t && !/^aucune entrée/i.test(t) && !/^table des mati[eè]res$/i.test(t));
+      const avecStyle = paras.filter(p => !p.tdm && p.niveau >= 1 && p.niveau <= 3 && p.texte.trim()).map(p => cle(p.texte));
+      const aJour = entrees.length === avecStyle.length && entrees.every((t, i) => cle(t) === avecStyle[i]);
+      if(!aJour){
+        n++;
+        corr.push({ crit:"E", t:"Table des matières pas à jour", cible:"tdm",
+          d:"La table contient " + pluriel(entrees.length, "entrée") + " alors que le document compte " + pluriel(avecStyle.length, "titre") +
+            " avec un style Titre. Clic droit dans la table ▸ Mettre à jour les champs ▸ Mettre à jour toute la table." });
+      }
+      const dernier = Math.max(-1, ...lignes.filter(p => p.modele).map(p => p.rang));
+      if(debut < dernier){
+        n++;
+        corr.push({ crit:"E", t:"Place de la table des matières", cible:"tdm",
+          d:"La table est au début ou au milieu du texte. Elle doit se trouver à la fin du document, en page 6, après la conclusion." });
+      }else{
+        // page de la table : sauts de page enregistrés par Word, sinon nombre de pages du document
+        const apres = paras.slice(paras.indexOf(tdm[tdm.length - 1]) + 1).some(p => p.texte.trim());
+        let page = null;
+        if(paras.lrpb) page = tdm.find(p => p.page !== null)?.page ?? null;
+        else if(appPages && !apres) page = appPages;
+        vue.pageTdm = page;
+        vue.sautAvantTdm = paras.sautAvantTdm;
+        if(page !== null && page !== 6){
+          n++;
+          corr.push({ crit:"E", t:"Page de la table des matières", cible:"tdm",
+            d:"La table est en page " + page + ". Elle doit commencer en page 6 : " +
+              (page < 6 ? "ajoutez un saut de page avant elle (Ctrl+Entrée)." : "vérifiez la mise en forme du texte et supprimez les lignes vides ou sauts de page en trop.") });
+        }else if(page === null && !paras.sautAvantTdm){
+          n++;
+          corr.push({ crit:"E", t:"Page de la table des matières", cible:"tdm",
+            d:"La table ne commence pas sur une nouvelle page. Placez un saut de page avant elle (Ctrl+Entrée) pour qu’elle soit seule en page 6." });
+        }
+      }
+    }
+    res.E = absente ? 0 : Math.max(0, 3 - PENALITE * n);
+    vue.tdmAbsente = absente;
+  }
+
+  /* --- F : en-tête --- */
+  {
+    const ps = zones.entetes.flat().filter(p => p.texte.trim());
+    let n = 0; const d = [];
+    if(!ps.length){
+      res.F = 0;
+      corr.push({ crit:"F", t:"En-tête absent", cible:"entete",
+        d:"Le document n’a pas d’en-tête. Insertion ▸ En-tête, puis écrivez « généré par ChatGPT_ » suivi de vos initiales, aligné à droite." });
+    }else{
+      const p = ps[0], t = norm(ps.map(x => x.texte).join(" "));
+      if(!/^généré par chatgpt_[A-Za-zÀ-ÿ]{1,4}\.?$/i.test(t)){ n++; d.push("écrire exactement « généré par ChatGPT_ » suivi de vos initiales (trouvé : « " + t + " »)"); }
+      const ini = (t.match(/chatgpt\s*_?\s*([A-Za-zÀ-ÿ]{1,4})\.?\s*$/i) || [])[1];
+      if(!ini || ini.toUpperCase() === "AM"){ n++; d.push(ini ? "remplacer « AM » par vos propres initiales" : "ajouter vos initiales après « ChatGPT_ »"); }
+      if(!aDroite(p)){ n++; d.push("aligner l’en-tête à droite (Ctrl+R)"); }
+      if(zones.premiereSansEntete){ n++; d.push("l’en-tête manque sur la première page : décochez « Première page différente »"); }
+      res.F = Math.max(0, 2 - PENALITE * n);
+      if(n) corr.push({ crit:"F", t:"En-tête", cible:"entete", d:d.join(" ; ").replace(/^./, c => c.toUpperCase()) + "." });
+    }
+  }
+
+  /* --- G : pied de page --- */
+  {
+    const ps = zones.pieds.flat().filter(p => p.texte.trim());
+    let n = 0; const d = [];
+    if(!ps.length){
+      res.G = 0;
+      corr.push({ crit:"G", t:"Pied de page absent", cible:"pied",
+        d:"Le document n’a pas de pied de page. Insertion ▸ Numéro de page ▸ Bas de page ▸ « Page X sur Y » à droite, puis remplacez « sur » par « / »." });
+    }else{
+      const segs = ps.flatMap(p => p.segs);
+      const motif = norm(segs.map(s => s.champ === "PAGE" ? "{X}" : (s.champ === "NUMPAGES" || s.champ === "SECTIONPAGES") ? "{Y}" : s.t).join(""))
+        .replace(/\{X\}(\s*\{X\})+/g, "{X}").replace(/\{Y\}(\s*\{Y\})+/g, "{Y}");
+      const aX = motif.includes("{X}"), aY = motif.includes("{Y}");
+      const tape = /\d/.test(motif.replace(/\{[XY]\}/g, ""));
+      if(!aX){ n++; d.push(tape ? "le numéro de page est tapé au clavier : il sera le même sur toutes les pages — insérez un numéro automatique (Insertion ▸ Numéro de page)"
+                               : "insérer le numéro de page automatique (Insertion ▸ Numéro de page)"); }
+      if(!aY){ n++; d.push("le nombre total de pages doit être automatique : utilisez le modèle « Page X sur Y » puis remplacez « sur » par « / »"); }
+      if(aX && aY && !/^page\s*\{X\}\s*\/\s*\{Y\}$/i.test(motif)){
+        n++; d.push("écrire « Page X / Y » comme le modèle (trouvé : « " + norm(segs.map(s => s.t).join("")) + " »)");
+      }
+      if(!aDroite(ps[0])){ n++; d.push("aligner le pied de page à droite (Ctrl+R)"); }
+      if(zones.premiereSansPied){ n++; d.push("le pied de page manque sur la première page : décochez « Première page différente »"); }
+      res.G = Math.max(0, 2 - PENALITE * n);
+      if(n) corr.push({ crit:"G", t:"Pied de page", cible:"pied", d:d.join(" ; ").replace(/^./, c => c.toUpperCase()) + "." });
+    }
+  }
+
+  /* --- remarques non notées : le texte lui-même --- */
+  const manquants = MODELE.map((m, k) => [m, k]).filter(([, k]) => !app.has(k));
+  for(const [m] of manquants.slice(0, 4))
+    remarques.push({ t:"Paragraphe introuvable", d:"« " + extrait(m[1], 70) + " » n’a pas été retrouvé dans votre document." });
+  if(manquants.length > 4) remarques.push({ t:"Paragraphes introuvables", d:"et " + (manquants.length - 4) + " autres paragraphes." });
+  for(const e of ecarts.slice(0, 6))
+    remarques.push({ t:"Texte modifié : « " + extrait(e.p.texte, 40) + " »", d:e.d.replace(/^./, c => c.toUpperCase()) + "." });
+  if(ecarts.length > 6) remarques.push({ t:"Autres modifications", d:(ecarts.length - 6) + " autres paragraphes diffèrent du texte d’origine (surlignés dans l’aperçu)." });
+  const ajoutes = lignes.filter(p => !p.modele);
+  if(ajoutes.length) remarques.push({ t:"Texte ajouté", d:pluriel(ajoutes.length, "paragraphe") + " absent" + (ajoutes.length > 1 ? "s" : "") +
+    " du texte d’origine, par exemple « " + extrait(ajoutes[0].texte, 60) + " »." });
+
+  // numérotation de haut en bas : en-tête, texte, table des matières, pied de page
+  const rangDe = c => c.cible === "entete" ? -1 : c.cible === "pied" ? 1e7
+                    : c.cible === "tdm" ? (tdm.length ? paras.indexOf(tdm[0]) : 1e6) : c.cible ? c.cible.rang : 1e6;
+  corr.sort((a, b) => rangDe(a) - rangDe(b) || a.crit.localeCompare(b.crit));
+
+  const total = BAREME.reduce((s, x) => s + res[x.c], 0);
+  return { res, total, corr, remarques, lignes, paras, zones, vue };
+}
+
+/* =========================================================
+   8. Affichage
+   ========================================================= */
+const $ = id => document.getElementById(id);
+const echapper = s => String(s).replace(/[&<>"]/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;" }[c]));
+const ptmm = 0.35278;
+
+function pastilles(nums){
+  return nums && nums.length ? `<i class="ap-num">${nums.map(n => `<span data-n="${n}">${n}</span>`).join("")}</i>` : "";
+}
+
+/* texte marqué : surlignage des caractères à corriger, V pour un oubli.
+   Le paragraphe est montré en extrait : s'il y a une marque loin du début, l'extrait commence juste avant. */
+function texteMarque(p, long){
+  if(!p.marques) return echapper(norm(p.texte));
+  let h = "", pos = 0, premiere = -1;
+  const morceaux = [];
+  for(const o of p.marques){
+    if(o.t === "=")                       morceaux.push([pos, echapper(o.c), false]), pos += o.c.length;
+    else if(o.t === "+" || o.t === "sub") morceaux.push([pos, '<span class="ap-faux">' + echapper(o.c) + '</span>', true]), pos += o.c.length;
+    else if(!estBlanc(o.c))               morceaux.push([pos, '<span class="caret"></span>', true]);
+    if(premiere < 0 && morceaux.length && morceaux[morceaux.length - 1][2]) premiere = morceaux[morceaux.length - 1][0];
+  }
+  const depart = (!long && premiere > 110) ? premiere - 55 : 0;
+  let coupe = depart > 0;
+  for(const [d, html] of morceaux){
+    if(d + 40 < depart) continue;
+    if(coupe){ h += "… "; coupe = false; }
+    h += html;
+  }
+  return h;
+}
+
+function styleCSS(s, jc){
+  const c = s.couleur && s.couleur !== "auto" ? "#" + s.couleur : "#000";
+  const pol = s.police ? `'${s.police.replace(/['"<>]/g, "")}',` : "";
+  return `font-family:${pol}Arial,'Liberation Sans',sans-serif;font-size:${((s.taille || 11) * ptmm).toFixed(2)}mm;` +
+         `color:${c};font-weight:${s.gras ? 700 : 400};line-height:1.3;` +
+         `text-align:${jc === "both" || jc === "distribute" ? "justify" : jc === "center" ? "center" : (jc === "right" || jc === "end") ? "right" : "left"}`;
+}
+
+function zoneHTML(ps, classe, etiquette, nums){
+  const pleins = ps.flat().filter(p => p.texte.trim());
+  let h = "";
+  if(!pleins.length) h = `<div class="vide">${etiquette.toLowerCase()} vide</div>`;
+  for(const p of pleins){
+    const s = dominant(p);
+    const jc = aDroite(p) ? "right" : p.jc;
+    const txt = p.segs.map(g => g.champ && g.champ !== "HYPERLINK" ? `<span class="champ">${echapper(g.t)}</span>` : echapper(g.t.replace(/\t+/g, " "))).join("");
+    h += `<div style="${styleCSS(s, jc)};line-height:1.25">${txt.replace(/^\s+/, "")}</div>`;
+  }
+  return `<div class="ap-zone ${classe}">${pastilles(nums)}<span class="etiq">${etiquette}</span>${h}</div>`;
+}
+
+function apercu(r, nums){
+  let h = zoneHTML(r.zones.entetes, "haut", "En-tête", nums.entete);
+  const tdm = r.vue.tdm;
+  const debutTdm = tdm.length ? r.paras.indexOf(tdm[0]) : -1;
+  let tdmFaite = false;
+  const bloc = () => {
+    let t = "";
+    if(r.vue.sautAvantTdm || r.vue.pageTdm !== null)
+      t += `<div class="ap-saut"><span>${r.vue.sautAvantTdm ? "Saut de page" : ""}${r.vue.pageTdm !== null ? (r.vue.sautAvantTdm ? " · " : "") + "page " + r.vue.pageTdm : ""}</span></div>`;
+    t += `<div class="ap-tdm">${pastilles(nums.tdm)}`;
+    for(const p of tdm){
+      if(!p.texte.trim()) continue;
+      const s = dominant(p);
+      const m = (p.nomStyle.match(/^toc\s*(\d)/) || [])[1];
+      const ret = m ? (m - 1) * 5 : 0;
+      const parts = p.texte.split("\t");
+      const num = parts.length > 1 ? parts[parts.length - 1].trim() : "";
+      const txt = norm(parts.length > 1 ? parts.slice(0, -1).join(" ") : p.texte);
+      if(/en-tête de table|toc heading/i.test(p.nomStyle) || !num)
+        t += `<div class="tete-tdm" style="${styleCSS(s, p.jc)};margin-left:${ret}mm">${echapper(txt)}</div>`;
+      else
+        t += `<div class="ent" style="${styleCSS(s, "left")};margin-left:${ret}mm"><span class="txt">${echapper(txt)}</span><span class="pts"></span><span>${echapper(num)}</span></div>`;
+    }
+    return t + "</div>";
+  };
+  for(const p of r.lignes){
+    if(!tdmFaite && debutTdm >= 0 && debutTdm < p.rang){ h += bloc(); tdmFaite = true; }
+    const titre = p.modele ? p.modele.niv > 0 : p.niveau > 0;
+    const s = dominant(p);
+    if(titre){
+      h += `<div class="ap-l titre" style="${styleCSS(s, p.jc)}">${pastilles(p.numeros)}${texteMarque(p, true).replace(/\n/g, "<br>")}</div>`;
+    }else{
+      h += `<div class="ap-l" style="${styleCSS(s, p.jc)}">${pastilles(p.numeros)}<div class="ap-ext">${texteMarque(p, false)}</div></div>`;
+    }
+  }
+  if(!tdmFaite && tdm.length) h += bloc();
+  if(r.vue.tdmAbsente) h += `<div class="ap-manque">${pastilles(nums.tdm)}Table des matières absente</div>`;
+  h += zoneHTML(r.zones.pieds, "bas", "Pied de page", nums.pied);
+
+  const legende = '<span>Ce qui est à corriger est <span class="ex">surligné</span> ; '
+                + 'un <span class="cr">V</span> marque un mot ou un signe oublié ; '
+                + 'les numéros en marge renvoient aux corrections numérotées.</span>'
+                + ' Les paragraphes de texte sont abrégés à deux lignes.';
+  return { html:`<div class="apercu-page">${h}</div>`, legende };
+}
+
+function ajusterEchelle(){
+  const w = $("apercu-wrap"), s = $("apercu-scale"), p = s.firstElementChild;
+  if(!p) return;
+  s.style.transform = "none";
+  const dispo = w.clientWidth - 32;
+  const k = Math.min(1, dispo / p.offsetWidth);
+  s.style.transform = "scale(" + k + ")";
+  w.style.height = (p.offsetHeight * k + 32) + "px";
+}
+window.addEventListener("resize", () => { if(!$("resultat").hidden) ajusterEchelle(); });
+
+function afficher(r, nomFichier){
+  const note = Math.round((1 + 5 * r.total / 20) * 2) / 2;
+  const f = x => x.toFixed(1).replace(".0", "").replace(".", ",");
+  $("note").textContent = f(note);
+  $("points").textContent = f(r.total) + " / 20 points";
+  $("nom-fichier").textContent = nomFichier;
+  const j = $("jauge");
+  j.style.width = Math.round(r.total / 20 * 100) + "%";
+  j.style.background = r.total >= 16 ? "var(--acquis)" : (r.total >= 11 ? "#E0A100" : "var(--revision)");
+
+  $("tab-criteres").querySelector("tbody").innerHTML = BAREME.map(x => {
+    const p = r.res[x.c];
+    const etat = p === x.pts ? '<span class="etat ok">✓</span>' : (p > 0 ? '<span class="etat partiel">≈</span>' : '<span class="etat ko">✕</span>');
+    return `<tr><td>${etat}<b>${x.c}.</b> ${echapper(x.lib)}</td><td class="pts">${f(p)} / ${x.pts}</td></tr>`;
+  }).join("") + `<tr class="total"><td>Total</td><td class="pts">${f(r.total)} / 20</td></tr>`;
+
+  for(const p of r.lignes) p.numeros = [];
+  const nums = { entete:[], pied:[], tdm:[] };
+  r.corr.forEach((c, i) => {
+    c.n = i + 1;
+    if(typeof c.cible === "string") nums[c.cible].push(c.n);
+    else if(c.cible) c.cible.numeros.push(c.n);
+  });
+
+  $("resultat").hidden = false;
+  $("depot").hidden = true;
+  const vue = apercu(r, nums);
+  $("apercu-scale").innerHTML = vue.html;
+  $("legende-apercu").innerHTML = vue.legende;
+  ajusterEchelle();
+
+  const li = c => `<li data-n="${c.n}"><b><i>${c.n}</i>${echapper(c.t)}</b><em>${echapper(c.d)}</em></li>`;
+  $("liste-corrections").innerHTML = r.corr.length ? r.corr.map(li).join("")
+    : `<li class="rien"><b>Rien à corriger</b><em>Le document est conforme au modèle.</em></li>`;
+  if(r.remarques.length){
+    $("bloc-remarques").hidden = false;
+    $("liste-remarques").innerHTML = r.remarques.map(c => `<li class="remarque"><b>${echapper(c.t)}</b><em>${echapper(c.d)}</em></li>`).join("");
+  }else $("bloc-remarques").hidden = true;
+  lier();
+  document.body.classList.add("compact");
+}
+
+/* une correction et sa pastille dans l'aperçu se désignent mutuellement */
+function lier(){
+  const items = [...document.querySelectorAll("#liste-corrections li[data-n]")];
+  const pastilles = [...document.querySelectorAll(".ap-num span[data-n]")];
+  const viser = (n, on) => {
+    for(const e of items)     e.classList.toggle("vise", on && e.dataset.n === n);
+    for(const e of pastilles) e.classList.toggle("vise", on && e.dataset.n === n);
+  };
+  for(const e of items.concat(pastilles)){
+    e.addEventListener("mouseenter", () => viser(e.dataset.n, true));
+    e.addEventListener("mouseleave", () => viser(e.dataset.n, false));
+    e.addEventListener("click", () => {
+      viser(e.dataset.n, true);
+      const autre = (items.includes(e) ? pastilles : items).find(x => x.dataset.n === e.dataset.n);
+      if(autre) autre.scrollIntoView({ block:"center", behavior:"smooth" });
+    });
+  }
+}
+
+/* ---- le fichier déposé est-il bien celui de l'exercice ? ---- */
+function bonDocument(paras){
+  const texte = paras.filter(p => !p.tdm).map(p => p.texte).join(" ");
+  const t = cle(texte);
+  const reperes = ["machine à écrire", "wordperfect", "wordstar", "microsoft word", "traitement de texte"];
+  if(reperes.filter(x => t.includes(x)).length < 3) return false;
+  return similitude(MODELE.map(m => m[1]).join(" "), texte) >= 0.40;
+}
+
+/* ---- lecture du fichier ---- */
+async function traiter(f){
+  $("probleme").hidden = true;
+  try{
+    const buf = await f.arrayBuffer();
+    const zip = await lireZip(buf);
+    const xml = await texteEntree(zip.get("word/document.xml"));
+    if(!xml) throw new Error("docx");
+    const lireSi = async n => { try{ return await texteEntree(zip.get(n)); }catch(e){ return null; } };
+    const docXml = analyseXML(xml);
+    if(!docXml) throw new Error("xml");
+    const body = docXml.getElementsByTagNameNS(W, "body")[0];
+    if(!body) throw new Error("xml");
+    const theme = lireTheme(await lireSi("word/theme/theme1.xml"));
+    const st = lireStyles(await lireSi("word/styles.xml"), theme);
+    const ctx = { pile:[], page:1, attente:false, lrpb:false, sautDepuis:false };
+    const paras = lireParagraphes(body, st, ctx);
+    if(!bonDocument(paras)) throw new Error("horssujet");
+    paras.lrpb = ctx.lrpb;
+    // un saut de page (ou de section) sépare-t-il la fin du texte de la table des matières ?
+    const tdm0 = paras.find(p => p.tdm && p.texte.trim());
+    paras.sautAvantTdm = !!(tdm0 && tdm0.sautAvant);
+    const app = await lireSi("docProps/app.xml");
+    const pages = app ? parseInt((app.match(/<Pages>(\d+)<\/Pages>/) || [])[1], 10) : NaN;
+    const zones = await lireZones(zip, docXml, st, lireSi);
+    const r = analyser(paras, zones, isNaN(pages) ? null : pages);
+    afficher(r, f.name);
+  }catch(e){
+    if(!["archive","docx","xml","navigateur","horssujet"].includes(e.message)) console.error(e);
+    const msg = {
+      archive:"Ce fichier n’est pas un .docx. Enregistrez votre document depuis Word au format Word (.docx).",
+      docx:"Ce fichier ne contient pas de document Word lisible.",
+      xml:"Le document n’a pas pu être lu. Réenregistrez-le depuis Word.",
+      navigateur:"Votre navigateur ne sait pas décompresser ce fichier. Utilisez Firefox, Chrome ou Safari à jour.",
+      horssujet:"Ce document ne correspond pas à l’exercice. Le contrôle attend le texte « L’évolution du traitement de texte : de la machine à écrire à l’ère numérique ». Vérifiez que vous déposez le bon fichier."
+    }[e.message] || "Le fichier n’a pas pu être analysé.";
+    $("probleme").textContent = msg;
+    $("probleme").hidden = false;
+  }
+}
+const depot = $("depot"), champ = $("fichier");
+depot.addEventListener("click", () => champ.click());
+depot.addEventListener("keydown", e => { if(e.key === "Enter" || e.key === " "){ e.preventDefault(); champ.click(); } });
+champ.addEventListener("change", () => { if(champ.files[0]) traiter(champ.files[0]); });
+["dragenter","dragover"].forEach(t => depot.addEventListener(t, e => { e.preventDefault(); depot.classList.add("survol"); }));
+["dragleave","drop"].forEach(t => depot.addEventListener(t, e => { e.preventDefault(); depot.classList.remove("survol"); }));
+depot.addEventListener("drop", e => { const f = e.dataTransfer.files[0]; if(f) traiter(f); });
+$("recommencer").addEventListener("click", () => {
+  champ.value = "";
+  $("resultat").hidden = true;
+  $("depot").hidden = false;
+  document.body.classList.remove("compact");
+});
+
+document.querySelectorAll("nav.onglets button").forEach(b => {
+  b.addEventListener("click", () => {
+    document.querySelectorAll("nav.onglets button").forEach(x => {
+      const on = x === b;
+      x.setAttribute("aria-selected", on ? "true" : "false");
+      $(x.getAttribute("aria-controls")).hidden = !on;
+    });
+    if(b.id === "t-eval" && !$("resultat").hidden) ajusterEchelle();
+  });
+});
+
+const bd = $("bascule-detail"), dc = $("detail-criteres");
+const basculer = () => {
+  const ouvert = bd.getAttribute("aria-expanded") === "true";
+  bd.setAttribute("aria-expanded", ouvert ? "false" : "true");
+  dc.classList.toggle("ouvert", !ouvert);
+};
+bd.addEventListener("click", basculer);
+bd.addEventListener("keydown", e => { if(e.key === "Enter" || e.key === " "){ e.preventDefault(); basculer(); } });
+</script>
+</body>
+</html>
