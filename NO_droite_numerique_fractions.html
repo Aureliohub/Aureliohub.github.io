@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nombres et opérations – Placer des nombres sur une droite numérique (série 1)</title>
+
+<style>
+:root{
+  --encre:#1a1a1a;--navy:#1F3A5F;--bleu:#2E75B6;--magenta:#E6007E;--filet:#c9c9c9;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:#e9e9e9;color:var(--encre);
+  font-family:"Avenir Next","Avenir","Segoe UI","Trebuchet MS",Verdana,sans-serif;
+  font-size:0;line-height:1.5;
+}
+.barre{
+  position:sticky;top:0;z-index:10;
+  display:flex;gap:10px;align-items:center;justify-content:center;
+  padding:8px;background:var(--navy);color:#fff;font-size:10pt;
+}
+.barre button{font:inherit;font-weight:600;cursor:pointer;background:#fff;color:var(--navy);border:none;border-radius:3px;
+  padding:0;width:30px;height:30px;line-height:1;display:inline-flex;align-items:center;justify-content:center;font-size:13pt}
+.barre button svg{display:block}
+.barre button:focus-visible{outline:2px solid var(--magenta);outline-offset:2px}
+.barre span{opacity:.8}
+.barre .zoom-outils{opacity:1}
+.zoom-outils{display:flex;gap:6px;align-items:center}
+.zoom-taux{font-variant-numeric:tabular-nums;min-width:44px;text-align:center;opacity:.9}
+
+.page{
+  position:relative;zoom:var(--z,1);width:210mm;height:292mm;
+  margin:14px auto;padding:12mm 12mm 18mm 20mm;
+  background:#fff;overflow:hidden;font-size:11.5pt;
+}
+h1{font-size:15pt;font-weight:700;text-align:center;margin:0 0 1mm;letter-spacing:.1px}
+.sur-titre{text-align:center;font-size:11.5pt;margin:0 0 6mm}
+.etiquette-corrige{
+  display:none;position:absolute;top:13mm;right:12mm;margin:0;
+  color:var(--magenta);font-weight:700;font-size:11pt;letter-spacing:1px;
+}
+body.corrige .etiquette-corrige{display:block}
+p{margin:0 0 4mm}
+
+.exo-titre{display:flex;gap:3mm;align-items:flex-start;margin-bottom:2mm}
+.exo-titre .consigne{font-weight:700}
+.pastille{flex:0 0 auto;width:15px;height:15px;margin-top:2px}
+.item{margin:0 0 2mm 8mm}
+
+.fig{display:block;margin:2mm auto 0;width:170mm;height:auto}
+.sol{visibility:hidden}
+body.corrige .sol{visibility:visible}
+
+.pied{
+  position:absolute;left:20mm;right:12mm;bottom:10mm;
+  padding-top:2.5mm;border-top:1px solid var(--filet);
+  display:flex;justify-content:space-between;font-size:9.5pt;color:#333;
+}
+
+@page{size:A4;margin:0}
+@media print{
+  html,body{width:210mm;margin:0;padding:0;overflow:hidden}
+  body{background:#fff}
+  .barre{display:none}
+  .page{zoom:1;margin:0;page-break-after:always}
+  .page:last-of-type{page-break-after:auto}
+}
+@media screen{ .page{box-shadow:0 1px 6px rgba(0,0,0,.18)} }
+/* écran : agrandissement par transform plutôt que par zoom CSS — Firefox pour Android (écran i3TOUCH)
+   ne dessine pas certains tracés SVG quand la page est agrandie avec zoom. L'impression n'est pas touchée.
+   Fiche en paysage : ajouter --pw:297mm;--ph:205mm dans la règle .page. */
+@media screen{
+  .page{
+    zoom:1 !important;
+    transform:scale(var(--z,1));transform-origin:top left;
+    margin-left:max(14px, calc((100% - var(--pw,210mm) * var(--z,1)) / 2));margin-right:0;
+    margin-bottom:calc(14px + (var(--z,1) - 1) * var(--ph,292mm));
+  }
+  /* empêche la marge négative de la dernière page de sortir du body (sinon vide sous la page en réduction) */
+  body{display:flow-root}
+}
+
+.page-corrige{display:none}
+@media print{
+  body.corrige .page:not(.page-corrige) .etiquette-corrige{display:none}
+  body.corrige .page:not(.page-corrige) .sol{visibility:hidden}
+  .page-corrige{display:block}
+  .page-corrige .etiquette-corrige{display:block}
+  .page-corrige .sol{visibility:visible}
+}
+</style>
+<style>
+/* propre à la fiche */
+.fig{margin-top:4mm}
+.ex2{margin-top:6mm}
+</style>
+</head>
+<body>
+
+<div class="barre">
+  <button id="btn" type="button" title="Afficher le corrigé" aria-label="Afficher le corrigé"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.3 8S3.6 3.8 8 3.8 14.7 8 14.7 8 12.4 12.2 8 12.2 1.3 8 1.3 8z"></path><circle cx="8" cy="8" r="2.1"></circle></svg></button>
+  <span class="zoom-outils">
+    <button id="zoom-moins" type="button" title="Réduire">−</button>
+    <span class="zoom-taux" id="zoom-taux">100 %</span>
+    <button id="zoom-plus" type="button" title="Agrandir">+</button>
+    <button id="zoom-page" type="button" title="Page entière" aria-label="Page entière"><svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3.2" y="1.6" width="9.6" height="12.8" rx="1.2"></rect><path d="M8 4.6v6.8"></path><path d="M6.3 6.3L8 4.6l1.7 1.7"></path><path d="M6.3 9.7L8 11.4l1.7-1.7"></path></svg></button>
+    <button id="plein-ecran" type="button" title="Plein écran" aria-label="Plein écran"><svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6V2h4"></path><path d="M10 2h4v4"></path><path d="M14 10v4h-4"></path><path d="M6 14H2v-4"></path></svg></button>
+  </span>
+</div>
+
+<!-- ══════════════════ PAGE 1 ══════════════════ -->
+<section class="page" data-corrige="">
+  <h1>Nombres et opérations</h1>
+  <p class="sur-titre">Placer des nombres sur une droite numérique – Série 1</p>
+  <p class="etiquette-corrige">CORRIGÉ</p>
+
+  <div class="exo-titre">
+    <svg class="pastille" viewBox="0 0 16 16" aria-hidden="true"><rect width="16" height="16" rx="2" fill="#1F3A5F"></rect><text x="8" y="12" text-anchor="middle" fill="#fff" font-size="11" font-weight="700" font-family="Verdana,sans-serif">1</text></svg>
+    <span class="consigne">Dans chaque cas, place les nombres sur la droite numérique.</span>
+  </div>
+  <svg class="fig" viewBox="0 0 170 166" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Quatre droites numériques de 0 à 3, graduées au dixième">
+    <g font-family="inherit" fill="#1a1a1a">
+      <circle cx="3" cy="7.3" r="2.2" fill="#1F3A5F"></circle><text x="3" y="8.45" text-anchor="middle" fill="#fff" font-size="3.1" font-weight="700" font-family="Verdana,sans-serif">1</text>
+      <g fill="#1a1a1a" font-size="4.2" text-anchor="middle"><text x="12.5" y="5.6">2</text><path d="M10.64 7.1h3.72" stroke="#1a1a1a" stroke-width="0.35"></path><text x="12.5" y="11.09">5</text></g>
+      <text x="21.4" y="8.6" text-anchor="middle" font-size="4.2">;</text>
+      <text class="sol" x="12.5" y="15.3" text-anchor="middle" font-size="3.4" fill="#E6007E">= 0,4</text>
+      <g fill="#1a1a1a" font-size="4.2" text-anchor="middle"><text x="30.3" y="5.6">7</text><path d="M27.18 7.1h6.24" stroke="#1a1a1a" stroke-width="0.35"></path><text x="30.3" y="11.09">10</text></g>
+      <text x="39.15" y="8.6" text-anchor="middle" font-size="4.2">;</text>
+      <text class="sol" x="30.3" y="15.3" text-anchor="middle" font-size="3.4" fill="#E6007E">= 0,7</text>
+      <g fill="#1a1a1a" font-size="4.2" text-anchor="middle"><text x="48" y="5.6">8</text><path d="M46.14 7.1h3.72" stroke="#1a1a1a" stroke-width="0.35"></path><text x="48" y="11.09">5</text></g>
+      <text x="56.85" y="8.6" text-anchor="middle" font-size="4.2">;</text>
+      <text class="sol" x="48" y="15.3" text-anchor="middle" font-size="3.4" fill="#E6007E">= 1,6</text>
+      <text x="65.7" y="8.6" text-anchor="middle" font-size="4.2">2,9</text>
+      <text x="74.6" y="8.6" text-anchor="middle" font-size="4.2">;</text>
+      <text x="83.5" y="8.6" text-anchor="middle" font-size="4.2">0,8</text>
+      <text x="92.05" y="8.6" text-anchor="middle" font-size="4.2">;</text>
+      <g fill="#1a1a1a" font-size="4.2" text-anchor="middle"><text x="100.6" y="5.6">9</text><path d="M98.74 7.1h3.72" stroke="#1a1a1a" stroke-width="0.35"></path><text x="100.6" y="11.09">3</text></g>
+      <text class="sol" x="100.6" y="15.3" text-anchor="middle" font-size="3.4" fill="#E6007E">= 3</text>
+      <path d="M10 24H168.44" stroke="#1a1a1a" stroke-width="0.5"></path>
+      <text x="10" y="19" text-anchor="middle" font-size="4.2">0</text>
+      <text x="56.6" y="19" text-anchor="middle" font-size="4.2">1</text>
+      <text x="103.2" y="19" text-anchor="middle" font-size="4.2">2</text>
+      <text x="149.8" y="19" text-anchor="middle" font-size="4.2">3</text>
+      <path d="M14.66 24v-2.2M19.32 24v-2.2M23.98 24v-2.2M28.64 24v-2.2M33.3 24v-2.2M37.96 24v-2.2M42.62 24v-2.2M47.28 24v-2.2M51.94 24v-2.2M61.26 24v-2.2M65.92 24v-2.2M70.58 24v-2.2M75.24 24v-2.2M79.9 24v-2.2M84.56 24v-2.2M89.22 24v-2.2M93.88 24v-2.2M98.54 24v-2.2M107.86 24v-2.2M112.52 24v-2.2M117.18 24v-2.2M121.84 24v-2.2M126.5 24v-2.2M131.16 24v-2.2M135.82 24v-2.2M140.48 24v-2.2M145.14 24v-2.2M154.46 24v-2.2M159.12 24v-2.2M163.78 24v-2.2M168.44 24v-2.2" stroke="#1a1a1a" stroke-width="0.3"></path>
+      <path d="M10 24v-3.8M56.6 24v-3.8M103.2 24v-3.8M149.8 24v-3.8" stroke="#1a1a1a" stroke-width="0.6"></path>
+      <g class="sol" fill="#E6007E" font-size="4.2" font-weight="700">
+      <path d="M28.64 21v6" stroke="#E6007E" stroke-width="0.6"></path>
+      <g fill="#E6007E" font-size="4.2" text-anchor="middle"><text x="28.64" y="31.3">2</text><path d="M26.78 32.8h3.72" stroke="#E6007E" stroke-width="0.35"></path><text x="28.64" y="36.79">5</text></g>
+      <path d="M42.62 21v6" stroke="#E6007E" stroke-width="0.6"></path>
+      <g fill="#E6007E" font-size="4.2" text-anchor="middle"><text x="42.62" y="31.3">7</text><path d="M39.5 32.8h6.24" stroke="#E6007E" stroke-width="0.35"></path><text x="42.62" y="36.79">10</text></g>
+      <path d="M84.56 21v6" stroke="#E6007E" stroke-width="0.6"></path>
+      <g fill="#E6007E" font-size="4.2" text-anchor="middle"><text x="84.56" y="31.3">8</text><path d="M82.7 32.8h3.72" stroke="#E6007E" stroke-width="0.35"></path><text x="84.56" y="36.79">5</text></g>
+      <path d="M145.14 21v6" stroke="#E6007E" stroke-width="0.6"></path>
+      <text x="144.54" y="32" text-anchor="end">2,9</text>
+      <path d="M47.28 21v6" stroke="#E6007E" stroke-width="0.6"></path>
+      <text x="47.88" y="32" text-anchor="start">0,8</text>
+      <path d="M149.8 21v6" stroke="#E6007E" stroke-width="0.6"></path>
+      <g fill="#E6007E" font-size="4.2" text-anchor="middle"><text x="149.8" y="31.3">9</text><path d="M147.94 32.8h3.72" stroke="#E6007E" stroke-width="0.35"></path><text x="149.8" y="36.79">3</text></g>
+      </g>
+      <circle cx="3" cy="49.3" r="2.2" fill="#1F3A5F"></circle><text x="3" y="50.45" text-anchor="middle" fill="#fff" font-size="3.1" font-weight="700" font-family="Verdana,sans-serif">2</text>
+      <g fill="#1a1a1a" font-size="4.2" text-anchor="middle"><text x="12.5" y="47.6">11</text><path d="M9.38 49.1h6.24" stroke="#1a1a1a" stroke-width="0.35"></path><text x="12.5" y="53.09">10</text></g>
+      <text x="21.4" y="50.6" text-anchor="middle" font-size="4.2">;</text>
+      <text class="sol" x="12.5" y="57.3" text-anchor="middle" font-size="3.4" fill="#E6007E">= 1,1</text>
+      <text x="30.3" y="50.6" text-anchor="middle" font-size="4.2">2,7</text>
+      <text x="39.15" y="50.6" text-anchor="middle" font-size="4.2">;</text>
+      <g fill="#1a1a1a" font-size="4.2" text-anchor="middle"><text x="48" y="47.6">1</text><path d="M46.14 49.1h3.72" stroke="#1a1a1a" stroke-width="0.35"></path><text x="48" y="53.09">4</text></g>
+      <text x="56.85" y="50.6" text-anchor="middle" font-size="4.2">;</text>
+      <text class="sol" x="48" y="57.3" text-anchor="middle" font-size="3.4" fill="#E6007E">= 0,25</text>
+      <text x="65.7" y="50.6" text-anchor="middle" font-size="4.2">3,1</text>
+      <text x="74.6" y="50.6" text-anchor="middle" font-size="4.2">;</text>
+      <g fill="#1a1a1a" font-size="4.2" text-anchor="middle"><text x="83.5" y="47.6">1</text><path d="M81.64 49.1h3.72" stroke="#1a1a1a" stroke-width="0.35"></path><text x="83.5" y="53.09">2</text></g>
+      <text x="92.05" y="50.6" text-anchor="middle" font-size="4.2">;</text>
+      <text class="sol" x="83.5" y="57.3" text-anchor="middle" font-size="3.4" fill="#E6007E">= 0,5</text>
+      <g fill="#1a1a1a" font-size="4.2" text-anchor="middle"><text x="100.6" y="47.6">3</text><path d="M98.74 49.1h3.72" stroke="#1a1a1a" stroke-width="0.35"></path><text x="100.6" y="53.09">4</text></g>
+      <text class="sol" x="100.6" y="57.3" text-anchor="middle" font-size="3.4" fill="#E6007E">= 0,75</text>
+      <path d="M10 66H168.44" stroke="#1a1a1a" stroke-width="0.5"></path>
+      <text x="10" y="61" text-anchor="middle" font-size="4.2">0</text>
+      <text x="56.6" y="61" text-anchor="middle" font-size="4.2">1</text>
+      <text x="103.2" y="61" text-anchor="middle" font-size="4.2">2</text>
+      <text x="149.8" y="61" text-anchor="middle" font-size="4.2">3</text>
+      <path d="M14.66 66v-2.2M19.32 66v-2.2M23.98 66v-2.2M28.64 66v-2.2M33.3 66v-2.2M37.96 66v-2.2M42.62 66v-2.2M47.28 66v-2.2M51.94 66v-2.2M61.26 66v-2.2M65.92 66v-2.2M70.58 66v-2.2M75.24 66v-2.2M79.9 66v-2.2M84.56 66v-2.2M89.22 66v-2.2M93.88 66v-2.2M98.54 66v-2.2M107.86 66v-2.2M112.52 66v-2.2M117.18 66v-2.2M121.84 66v-2.2M126.5 66v-2.2M131.16 66v-2.2M135.82 66v-2.2M140.48 66v-2.2M145.14 66v-2.2M154.46 66v-2.2M159.12 66v-2.2M163.78 66v-2.2M168.44 66v-2.2" stroke="#1a1a1a" stroke-width="0.3"></path>
+      <path d="M10 66v-3.8M56.6 66v-3.8M103.2 66v-3.8M149.8 66v-3.8" stroke="#1a1a1a" stroke-width="0.6"></path>
+      <g class="sol" fill="#E6007E" font-size="4.2" font-weight="700">
+      <path d="M61.26 63v6" stroke="#E6007E" stroke-width="0.6"></path>
+      <g fill="#E6007E" font-size="4.2" text-anchor="middle"><text x="61.26" y="73.3">11</text><path d="M58.14 74.8h6.24" stroke="#E6007E" stroke-width="0.35"></path><text x="61.26" y="78.79">10</text></g>
+      <path d="M135.82 63v6" stroke="#E6007E" stroke-width="0.6"></path>
+      <text x="135.82" y="74" text-anchor="middle">2,7</text>
+      <path d="M21.65 63v6" stroke="#E6007E" stroke-width="0.6"></path>
+      <g fill="#E6007E" font-size="4.2" text-anchor="middle"><text x="21.65" y="73.3">1</text><path d="M19.79 74.8h3.72" stroke="#E6007E" stroke-width="0.35"></path><text x="21.65" y="78.79">4</text></g>
+      <path d="M154.46 63v6" stroke="#E6007E" stroke-width="0.6"></path>
+      <text x="154.46" y="74" text-anchor="middle">3,1</text>
+      <path d="M33.3 63v6" stroke="#E6007E" stroke-width="0.6"></path>
+      <g fill="#E6007E" font-size="4.2" text-anchor="middle"><text x="33.3" y="73.3">1</text><path d="M31.44 74.8h3.72" stroke="#E6007E" stroke-width="0.35"></path><text x="33.3" y="78.79">2</text></g>
+      <path d="M44.95 63v6" stroke="#E6007E" stroke-width="0.6"></path>
+      <g fill="#E6007E" font-size="4.2" text-anchor="middle"><text x="44.95" y="73.3">3</text><path d="M43.09 74.8h3.72" stroke="#E6007E" stroke-width="0.35"></path><text x="44.95" y="78.79">4</text></g>
+      </g>
+      <circle cx="3" cy="91.3" r="2.2" fill="#1F3A5F"></circle><text x="3" y="92.45" text-anchor="middle" fill="#fff" font-size="3.1" font-weight="700" font-family="Verdana,sans-serif">3</text>
+      <g fill="#1a1a1a" font-size="4.2" text-anchor="middle"><text x="12.5" y="89.6">7</text><path d="M10.64 91.1h3.72" stroke="#1a1a1a" stroke-width="0.35"></path><text x="12.5" y="95.09">2</text></g>
+      <text x="21.4" y="92.6" text-anchor="middle" font-size="4.2">;</text>
+      <text class="sol" x="12.5" y="99.3" text-anchor="middle" font-size="3.4" fill="#E6007E">= 3,5</text>
+      <g fill="#1a1a1a" font-size="4.2" text-anchor="middle"><text x="30.3" y="89.6">4</text><path d="M28.44 91.1h3.72" stroke="#1a1a1a" stroke-width="0.35"></path><text x="30.3" y="95.09">5</text></g>
+      <text x="39.15" y="92.6" text-anchor="middle" font-size="4.2">;</text>
+      <text class="sol" x="30.3" y="99.3" text-anchor="middle" font-size="3.4" fill="#E6007E">= 0,8</text>
+      <g fill="#1a1a1a" font-size="4.2" text-anchor="middle"><text x="48" y="89.6">9</text><path d="M46.14 91.1h3.72" stroke="#1a1a1a" stroke-width="0.35"></path><text x="48" y="95.09">4</text></g>
+      <text x="56.85" y="92.6" text-anchor="middle" font-size="4.2">;</text>
+      <text class="sol" x="48" y="99.3" text-anchor="middle" font-size="3.4" fill="#E6007E">= 2,25</text>
+      <text x="65.7" y="92.6" text-anchor="middle" font-size="4.2">1,8</text>
+      <text x="74.6" y="92.6" text-anchor="middle" font-size="4.2">;</text>
+      <text x="83.5" y="92.6" text-anchor="middle" font-size="4.2">0,2</text>
+      <text x="92.05" y="92.6" text-anchor="middle" font-size="4.2">;</text>
+      <g fill="#1a1a1a" font-size="4.2" text-anchor="middle"><text x="100.6" y="89.6">5</text><path d="M97.48 91.1h6.24" stroke="#1a1a1a" stroke-width="0.35"></path><text x="100.6" y="95.09">10</text></g>
+      <text class="sol" x="100.6" y="99.3" text-anchor="middle" font-size="3.4" fill="#E6007E">= 0,5</text>
+      <path d="M10 108H165.4" stroke="#1a1a1a" stroke-width="0.5"></path>
+      <text x="10" y="103" text-anchor="middle" font-size="4.2">0</text>
+      <text x="54.4" y="103" text-anchor="middle" font-size="4.2">1</text>
+      <text x="98.8" y="103" text-anchor="middle" font-size="4.2">2</text>
+      <text x="143.2" y="103" text-anchor="middle" font-size="4.2">3</text>
+      <path d="M14.44 108v-2.2M18.88 108v-2.2M23.32 108v-2.2M27.76 108v-2.2M32.2 108v-2.2M36.64 108v-2.2M41.08 108v-2.2M45.52 108v-2.2M49.96 108v-2.2M58.84 108v-2.2M63.28 108v-2.2M67.72 108v-2.2M72.16 108v-2.2M76.6 108v-2.2M81.04 108v-2.2M85.48 108v-2.2M89.92 108v-2.2M94.36 108v-2.2M103.24 108v-2.2M107.68 108v-2.2M112.12 108v-2.2M116.56 108v-2.2M121 108v-2.2M125.44 108v-2.2M129.88 108v-2.2M134.32 108v-2.2M138.76 108v-2.2M147.64 108v-2.2M152.08 108v-2.2M156.52 108v-2.2M160.96 108v-2.2M165.4 108v-2.2" stroke="#1a1a1a" stroke-width="0.3"></path>
+      <path d="M10 108v-3.8M54.4 108v-3.8M98.8 108v-3.8M143.2 108v-3.8" stroke="#1a1a1a" stroke-width="0.6"></path>
+      <g class="sol" fill="#E6007E" font-size="4.2" font-weight="700">
+      <path d="M165.4 105v6" stroke="#E6007E" stroke-width="0.6"></path>
+      <g fill="#E6007E" font-size="4.2" text-anchor="middle"><text x="165.4" y="115.3">7</text><path d="M163.54 116.8h3.72" stroke="#E6007E" stroke-width="0.35"></path><text x="165.4" y="120.79">2</text></g>
+      <path d="M45.52 105v6" stroke="#E6007E" stroke-width="0.6"></path>
+      <g fill="#E6007E" font-size="4.2" text-anchor="middle"><text x="45.52" y="115.3">4</text><path d="M43.66 116.8h3.72" stroke="#E6007E" stroke-width="0.35"></path><text x="45.52" y="120.79">5</text></g>
+      <path d="M109.9 105v6" stroke="#E6007E" stroke-width="0.6"></path>
+      <g fill="#E6007E" font-size="4.2" text-anchor="middle"><text x="109.9" y="115.3">9</text><path d="M108.04 116.8h3.72" stroke="#E6007E" stroke-width="0.35"></path><text x="109.9" y="120.79">4</text></g>
+      <path d="M89.92 105v6" stroke="#E6007E" stroke-width="0.6"></path>
+      <text x="89.92" y="116" text-anchor="middle">1,8</text>
+      <path d="M18.88 105v6" stroke="#E6007E" stroke-width="0.6"></path>
+      <text x="18.88" y="116" text-anchor="middle">0,2</text>
+      <path d="M32.2 105v6" stroke="#E6007E" stroke-width="0.6"></path>
+      <g fill="#E6007E" font-size="4.2" text-anchor="middle"><text x="32.2" y="115.3">5</text><path d="M29.08 116.8h6.24" stroke="#E6007E" stroke-width="0.35"></path><text x="32.2" y="120.79">10</text></g>
+      </g>
+      <circle cx="3" cy="133.3" r="2.2" fill="#1F3A5F"></circle><text x="3" y="134.45" text-anchor="middle" fill="#fff" font-size="3.1" font-weight="700" font-family="Verdana,sans-serif">4</text>
+      <g fill="#1a1a1a" font-size="4.2" text-anchor="middle"><text x="12.5" y="131.6">2</text><path d="M10.64 133.1h3.72" stroke="#1a1a1a" stroke-width="0.35"></path><text x="12.5" y="137.09">5</text></g>
+      <text x="21.4" y="134.6" text-anchor="middle" font-size="4.2">;</text>
+      <text class="sol" x="12.5" y="141.3" text-anchor="middle" font-size="3.4" fill="#E6007E">= 0,4</text>
+      <g fill="#1a1a1a" font-size="4.2" text-anchor="middle"><text x="30.3" y="131.6">1</text><path d="M28.44 133.1h3.72" stroke="#1a1a1a" stroke-width="0.35"></path><text x="30.3" y="137.09">4</text></g>
+      <text x="39.15" y="134.6" text-anchor="middle" font-size="4.2">;</text>
+      <text class="sol" x="30.3" y="141.3" text-anchor="middle" font-size="3.4" fill="#E6007E">= 0,25</text>
+      <g fill="#1a1a1a" font-size="4.2" text-anchor="middle"><text x="48" y="131.6">5</text><path d="M46.14 133.1h3.72" stroke="#1a1a1a" stroke-width="0.35"></path><text x="48" y="137.09">4</text></g>
+      <text x="56.85" y="134.6" text-anchor="middle" font-size="4.2">;</text>
+      <text class="sol" x="48" y="141.3" text-anchor="middle" font-size="3.4" fill="#E6007E">= 1,25</text>
+      <text x="65.7" y="134.6" text-anchor="middle" font-size="4.2">1,2</text>
+      <text x="74.6" y="134.6" text-anchor="middle" font-size="4.2">;</text>
+      <text x="83.5" y="134.6" text-anchor="middle" font-size="4.2">2,6</text>
+      <text x="92.05" y="134.6" text-anchor="middle" font-size="4.2">;</text>
+      <g fill="#1a1a1a" font-size="4.2" text-anchor="middle"><text x="100.6" y="131.6">16</text><path d="M97.48 133.1h6.24" stroke="#1a1a1a" stroke-width="0.35"></path><text x="100.6" y="137.09">8</text></g>
+      <text class="sol" x="100.6" y="141.3" text-anchor="middle" font-size="3.4" fill="#E6007E">= 2</text>
+      <path d="M10 150H168.44" stroke="#1a1a1a" stroke-width="0.5"></path>
+      <text x="10" y="145" text-anchor="middle" font-size="4.2">0</text>
+      <text x="56.6" y="145" text-anchor="middle" font-size="4.2">1</text>
+      <text x="103.2" y="145" text-anchor="middle" font-size="4.2">2</text>
+      <text x="149.8" y="145" text-anchor="middle" font-size="4.2">3</text>
+      <path d="M14.66 150v-2.2M19.32 150v-2.2M23.98 150v-2.2M28.64 150v-2.2M33.3 150v-2.2M37.96 150v-2.2M42.62 150v-2.2M47.28 150v-2.2M51.94 150v-2.2M61.26 150v-2.2M65.92 150v-2.2M70.58 150v-2.2M75.24 150v-2.2M79.9 150v-2.2M84.56 150v-2.2M89.22 150v-2.2M93.88 150v-2.2M98.54 150v-2.2M107.86 150v-2.2M112.52 150v-2.2M117.18 150v-2.2M121.84 150v-2.2M126.5 150v-2.2M131.16 150v-2.2M135.82 150v-2.2M140.48 150v-2.2M145.14 150v-2.2M154.46 150v-2.2M159.12 150v-2.2M163.78 150v-2.2M168.44 150v-2.2" stroke="#1a1a1a" stroke-width="0.3"></path>
+      <path d="M10 150v-3.8M56.6 150v-3.8M103.2 150v-3.8M149.8 150v-3.8" stroke="#1a1a1a" stroke-width="0.6"></path>
+      <g class="sol" fill="#E6007E" font-size="4.2" font-weight="700">
+      <path d="M28.64 147v6" stroke="#E6007E" stroke-width="0.6"></path>
+      <g fill="#E6007E" font-size="4.2" text-anchor="middle"><text x="28.64" y="157.3">2</text><path d="M26.78 158.8h3.72" stroke="#E6007E" stroke-width="0.35"></path><text x="28.64" y="162.79">5</text></g>
+      <path d="M21.65 147v6" stroke="#E6007E" stroke-width="0.6"></path>
+      <g fill="#E6007E" font-size="4.2" text-anchor="middle"><text x="21.65" y="157.3">1</text><path d="M19.79 158.8h3.72" stroke="#E6007E" stroke-width="0.35"></path><text x="21.65" y="162.79">4</text></g>
+      <path d="M68.25 147v6" stroke="#E6007E" stroke-width="0.6"></path>
+      <g fill="#E6007E" font-size="4.2" text-anchor="middle"><text x="69.11" y="157.3">5</text><path d="M67.25 158.8h3.72" stroke="#E6007E" stroke-width="0.35"></path><text x="69.11" y="162.79">4</text></g>
+      <path d="M65.92 147v6" stroke="#E6007E" stroke-width="0.6"></path>
+      <text x="66.22" y="158" text-anchor="end">1,2</text>
+      <path d="M131.16 147v6" stroke="#E6007E" stroke-width="0.6"></path>
+      <text x="131.16" y="158" text-anchor="middle">2,6</text>
+      <path d="M103.2 147v6" stroke="#E6007E" stroke-width="0.6"></path>
+      <g fill="#E6007E" font-size="4.2" text-anchor="middle"><text x="103.2" y="157.3">16</text><path d="M100.08 158.8h6.24" stroke="#E6007E" stroke-width="0.35"></path><text x="103.2" y="162.79">8</text></g>
+      </g>
+    </g>
+  </svg>
+
+  <div class="exo-titre ex2">
+    <svg class="pastille" viewBox="0 0 16 16" aria-hidden="true"><rect width="16" height="16" rx="2" fill="#1F3A5F"></rect><text x="8" y="12" text-anchor="middle" fill="#fff" font-size="11" font-weight="700" font-family="Verdana,sans-serif">2</text></svg>
+    <span class="consigne">Sur chacune des droites graduées, indique la position du nombre 1.</span>
+  </div>
+  <svg class="fig" viewBox="0 0 170 38" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Deux droites graduées où 0 et une fraction sont placés">
+    <g font-family="inherit" fill="#1a1a1a">
+      <circle cx="3" cy="6" r="2.2" fill="#1F3A5F"></circle><text x="3" y="7.15" text-anchor="middle" fill="#fff" font-size="3.1" font-weight="700" font-family="Verdana,sans-serif">1</text>
+      <path d="M10 6H168.4" stroke="#1a1a1a" stroke-width="0.4"></path>
+      <path d="M24.5 4.3v3.4M38.95 4.3v3.4M53.4 4.3v3.4M67.85 4.3v3.4M82.3 4.3v3.4M96.75 4.3v3.4M111.2 4.3v3.4M125.65 4.3v3.4M140.1 4.3v3.4M154.55 4.3v3.4" stroke="#1a1a1a" stroke-width="0.35"></path>
+      <text x="24.5" y="12.2" text-anchor="middle" font-size="4.2">0</text>
+      <g fill="#1a1a1a" font-size="4.2" text-anchor="middle"><text x="82.3" y="12.2">4</text><path d="M80.44 13.7h3.72" stroke="#1a1a1a" stroke-width="0.35"></path><text x="82.3" y="17.69">9</text></g>
+      <g class="sol" fill="#E6007E" font-weight="700" font-size="4.2"><g fill="#E6007E" font-size="4.2" text-anchor="middle"><text x="154.55" y="12.2">9</text><path d="M152.69 13.7h3.72" stroke="#E6007E" stroke-width="0.35"></path><text x="154.55" y="17.69">9</text></g><text x="157.95" y="15.7">= 1</text></g>
+      <circle cx="3" cy="26" r="2.2" fill="#1F3A5F"></circle><text x="3" y="27.15" text-anchor="middle" fill="#fff" font-size="3.1" font-weight="700" font-family="Verdana,sans-serif">2</text>
+      <path d="M10 26H168.4" stroke="#1a1a1a" stroke-width="0.4"></path>
+      <path d="M24.5 24.3v3.4M38.95 24.3v3.4M53.4 24.3v3.4M67.85 24.3v3.4M82.3 24.3v3.4M96.75 24.3v3.4M111.2 24.3v3.4M125.65 24.3v3.4M140.1 24.3v3.4M154.55 24.3v3.4" stroke="#1a1a1a" stroke-width="0.35"></path>
+      <text x="24.5" y="32.2" text-anchor="middle" font-size="4.2">0</text>
+      <g fill="#1a1a1a" font-size="4.2" text-anchor="middle"><text x="53.4" y="32.2">2</text><path d="M51.54 33.7h3.72" stroke="#1a1a1a" stroke-width="0.35"></path><text x="53.4" y="37.69">7</text></g>
+      <g class="sol" fill="#E6007E" font-weight="700" font-size="4.2"><g fill="#E6007E" font-size="4.2" text-anchor="middle"><text x="125.65" y="32.2">7</text><path d="M123.79 33.7h3.72" stroke="#E6007E" stroke-width="0.35"></path><text x="125.65" y="37.69">7</text></g><text x="129.05" y="35.7">= 1</text></g>
+    </g>
+  </svg>
+
+  <div class="pied"><span>Nombres et opérations - Lire la valeur d'un nombre sur une droite graduée - UOG/AM</span><span>1</span></div>
+</section>
+
+<script>
+document.querySelectorAll('.page[data-corrige]').forEach(p => {
+  const c = p.cloneNode(true);          /* le corrigé garde le numéro de la page d'origine */
+  c.removeAttribute('data-corrige');
+  c.classList.add('page-corrige');
+  document.body.appendChild(c);
+});
+
+const btn = document.getElementById('btn');
+const OEIL = '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.3 8S3.6 3.8 8 3.8 14.7 8 14.7 8 12.4 12.2 8 12.2 1.3 8 1.3 8z"/><circle cx="8" cy="8" r="2.1"/></svg>';
+const OEIL_B = '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.3 8S3.6 3.8 8 3.8 14.7 8 14.7 8 12.4 12.2 8 12.2 1.3 8 1.3 8z"/><circle cx="8" cy="8" r="2.1"/><path d="M2.5 13.5L13.5 2.5"/></svg>';
+btn.addEventListener('click', () => {
+  const on = document.body.classList.toggle('corrige');
+  btn.innerHTML = on ? OEIL_B : OEIL;
+  btn.title = on ? 'Masquer le corrigé' : 'Afficher le corrigé';
+  btn.setAttribute('aria-label', btn.title);
+});
+
+(function(){
+  const racine = document.documentElement;
+  const barre = document.querySelector('.barre');
+  const taux = document.getElementById('zoom-taux');
+  let z = 1;
+  function applique(v){
+    z = Math.max(0.15, Math.min(v, 4));
+    racine.style.setProperty('--z', z);
+    if (taux) taux.textContent = Math.round(z * 100) + ' %';
+  }
+  function pageEntiere(){
+    racine.style.setProperty('--z', 1);
+    const p = document.querySelector('.page');
+    if (!p) return;
+    const r = p.getBoundingClientRect();
+    const hBarre = barre ? barre.getBoundingClientRect().height : 0;
+    applique(Math.min((window.innerWidth - 36) / r.width,
+                      (window.innerHeight - hBarre - 36) / r.height));
+  }
+  /* auto = la page suit la taille de la fenêtre ; un zoom manuel coupe ce suivi
+     jusqu'au prochain clic sur « Page entière » */
+  let auto = true, lw = window.innerWidth, lh = window.innerHeight;
+  document.getElementById('zoom-moins').addEventListener('click', () => { auto = false; applique(z / 1.15); });
+  document.getElementById('zoom-plus').addEventListener('click', () => { auto = false; applique(z * 1.15); });
+  document.getElementById('zoom-page').addEventListener('click', () => { auto = true; pageEntiere(); });
+  let t; window.addEventListener('resize', () => {
+    clearTimeout(t);
+    t = setTimeout(() => {
+      const w = window.innerWidth, h = window.innerHeight;
+      /* le défilement tactile fait apparaître ou disparaître des barres du navigateur :
+         seule la hauteur bouge un peu, ce n'est pas un vrai redimensionnement */
+      const vrai = Math.abs(w - lw) > 2 || Math.abs(h - lh) > 150;
+      lw = w; lh = h;
+      if (auto && vrai) pageEntiere();
+    }, 150);
+  });
+  pageEntiere();
+
+  /* position de lecture, mémorisée hors passage en plein écran pour être restituée ensuite */
+  let posY = 0, posH = 1, tPos, transition = false;
+  const notePos = () => { posY = window.scrollY; posH = document.documentElement.scrollHeight || 1; };
+  window.addEventListener('scroll', () => {
+    if (transition) return;
+    clearTimeout(tPos); tPos = setTimeout(notePos, 200);
+  }, { passive: true });
+
+  const bpe = document.getElementById('plein-ecran');
+  if (bpe) {
+    bpe.addEventListener('click', () => {
+      clearTimeout(tPos); notePos();
+      if (document.fullscreenElement) document.exitFullscreen();
+      else document.documentElement.requestFullscreen();
+    });
+    document.addEventListener('fullscreenchange', () => {
+      const plein = !!document.fullscreenElement;
+      bpe.innerHTML = plein
+        ? '<svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2v4H2"/><path d="M14 6h-4V2"/><path d="M10 14v-4h4"/><path d="M2 10h4v4"/></svg>'
+        : '<svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6V2h4"/><path d="M10 2h4v4"/><path d="M14 10v4h-4"/><path d="M6 14H2v-4"/></svg>';
+      bpe.title = plein ? 'Quitter le plein écran' : 'Plein écran';
+      /* le zoom choisi avec + ou − est conservé ; sans zoom manuel, la page se recale en page entière.
+         La même portion de page reste à l'écran. */
+      clearTimeout(tPos); transition = true;
+      setTimeout(() => {
+        lw = window.innerWidth; lh = window.innerHeight;
+        if (auto) pageEntiere();
+        window.scrollTo(0, posY / posH * document.documentElement.scrollHeight);
+        setTimeout(() => { transition = false; notePos(); }, 400);
+      }, 120);
+    });
+  }
+})();
+</script>
+</body>
+</html>
