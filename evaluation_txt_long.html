@@ -281,8 +281,20 @@ kbd{font-family:var(--sans);font-size:.82rem;background:var(--gris-fond);border:
   .bloc-remarques{margin-top:8pt;break-inside:avoid}
   /* l'aperçu commence sur une nouvelle page, en vraie grandeur : le texte long n'y tient
      pas sur une seule feuille, il se poursuit de page en page */
-  .bloc-apercu{break-before:page}
-  .bloc-apercu h2{margin-top:0}
+  /* à l'impression, seuls les passages qui portent une pastille sont reproduits */
+  .bloc-apercu{margin-top:10pt}
+  .bloc-apercu.rien-a-montrer{display:none}
+  .apercu-page > :not(.signale){display:none!important}
+  .apercu-page > .signale{margin-top:0;margin-bottom:3mm;border:0;padding-top:0;padding-bottom:0}
+  .apercu-page > .apres-coupure{margin-top:6mm!important}
+  .apercu-page > .apres-coupure::before{
+    content:"[…]";position:absolute;left:0;top:-4.6mm;font-family:var(--sans);font-size:7.5pt;
+    font-weight:400;color:#8E8E93;line-height:1;
+  }
+  .ap-zone .etiq{position:static;display:block;margin-bottom:1mm}
+  .ap-zone.bas .etiq{margin-top:0}
+  .leg-ecran{display:none}
+  .leg-imp{display:inline!important}
   .legende-apercu{font-size:8.2pt;margin-bottom:6pt}
   .apercu-wrap{background:none;padding:0;border-radius:0;overflow:visible;height:auto!important}
   #apercu-scale{transform:none!important}
@@ -304,7 +316,7 @@ kbd{font-family:var(--sans);font-size:.82rem;background:var(--gris-fond);border:
 <header class="tete">
   <span class="pil">Informatique · PAI · traitement de texte</span>
   <div class="tete-texte">
-    <h1 title="v2">Texte long : contrôle de votre mise en forme</h1>
+    <h1 title="v4">Texte long : contrôle de votre mise en forme</h1>
     <p><span class="insecable">Déposez votre fichier, il est analysé dans votre navigateur (rien n’est envoyé sur Internet).</span>
       <span class="insecable">Vous obtenez votre note ainsi que la liste des corrections à apporter.</span></p>
   </div>
@@ -356,7 +368,7 @@ kbd{font-family:var(--sans);font-size:.82rem;background:var(--gris-fond);border:
       </div>
 
       <div class="bloc-apercu">
-        <h2>Aperçu de votre document</h2>
+        <h2><span class="leg-ecran">Aperçu de votre document</span><span class="leg-imp" style="display:none">Passages à corriger</span></h2>
         <p class="legende-apercu" id="legende-apercu"></p>
         <div class="apercu-wrap" id="apercu-wrap"><div class="apercu-scale" id="apercu-scale"></div></div>
       </div>
@@ -1176,7 +1188,11 @@ function analyser(paras, zones, appPages){
       const tape = /\d/.test(motif.replace(/\{[XY]\}/g, ""));
       if(!aX){ n++; d.push(tape ? "le numéro de page est tapé au clavier : il sera le même sur toutes les pages — insérez un numéro automatique (Insertion ▸ Numéro de page)"
                                : "insérer le numéro de page automatique (Insertion ▸ Numéro de page)"); }
-      if(!aY){ n++; d.push("le nombre total de pages doit être automatique : utilisez le modèle « Page X | Y » ou « Page X sur Y » de la galerie (Insertion ▸ Numéro de page)"); }
+      // un total tapé au clavier est accepté s'il est juste (il l'est tant que le document
+      // garde son nombre de pages) : on le signale seulement, sans le compter
+      const totalTape = (motif.match(/^page\s*\{X\}\s*(?:\/|\||sur|de)\s*(\d+)$/i) || [])[1];
+      const totalJuste = totalTape && +totalTape === (appPages || 6);
+      if(!aY && !totalJuste){ n++; d.push(totalTape ? "le nombre total de pages tapé (« " + totalTape + " ») ne correspond pas au document" + (appPages ? ", qui compte " + appPages + " pages" : "") + " : utilisez le modèle « Page X | Y » ou « Page X sur Y » de la galerie (Insertion ▸ Numéro de page)" : "le nombre total de pages doit être automatique : utilisez le modèle « Page X | Y » ou « Page X sur Y » de la galerie (Insertion ▸ Numéro de page)"); }
       // le séparateur est libre : « / », « | », « sur » ou « de » (modèles de la galerie Word)
       if(aX && aY && !/^page\s*\{X\}\s*(\/|\||sur|de)\s*\{Y\}$/i.test(motif)){
         n++; d.push("écrire « Page X / Y » comme le modèle (trouvé : « " + norm(segs.map(s => s.t).join("")) + " »)");
@@ -1305,7 +1321,8 @@ function apercu(r, nums){
   const legende = '<span>Ce qui est à corriger est <span class="ex">surligné</span> ; '
                 + 'un <span class="cr">V</span> marque un mot ou un signe oublié ; '
                 + 'les numéros en marge renvoient aux corrections numérotées.</span>'
-                + ' Les paragraphes de texte sont abrégés à deux lignes.';
+                + '<span class="leg-ecran"> Les paragraphes de texte sont abrégés à deux lignes.</span>'
+                + '<span class="leg-imp" style="display:none"> Seuls les passages qui portent une pastille sont reproduits.</span>';
   return { html:`<div class="apercu-page">${h}</div>`, legende };
 }
 
@@ -1349,6 +1366,17 @@ function afficher(r, nomFichier){
   const vue = apercu(r, nums);
   $("apercu-scale").innerHTML = vue.html;
   $("legende-apercu").innerHTML = vue.legende;
+  // repère les passages à imprimer (ceux qui portent une pastille) et les coupures entre eux
+  {
+    const page = $("apercu-scale").firstElementChild;
+    let precedent = -2, nb = 0;
+    [...page.children].forEach((el, i) => {
+      const signale = !!el.querySelector(":scope > .ap-num span");
+      el.classList.toggle("signale", signale);
+      if(signale){ if(precedent >= 0 && i > precedent + 1) el.classList.add("apres-coupure"); precedent = i; nb++; }
+    });
+    document.querySelector(".bloc-apercu").classList.toggle("rien-a-montrer", nb === 0);
+  }
   ajusterEchelle();
 
   const li = c => `<li data-n="${c.n}"><b><i>${c.n}</i>${echapper(c.t)}</b><em>${echapper(c.d)}</em></li>`;
