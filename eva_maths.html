@@ -8,7 +8,7 @@ générant des exercices de mathématiques pour adultes (programme PAI, Suisse).
 Product owner : Aurelio (Onex/Genève). Répondre en FRANÇAIS.
 
 ───────────────────────────────────────────────────────────────────────────────
-0. OÙ ON EN EST (v533, 20.10.2026) — à lire en premier
+0. OÙ ON EN EST (v532, 23.10.2026) — à lire en premier
 ───────────────────────────────────────────────────────────────────────────────
 L'application est en ligne : https://aureliohub.github.io/eva_maths.html
 Les fichiers de série et de test (.json) sont déposés à côté d'elle, et s'ouvrent
@@ -544,124 +544,39 @@ PDF de domaine :
 Cette section décrit l'ÉTAT, non l'historique. Les numéros de version ne sont
 cités que lorsqu'ils aident à retrouver un choix dans le fichier.
 
-v533 — DÉCIMAUX FUSIONNÉS : 4 QUESTIONS PAR PAGE D'ÉNONCÉ (20.10, PDF de
- l'atelier envoyé par Aurelio : deux exercices fusionnés en 6 questions,
- « les lettres e et f devraient figurer sur une autre page »).
- · CAUSE : `Q_PAR_PAGE.decimaux` valait 6 ; un exercice de 6 questions n'était
-   donc pas coupé et, avec l'écart de 400 px, la rangée e) f) tombait en pied
-   de page, sans place pour poser.
- · Désormais 4 dans le PDF à pages FIXES (sous-domaine, atelier d'un seul
-   sous-domaine), 6 conservé en FLUX (`rendreBlocs`, série mêlant plusieurs
-   sous-domaines, qui coupe par rangées). Les tranches reprennent la mise en
-   page ORDINAIRE (a)/b) en haut, c)/d) au milieu, écart 400 px) : les rangées
-   de 283 px ne servent plus qu'au flux. `_trancheDe` reste posé, sans effet.
- · 6 questions → page 1 a)–d), page 2 « Exercice 1. (suite) » e) f) ; 8 → a)–d)
-   puis e)–h) ; corrigé inchangé (une page, opérations posées).
- Vérifié au vrai navigateur par le chemin de l'atelier
- (atelierGenererPdfInterne) avec 5, 6 et 8 questions fusionnées, pages
- regardées. NON-RÉGRESSION, 34 documents à graine fixe contre la v532 : 33
- identiques ; « unités » alterne entre deux tirages d'une exécution à l'autre
- dans les DEUX versions (hasard hors graine) — ce n'est pas un écart.
+v532 — « FRACTIONS », CITERNE / CAMION : UNE SEULE PLACE (23.10). Comme pour
+ les éliminations (v530) : un seul patron 14, en palier 3, qui tire la
+ version en fraction ou en litres. Aurelio : « ok pour une des deux ».
+ Palier 3 = 1, 3, 12, 13, 14 (≈ 20 % chacun pour la question d).
 
-v532 — DÉCIMAUX : LE CORRIGÉ PDF POSE TOUTES LES OPÉRATIONS (20.10, demande
- d'Aurelio : « que le corrigé pdf affiche le détail des calculs pour tous les
- calculs, comme pour les nombres entiers »). Niveaux 1 et 2, les quatre
- variantes.
- · MOTEUR À PART (bloc « OPÉRATIONS POSÉES AVEC DES DÉCIMAUX », juste avant
-   poseOperationHtml) : poseAdditionDecHtml (2 ou 3 termes, retenue jusqu'à 2),
-   poseSoustractionDecHtml, poseMultiplicationDecHtml, poseDivisionDecHtml.
-   Les fonctions des ENTIERS ne sont pas touchées ; poseOperationHtml aiguille
-   sur `pose.dec`. `q.pose` porte les nombres TELS QU'ÉCRITS (« 78,67 »),
-   calculs en entiers sur leurs chiffres, aucun flottant.
- · CONVENTIONS RETENUES (choix de Claude, à faire valider) : virgules alignées
-   et termes complétés par des 0 (à l'encre : en gris ils se confondaient avec
-   les chiffres barrés) ; multiplication calée à droite, virgule placée au
-   produit, une ligne de 0 pour un chiffre 0 du multiplicateur ; division :
-   diviseur rendu entier (ligne grise « 294,49 ÷ 0,12 = 29449 ÷ 12 » au-dessus
-   de la potence), 0 ajoutés au dividende, quotient jusqu'aux centièmes (plus
-   loin si le dividende continue : 4,125 au niveau 1).
- · LA VIRGULE NE PREND PAS DE COLONNE : posée en absolu contre le chiffre des
-   unités (`_poseCellsDec`), les colonnes restent alignées.
- · EMPRUNTS EN CASCADE : le niveau entier les écarte (v480), ici ils sont
-   inévitables — le niveau 2 impose un 0 dans le premier terme (1 783
-   soustractions sur 2 500 au banc). Notation : l'emprunteur seul garde son
-   chiffre avec « 10 » au-dessus (règle d'Aurelio) ; une colonne qui prête ET
-   emprunte est barrée, sa valeur de travail au-dessus (0 → 9, 1 → 10, 5 → 14).
-   C'est le repli déjà écrit dans poseSoustractionHtml. SIGNALÉ à Aurelio.
- · `_poseColonne` vaut maintenant pour tous les niveaux de genDecimal ; ajouté
-   à CLES_AFFICHAGE_EXERCICE (fusion de l'atelier). Corrigé rendu par
-   `poseColonneDecCorrigeHtml` : une rangée `data-pose-rangee` par paire.
- · PAGINATION (piège n°2) : deux exercices de divisions faisaient jusqu'à
-   1 331 px pour une page de 1 123 — le second corrigé aurait été coupé SANS
-   ERREUR. `corrigeEnPages` (downloadPdf, décimaux seulement) reporte sur des
-   pages suivantes, par exercices entiers puis par rangées (« (suite) »).
-   Série à la carte : `placerEnFlux` coupe aussi entre deux rangées
-   (`unitesDeCoupe`) — sans effet sur ce qui n'en a pas.
- · PDF DE DOMAINE NON TOUCHÉ : son corrigé du domaine 1 reste une liste de
-   réponses (il n'appelle espaceCorrigeInner que pour le domaine 5).
- Banc au vrai navigateur : 8 000 opérations posées (N1 et N2, 4 variantes)
- relues cellule par cellule — pose = énoncé, résultat = réponse, virgules
- alignées, chaque colonne d'addition et de soustraction refaite (retenues,
- emprunts, cascades), produits partiels et leurs retenues, quotient, produits
- et reste final de la potence : zéro défaut ; quatre sabotages détectés.
- Mesure : plus aucun corrigé ne déborde (contenu le plus bas à 901 px), les 8
- opérations toujours présentes. PDF regardés : sous-domaine (mélange N1/N2,
- soustractions, multiplications, divisions sur 2 pages) et série à la carte
- avec 8 divisions fusionnées (coupées a–d / e–f / g–h). NON-RÉGRESSION, 34
- documents à graine fixe contre la v531 : 33 identiques au bloc près ; le
- 34e (décimaux) ne diffère que par son corrigé.
+v531 — « FRACTIONS » : SOUSTRACTION DE DEUX FRACTIONS (23.10). Aucun modèle ne
+ soustrayait deux fractions l'une de l'autre (seulement 1 − …). Nouveau :
+ niveau d'un récipient entre deux moments. Contextes validés par Aurelio :
+ citerne d'eau de pluie (« remplie aux 1/6 … aux 5/8 », le niveau monte) et
+ jauge du réservoir d'un camion (7/8 → 1/6, il descend). Refusés : mur peint,
+ livre, trajet, clôture (peu réalistes), cuve à lait (« ne se garde pas
+ remplie »). 14 (palier 2) : quelle fraction ; 15 (palier 3) : combien de
+ litres, contenance donnée. Dénominateur commun ≤ 40, résultat jamais 1/2,
+ 1/3, 2/3, 1/4, 3/4. SIMILAIRES [14, 15].
 
-v531 — DÉCIMAUX, DIVISIONS DU NIVEAU 2 (15.10, demande d'Aurelio : « des
- quotients en centaines au minimum et avec un nombre non fini après 2
- décimales » ; « que le choix ne propose que 2 quotients avec un 0 sur les 4 »).
- · `generateDivisionN2` (à côté de generateDivision, qui ne sert plus qu'au
-   niveau 1) : le dividende n'est plus un multiple du diviseur, la division se
-   mène en ENTIERS. Partie entière du quotient de 100 à 9'999 (au-delà, 31 129
-   sortait avec 0,15) ; reste NON NUL après les centièmes — la division ne
-   s'arrête pas là, sans fin le plus souvent (88 % des tirages), sinon à 3 ou
-   4 décimales (diviseur 0,8, 1,2…). Toujours : centièmes ≠ 0, dividende de 4-5
-   chiffres sans 0, mêmes neuf diviseurs.
- · Réponse attendue : le quotient TRONQUÉ au centième (convention inchangée) ;
-   admis aussi : les troncatures à 3, 4, 5, 6 décimales. Un arrondi
-   (« 104,73 » pour 104,7285…) est REFUSÉ, comme avant.
- · Corrigé : `quotientComplet` = « 1046,3333… » (4 décimales + points de
-   suspension) ou la valeur exacte quand elle tombe juste.
- · VARIANTE « Divisions », niveau 2 : DEUX quotients avec un 0 intérieur, DEUX
-   sans, places tirées au hasard (`opDiv(avecZero)`). L'exercice « 4
-   opérations » garde son unique division avec 0 (différence N1/N2 de v405).
- · DÉFAUT ANCIEN CORRIGÉ AU PASSAGE : le quotient complet en gris
-   (`.quotient-complet`) passait dans l'ÉNONCÉ des PDF quand les solutions
-   étaient affichées à l'écran au moment de l'export — il n'était pas dans la
-   liste des nettoyages. Ajouté aux trois chaînes (domaine, sous-domaine,
-   branche prop-concret) et aux aperçus de l'accueil. Latent jusqu'ici (peu de
-   quotients longs), il aurait sorti la réponse à chaque export.
- Banc au vrai navigateur : 14 000 divisions N2 (3 000 exercices « Divisions »
- + 2 000 « 4 opérations ») recalculées en BigInt depuis l'énoncé : réponse,
- quotient ≥ 100 et < 10 000, reste non nul, 0 intérieur selon la règle,
- toujours exactement 2 sur 4 dans la variante, diviseurs distincts,
- troncatures admises, quotient complet — zéro défaut. N1 et N3 inchangés.
- Saisie frappée : troncature 2 et 3 décimales justes, arrondi faux. Écran,
- PDF du sous-domaine (énoncé + corrigé, solutions affichées ou non) et PDF
- du domaine 1 regardés.
+v530 — « FRACTIONS », ÉLIMINATIONS SUCCESSIVES : UNE SEULE PLACE (23.10). Le
+ modèle sortait dans ~45 % des exercices (une place en palier 2, une en
+ palier 3). Aurelio : « OK pour une des deux catégories ». Désormais un seul
+ patron 13, en palier 3 (question d), qui tire A, B, C ou D — au même palier
+ que le réservoir (1), de difficulté comparable à C.
 
-v530 — EXERCICE FUSIONNÉ : PLUS DE MENTION DE NIVEAU (14.10, demande
- d'Aurelio : « il faut supprimer la mention du niveau si on fusionne »). Dans
- le PDF bâti par downloadPdf (série d'un seul sous-domaine ET blocs des séries
- mêlées), un exercice portant `_fusionne` n'affiche plus « – Niveau N » ni le
- nom de sa sous-rubrique, à l'énoncé (page « (suite) » comprise) comme au
- corrigé. Vaut même quand les deux exercices fusionnés étaient du même niveau.
- Les exercices non fusionnés gardent leur étiquette.
-
-v529 — PDF D'UN EXERCICE DE DÉCIMAUX FUSIONNÉ : « exoDiv is not defined »
- (14.10, signalé par Aurelio depuis l'atelier). Un exercice de plus de 6
- questions (fusion de deux exercices, 8 questions) est découpé en tranches ;
- la tranche « (suite) » retire sa consigne — mais cette ligne, ajoutée en v429,
- visait `exoDiv`, variable de la fonction de nettoyage, au lieu de `dom`, nom de
- l'exercice dans la boucle des titres de downloadPdf. Le chemin ne s'exécute
- qu'avec `_suitePdf` : aucun PDF ordinaire ne passait par là, d'où une panne
- restée invisible au harnais. Une seule ligne changée.
- Vérifié au vrai navigateur : composition de deux décimaux fusionnés (8
- questions) → PDF produit, page 2 « (suite) » sans consigne, corrigé a)–h).
+v529 — « FRACTIONS » : NOUVEAU MODÈLE « ÉLIMINATIONS SUCCESSIVES » (23.10).
+ Demandé par Aurelio : « 1/4 des participants est éliminé à la première
+ question, 2/3 des restants à la deuxième ; quelle fraction reste-t-il ? »,
+ sans fractions trop complexes. Patrons 13 (palier 2 : A fraction qui reste /
+ C nombre qui reste) et 14 (palier 3 : B fraction éliminée au 2e tour sur le
+ total / D nombre de départ). Libellé validé : « 3/10 des participants
+ restants sont éliminés au deuxième tour. » Contextes validés : jeu télévisé
+ (fractions seulement), quiz, concours de cuisine, tests d'un club de
+ football, places d'apprentissage (petits nombres). Refusés : échecs (duel :
+ la moitié sort à chaque tour), chorale, audition, course, « en lice ».
+ Le produit se simplifie toujours ; résultat de dénominateur ≤ 12.
+ SIMILAIRES : [13, 14] et [1, 13].
 
 v528 — « % - RABAIS » : PRIX DE DÉPART SANS AMBIGUÏTÉ (14.10). Aurelio : on ne
  savait pas si le prix annoncé était le prix réduit ou le prix normal. Choix
@@ -4425,7 +4340,6 @@ ainsi (une remarque prise pour une consigne, une sélection ambiguë).
   .home-card-preview .feedback,
   .home-card-preview .exo-tip,
   .home-card-preview .inline-solution,
-  .home-card-preview .quotient-complet,
   .home-card-preview .no-print {
     display: none !important;
   }
@@ -7508,7 +7422,7 @@ function genDecimal(operation) {
       const a = randDecimal(ce, 1);
       const b = randDecimal(ce, 1);
       const r = +(a + b).toFixed(2);
-      return { text: `${toFr(a)} + ${toFr(b)} = `, answer: toFr(r), pose: { termes: [toFr(a), toFr(b)], op: '+', dec: true } };
+      return { text: `${toFr(a)} + ${toFr(b)} = `, answer: toFr(r) };
     } else {
       // N2 : 3 termes, décimales différentes, un des trois sans décimale (0 décimale).
       const decsPool = [1, 2, 3];
@@ -7524,7 +7438,7 @@ function genDecimal(operation) {
       const b = randDecimal(ce(decs[1]), decs[1]);
       const c = randDecimal(ce(decs[2]), decs[2]);
       const r = +(a + b + c).toFixed(4);
-      return { text: `${toFr(a)} + ${toFr(b)} + ${toFr(c)} = `, answer: toFr(r), pose: { termes: [toFr(a), toFr(b), toFr(c)], op: '+', dec: true } };
+      return { text: `${toFr(a)} + ${toFr(b)} + ${toFr(c)} = `, answer: toFr(r) };
     }
   };
 
@@ -7569,7 +7483,7 @@ function genDecimal(operation) {
         const tmp = premier; premier = second; second = tmp;
       }
       const r = +(premier - second).toFixed(3);
-      return { text: `${toFr(premier)} − ${toFr(second)} = `, answer: toFr(r), pose: { a: toFr(premier), b: toFr(second), op: '−', dec: true } };
+      return { text: `${toFr(premier)} − ${toFr(second)} = `, answer: toFr(r) };
     } else {
       // N2 : décimales différentes, premier terme contient au moins un 0,
       // limite : 6 chiffres maximum pour le premier terme (entiers + décimales).
@@ -7591,7 +7505,7 @@ function genDecimal(operation) {
       const b = randDecimal(2, decB); // 2 chiffres entiers pour b
       const [big, small] = a >= b ? [a, b] : [b, a];
       const r = +(big - small).toFixed(4);
-      return { text: `${toFr(big)} − ${toFr(small)} = `, answer: toFr(r), pose: { a: toFr(big), b: toFr(small), op: '−', dec: true } };
+      return { text: `${toFr(big)} − ${toFr(small)} = `, answer: toFr(r) };
     }
   };
 
@@ -7614,7 +7528,7 @@ function genDecimal(operation) {
       const b = randDecimal(1, 1);
       const r = +(a * b).toFixed(6);
       // Force max 4 décimales pour l'affichage
-      return { text: `${toFr(a)} × ${toFr(b)} = `, answer: toFr(r), pose: { a: toFr(a), b: toFr(b), op: '×', dec: true } };
+      return { text: `${toFr(a)} × ${toFr(b)} = `, answer: toFr(r) };
     } else {
       // N2 : premier facteur à 4 chiffres (entier + décimales = 4 chiffres totaux)
       // Par exemple : 3 chiffres entiers + 1 décimale, ou 2 chiffres entiers + 2 décimales.
@@ -7625,16 +7539,14 @@ function genDecimal(operation) {
       const a = randDecimal(config[0], config[1]);
       const b = randDecimal(1, 2);
       const r = +(a * b).toFixed(6);
-      return { text: `${toFr(a)} × ${toFr(b)} = `, answer: toFr(r), pose: { a: toFr(a), b: toFr(b), op: '×', dec: true } };
+      return { text: `${toFr(a)} × ${toFr(b)} = `, answer: toFr(r) };
     }
   };
 
   // ===========================================================
   // DIVISION
   // ===========================================================
-  // `avecZero` ne sert qu'au niveau 2 : vrai → le quotient porte un 0
-  // intérieur, faux → aucun 0. Absent → 0 exigé (exercice mélangé).
-  const opDiv = (avecZero) => {
+  const opDiv = () => {
     if (niveau === 3) {
       // Nombres entiers : division EXACTE (pas de reste, pas de quotient
       // décimal). Les diviseurs sont les MÊMES CHIFFRES que ceux des niveaux
@@ -7667,76 +7579,12 @@ function genDecimal(operation) {
         nbChiffresDividende: choice([4, 5]), quotientZero: false, diviseurs: DIVISEURS_N1
       });
     } else {
-      // N2 (15.10, demande d'Aurelio) : quotient de 100 au moins, et une
-      // division qui NE S'ARRÊTE PAS au centième (elle continue, souvent sans
-      // fin). Le 0 intérieur du quotient est exigé, sauf dans la variante
-      // « Divisions », qui n'en met que dans deux calculs sur quatre.
-      return generateDivisionN2({ quotientZero: avecZero !== false, diviseurs: DIVISEURS_N2 });
+      // N2 : quotient contient au moins un 0 (sauf le dernier chiffre)
+      return generateDivision({
+        nbChiffresDividende: choice([4, 5]), quotientZero: true, diviseurs: DIVISEURS_N2
+      });
     }
   };
-
-  // DIVISION DU NIVEAU 2 (v531). Le dividende est tiré LIBREMENT (ce n'est plus
-  // un multiple du diviseur) et la division se mène en ENTIERS, sans flottant :
-  // dividende N / 10^dDec, diviseur D / 10^decDiviseur, donc
-  // quotient = (N · 10^decDiviseur) / (D · 10^dDec).
-  // Règles : partie entière de 100 à 9'999 ; reste non nul après le chiffre des
-  // centièmes (la division ne s'arrête pas là) ; centièmes jamais 0 (refusé
-  // en v406) ; 0 intérieur exigé ou interdit selon `quotientZero` ; dividende
-  // de 4 ou 5 chiffres sans 0, 1 à 3 décimales.
-  // Réponse attendue : le quotient TRONQUÉ au centième, comme avant. Sont
-  // aussi admises les troncatures à 3, 4, 5 et 6 décimales (« au minimum deux
-  // décimales »). Le corrigé rappelle en gris le quotient poursuivi
-  // (« 121,9571… », ou sa valeur exacte quand elle tombe juste avant).
-  function generateDivisionN2({ quotientZero, diviseurs }) {
-    const fmt = (k, nbDec) => {
-      const sK = String(k).padStart(nbDec + 1, '0');
-      return nbDec ? sK.slice(0, sK.length - nbDec) + ',' + sK.slice(sK.length - nbDec) : sK;
-    };
-    const sansZero = (len) => {
-      let t = '';
-      for (let i = 0; i < len; i++) t += String(rand(1, 9));
-      return t;
-    };
-    let secours = null;
-    for (let essai = 0; essai < 2000; essai++) {
-      const divisor = choice(diviseurs);
-      const decDiviseur = divisor.length - divisor.indexOf(',') - 1;
-      const D = parseInt(divisor.replace(',', ''), 10);
-      const nbD = choice([4, 5]);
-      const dDec = rand(1, Math.min(3, nbD - 1));
-      const sN = sansZero(nbD);
-      const N = parseInt(sN, 10);
-      const num = N * Math.pow(10, decDiviseur);
-      const den = D * Math.pow(10, dDec);
-      const entier = Math.floor(num / den);
-      if (entier < 100 || entier > 9999) continue;      // centaines ou milliers
-      const q2 = Math.floor(num * 100 / den);
-      if ((num * 100) % den === 0) continue;          // s'arrête au centième
-      const chiffres = String(q2);
-      if (chiffres.endsWith('0')) continue;            // jamais 0 aux centièmes
-      const zeroInterieur = chiffres.slice(0, -1).includes('0');
-      const dividend = sN.slice(0, nbD - dDec) + ',' + sN.slice(nbD - dDec);
-      // Suite de la division : jusqu'à 6 décimales.
-      const alt = [];
-      let complet = null;
-      for (let k = 3; k <= 6; k++) {
-        const qk = Math.floor(num * Math.pow(10, k) / den);
-        alt.push(fmt(qk, k));
-        if ((num * Math.pow(10, k)) % den === 0) { complet = fmt(qk, k); break; }
-      }
-      if (!complet) complet = fmt(Math.floor(num * 10000 / den), 4) + '…';
-      const q = {
-        text: `${dividend} ÷ ${divisor} = `, answer: fmt(q2, 2),
-        acceptAlt: alt, quotientComplet: complet,
-        pose: { a: dividend, b: divisor, op: '÷', dec: true }
-      };
-      if (zeroInterieur === quotientZero) return q;
-      if (!secours) secours = q;
-    }
-    return secours || { text: '85,37 ÷ 0,7 = ', answer: '121,95',
-      acceptAlt: ['121,957', '121,9571', '121,95714', '121,957142'], quotientComplet: '121,9571…',
-      pose: { a: '85,37', b: '0,7', op: '÷', dec: true } };
-  }
 
   // Helper division : choisit divisor (1 décimale) et dividende avec virgule placée
   // de sorte que le quotient ait AU MOINS 2 décimales (pas de quotient entier).
@@ -7855,8 +7703,7 @@ function genDecimal(operation) {
     // corrigé rappelle la valeur complète en gris (`quotientComplet`).
     // acceptAlt n'existe QUE si les deux écritures diffèrent, sans quoi le
     // corrigé affichait « 11,84 ou 11,84 ».
-    const q = { text: `${tirage.dividend} ÷ ${divisor} = `, answer: tirage.quotient,
-      pose: { a: tirage.dividend, b: divisor, op: '÷', dec: true } };
+    const q = { text: `${tirage.dividend} ÷ ${divisor} = `, answer: tirage.quotient };
     if (tirage.quotientExact && tirage.quotientExact !== tirage.quotient) {
       q.acceptAlt = [tirage.quotientExact];
       q.quotientComplet = tirage.quotientExact;
@@ -7883,10 +7730,6 @@ function genDecimal(operation) {
     // pour les divisions on impose quatre diviseurs différents (le niveau 1 en
     // propose 6, le niveau 2 en propose 9 : il y en a toujours assez).
     const dejaVus = new Set(), diviseursVus = new Set();
-    // Niveau 2, divisions : deux quotients avec un 0 intérieur, deux sans
-    // (demande d'Aurelio, 15.10), à des places tirées au hasard.
-    const zeros = [true, true, false, false];
-    for (let i = 3; i > 0; i--) { const j = rand(0, i); const t = zeros[i]; zeros[i] = zeros[j]; zeros[j] = t; }
     const diviseurDe = (t) => {
       const parts = String(t).split('÷');
       return parts.length > 1 ? parts[1].replace('=', '').trim() : '';
@@ -7894,13 +7737,13 @@ function genDecimal(operation) {
     for (let i = 0; i < 4; i++) {
       let q = null;
       for (let essai = 0; essai < 80; essai++) {
-        const cand = operation === 'division' ? opSeule(zeros[i]) : opSeule();
+        const cand = opSeule();
         if (dejaVus.has(cand.text)) continue;
         if (operation === 'division' && diviseursVus.has(diviseurDe(cand.text))) continue;
         q = cand;
         break;
       }
-      if (!q) q = operation === 'division' ? opSeule(zeros[i]) : opSeule();   // filet : plutôt un doublon qu'un trou
+      if (!q) q = opSeule();          // filet : plutôt un doublon qu'un trou
       dejaVus.add(q.text);
       if (operation === 'division') diviseursVus.add(diviseurDe(q.text));
       const qObj = { label: labels[i], text: q.text, answer: q.answer };
@@ -7909,7 +7752,7 @@ function genDecimal(operation) {
       if (q.pose) qObj.pose = q.pose;      // corrigé : opération posée en colonne
       questions.push(qObj);
     }
-    return { multi: true, intro: CONSIGNE[operation], questions, _poseColonne: true };
+    return { multi: true, intro: CONSIGNE[operation], questions, _poseColonne: niveau === 3 };
   }
   const ops = [opAdd, opSub, opMul, opDiv];
   for (let i = 0; i < 4; i++) {
@@ -7922,7 +7765,7 @@ function genDecimal(operation) {
   }
   return {
     multi: true,
-    _poseColonne: true,
+    _poseColonne: niveau === 3,
     intro: niveau === 3
       ? "Pose les opérations en colonne"
       : "Pose les opérations en colonne (pour les divisions, quotient à deux décimales au minimum)",
@@ -11047,7 +10890,7 @@ function uniteDeLaReponse(rep) {
   }
   // Monnaies et grandeurs hors du tableau métrique, plus les objets dénombrés
   // qui font office d'unité dans la réponse (« 26 portions », « 12 employés »).
-  if (/^(CHF|EUR|USD|hectares?|ares?|portions?|employ[ée]s?|inscrits?|spectateurs?|livres?|gar[çc]ons?|filles?|voitures?|[oœ]ufs?|[ée]l[èe]ves?|animaux|personnes?|pages?|fruits?|romans?|chats?|pi[èe]ces?)$/i.test(mot)) {
+  if (/^(CHF|EUR|USD|hectares?|ares?|portions?|employ[ée]s?|inscrits?|spectateurs?|livres?|gar[çc]ons?|filles?|voitures?|[oœ]ufs?|[ée]l[èe]ves?|animaux|personnes?|pages?|fruits?|romans?|chats?|pi[èe]ces?|participants?|joueurs?|dossiers?)$/i.test(mot)) {
     return mot;
   }
   // « 30 autres animaux », « 4 c.s. » : fragments de phrase, pas des unités.
@@ -11060,7 +10903,7 @@ function uniteDeLaReponse(rep) {
 //   3 partage à trois · 4 fraction d'un nombre · 5 fraction d'une fraction
 //   6 fraction restante · 7 diminution · 8 comparaison · 9 remplissage
 //   10 complément · 11 paiement échelonné · 12 reste connu → total
-const FRACTIONS_PALIERS = [1, 3, 2, 3, 1, 2, 2, 2, 2, 1, 1, 2, 3];
+const FRACTIONS_PALIERS = [1, 3, 2, 3, 1, 2, 2, 2, 2, 1, 1, 2, 3, 3, 3];
 
 // ---------------------------------------------------------------------------
 // RÉPONSE EN DURÉE (v513) — `answerType: 'duree'`, générique : toute question
@@ -11602,6 +11445,191 @@ function genPropConcretFractions() {
     };
   }
 
+  // --- Types 13 et 14 : ÉLIMINATIONS SUCCESSIVES (v529, modèle demandé par
+  // Aurelio le 23.10). a/b des participants éliminés au 1er tour, puis c/d
+  // des participants RESTANTS au 2e tour. Quatre versions validées :
+  //   13 (palier 2) : A fraction qui reste · C nombre qui reste
+  //   14 (palier 3) : B fraction éliminée au 2e tour, par rapport au total
+  //                   (piège : répondre c/d) · D nombre de départ, à partir
+  //                   du nombre qui reste
+  // Paires tirées pour que le produit SE SIMPLIFIE (7/10 × 2/7 = 1/5) et que
+  // le résultat garde un dénominateur de 12 au plus : pas de fraction
+  // compliquée. Contextes choisis avec Aurelio : rien de duel (aux échecs, la
+  // moitié sort à chaque tour), pas de « chorale », « audition », « en lice »,
+  // « épreuve ». Places d'apprentissage : petits nombres (30 à 120 dossiers).
+  // 13 n'est jamais avec 1 (réservoir vidé en deux fois, même calcul que C).
+  const ELIM_CTX = [
+    { lors: "Lors d'un jeu télévisé", grp: 'participants', v: 'éliminés', vf: 'éliminée',
+      e1: 'à la première question', e2: 'à la deuxième question', fin: 'pour la troisième question', nombres: false },
+    { lors: "Lors d'un quiz", grp: 'participants', v: 'éliminés', vf: 'éliminée',
+      e1: 'au premier tour', e2: 'au deuxième tour', fin: 'pour le troisième tour',
+      intro: (n) => `${n} personnes participent à un grand quiz.`, depart: 'Combien de participants y avait-il au départ ?', min: 150, max: 990 },
+    { lors: "Lors d'un concours de cuisine", grp: 'participants', v: 'éliminés', vf: 'éliminée',
+      e1: 'au premier tour', e2: 'au deuxième tour', fin: 'pour le troisième tour',
+      intro: (n) => `${n} personnes participent à un concours de cuisine.`, depart: 'Combien de participants y avait-il au départ ?', min: 40, max: 150 },
+    { lors: "Lors des tests d'un club de football", grp: 'joueurs', v: 'éliminés', vf: 'éliminée',
+      e1: 'au premier test', e2: 'au deuxième test', fin: 'après le deuxième test',
+      intro: (n) => `${n} joueurs participent aux tests d'un club de football.`, depart: 'Combien de joueurs ont participé aux tests ?', min: 40, max: 150 },
+    { phrase: "Une entreprise reçoit des dossiers pour ses places d'apprentissage.", grp: 'dossiers', v: 'refusés', vf: 'refusée',
+      e1: 'à la première sélection', e2: "après l'entretien", fin: "après l'entretien",
+      intro: (n) => `Une entreprise reçoit ${n} dossiers pour ses places d'apprentissage.`, depart: "Combien de dossiers l'entreprise a-t-elle reçus ?", min: 30, max: 120 }
+  ];
+  const ELIM_FR = [];
+  [5, 6, 7, 8, 9, 10, 12].forEach(b => { for (let a = 1; a < b; a++) if (pgcd(a, b) === 1) ELIM_FR.push([a, b]); });
+  // Paires (a/b, c/d) dont le résultat — fraction qui reste (mode 'reste') ou
+  // fraction éliminée au 2e tour (mode 'elim2') — se simplifie et garde un
+  // dénominateur ≤ 12. Au moins un numérateur > 1 : 4/5 × 5/6 se fait de tête.
+  function elimPaire(mode) {
+    for (let i = 0; i < 800; i++) {
+      const [a, b] = choice(ELIM_FR), [c, d] = choice(ELIM_FR);
+      if (a / b > 0.6 || c / d > 0.75 || (a === c && b === d) || (a === 1 && c === 1)) continue;
+      const num = (b - a) * (mode === 'reste' ? d - c : c), den = b * d, g = pgcd(num, den);
+      if (g === 1 || den / g > 12 || num / g === den / g) continue;
+      if (mode === 'reste' && num / g * 2 === den / g) continue;          // 1/2 : trop évident
+      if (mode === 'elim2' && num / g === a && den / g === b) continue;    // même fraction qu'au 1er tour
+      return { a, b, c, d, n: num / g, dn: den / g, num, den };
+    }
+    return mode === 'reste' ? { a: 3, b: 10, c: 5, d: 7, n: 1, dn: 5, num: 14, den: 70 }
+                            : { a: 1, b: 6, c: 3, d: 10, n: 1, dn: 4, num: 15, den: 60 };
+  }
+  // Début commun : « Lors d'un quiz, 3/8 des participants sont éliminés au
+  // premier tour. 3/5 des participants restants sont éliminés au deuxième tour. »
+  function elimPhrases(ctx, p, debut) {
+    const t1 = `${p.a}/${p.b} des ${ctx.grp} sont ${ctx.v} ${ctx.e1}.`;
+    const tete = debut ? `${debut} ${t1}` : (ctx.lors ? `${ctx.lors}, ${t1}` : `${ctx.phrase} ${t1}`);
+    return `${tete} ${p.c}/${p.d} des ${ctx.grp} restants sont ${ctx.v} ${ctx.e2}.`;
+  }
+  // Nombre de départ N pour une paire : N × a/b entier, puis le reste × c/d
+  // entier ; N non rond, dans la fourchette du contexte, au moins 3 restants.
+  function elimNombre(ctx, p) {
+    const cands = [];
+    for (let N = ctx.min; N <= ctx.max; N++) {
+      if (N % 10 === 0 || (N * p.a) % p.b !== 0) continue;
+      const r1 = N - N * p.a / p.b;
+      if ((r1 * p.c) % p.d !== 0) continue;
+      const fin = r1 - r1 * p.c / p.d;
+      if (fin < 3) continue;
+      cands.push({ N, e1: N * p.a / p.b, r1, e2: r1 * p.c / p.d, fin });
+    }
+    return cands.length ? choice(cands) : null;
+  }
+  const detailReste = (p) => `Il reste d'abord 1 − ${p.a}/${p.b} = ${p.b - p.a}/${p.b}. Puis ${p.b - p.a}/${p.b} × ${p.d - p.c}/${p.d} = ${p.num}/${p.den} = ${p.n}/${p.dn}.`;
+
+  // Palier 2 : A (fraction qui reste) ou C (nombre qui reste).
+  function patEliminationsReste() {
+    for (let k = 0; k < 40; k++) {
+      const ctx = choice(ELIM_CTX), p = elimPaire('reste');
+      if (Math.random() < 0.5 || ctx.nombres === false) {
+        return {
+          text: `${elimPhrases(ctx, p)} Quelle fraction des ${ctx.grp} reste-t-il ${ctx.fin} ?`,
+          answer: `${p.n}/${p.dn}`,
+          solutionDetail: detailReste(p)
+        };
+      }
+      const t = elimNombre(ctx, p);
+      if (!t) continue;
+      return {
+        text: `${elimPhrases(ctx, p, ctx.intro(t.N))} Combien de ${ctx.grp} reste-t-il ${ctx.fin} ?`,
+        answer: `${t.fin} ${ctx.grp}`,
+        solutionDetail: `${p.a}/${p.b} de ${t.N} = ${t.N} ÷ ${p.b} × ${p.a} = ${t.e1} ${ctx.v}, il en reste ${t.N} − ${t.e1} = ${t.r1}. Puis ${p.c}/${p.d} de ${t.r1} = ${t.r1} ÷ ${p.d} × ${p.c} = ${t.e2} ${ctx.v}, il en reste ${t.r1} − ${t.e2} = ${t.fin} ${ctx.grp}.`
+      };
+    }
+    const p = elimPaire('reste');
+    return { text: `${elimPhrases(ELIM_CTX[0], p)} Quelle fraction des participants reste-t-il pour la troisième question ?`, answer: `${p.n}/${p.dn}`, solutionDetail: detailReste(p) };
+  }
+
+  // Palier 3 : B (fraction éliminée au 2e tour, sur le total) ou D (départ).
+  function patEliminationsDifficile() {
+    for (let k = 0; k < 40; k++) {
+      const ctx = choice(ELIM_CTX);
+      if (Math.random() < 0.5 || ctx.nombres === false) {
+        const p = elimPaire('elim2');
+        return {
+          text: `${elimPhrases(ctx, p)} Quelle fraction de l'ensemble des ${ctx.grp} a été ${ctx.vf} ${ctx.e2} ?`,
+          answer: `${p.n}/${p.dn}`,
+          solutionDetail: `Après le premier tri, il reste 1 − ${p.a}/${p.b} = ${p.b - p.a}/${p.b} des ${ctx.grp}. ${ctx.e2.charAt(0).toUpperCase() + ctx.e2.slice(1)}, on en retire ${p.c}/${p.d} : ${p.b - p.a}/${p.b} × ${p.c}/${p.d} = ${p.num}/${p.den} = ${p.n}/${p.dn} de l'ensemble (et non ${p.c}/${p.d}).`
+        };
+      }
+      const p = elimPaire('reste'), t = elimNombre(ctx, p);
+      if (!t) continue;
+      return {
+        text: `${elimPhrases(ctx, p)} Il reste ${t.fin} ${ctx.grp}. ${ctx.depart}`,
+        answer: `${t.N} ${ctx.grp}`,
+        solutionDetail: `${detailReste(p)} Donc ${p.n}/${p.dn} → ${t.fin} ${ctx.grp}${p.n > 1 ? `, 1/${p.dn} → ${t.fin} ÷ ${p.n} = ${t.fin / p.n}` : ''} ; au départ : ${p.n > 1 ? t.fin / p.n : t.fin} × ${p.dn} = ${t.N} ${ctx.grp}.`
+      };
+    }
+    const p = elimPaire('elim2');
+    return { text: `${elimPhrases(ELIM_CTX[1], p)} Quelle fraction de l'ensemble des participants a été éliminée au deuxième tour ?`, answer: `${p.n}/${p.dn}`, solutionDetail: `${p.b - p.a}/${p.b} × ${p.c}/${p.d} = ${p.n}/${p.dn}.` };
+  }
+
+  // --- Types 14 et 15 : NIVEAU QUI CHANGE ENTRE DEUX MOMENTS (v531, demandé
+  // par Aurelio le 23.10 : une vraie SOUSTRACTION de deux fractions). Deux
+  // contextes retenus — la citerne d'eau de pluie (le niveau monte) et la
+  // jauge du réservoir d'un camion (il descend). Écartés : mur peint, livre,
+  // trajet, clôture, cuve à lait (« ne se garde pas remplie »).
+  //   14 (palier 2) : quelle fraction ? 5/8 − 1/6 = 15/24 − 4/24 = 11/24
+  //   15 (palier 3) : combien de litres ? (contenance donnée)
+  // Dénominateurs 5 à 12 (sans 10, 11), différents ; dénominateur commun
+  // ≤ 40 ; résultat jamais 1/2, 1/3, 2/3, 1/4, 3/4. Contenance : multiple du
+  // dénominateur commun, non ronde, ≤ 999 L, et UNE part (C ÷ dénominateur)
+  // hors des tables (≥ 11, pas multiple de 5).
+  const NIV_FR = ELIM_FR.filter(([, b]) => b !== 10);
+  // Camion : une jauge se lit en sixièmes, huitièmes ou douzièmes, pas en
+  // septièmes ni en neuvièmes (`dens`).
+  function niveauPaire(dens) {
+    const liste = dens ? NIV_FR.filter(([, b]) => dens.includes(b)) : NIV_FR;
+    for (let i = 0; i < 800; i++) {
+      const [a, b] = choice(liste), [c, d] = choice(liste);
+      if (b === d || c / d - a / b < 0.2) continue;   // un écart visible (pas 7/8 → 5/6)
+      const L = ppcm(b, d), num = c * (L / d) - a * (L / b), g = pgcd(num, L);
+      if (L > 40 || L / g <= 4) continue;
+      return { a, b, c, d, L, num, n: num / g, dn: L / g };
+    }
+    return { a: 1, b: 6, c: 5, d: 8, L: 24, num: 11, n: 11, dn: 24 };
+  }
+  const NIV_CTX = [
+    { monte: true,
+      faits: (p) => `Le matin, la citerne d'eau de pluie est remplie aux ${p.a}/${p.b}. Le soir, après la pluie, elle est remplie aux ${p.c}/${p.d}.`,
+      plein: (C) => `Pleine, la citerne d'eau de pluie contient ${C} litres.`,
+      faitsN: (p) => `Le matin, elle est remplie aux ${p.a}/${p.b}. Le soir, après la pluie, elle est remplie aux ${p.c}/${p.d}.`,
+      qF: 'Quelle fraction de la citerne la pluie a-t-elle remplie ?',
+      qN: "Combien de litres d'eau la pluie a-t-elle apportés ?", min: 300, max: 999 },
+    { monte: false, dens: [6, 8, 12],
+      faits: (p) => `Au départ, la jauge du réservoir d'un camion indique ${p.c}/${p.d}. À l'arrivée, elle indique ${p.a}/${p.b}.`,
+      plein: (C) => `Plein, le réservoir d'un camion contient ${C} litres.`,
+      faitsN: (p) => `Au départ, la jauge indique ${p.c}/${p.d}. À l'arrivée, elle indique ${p.a}/${p.b}.`,
+      qF: 'Quelle fraction du réservoir le camion a-t-il consommée ?',
+      qN: 'Combien de litres le camion a-t-il consommés ?', min: 300, max: 800 }
+  ];
+  const niveauCalcul = (p) => `${p.c}/${p.d} − ${p.a}/${p.b} = ${p.c * (p.L / p.d)}/${p.L} − ${p.a * (p.L / p.b)}/${p.L} = ${p.num}/${p.L}${p.dn !== p.L ? ` = ${p.n}/${p.dn}` : ''}`;
+  function patNiveauFraction() {
+    const ctx = choice(NIV_CTX), p = niveauPaire(ctx.dens);
+    return {
+      text: `${ctx.faits(p)} ${ctx.qF}`,
+      answer: `${p.n}/${p.dn}`,
+      solutionDetail: `${niveauCalcul(p)}.`
+    };
+  }
+  function patNiveauLitres() {
+    for (let i = 0; i < 60; i++) {
+      const ctx = choice(NIV_CTX), p = niveauPaire(ctx.dens);
+      const ks = [];
+      for (let k = 11; p.L * k <= ctx.max; k++) {
+        const C = p.L * k;
+        if (C >= ctx.min && C % 10 !== 0 && unite(C / p.dn)) ks.push(C);
+      }
+      if (!ks.length) continue;
+      const C = choice(ks), part = C / p.dn, rep = part * p.n;
+      return {
+        text: `${ctx.plein(C)} ${ctx.faitsN(p)} ${ctx.qN}`,
+        answer: `${rep} litres`,
+        solutionDetail: `${niveauCalcul(p)} de ${ctx.monte ? 'la citerne' : 'du réservoir'}. ${p.n}/${p.dn} de ${C} = ${C} ÷ ${p.dn} × ${p.n} = ${rep} litres.`
+      };
+    }
+    return { text: "Pleine, la citerne d'eau de pluie contient 408 litres. Le matin, elle est remplie aux 1/6. Le soir, après la pluie, elle est remplie aux 5/8. Combien de litres d'eau la pluie a-t-elle apportés ?",
+             answer: '187 litres', solutionDetail: '5/8 − 1/6 = 15/24 − 4/24 = 11/24 de la citerne. 11/24 de 408 = 408 ÷ 24 × 11 = 187 litres.' };
+  }
+
   const patrons = [
     patFractionTout,         // 0
     patFractionsSuccessives, // 1
@@ -11615,7 +11643,13 @@ function genPropConcretFractions() {
     patRemplissage,          // 9
     patComplementFraction,   // 10
     patPaiementEchelonne,    // 11
-    patResteVersTotal        // 12
+    patResteVersTotal,       // 12
+    // v530 : une seule place, en palier 3 (question d) — le modèle sortait
+    // dans ~45 % des exercices. Tire l'une des quatre versions A, B, C, D.
+    () => (Math.random() < 0.5 ? patEliminationsReste() : patEliminationsDifficile()), // 13
+    // v532 : une seule place, en palier 3 comme 13 — tire la version en
+    // fraction ou en litres (le thème sortait dans ~44 % des exercices).
+    () => (Math.random() < 0.5 ? patNiveauFraction() : patNiveauLitres()) // 14 (v531) citerne / camion
   ];
   // PALIERS (v507) : a) simple, b) et c) moyens, d) difficile — le même
   // équilibre 1, 2, 2, 3 que « problème concret ». FRACTIONS_PALIERS s'aligne
@@ -11625,7 +11659,9 @@ function genPropConcretFractions() {
   // Modèles trop proches pour sortir ensemble : un seul par exercice.
   //   0 et 4 : fraction × tout = valeur → trouver le tout
   //   6 et 11 : deux fractions retirées → fraction restante
-  const SIMILAIRES = [[0, 4], [6, 11]];
+  //   1 et 13 : réservoir vidé en deux fois ≈ nombre qui reste (v529 ; tous
+  //   deux en palier 3 depuis la v530, donc jamais ensemble de toute façon)
+  const SIMILAIRES = [[0, 4], [6, 11], [1, 13]];
   const indices = [];
   [1, 2, 2, 3].forEach(t => {
     const interdits = new Set(indices);
@@ -19942,7 +19978,7 @@ const ICONE_ENSEIGNANT = '<svg viewBox="0 0 24 24" width="21" height="21" fill="
 const ICONE_PDF = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJkAAACUCAMAAAC3HHtWAAAAk1BMVEXi5ef////xVkKwt73K0dji6OrxW0jyUDnG2eHlzczmgnrV2t/x8/T19vbxUTzwTDX4u7Xnvr28wsf+8/L84N3yYlD1jID1hXf1kYb4q6L4t7D96ujwQib1mY7++Pf70c3zcWHxSC/zeGn3pJv6ysX72dXy2Nbj1dXtgnfyaFf3sKj6w73UubvV4ebco6HkioPitLFLhhsqAAAElUlEQVR4nO3ca5eaOhQG4ICOtHUa7AAqIgiIbdVezv//dUcS7tlAXIYkq4v308xCzeNOCAEVZAzmKxKWj8Xi4324tVbQyGahsqdow7J3wbLFgp82LHsTLuOv2rBMIKyQ8dMGZQLHfyXjpsmX8dIUyDhpKmR8NCUyLpoa2eLjq64yjqqpko1XTZlstGrqZGM0hbIRmkrZME2pbJCmVjZEUywboKmW9dOUy3qnXPWyvqppIOupmg4yuGpayMCq6SGDqiZPthySAVWTJ1sPytiqyZMNdydbNYmykaJ1aRJlY0Xr0GTKnqNJlY3sn22aXBlaL4fr1qBJlpEsB/KmVDZEUywboKmW9dOUy3pp6mV9NA1kPTQdZDBNCxlI00MG0TSRATRdZCxNGxlD00fWpWkkQ/rKkL4ypK8M6StD+sqQvjKkrwzpK0P6ypC+MqSvDOkrQ/rKkL6ytbYyVF+tnWWiZW8T5jlZ4Lby/fN0+YFAGyxzw9hbyUoc/oBooOxi2tiUFmybEA2SRaklz5XH/slZs5PEgtGsPrNFg2R3W7YMf+OTbWbZLJtls2yWzbJWrORYJklaaxFs2WUsiznm1htpoIPySzK8PQVl3Oyc1gQrDX3/nMc/h/t0lbTb3vqthDGwkHlFhneO0YyTXYtHWdvWFsc9xA3b6m504nhs1V6R2QemhT192OrS3WJs4rLx7hvKcz8KlVkbpoWI9ovnMlsMN4ULSnJIJpA5gUNStL+qZRFN+RLBDvfJgpXY3qSy2zXOs/MpIbRLWeT/3OYJb0UFL7R9KnMOdXzRewCV+TYmsa8BKdqxku3oFsvGu4C+SFLL3MakwU4rgmTlv/u8ak5emEJWVcKOadmuuJYBmKlkmHpiQGZaMenrg61EZppknso9jMw8khnG9fSTWWletCjF9TizHnmMwsdInFqG6S4A9mY5keR7LpUFYRX4JFugLPHzf6OK0ZatTuWDmfnM2UO012XnI931zTMZ5KfGrNFsEGdkF0igmdaJgQ59XZaFZE1xO9GZlrx/QGYS2Q2UGdtJZO3c6+NmZ5yRg/wZ6k3j4rEvLlrm0h2NlRW7R17R4uh0qnIA1kCCZVF2pW2wMjvMH+BcG7MGmTbywBfmBMqcU2gWbQDzGSnZhfwpa6Y9nWn2qVm9d0ZGZxQyzOTJzkfaJc0+6cjwMSQ7bmRLrZkPbClkCSZoHG+iumQayIzs9lgV3g73YqYzsuJp6mWdXK7N1baMccYpy7xi2EmQ2ed8C3Q4Zs/qorA6CcFpLhu9WP7a1YNNFB3AdULqRjXKcU/bY+P5OHQiN51UhnG6gz/AsLxdndSz2s+249119IOPF68F9axHyZY6TzxNmGzCzLJZNstm2TSyTPpnwh7nZ8KBbBiOGVfPdw9u7DXeSWHHX785ZVGYJNV52ORJ8J/lmlP2WOv54b6VL5Pl73/LT0/Iunn/NF3yLzXyjjNAxvzkQWy0lQEwPWTAKOOXrScM5PoXvrM3y2bZLJtls+zfk3He90Do3TnFykTe0ZQr9Q8XRmTSi9a4zcyITOQNap+Djckk92fzbin/A8PQxx30Ei25AAAAAElFTkSuQmCC';
 
 // Numéro de version, affiché en pied de menu.
-const APP_VERSION = '533';
+const APP_VERSION = '532';
 
 const DOMAINS = [
   {
@@ -23388,12 +23424,7 @@ async function downloadCartePdf(items) {
     el.querySelectorAll('.multi-item').forEach(it => { dansItems += it.querySelectorAll('svg').length; });
     return el.querySelectorAll('svg').length > dansItems;
   };
-  // Corrigé d'opérations posées (décimaux, v532) : il n'a pas de .multi-item,
-  // ses unités de coupe sont les rangées `data-pose-rangee` (une par ligne).
-  const unitesDeCoupe = (el) => (el && el.querySelector && el.querySelector('[data-pose-rangee]'))
-    ? Array.from(el.querySelectorAll('[data-pose-rangee]'))
-    : Array.from(el.querySelectorAll('.multi-item'));
-  const secable = (el) => !!el && unitesDeCoupe(el).length >= 2 && !figureCommune(el);
+  const secable = (el) => !!el && el.querySelectorAll('.multi-item').length >= 2 && !figureCommune(el);
   const ajusterHauteurs = (bloc, part) => {
     [bloc].concat(Array.from(bloc.querySelectorAll('*'))).forEach(n => {
       if (!n.style) return;
@@ -23413,8 +23444,7 @@ async function downloadCartePdf(items) {
     const enHautDePage = premiereEcriture || cursorY <= MH;
     const tientIci = enHautDePage || m.hUtile <= restant;
     if ((m.hUtile <= hauteurUtile && tientIci) || p >= 4) { await placer(el, null, m); return; }
-    const pose = !!el.querySelector('[data-pose-rangee]');
-    const items = unitesDeCoupe(el);
+    const items = Array.from(el.querySelectorAll('.multi-item'));
     const tropHaut = m.hUtile > hauteurUtile;
     // Rien à couper, ou trop peu de place pour que la coupure serve.
     if (items.length < 2 || !el.parentNode
@@ -23425,7 +23455,7 @@ async function downloadCartePdf(items) {
     const grille = el.querySelector('.multi-grid');
     const uneColonne = !!grille && (grille.style.gridTemplateColumns === '1fr'
       || /stacked|fullwidth|propfig/.test(grille.className || ''));
-    const colonnes = (uneColonne || pose) ? 1 : 2;
+    const colonnes = uneColonne ? 1 : 2;
     const rangees = Math.ceil(items.length / colonnes);
     // Une seule rangée : il n'y a rien à couper qui ne casse la rangée en deux.
     if (rangees < 2) {
@@ -23437,9 +23467,8 @@ async function downloadCartePdf(items) {
       : Math.max(1, Math.min(rangees - 1, Math.floor(rangees * restant / m.hUtile)));
     const coupe = Math.min(items.length - 1, rCoupe * colonnes);
     const haut = el.cloneNode(true), bas = el.cloneNode(true);
-    Array.from(unitesDeCoupe(haut)).slice(coupe).forEach(n => n.remove());
-    Array.from(unitesDeCoupe(bas)).slice(0, coupe).forEach(n => n.remove());
-    if (pose) suiteCorrigePose(bas);
+    Array.from(haut.querySelectorAll('.multi-item')).slice(coupe).forEach(n => n.remove());
+    Array.from(bas.querySelectorAll('.multi-item')).slice(0, coupe).forEach(n => n.remove());
     // La suite d'un exercice ne reprend ni son titre ni sa consigne : elle
     // continue la même liste de questions.
     bas.querySelectorAll('.exercise-num, .exo-consigne').forEach(n => n.remove());
@@ -24051,7 +24080,7 @@ const CLES_CONTENU_EXERCICE = ['svg', 'svgCorrige', 'svgId', 'placePoints', 'poi
 // Réglages d'affichage à reprendre sur l'exercice fusionné.
 const CLES_AFFICHAGE_EXERCICE = ['champsLarges', 'stackedStatements', 'singleColumn',
   'introInTitle', 'threeColsByColumn', 'fillBlanks', 'tableMode', 'unitesTemps',
-  'sideLayout', 'multi', '_poseColonne'];
+  'sideLayout', 'multi'];
 
 // Sous-domaines dont le rendu ne survit pas à une fusion (constaté au banc
 // d'essai, pas supposé) : leur gabarit suppose un nombre de questions fixe ou
@@ -32135,226 +32164,8 @@ function poseDivisionHtml(a, d) {
   return `<div style="display:flex; align-items:flex-start;"><div>${g}</div>${droite}</div>`;
 }
 
-// ---------------------------------------------------------------------------
-// OPÉRATIONS POSÉES AVEC DES DÉCIMAUX (v532, niveaux 1 et 2)
-// ---------------------------------------------------------------------------
-// Même moteur de cellules que les entiers ; les fonctions des entiers
-// ci-dessus ne sont PAS touchées. `q.pose` porte ici les nombres tels qu'ils
-// sont ÉCRITS dans l'énoncé (« 78,67 ») et `dec: true` : tout se calcule en
-// entiers sur leurs chiffres, sans flottant.
-// · La VIRGULE ne prend pas de colonne : elle est posée en absolu contre le
-//   chiffre des unités, si bien que les colonnes restent alignées.
-// · Addition, soustraction : virgules alignées, termes complétés par des 0,
-//   écrits à l'encre comme les autres chiffres (en gris, ils se confondaient
-//   avec les chiffres barrés de la soustraction).
-// · Multiplication : nombres calés à droite, on multiplie sans virgule, puis
-//   on la place au produit (décimales des deux facteurs).
-// · Division : diviseur rendu entier (× 10 ou × 100, la ligne au-dessus de
-//   la potence le dit), puis division jusqu'aux CENTIÈMES du quotient (plus
-//   loin seulement si le dividende a encore des chiffres), en ajoutant au
-//   dividende les 0 nécessaires.
-// · Soustraction : la notation d'Aurelio (prêteur barré + nouvelle valeur,
-//   « 10 » au-dessus de l'emprunteur). Les emprunts EN CASCADE, que le niveau
-//   entier écarte, sont inévitables ici (le niveau 2 impose un 0 dans le
-//   premier terme) : une colonne qui prête ET emprunte est barrée, avec sa
-//   valeur de travail au-dessus (0 → 9, 1 → 10).
-function _poseDecLire(str) {
-  const s = String(str).trim();
-  const i = s.indexOf(',');
-  return i < 0 ? { chiffres: s, dec: 0 } : { chiffres: s.slice(0, i) + s.slice(i + 1), dec: s.length - i - 1 };
-}
-
-// Écrit l'entier `n` (BigInt ou nombre) avec `dec` décimales, chiffres seuls,
-// complété à gauche pour qu'il reste au moins un chiffre avant la virgule.
-function _poseDecChiffres(n, dec) {
-  return String(n).padStart(dec + 1, '0');
-}
-
-// Cellules d'un nombre calé à droite, virgule accolée au chiffre des unités.
-function _poseCellsDec(chiffres, dec, W, decal, style) {
-  const out = _poseCells(chiffres, W, decal, style);
-  const colDernier = W - 1 - (decal || 0);
-  if (dec > 0) {
-    const col = colDernier - dec;
-    if (col >= 0 && out[col]) {
-      out[col].t = `${out[col].t}<span style="position:absolute; left:100%; top:0; margin-left:-4px; ${style && /color/.test(style) ? '' : `color:${POSE_ENC};`}">,</span>`;
-      out[col].style = (out[col].style || '') + 'position:relative;';
-    }
-  }
-  return out;
-}
-
-// Aligne des écritures décimales sur le même nombre de décimales.
-function _poseDecAligner(nombres) {
-  const lus = nombres.map(_poseDecLire);
-  const D = Math.max(...lus.map(l => l.dec));
-  return { D, termes: lus.map(l => ({ chiffres: l.chiffres + '0'.repeat(D - l.dec) })) };
-}
-
-function poseAdditionDecHtml(nombres) {
-  const { D, termes } = _poseDecAligner(nombres);
-  const somme = termes.reduce((t, x) => t + BigInt(x.chiffres), 0n);
-  const S = _poseDecChiffres(somme, D);
-  const W = Math.max(S.length, ...termes.map(t => t.chiffres.length)) + 1;
-  // Retenues : avec trois termes, une retenue peut valoir 2.
-  const ret = new Array(W).fill(null);
-  let r = 0;
-  for (let k = 0; k < W - 1; k++) {
-    let col = r;
-    termes.forEach(t => { col += +(t.chiffres[t.chiffres.length - 1 - k] || 0); });
-    r = Math.floor(col / 10);
-    if (r && W - 2 - k >= 0) ret[W - 2 - k] = { t: String(r), style: `color:${POSE_RET}; font-weight:700;` };
-  }
-  let out = _poseLigne(ret, { h: 12, fs: POSE_FP });
-  termes.forEach((t, i) => {
-    const cells = _poseCellsDec(t.chiffres, D, W, 0, '');
-    if (i > 0) cells[0] = { t: '+' };
-    out += _poseLigne(cells);
-  });
-  return out + _poseLigne(_poseCellsDec(S, D, W, 0, POSE_RES), { trait: true });
-}
-
-function poseSoustractionDecHtml(x, y) {
-  const { D, termes } = _poseDecAligner([x, y]);
-  const [ta, tb] = termes;
-  const a = Number(ta.chiffres), b = Number(tb.chiffres);
-  const { A, trav, preteur, emprunteur, n } = _poseSoustractionRoles(a, b);
-  const W = Math.max(n, tb.chiffres.length) + 1;
-  const haut = new Array(W).fill(null);
-  const ligneA = _poseCellsDec(ta.chiffres, D, W, 0, '');
-  const barre = 'text-decoration:line-through; color:#9CA3AF;';
-  const vert = `color:${POSE_RET}; font-weight:700;`;
-  for (let i = 0; i < n; i++) {
-    const col = W - n + i;
-    const virg = /<span/.test(String(ligneA[col].t)) ? 'position:relative;' : '';
-    if (emprunteur[i] && !preteur[i]) {
-      haut[col] = { t: '10', style: vert };
-    } else if (preteur[i] || emprunteur[i]) {
-      ligneA[col].style = barre + virg;
-      haut[col] = { t: trav[i], style: vert };
-    }
-  }
-  const ligneB = _poseCellsDec(tb.chiffres, D, W, 0, '');
-  ligneB[0] = { t: '−' };
-  return _poseLigne(haut, { h: 12, fs: POSE_FP })
-       + _poseLigne(ligneA)
-       + _poseLigne(ligneB)
-       + _poseLigne(_poseCellsDec(_poseDecChiffres(a - b, D), D, W, 0, POSE_RES), { trait: true });
-}
-
-function poseMultiplicationDecHtml(x, y) {
-  const la = _poseDecLire(x), lb = _poseDecLire(y);
-  const a = Number(la.chiffres), A = la.chiffres, B = lb.chiffres;
-  const bd = B.split('').map(Number), nb = bd.length, nA = A.length;
-  const D = la.dec + lb.dec;
-  const prods = [];
-  for (let k = 0; k < nb; k++) {
-    const d = bd[nb - 1 - k];
-    // Un chiffre 0 au multiplicateur : une ligne de 0, comme au cahier.
-    prods.push({ d, decal: k, txt: d === 0 ? '0'.repeat(nA) : String(a * d) });
-  }
-  const tot = _poseDecChiffres(BigInt(A) * BigInt(B), D);
-  const W = Math.max(nA, B.length, tot.length, ...prods.map(p => p.txt.length + p.decal)) + 1;
-  let out = '';
-  for (let k = nb - 1; k >= 0; k--) {
-    const ret = _poseRetenuesProduit(a, bd[nb - 1 - k]);
-    const cells = new Array(W).fill(null);
-    for (let i = 0; i < nA; i++) {
-      if (ret[i] != null) cells[W - nA + i] = { t: ret[i], style: `color:${POSE_RET_LIGNES[k % 3]}; font-weight:700;` };
-    }
-    out += _poseLigne(cells, { h: 12, fs: POSE_FP });
-  }
-  out += _poseLigne(_poseCellsDec(A, la.dec, W, 0, ''));
-  const ligneB = _poseCellsDec(B, lb.dec, W, 0, '');
-  ligneB[0] = { t: '×' };
-  out += _poseLigne(ligneB);
-  prods.forEach((p, k) => {
-    const cells = _poseCells(p.txt, W, p.decal);
-    if (k > 0) cells[0] = { t: '+' };
-    out += _poseLigne(cells, k === 0 ? { trait: true } : {});
-  });
-  return out + _poseLigne(_poseCellsDec(tot, D, W, 0, POSE_RES), { trait: true });
-}
-
-function poseDivisionDecHtml(x, y) {
-  const la = _poseDecLire(x), lb = _poseDecLire(y);
-  const d = parseInt(lb.chiffres, 10);
-  // Diviseur rendu entier : la virgule du dividende avance d'autant.
-  let chif = la.chiffres, dec = la.dec - lb.dec;
-  if (dec < 0) { chif += '0'.repeat(-dec); dec = 0; }
-  chif = chif.replace(/^0+(?=\d)/, '');
-  const nInt = chif.length - dec;
-  const ecritDividende = dec > 0 ? chif.slice(0, nInt) + ',' + chif.slice(nInt) : chif;
-  // Jusqu'aux centièmes du quotient, plus loin si le dividende continue.
-  const nb = Math.max(chif.length, nInt + 2);
-  const ds = (chif + '0'.repeat(nb - chif.length)).split('').map(Number);
-  const W = ds.length + 1;
-  const qd = [], blocs = [];
-  let reste = 0, prevIdx = -1, prevReste = 0;
-  for (let i = 0; i < ds.length; i++) {
-    const cur = reste * 10 + ds[i];
-    const q = Math.floor(cur / d);
-    qd.push(q);
-    if (q > 0) {
-      const txt = blocs.length === 0 ? ds.slice(0, i + 1).join('').replace(/^0+(?=\d)/, '')
-                                     : String(prevReste) + ds.slice(prevIdx + 1, i + 1).join('');
-      blocs.push({ i, col: W - ds.length + i, txt, prod: q * d, reste: cur - q * d });
-      prevIdx = i; prevReste = cur - q * d;
-    }
-    reste = cur - q * d;
-  }
-  const qEnt = qd.slice(0, nInt).join('').replace(/^0+/, '') || '0';
-  const quotient = qEnt + ',' + qd.slice(nInt).join('');
-  let g = _poseLigne(_poseCellsDec(ds.join(''), ds.length - nInt, W, 0, ''));
-  blocs.forEach((bl, k) => {
-    const decal = W - 1 - bl.col;
-    const lp = _poseCells(String(bl.prod), W, decal);
-    const gauche = lp.findIndex(c => c !== null);
-    if (gauche > 0) lp[gauche - 1] = { t: '−' };
-    g += _poseLigne(lp);
-    const suivant = blocs[k + 1];
-    // Dernier bloc : son reste, suivi des chiffres encore abaissés sans
-    // donner de chiffre au quotient (quotient terminé par un 0).
-    const suite = suivant ? suivant.txt : String(bl.reste) + ds.slice(bl.i + 1).join('');
-    const decalS = suivant ? (W - 1 - suivant.col) : 0;
-    g += _poseLigne(_poseCells(suite, W, decalS), { traitCols: [Math.max(0, gauche - 1), bl.col] });
-  });
-  const L = `height:${POSE_FS + 5}px; line-height:${POSE_FS + 5}px; font-size:${POSE_FS}px;`;
-  const droite = `<div style="display:flex; flex-direction:column; border-left:1.3px solid ${POSE_ENC}; padding-left:6px; margin-left:2px;">`
-    + `<div style="${L} color:${POSE_ENC};">${d}</div>`
-    + `<div style="${L} color:${POSE_RET}; font-weight:700; border-top:1.3px solid ${POSE_ENC};">${quotient}</div>`
-    + `</div>`;
-  const avant = lb.dec > 0
-    ? `<div style="font-size:12px; line-height:16px; color:#6B7280; margin-bottom:4px; white-space:nowrap;">${x} ÷ ${y} = ${ecritDividende} ÷ ${d}</div>`
-    : '';
-  return `${avant}<div style="display:flex; align-items:flex-start;"><div>${g}</div>${droite}</div>`;
-}
-
-// Suite d'un corrigé d'opérations posées coupé entre deux rangées : la
-// première rangée restante perd sa marge, et le titre « Exercice N. »
-// (premier enfant du bloc) prend « (suite) ».
-function suiteCorrigePose(bloc) {
-  const rangees = bloc.querySelectorAll('[data-pose-rangee]');
-  if (rangees[0]) rangees[0].style.marginTop = '0px';
-  const titre = bloc.firstElementChild;
-  if (titre && !titre.hasAttribute('data-pose-grille') && !/\(suite\)/.test(titre.textContent)) {
-    titre.appendChild(document.createTextNode(' (suite)'));
-  }
-}
-
-function poseOperationDecHtml(pose) {
-  switch (pose.op) {
-    case '+': return poseAdditionDecHtml(pose.termes || [pose.a, pose.b]);
-    case '−': return poseSoustractionDecHtml(pose.a, pose.b);
-    case '×': return poseMultiplicationDecHtml(pose.a, pose.b);
-    case '÷': return poseDivisionDecHtml(pose.a, pose.b);
-    default:  return '';
-  }
-}
-
 function poseOperationHtml(pose) {
   if (!pose) return '';
-  if (pose.dec) return poseOperationDecHtml(pose);
   switch (pose.op) {
     case '+': return poseAdditionHtml(pose.a, pose.b);
     case '−': return poseSoustractionHtml(pose.a, pose.b);
@@ -32377,23 +32188,6 @@ function poseColonneCorrigeHtml(ex) {
   return out + `</div>`;
 }
 
-// Décimaux (v532) : même présentation, mais une RANGÉE par paire
-// d'opérations (`data-pose-rangee`) — une potence décimale est bien plus
-// haute qu'une potence d'entiers, et le PDF du sous-domaine répartit ces
-// rangées sur plusieurs pages quand elles ne tiennent pas sur une.
-function poseColonneDecCorrigeHtml(ex) {
-  const cellule = q => `<div style="display:flex; align-items:flex-start; gap:8px;">`
-    + `<strong style="font-size:14px; line-height:22px;">${q.label}</strong>`
-    + `<div>${q.pose ? poseOperationHtml(q.pose) : `<span style="color:${POSE_RET}; font-weight:800; line-height:22px;">${q.answer}</span>`}</div>`
-    + `</div>`;
-  let out = `<div data-pose-grille="1">`;
-  for (let i = 0; i < ex.questions.length; i += 2) {
-    out += `<div data-pose-rangee="1" style="display:grid; grid-template-columns:1fr 1fr; gap:0 24px; padding-left:16px; margin-top:${i ? 14 : 0}px;">`
-      + ex.questions.slice(i, i + 2).map(cellule).join('') + `</div>`;
-  }
-  return out + `</div>`;
-}
-
 function espaceCorrigeInner(ex, opts) {
   // Instruments de géométrie : leur corrigé n'est pas une liste de réponses
   // mais une planche calquée au pixel près sur l'énoncé, avec la construction
@@ -32405,9 +32199,7 @@ function espaceCorrigeInner(ex, opts) {
   // Niveau « Nombres entiers » : le corrigé n'est pas une liste de réponses
   // mais les quatre opérations POSÉES, retenues et cassages compris. Marqueur
   // posé par genDecimal ; aucun autre sous-domaine ne le porte.
-  if (ex && ex._poseColonne && Array.isArray(ex.questions)) {
-    return ex.questions.some(q => q.pose && q.pose.dec) ? poseColonneDecCorrigeHtml(ex) : poseColonneCorrigeHtml(ex);
-  }
+  if (ex && ex._poseColonne && Array.isArray(ex.questions)) return poseColonneCorrigeHtml(ex);
   opts = opts || {};
   let out = '';
       if (ex.fillBlanks) {
@@ -33613,7 +33405,7 @@ async function downloadDomainPdf(domainNum, compoImposee) {
       if (el.tagName === 'INPUT') replaceInputBlank(el, el.classList.contains('answer-input-inline'));
       else el.remove();
     });
-    exoDiv.querySelectorAll('.feedback, .inline-solution, .quotient-complet, .exo-tip, .frac-sol-detail').forEach(el => el.remove());
+    exoDiv.querySelectorAll('.feedback, .inline-solution, .exo-tip, .frac-sol-detail').forEach(el => el.remove());
     droiteFractionsPourPdf(exoDiv);   // droite « Fractions » : cases dessinées
     // Unité d'aide à la saisie : écran seulement (voir la chaîne sous-domaine).
     exoDiv.querySelectorAll('.answer-unite').forEach(el => el.remove());
@@ -34870,13 +34662,7 @@ async function downloadPdf(opts) {
     // les suivantes portent la mention « suite ».
     // Le CORRIGÉ, lui, continue de travailler sur `exercisesForPdf` : les
     // réponses a) à h) restent groupées sous un seul « Exercice 2 ».
-    // v533 : 4 questions par page dans le PDF à pages FIXES (atelier d'un seul
-    // sous-domaine, PDF du sous-domaine) — avec 6, un exercice fusionné de 6
-    // questions n'était pas coupé et e) f) tombaient en pied de page, sans
-    // place pour poser (vu par Aurelio). Chaque page a alors la mise en page
-    // ordinaire : a)/b) en haut, c)/d) au milieu. En FLUX (série mêlant des
-    // sous-domaines, `rendreBlocs`), on garde 6 : le flux coupe par rangées.
-    const Q_PAR_PAGE = { decimaux: opts.rendreBlocs ? 6 : 4 };
+    const Q_PAR_PAGE = { decimaux: 6 };
     // Hauteur d'une rangée de décimaux : trois rangées remplissent la zone
     // d'exercices d'une page (≈ 850 px sous l'en-tête, le titre et la consigne).
     const RANGEE_DECIMAUX = 283;
@@ -34896,8 +34682,9 @@ async function downloadPdf(opts) {
             questions: qs.slice(d, d + maxParPage),
             _numeroPdf: i + 1,
             _suitePdf: d > 0,
-            // Marque une tranche (nombre de questions de l'exercice entier).
-            // Depuis la v533 elle garde la mise en page ordinaire de la page.
+            // Marque une tranche : sa mise en page donne à chaque RANGÉE la
+            // même hauteur, pour que la page 2 (2 questions) laisse le même
+            // blanc sous sa rangée que les trois rangées de la page 1.
             _trancheDe: qs.length
           });
         }
@@ -35276,7 +35063,7 @@ async function downloadPdf(opts) {
           el.remove();
         }
       });
-      exoDiv.querySelectorAll('.feedback, .inline-solution, .quotient-complet, .exo-tip, .frac-sol-detail').forEach(el => el.remove());
+      exoDiv.querySelectorAll('.feedback, .inline-solution, .exo-tip, .frac-sol-detail').forEach(el => el.remove());
       droiteFractionsPourPdf(exoDiv);   // droite « Fractions » : cases dessinées
       // L'unité affichée à droite du champ (« CHF », « g », « m² ») guide la
       // SAISIE à l'écran ; sur papier elle souffle la réponse et n'a pas lieu
@@ -35323,7 +35110,7 @@ async function downloadPdf(opts) {
             // Décimaux : a)/b) en haut, c)/d) au milieu de la page – le blanc
             // entre les deux rangées sert à poser les opérations en colonne.
             if (state.activeSubId === 'decimaux') {
-              if (opts.rendreBlocs) {
+              if (ex._trancheDe || opts.rendreBlocs) {
                 // Exercice découpé (fusion N1+N2, 8 questions) OU bloc destiné
                 // à une série en flux : chaque rangée reçoit la MÊME hauteur —
                 // 3 rangées remplissent la page, et la dernière rangée garde le
@@ -35443,9 +35230,8 @@ async function downloadPdf(opts) {
           // une série il est seul de son groupe. Le drapeau `_noNiveauTag`,
           // posé par la composition du PDF de sous-domaine, ne voyageait pas
           // jusqu'ici : la série retombait sur « Niveau 1 ».
-          // (v530) Exercice FUSIONNÉ dans l'atelier : ni rubrique ni niveau.
-          const rub = ex._fusionne ? null : (ex._niveauLibelle || ((Array.isArray(found.sub.niveauLabels) && !SANS_RUBRIQUE.has(found.sub.id))
-            ? found.sub.niveauLabels[(ex._realNiveau || (idx + 1)) - 1] : null));
+          const rub = ex._niveauLibelle || ((Array.isArray(found.sub.niveauLabels) && !SANS_RUBRIQUE.has(found.sub.id))
+            ? found.sub.niveauLabels[(ex._realNiveau || (idx + 1)) - 1] : null);
           if (ex._noNiveauTag || rub) {
             numDiv.innerHTML = rub
               ? `Exercice ${idx + 1}. <span style="color:#6B7280; font-weight:600; font-size:14px; text-transform:none;">– ${rub}</span>`
@@ -35459,13 +35245,11 @@ async function downloadPdf(opts) {
             const num = ex._numeroPdf || (idx + 1);
             const suite = ex._suitePdf ? ' <span style="color:#9CA3AF; font-weight:600; font-size:13px; text-transform:none;">(suite)</span>' : '';
             // La suite d'un exercice découpé ne reprend pas sa consigne.
-            // (v529) Dans cette boucle l'exercice s'appelle `dom` : `exoDiv`
-            // n'existe que dans la fonction de nettoyage plus haut.
-            if (ex._suitePdf) dom.querySelectorAll('.exo-consigne').forEach(el => el.remove());
+            if (ex._suitePdf) exoDiv.querySelectorAll('.exo-consigne').forEach(el => el.remove());
             // « – Niveau 3 » ne dirait rien de plus quand le TITRE du document
             // nomme déjà ce niveau (décimaux : « Calculer avec des nombres
             // entiers »). Les niveaux sans titre propre gardent l'étiquette.
-            const tagNiv = (ex._fusionne || (found.sub.titreParNiveau && found.sub.titreParNiveau[niveau]))
+            const tagNiv = (found.sub.titreParNiveau && found.sub.titreParNiveau[niveau])
               ? '' : ` <span style="color:#6B7280; font-weight:600; font-size:14px;">– Niveau ${niveau}</span>`;
             numDiv.innerHTML = `Exercice ${num}.${suite}${tagNiv}`;
           }
@@ -35545,9 +35329,7 @@ async function downloadPdf(opts) {
       const rubCor = ex._niveauLibelle || ((Array.isArray(found.sub.niveauLabels) && !SANS_RUBRIQUE.has(found.sub.id))
         ? found.sub.niveauLabels[(ex._realNiveau || (exIdx + 1)) - 1] : null);
       const _nivTagCor = ex._realNiveau || (exIdx + 1);
-      const niveauTag = ex._fusionne
-        ? ''                                   // (v530) exercice fusionné : pas de niveau
-        : (found.sub.titreParNiveau && found.sub.titreParNiveau[_nivTagCor])
+      const niveauTag = (found.sub.titreParNiveau && found.sub.titreParNiveau[_nivTagCor])
         ? ''                                   // le titre du document nomme déjà ce niveau
         : (found.sub.id === 'prop-concret')
         ? ` <span style="color:#6B7280; font-weight:600; font-size:13px;">– ${(['proportionnalité', 'fractions', '% - rabais'][(ex._propNiveau || (exIdx + 1)) - 1] || '')}</span>`
@@ -35950,50 +35732,6 @@ async function downloadPdf(opts) {
       await addContainerPages(cont, isFirst);
     };
 
-    // DÉCIMAUX (v532) : le corrigé pose les opérations, et deux exercices de
-    // divisions dépassent la page (mesuré : jusqu'à 1 331 px pour 1 123). Le
-    // conteneur étant à hauteur FIXE, la fin serait coupée sans erreur. On
-    // reporte donc sur des pages suivantes, d'abord par exercices entiers,
-    // puis par rangées d'opérations si un exercice seul ne tient pas.
-    // Rien ne bouge quand tout tient sur une page.
-    const corrigeEnPages = (cont) => {
-      const pages = [cont];
-      if (found.sub.id !== 'decimaux') return pages;
-      const deborde = c => c.scrollHeight > c.clientHeight + 1;
-      let cur = cont;
-      for (let garde = 0; garde < 12 && deborde(cur); garde++) {
-        const nxt = document.createElement('div');
-        nxt.className = 'pdf-mode';
-        nxt.style.cssText = commonStyle;
-        nxt.appendChild(headerCor.cloneNode(true));
-        document.body.appendChild(nxt);
-        let suite = null;
-        for (let pas = 0; pas < 40 && deborde(cur); pas++) {
-          const kids = Array.from(cur.children).slice(1);
-          const dernier = kids[kids.length - 1];
-          if (!dernier) break;
-          if (kids.length >= 2) {
-            nxt.insertBefore(dernier, nxt.children[1] || null);
-            continue;
-          }
-          const rangees = dernier.querySelectorAll('[data-pose-rangee]');
-          if (rangees.length < 2) break;
-          if (!suite) {
-            suite = dernier.cloneNode(true);
-            suite.querySelectorAll('[data-pose-rangee]').forEach(r => r.remove());
-            nxt.insertBefore(suite, nxt.children[1] || null);
-          }
-          const g = suite.querySelector('[data-pose-grille]');
-          g.insertBefore(rangees[rangees.length - 1], g.firstChild);
-          suiteCorrigePose(suite);
-        }
-        if (nxt.children.length < 2) { document.body.removeChild(nxt); break; }
-        pages.push(nxt);
-        cur = nxt;
-      }
-      return pages;
-    };
-
     // Force le rendu KaTeX sur tous les <span data-tex> qui pourraient être
     // présents dans nos conteneurs hors-écran (typiquement les racines).
     // Sans ça, html2canvas capturerait des spans vides.
@@ -36047,7 +35785,7 @@ async function downloadPdf(opts) {
           if (el.tagName === 'INPUT') replaceInputBlank(el, el.classList.contains('answer-input-inline'));
           else el.remove();
         });
-        exoDiv.querySelectorAll('.feedback, .inline-solution, .quotient-complet, .exo-tip, .frac-sol-detail').forEach(el => el.remove());
+        exoDiv.querySelectorAll('.feedback, .inline-solution, .exo-tip, .frac-sol-detail').forEach(el => el.remove());
         droiteFractionsPourPdf(exoDiv);   // droite « Fractions » : cases dessinées
         // Unité d'aide à la saisie : écran seulement. Cette branche (v504) avait
         // échappé au retrait fait dans les trois chaînes.
@@ -36357,12 +36095,10 @@ async function downloadPdf(opts) {
           await addContainerPages(c, false);                  // pages suivantes : N2, N3...
         }
         const corrigeStartPagePA = pdf.internal.getNumberOfPages() + 1;
-        const pagesCorPA = corrigeEnPages(cCor);     // [cCor] hors décimaux
-        for (const c of pagesCorPA) await poserCorrige(c, false);   // corrigé
+        await poserCorrige(cCor, false);                 // corrigé
         for (const c of extraCorr) {
           await poserCorrige(c, false);
         }
-        pagesCorPA.slice(1).forEach(c => extraCorr.push(c));   // nettoyés plus bas
 
         numeroter(corrigeStartPagePA);
         const safeNamePA = title.replace(/[^\w\sÀ-ÿ-]/g, '').replace(/\s+/g, '_').slice(0, 60);
@@ -36383,9 +36119,7 @@ async function downloadPdf(opts) {
 
     await addContainerPages(cExo, debutNeuf(true));   // énoncés (commence page 1)
     const corrigeStartPageStd = pdf.internal.getNumberOfPages() + 1;
-    const pagesCorStd = corrigeEnPages(cCor);
-    for (const c of pagesCorStd) await poserCorrige(c, false);  // corrigé (nouvelle page)
-    pagesCorStd.slice(1).forEach(c => { if (c.parentNode) c.parentNode.removeChild(c); });
+    await poserCorrige(cCor, false);  // corrigé (nouvelle page)
 
     // Numérotation (énoncés / corrigé indépendants)
     numeroter(corrigeStartPageStd);
