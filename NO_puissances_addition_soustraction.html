@@ -94,13 +94,14 @@ body.corrige .sol{visibility:visible}
 <style>
 /* propre à la fiche */
 sup{font-size:.7em;line-height:0}
-.encadre{background:#FFF5CC;border:1px solid #E6D38A;border-radius:3mm;padding:3mm 5mm 3.5mm;margin:2mm auto 8mm;width:fit-content;font-size:11.5pt;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.encadre{border:0.35mm solid #1F3A5F;border-radius:2mm;padding:4mm 6mm;margin:2mm 0 8mm;font-size:11.5pt}
 .encadre p{margin:0 0 3mm}
 .encadre p:last-child{margin:0}
 .th1{display:grid;grid-template-columns:auto auto auto auto auto;justify-content:start;column-gap:4mm;row-gap:2mm}
 .th2{display:grid;grid-template-columns:repeat(7,auto);justify-content:start;column-gap:4mm;row-gap:3mm;margin:0 0 3mm}
 .th2 .d{text-align:right}
-.sous-titre{font-size:12.5pt;margin:0 0 2mm}
+.sous-titre{font-size:12.5pt;text-align:center;margin:-4mm 0 7mm}
+.encadre.etroit{margin-bottom:14mm}
 .grille3{display:grid;grid-template-columns:repeat(3,1fr);row-gap:8mm;margin:3mm 0 0 0}
 .it{display:flex;align-items:baseline;gap:1.5mm}
 .it .ex{width:14mm;white-space:nowrap}
@@ -113,6 +114,8 @@ sup{font-size:.7em;line-height:0}
 .longs{margin-top:7mm}
 .long{display:grid;grid-template-columns:6.5mm 52mm 6mm 1fr;align-items:baseline;margin:0 0 6mm}
 .trait.longtrait{text-align:left;padding-left:2mm;width:100%}
+.entete{text-align:right;font-size:9.5pt;font-weight:700;color:#ababab;margin:-5mm 0 4mm}
+h1{margin-bottom:6mm}
 </style>
 </head>
 <body>
@@ -130,8 +133,8 @@ sup{font-size:.7em;line-height:0}
 
 <!-- ══════════════════ PAGE 1 ══════════════════ -->
 <section class="page" data-corrige="">
-  <h1>Nombres et opérations</h1>
-  <p class="sur-titre">Puissances - Racines</p>
+  <p class="entete">Nombres et opérations</p>
+  <h1>Puissances et racines</h1>
   <p class="etiquette-corrige">CORRIGÉ</p>
 
   <div class="encadre etroit"><div class="th1"><span>3<sup>0</sup></span><span>=</span><span>1</span><span></span><span></span><span>3<sup>1</sup></span><span>=</span><span>3</span><span></span><span></span><span>3<sup>2</sup></span><span>=</span><span>3 · 3</span><span>=</span><span>9</span><span>3<sup>3</sup></span><span>=</span><span>3 · 3 · 3</span><span>=</span><span>27</span></div></div>
@@ -145,8 +148,8 @@ sup{font-size:.7em;line-height:0}
 
 <!-- ══════════════════ PAGE 2 ══════════════════ -->
 <section class="page" data-corrige="">
-  <h1>Nombres et opérations</h1>
-  <p class="sur-titre">Puissances - Racines</p>
+  <p class="entete">Nombres et opérations</p>
+  <h1>Puissances et racines</h1>
   <p class="etiquette-corrige">CORRIGÉ</p>
   <p class="sous-titre">Addition - Soustraction de puissances</p>
   <div class="encadre">
