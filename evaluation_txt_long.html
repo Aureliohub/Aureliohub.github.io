@@ -185,6 +185,7 @@ ol.corrections li.vise{box-shadow:0 0 0 2px var(--revision)}
 .ap-l.titre{margin-top:6mm;break-after:avoid}
 .ap-ext{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;overflow:hidden}
 .fin-imp{display:none}
+.ap-omis{margin:-2mm 0 3mm;font-family:var(--sans);font-size:2.8mm;color:#8E8E93;letter-spacing:0}
 .ap-ext.court{-webkit-line-clamp:4;line-clamp:4}
 .ap-saut{
   position:relative;margin:8mm 0 6mm;border-top:.3mm dotted #8E8E93;text-align:center;height:0;
@@ -287,10 +288,17 @@ kbd{font-family:var(--sans);font-size:.82rem;background:var(--gris-fond);border:
   .bloc-apercu > h2,.bloc-apercu > .legende-apercu{display:none}
   .bloc-apercu.rien-a-montrer{display:none}
   .apercu-page > :not(.signale):not(.contexte){display:none!important}
+  .ap-omis{display:none!important}
   .apercu-page > .signale,.apercu-page > .contexte{margin-top:0;margin-bottom:3mm;border:0;padding-top:0;padding-bottom:0}
   /* le contexte, une ligne au-dessus et au-dessous, en retrait visuel */
   .apercu-page > .contexte{opacity:.5}
-  .apercu-page > .contexte .ap-ext{-webkit-line-clamp:1;line-clamp:1}
+  /* Firefox n'applique pas toujours -webkit-line-clamp à l'impression : la coupe est faite
+     par une hauteur maximale (deux lignes pour un passage signalé, une pour le contexte) */
+  .apercu-page > .signale .ap-ext{display:block;max-height:2.6em;overflow:hidden}
+  .apercu-page > .contexte .ap-ext,.apercu-page > .contexte .fin-imp{max-height:1.3em}
+  /* le contexte est résumé à une ligne, aligné à gauche (une ligne justifiée coupée s'étire) */
+  .apercu-page > .contexte .ap-ext{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:left}
+  .apercu-page > .contexte{text-align:left!important}
   .apercu-page > .contexte.avant .ap-ext{display:none}
   .apercu-page > .contexte.avant .fin-imp{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .apercu-page > .contexte .ent:nth-of-type(n+3),.apercu-page > .contexte .tete-tdm ~ .ent:nth-of-type(n+2){display:none}
@@ -326,7 +334,7 @@ kbd{font-family:var(--sans);font-size:.82rem;background:var(--gris-fond);border:
 <header class="tete">
   <span class="pil">Informatique · PAI · traitement de texte</span>
   <div class="tete-texte">
-    <h1 title="v6">Texte long : contrôle de votre mise en forme</h1>
+    <h1 title="v13">Texte long : contrôle de votre mise en forme</h1>
     <p><span class="insecable">Déposez votre fichier, il est analysé dans votre navigateur (rien n’est envoyé sur Internet).</span>
       <span class="insecable">Vous obtenez votre note ainsi que la liste des corrections à apporter.</span></p>
   </div>
@@ -419,30 +427,22 @@ kbd{font-family:var(--sans);font-size:.82rem;background:var(--gris-fond);border:
   <h2>Mémento</h2>
 
   <h3>Rechercher et remplacer</h3>
-  <p><kbd>Ctrl</kbd>+<kbd>F</kbd> cherche un mot et compte ses occurrences. <kbd>Ctrl</kbd>+<kbd>H</kbd> ouvre <b>Remplacer</b> : écrivez « traîtement » dans <b>Rechercher</b>, « traitement » dans <b>Remplacer par</b>, puis cliquez sur <b>Remplacer tout</b>. Word indique le nombre de remplacements : il doit en annoncer 27.</p>
+  <p><kbd>Ctrl</kbd>+<kbd>F</kbd> cherche un mot et compte ses occurrences.</p>
 
-  <h3>Mettre en forme tout le texte</h3>
-  <p><kbd>Ctrl</kbd>+<kbd>A</kbd> sélectionne tout le document. Choisissez ensuite la police <b>Arial</b>, la taille <b>12</b> et l’alignement <b>Justifier</b> (<kbd>Ctrl</kbd>+<kbd>J</kbd>) dans l’onglet Accueil.</p>
+  <h3>Sélectionner tout le texte</h3>
+  <p><kbd>Ctrl</kbd>+<kbd>A</kbd> sélectionne tout le document.</p>
 
   <h3>Styles de titre</h3>
-  <p>Mettez en forme <b>un</b> titre (police, taille, gras, couleur, alignement), laissez-le sélectionné, puis faites un clic droit sur le style <b>Titre 1</b> dans la galerie de l’onglet Accueil ▸ <b>Mettre à jour Titre 1 pour correspondre à la sélection</b>. Pour les autres titres du même niveau, il suffit ensuite de cliquer dans le paragraphe puis sur le style.</p>
-  <table class="grille">
-    <thead><tr><th>Style</th><th>Pour</th><th>Mise en forme</th></tr></thead>
-    <tbody>
-      <tr><td>Titre 1</td><td>le titre du document</td><td>Arial 24, gras, à gauche, A31D1D</td></tr>
-      <tr><td>Titre 2</td><td>les 12 sous-titres</td><td>Arial 18, gras, à gauche, RVB(43,133,154)</td></tr>
-      <tr><td>Titre 3</td><td>les 6 sous-sous-titres</td><td>Arial 15, gras, à gauche, noir</td></tr>
-    </tbody>
-  </table>
+  <p>Mettez en forme <b>un</b> titre (police, taille, gras, couleur, alignement), laissez-le sélectionné, puis faites un clic droit sur le style <b>Titre 1</b> dans la galerie de l’onglet Accueil ▸ <b>Mettre à jour Titre 1 pour correspondre à la sélection</b>. Pour les autres titres du même niveau, il faut sélectionner la ligne puis appliquer le style.</p>
   <p>Pour une couleur précise : Couleur de police ▸ <b>Autres couleurs</b> ▸ <b>Personnalisées</b>, puis saisissez les valeurs RVB ou le code hexadécimal.</p>
 
   <h3>Table des matières</h3>
-  <p>Placez le curseur à la fin du texte et passez à la page suivante avec <kbd>Ctrl</kbd>+<kbd>Entrée</kbd> (saut de page), jusqu’à la page 6. Puis <b>Références ▸ Table des matières</b> et choisissez une table automatique. Elle est construite à partir des styles Titre 1, 2 et 3.</p>
+  <p><b>Références ▸ Table des matières</b> et choisissez une table automatique. Elle est construite à partir des styles Titre 1, 2 et 3.</p>
   <p>Si vous modifiez un titre ensuite, la table ne change pas toute seule : clic droit dans la table ▸ <b>Mettre à jour les champs</b> ▸ <b>Mettre à jour toute la table</b>.</p>
 
   <h3>En-tête et pied de page</h3>
-  <p>Double-cliquez dans la marge du haut (ou <b>Insertion ▸ En-tête ▸ Modifier l’en-tête</b>), écrivez « généré par ChatGPT_ » suivi de vos initiales, puis alignez à droite (<kbd>Ctrl</kbd>+<kbd>R</kbd>).</p>
-  <p>Pour le pied de page : <b>Insertion ▸ Numéro de page ▸ Bas de page</b> ▸ « Page X sur Y », à droite. Le modèle « Page X | Y » convient aussi. Ne tapez pas les numéros au clavier : un numéro tapé reste le même sur toutes les pages.</p>
+  <p>Double-cliquez dans la marge du haut pour l’en-tête (ou <b>Insertion ▸ En-tête ▸ Modifier l’en-tête</b>).</p>
+  <p>Double-cliquez dans la marge du bas pour le pied de page (ou <b>Insertion ▸ Numéro de page ▸ Bas de page</b>).</p>
 </section>
 
 </td></tr></tbody></table>
@@ -1047,7 +1047,11 @@ function analyser(paras, zones, appPages){
     let n = 0;
     const policesFausses = [];
     for(const niv of [1, 2, 3]){
-      const ps = titres(niv), cfg = NIVEAUX[niv], pb = [];
+      // un titre sans le bon style est déjà signalé au critère D : sa mise en forme n'est jugée ici
+      // que si aucun titre du niveau n'a le style (mise en forme faite à la main)
+      const tous = titres(niv), cfg = NIVEAUX[niv], pb = [];
+      const stylés = tous.filter(p => p.niveau === niv);
+      const ps = stylés.length ? stylés : tous;
       let cible = null;
       const marque = (cond, texte, p) => { if(cond){ pb.push(texte); cible = cible || p; } };
       const tl = ps.map(p => [p, dominant(p)]);
@@ -1066,8 +1070,8 @@ function analyser(paras, zones, appPages){
       for(const [p, s] of tl) if(!estArial(s.police)) policesFausses.push([p, s.police]);
       if(pb.length){
         n += pb.length;
-        corr.push({ crit:"C", t:"Mise en forme : " + (niv === 1 ? "titre" : niv === 2 ? "sous-titres" : "sous-sous-titres"),
-          cible: cible || ps[0], d: pb.join(" ; ").replace(/^./, c => c.toUpperCase()) +
+        corr.push({ crit:"C", t:"Mise en forme : " + cfg.nom,
+          cible: cible || ps[0] || tous[0], d: pb.join(" ; ").replace(/^./, c => c.toUpperCase()) +
           ". Attendu : Arial " + cfg.taille + ", gras, à gauche, " + cfg.lib + "." });
       }
     }
@@ -1096,7 +1100,8 @@ function analyser(paras, zones, appPages){
             : faux.length === ps.length && ps.length > 1 ? "Aucun des " + ps.length + (niv === 2 ? " sous-titres" : " sous-sous-titres") + " n’a le style " + cfg.nom
             : (faux.length === 1 ? "Un " : faux.length + " ") + (niv === 2 ? "sous-titre" : "sous-sous-titre") + (faux.length > 1 ? "s" : "") +
               " sur les " + ps.length + (faux.length === 1 ? " n’a" : " n’ont") + " pas le style " + cfg.nom) +
-          " : " + desc + ". Sélectionnez-" + (faux.length > 1 ? "les" : "le") + ", puis appliquez « " + cfg.nom + " » dans la galerie des styles." });
+          " : " + desc + ". Sélectionnez-" + (faux.length > 1 ? "les" : "le") + ", puis appliquez « " + cfg.nom + " » dans la galerie des styles" +
+          (faux.length < ps.length ? " : " + (faux.length > 1 ? "ils prendront" : "il prendra") + " aussi la mise en forme des autres " + (niv === 2 ? "sous-titres" : "sous-sous-titres") + "." : ".") });
     }
     const intrus = corps.filter(p => p.niveau >= 1 && p.niveau <= 3);
     if(intrus.length){
@@ -1175,8 +1180,9 @@ function analyser(paras, zones, appPages){
         d:"Le document n’a pas d’en-tête. Insertion ▸ En-tête, puis écrivez « généré par ChatGPT_ » suivi de vos initiales, aligné à droite." });
     }else{
       const p = ps[0], t = norm(ps.map(x => x.texte).join(" "));
-      if(!/^généré par chatgpt_[A-Za-zÀ-ÿ]{1,4}\.?$/i.test(t)){ n++; d.push("écrire exactement « généré par ChatGPT_ » suivi de vos initiales (trouvé : « " + t + " »)"); }
-      const ini = (t.match(/chatgpt\s*_?\s*([A-Za-zÀ-ÿ]{1,4})\.?\s*$/i) || [])[1];
+      const INI = "([A-Za-zÀ-ÿ](?:[.\\s]{0,2}[A-Za-zÀ-ÿ]){0,3}\\.?)";
+      if(!new RegExp("^généré par chatgpt_" + INI + "$", "i").test(t)){ n++; d.push("écrire exactement « généré par ChatGPT_ » suivi de vos initiales (trouvé : « " + t + " »)"); }
+      const ini = ((t.match(new RegExp("chatgpt\\s*_?\\s*" + INI + "\\s*$", "i")) || [])[1] || "").replace(/[.\s]/g, "");
       if(!ini || ini.toUpperCase() === "AM"){ n++; d.push(ini ? "remplacer « AM » par vos propres initiales" : "ajouter vos initiales après « ChatGPT_ »"); }
       if(!aDroite(p)){ n++; d.push("aligner l’en-tête à droite (Ctrl+R)"); }
       if(zones.premiereSansEntete){ n++; d.push("l’en-tête manque sur la première page : décochez « Première page différente »"); }
@@ -1205,6 +1211,7 @@ function analyser(paras, zones, appPages){
       // garde son nombre de pages) : on le signale seulement, sans le compter
       const totalTape = (motif.match(/^page\s*\{X\}\s*(?:\/|\||sur|de)\s*(\d+)$/i) || [])[1];
       const totalJuste = totalTape && +totalTape === (appPages || 6);
+      if(totalTape) vue.totalPied = +totalTape;
       if(!aY && !totalJuste){ n++; d.push(totalTape ? "le nombre total de pages tapé (« " + totalTape + " ») ne correspond pas au document" + (appPages ? ", qui compte " + appPages + " pages" : "") + " : utilisez le modèle « Page X | Y » ou « Page X sur Y » de la galerie (Insertion ▸ Numéro de page)" : "le nombre total de pages doit être automatique : utilisez le modèle « Page X | Y » ou « Page X sur Y » de la galerie (Insertion ▸ Numéro de page)"); }
       // le séparateur est libre : « / », « | », « sur » ou « de » (modèles de la galerie Word)
       if(aX && aY && !/^page\s*\{X\}\s*(\/|\||sur|de)\s*\{Y\}$/i.test(motif)){
@@ -1235,7 +1242,7 @@ function analyser(paras, zones, appPages){
   corr.sort((a, b) => rangDe(a) - rangDe(b) || a.crit.localeCompare(b.crit));
 
   const total = BAREME.reduce((s, x) => s + res[x.c], 0);
-  return { res, total, corr, remarques, lignes, paras, zones, vue };
+  return { res, total, corr, remarques, lignes, paras, zones, vue, appPages };
 }
 
 /* =========================================================
@@ -1279,14 +1286,25 @@ function styleCSS(s, jc){
          `text-align:${jc === "both" || jc === "distribute" ? "justify" : jc === "center" ? "center" : (jc === "right" || jc === "end") ? "right" : "left"}`;
 }
 
-function zoneHTML(ps, classe, etiquette, nums){
+function zoneHTML(ps, classe, etiquette, nums, valeurs){
   const pleins = ps.flat().filter(p => p.texte.trim());
   let h = "";
   if(!pleins.length) h = `<div class="vide">${etiquette.toLowerCase()} vide</div>`;
   for(const p of pleins){
     const s = dominant(p);
     const jc = aDroite(p) ? "right" : p.jc;
-    const txt = p.segs.map(g => g.champ && g.champ !== "HYPERLINK" ? `<span class="champ">${echapper(g.t)}</span>` : echapper(g.t.replace(/\t+/g, " "))).join("");
+    // les champs affichent la valeur de la page représentée (celle de la table des matières),
+    // et non le résultat enregistré dans le fichier, qui est celui de la page 1
+    let prec = null;
+    const txt = p.segs.map(g => {
+      const c = g.champ;
+      if(!c || c === "HYPERLINK"){ prec = null; return echapper(g.t.replace(/\t+/g, " ")); }
+      const v = valeurs && Object.prototype.hasOwnProperty.call(valeurs, c) ? valeurs[c] : undefined;
+      if(v === undefined){ prec = null; return `<span class="champ">${echapper(g.t)}</span>`; }
+      if(prec === c) return "";                     // suite du même champ : déjà affiché
+      prec = c;
+      return `<span class="champ">${echapper(String(v))}</span>`;
+    }).join("");
     h += `<div style="${styleCSS(s, jc)};line-height:1.25">${txt.replace(/^\s+/, "")}</div>`;
   }
   return `<div class="ap-zone ${classe}">${pastilles(nums)}<span class="etiq">${etiquette}</span>${h}</div>`;
@@ -1317,10 +1335,20 @@ function apercu(r, nums){
     }
     return t + "</div>";
   };
+  // sous un titre, seul le premier paragraphe est montré ; les suivants (la conclusion en compte 11)
+  // ne le sont que s'ils portent une pastille ou une marque
+  let corpsVu = false, omis = false;
   for(const p of r.lignes){
-    if(!tdmFaite && debutTdm >= 0 && debutTdm < p.rang){ h += bloc(); tdmFaite = true; }
+    if(!tdmFaite && debutTdm >= 0 && debutTdm < p.rang){ h += bloc(); tdmFaite = true; corpsVu = false; }
     const titre = p.modele ? p.modele.niv > 0 : p.niveau > 0;
     const s = dominant(p);
+    if(titre) corpsVu = false;
+    else{
+      const marque = (p.numeros && p.numeros.length) || (p.marques && p.marques.some(o => o.t !== "=" && !(o.t !== "sub" && estBlanc(o.c))));
+      if(corpsVu && !marque){ if(!omis){ h += `<div class="ap-omis">[…]</div>`; omis = true; } continue; }
+      corpsVu = true;
+    }
+    omis = false;
     if(titre){
       h += `<div class="ap-l titre" style="${styleCSS(s, p.jc)}">${pastilles(p.numeros)}${texteMarque(p, true).replace(/\n/g, "<br>")}</div>`;
     }else{
@@ -1329,7 +1357,19 @@ function apercu(r, nums){
   }
   if(!tdmFaite && tdm.length) h += bloc();
   if(r.vue.tdmAbsente) h += `<div class="ap-manque">${pastilles(nums.tdm)}Table des matières absente</div>`;
-  h += zoneHTML(r.zones.pieds, "bas", "Pied de page", nums.pied);
+  // pied de page de la page où se trouve la table des matières (la dernière page)
+  // nombre de pages : celui que Word enregistre ; OnlyOffice ne l'écrit pas, on prend alors
+  // le total tapé dans le pied de page s'il y en a un
+  // Sans nombre de pages connu (fichier ONLYOFFICE, total non tapé) : si la table a été acceptée
+  // à sa place, c'est la page 6 du modèle ; sinon on garde les valeurs enregistrées dans le fichier.
+  const placeOK = r.vue.tdm.length && !r.corr.some(c => /^(Place|Page) de la table/.test(c.t));
+  let total = r.appPages || r.vue.totalPied || null;
+  if(total === null && placeOK) total = 6;
+  const pageTdm = r.vue.pageTdm !== null ? r.vue.pageTdm : total;
+  const v = {};
+  if(pageTdm !== null) v.PAGE = pageTdm;
+  if(total !== null) v.NUMPAGES = v.SECTIONPAGES = total;
+  h += zoneHTML(r.zones.pieds, "bas", "Pied de page", nums.pied, v);
 
   const legende = '<span>Ce qui est à corriger est <span class="ex">surligné</span> ; '
                 + 'un <span class="cr">V</span> marque un mot ou un signe oublié ; '
@@ -1383,7 +1423,7 @@ function afficher(r, nomFichier){
   {
     // chaque passage signalé est imprimé avec son voisin du dessus (la fin) et du dessous (le début)
     const page = $("apercu-scale").firstElementChild;
-    const els = [...page.children].filter(el => !el.classList.contains("ap-saut"));
+    const els = [...page.children].filter(el => !el.classList.contains("ap-saut") && !el.classList.contains("ap-omis"));
     const sig = els.map(el => !!el.querySelector(":scope > .ap-num span"));
     const vu = els.map((el, i) => !!(sig[i] || sig[i - 1] || sig[i + 1]));   // booléen strict : toggle(x, undefined) bascule
     let precedent = -2;
