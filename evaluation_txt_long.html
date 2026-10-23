@@ -184,6 +184,7 @@ ol.corrections li.vise{box-shadow:0 0 0 2px var(--revision)}
 .ap-l{position:relative;margin:0 0 3.5mm}
 .ap-l.titre{margin-top:6mm;break-after:avoid}
 .ap-ext{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;overflow:hidden}
+.fin-imp{display:none}
 .ap-ext.court{-webkit-line-clamp:4;line-clamp:4}
 .ap-saut{
   position:relative;margin:8mm 0 6mm;border-top:.3mm dotted #8E8E93;text-align:center;height:0;
@@ -283,9 +284,18 @@ kbd{font-family:var(--sans);font-size:.82rem;background:var(--gris-fond);border:
      pas sur une seule feuille, il se poursuit de page en page */
   /* à l'impression, seuls les passages qui portent une pastille sont reproduits */
   .bloc-apercu{margin-top:10pt}
+  .bloc-apercu > h2,.bloc-apercu > .legende-apercu{display:none}
   .bloc-apercu.rien-a-montrer{display:none}
-  .apercu-page > :not(.signale){display:none!important}
-  .apercu-page > .signale{margin-top:0;margin-bottom:3mm;border:0;padding-top:0;padding-bottom:0}
+  .apercu-page > :not(.signale):not(.contexte){display:none!important}
+  .apercu-page > .signale,.apercu-page > .contexte{margin-top:0;margin-bottom:3mm;border:0;padding-top:0;padding-bottom:0}
+  /* le contexte, une ligne au-dessus et au-dessous, en retrait visuel */
+  .apercu-page > .contexte{opacity:.5}
+  .apercu-page > .contexte .ap-ext{-webkit-line-clamp:1;line-clamp:1}
+  .apercu-page > .contexte.avant .ap-ext{display:none}
+  .apercu-page > .contexte.avant .fin-imp{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .apercu-page > .contexte .ent:nth-of-type(n+3),.apercu-page > .contexte .tete-tdm ~ .ent:nth-of-type(n+2){display:none}
+  .apercu-page > .contexte.avant .ent{display:none}
+  .apercu-page > .contexte.avant .ent:last-child{display:flex}
   .apercu-page > .apres-coupure{margin-top:6mm!important}
   .apercu-page > .apres-coupure::before{
     content:"[…]";position:absolute;left:0;top:-4.6mm;font-family:var(--sans);font-size:7.5pt;
@@ -316,7 +326,7 @@ kbd{font-family:var(--sans);font-size:.82rem;background:var(--gris-fond);border:
 <header class="tete">
   <span class="pil">Informatique · PAI · traitement de texte</span>
   <div class="tete-texte">
-    <h1 title="v4">Texte long : contrôle de votre mise en forme</h1>
+    <h1 title="v6">Texte long : contrôle de votre mise en forme</h1>
     <p><span class="insecable">Déposez votre fichier, il est analysé dans votre navigateur (rien n’est envoyé sur Internet).</span>
       <span class="insecable">Vous obtenez votre note ainsi que la liste des corrections à apporter.</span></p>
   </div>
@@ -1082,8 +1092,11 @@ function analyser(paras, zones, appPages){
       const desc = faux.slice(0, 3).map(p => "« " + extrait(p.texte, 38) + " »" + (p.niveau ? " (style Titre " + p.niveau + ")" : "")).join(", ")
                  + (faux.length > 3 ? " et " + (faux.length - 3) + " autre" + (faux.length > 4 ? "s" : "") : "");
       corr.push({ crit:"D", t:"Style " + cfg.nom, cible:faux[0],
-        d:(niv === 1 ? "Le titre n’a pas le style Titre 1" : faux.length + " sur " + ps.length + (niv === 2 ? " sous-titres" : " sous-sous-titres") + " sans le style " + cfg.nom) +
-          " : " + desc + ". Cliquez dans le paragraphe, puis sur « " + cfg.nom + " » dans la galerie des styles." });
+        d:(niv === 1 ? "Le titre n’a pas le style Titre 1"
+            : faux.length === ps.length && ps.length > 1 ? "Aucun des " + ps.length + (niv === 2 ? " sous-titres" : " sous-sous-titres") + " n’a le style " + cfg.nom
+            : (faux.length === 1 ? "Un " : faux.length + " ") + (niv === 2 ? "sous-titre" : "sous-sous-titre") + (faux.length > 1 ? "s" : "") +
+              " sur les " + ps.length + (faux.length === 1 ? " n’a" : " n’ont") + " pas le style " + cfg.nom) +
+          " : " + desc + ". Sélectionnez-" + (faux.length > 1 ? "les" : "le") + ", puis appliquez « " + cfg.nom + " » dans la galerie des styles." });
     }
     const intrus = corps.filter(p => p.niveau >= 1 && p.niveau <= 3);
     if(intrus.length){
@@ -1368,14 +1381,28 @@ function afficher(r, nomFichier){
   $("legende-apercu").innerHTML = vue.legende;
   // repère les passages à imprimer (ceux qui portent une pastille) et les coupures entre eux
   {
+    // chaque passage signalé est imprimé avec son voisin du dessus (la fin) et du dessous (le début)
     const page = $("apercu-scale").firstElementChild;
-    let precedent = -2, nb = 0;
-    [...page.children].forEach((el, i) => {
-      const signale = !!el.querySelector(":scope > .ap-num span");
-      el.classList.toggle("signale", signale);
-      if(signale){ if(precedent >= 0 && i > precedent + 1) el.classList.add("apres-coupure"); precedent = i; nb++; }
+    const els = [...page.children].filter(el => !el.classList.contains("ap-saut"));
+    const sig = els.map(el => !!el.querySelector(":scope > .ap-num span"));
+    const vu = els.map((el, i) => !!(sig[i] || sig[i - 1] || sig[i + 1]));   // booléen strict : toggle(x, undefined) bascule
+    let precedent = -2;
+    els.forEach((el, i) => {
+      el.classList.toggle("signale", sig[i]);
+      el.classList.toggle("contexte", vu[i] && !sig[i]);
+      el.classList.toggle("avant", vu[i] && !sig[i] && !!sig[i + 1]);
+      if(vu[i]){ if(precedent >= 0 && i > precedent + 1) el.classList.add("apres-coupure"); precedent = i; }
+      // pour la ligne du dessus, on montre la fin du paragraphe, pas son début
+      const ext = el.querySelector(":scope > .ap-ext");
+      if(ext && !el.querySelector(":scope > .fin-imp")){
+        const t = ext.textContent.trim();
+        const fin = document.createElement("div");
+        fin.className = "fin-imp";
+        fin.textContent = t.length > 110 ? "… " + t.slice(-110).replace(/^\S*\s/, "") : t;
+        el.appendChild(fin);
+      }
     });
-    document.querySelector(".bloc-apercu").classList.toggle("rien-a-montrer", nb === 0);
+    document.querySelector(".bloc-apercu").classList.toggle("rien-a-montrer", !sig.some(Boolean));
   }
   ajusterEchelle();
 
