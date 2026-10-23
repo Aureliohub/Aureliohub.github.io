@@ -94,7 +94,6 @@ body.corrige .sol{visibility:visible}
 <style>
 /* propre à la fiche */
 .theorie .etapes p{margin:0}
-.ex-titre{margin:2mm 0 3mm !important}
 .intro{margin:0 0 6mm}
 .depart{margin:0 0 6mm 69mm}
 .rep.dessous{display:inline-block;margin:4mm 0 0 32mm}
@@ -108,6 +107,12 @@ sup{font-size:.7em;line-height:0}
 .cases{border-collapse:collapse;width:100%;table-layout:fixed;margin-top:2mm}
 .cases td{border:0.3mm solid #1a1a1a;height:56mm;vertical-align:top;padding:2.5mm 2.5mm;white-space:nowrap}
 .rep{color:var(--magenta);font-weight:700}
+
+/* mise en forme commune « Nombres et opérations » (23.10.2026) */
+.entete{text-align:right;font-size:9.5pt;font-weight:700;color:#ababab;margin:-5mm 0 4mm}
+h1{margin-bottom:6mm}
+.titre-section{font-weight:700;margin:0 0 4mm}
+.titre-section.s2{margin:7mm 0 2mm}
 </style>
 </head>
 <body>
@@ -125,10 +130,10 @@ sup{font-size:.7em;line-height:0}
 
 <!-- ══════════════════ PAGE 1 (théorie : pas de page de corrigé) ══════════════════ -->
 <section class="page theorie">
-  <h1>Nombres et opérations</h1>
-  <p class="sur-titre">Priorité des opérations</p>
+  <p class="entete">Nombres et opérations</p>
+  <h1>Priorité des opérations</h1>
 
-  <p class="ex-titre"><b>C. Exemple avec plusieurs niveaux de parenthèses</b></p>
+  <p class="titre-section">C. Exemple avec plusieurs niveaux de parenthèses</p>
   <p class="intro">Il peut y avoir plusieurs niveaux de parenthèses. Il faut effectuer d’abord les opérations entre parenthèses qui sont à l’intérieur d’autres parenthèses.</p>
   <p class="depart">9<sup>2</sup> : (21 - 18) + 7 · (16 - (9 + 5))<sup>2</sup></p>
   <ol class="etapes" start="5">
@@ -146,8 +151,8 @@ sup{font-size:.7em;line-height:0}
 
 <!-- ══════════════════ PAGE 2 ══════════════════ -->
 <section class="page" data-corrige="">
-  <h1>Nombres et opérations</h1>
-  <p class="sur-titre">Priorité des opérations</p>
+  <p class="entete">Nombres et opérations</p>
+  <h1>Priorité des opérations</h1>
   <p class="etiquette-corrige">CORRIGÉ</p>
   <table class="cases">
     <tr><td>(6 - 4) + [(5 - 3) · (5 - 2)] = <span class="sol rep">8</span></td><td>[(2,4 · 3) - 5,1] : 3 = <span class="sol rep">0,7</span></td></tr>

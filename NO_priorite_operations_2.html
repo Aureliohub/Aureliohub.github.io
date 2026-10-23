@@ -94,8 +94,7 @@ body.corrige .sol{visibility:visible}
 <style>
 /* propre à la fiche */
 .theorie .etapes p{margin:0}
-.ex-titre{margin:2mm 0 8mm !important}
-.ex-titre .ex-expr{margin-left:6mm}
+.depart{margin:0 0 6mm 69mm}
 .etapes{margin:0;padding-left:12mm}
 .etapes li{padding-left:2mm;margin-bottom:5mm}
 .lignes{margin:1mm 0 0 55mm}
@@ -106,6 +105,12 @@ sup{font-size:.7em;line-height:0}
 .cases{border-collapse:collapse;width:100%;table-layout:fixed;margin-top:2mm}
 .cases td{border:0.3mm solid #1a1a1a;height:56mm;vertical-align:top;padding:2.5mm 2.5mm;white-space:nowrap}
 .rep{color:var(--magenta);font-weight:700}
+
+/* mise en forme commune « Nombres et opérations » (23.10.2026) */
+.entete{text-align:right;font-size:9.5pt;font-weight:700;color:#ababab;margin:-5mm 0 4mm}
+h1{margin-bottom:6mm}
+.titre-section{font-weight:700;margin:0 0 4mm}
+.titre-section.s2{margin:7mm 0 2mm}
 </style>
 </head>
 <body>
@@ -123,10 +128,11 @@ sup{font-size:.7em;line-height:0}
 
 <!-- ══════════════════ PAGE 1 (théorie : pas de page de corrigé) ══════════════════ -->
 <section class="page theorie">
-  <h1>Nombres et opérations</h1>
-  <p class="sur-titre">Priorité des opérations</p>
+  <p class="entete">Nombres et opérations</p>
+  <h1>Priorité des opérations</h1>
 
-  <p class="ex-titre"><b>B. Exemple avec exposant</b> :<span class="ex-expr">(10 + 4) · 2<sup>3</sup> - 4 · (2 · 2) : 8</span></p>
+  <p class="titre-section">B. Exemple avec exposant</p>
+  <p class="depart">(10 + 4) · 2<sup>3</sup> - 4 · (2 · 2) : 8</p>
   <ol class="etapes">
     <li><p>Les parenthèses</p>
       <div class="lignes"><p>(<u><b>10 + 4</b></u>) · 2<sup>3</sup> - 4 · (<u><b>2 · 2</b></u>) : 8</p><p>14 · 2<sup>3</sup> - 4 · 4 : 8</p></div></li>
@@ -142,8 +148,8 @@ sup{font-size:.7em;line-height:0}
 
 <!-- ══════════════════ PAGE 2 ══════════════════ -->
 <section class="page" data-corrige="">
-  <h1>Nombres et opérations</h1>
-  <p class="sur-titre">Priorité des opérations</p>
+  <p class="entete">Nombres et opérations</p>
+  <h1>Priorité des opérations</h1>
   <p class="etiquette-corrige">CORRIGÉ</p>
   <table class="cases">
     <tr><td>3<sup>2</sup> · (5 + 6 · 2) = <span class="sol rep">153</span></td><td>12 + 8 · (2 + 3) : 2<sup>2</sup> = <span class="sol rep">22</span></td></tr>
