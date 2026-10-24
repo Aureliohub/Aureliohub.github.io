@@ -8,7 +8,7 @@ générant des exercices de mathématiques pour adultes (programme PAI, Suisse).
 Product owner : Aurelio (Onex/Genève). Répondre en FRANÇAIS.
 
 ───────────────────────────────────────────────────────────────────────────────
-0. OÙ ON EN EST (v532, 23.10.2026) — à lire en premier
+0. OÙ ON EN EST (v535, 24.10.2026) — à lire en premier
 ───────────────────────────────────────────────────────────────────────────────
 L'application est en ligne : https://aureliohub.github.io/eva_maths.html
 Les fichiers de série et de test (.json) sont déposés à côté d'elle, et s'ouvrent
@@ -543,6 +543,73 @@ PDF de domaine :
 ───────────────────────────────────────────────────────────────────────────────
 Cette section décrit l'ÉTAT, non l'historique. Les numéros de version ne sont
 cités que lorsqu'ils aident à retrouver un choix dans le fichier.
+
+v535 — « RETROUVER UNE GRANDEUR » DANS LES PDF (24.10, demande d'Aurelio).
+ Nouveau champ générique `sub.titrePdf`, lu par l'en-tête et le nom de fichier
+ du PDF de sous-domaine (donc aussi les groupes d'une série à la carte), par le
+ titre d'exercice et le corrigé du PDF de domaine. Le menu principal, l'atelier,
+ le test et le tableur gardent `title`.
+
+v534 — « RETROUVER UNE GRANDEUR » : NIVEAU « FRACTIONS » (24.10, demande
+ d'Aurelio). Menu des niveaux « % » (l'exercice d'avant, inchangé) et
+ « Fractions ».
+ · TITRE D'ÉCRAN : nouveau champ générique `sub.titreEcran`, lu par le seul
+   en-tête de l'écran du sous-domaine → « Retrouver une grandeur ». Le menu
+   principal, les PDF, l'atelier, le test et le tableur gardent `title`
+   (« … dont on connaît un pourcentage »), comme demandé.
+ · `genPctInverseFractions` (aiguillé par genPctInverse quand state.niveau
+   vaut 2) : même forme que « % », 8 questions, quatre de chaque format,
+   mélangées — « 45 = 3/5 de ? » (la grandeur, entière ; centaines et
+   milliers avec apostrophe) et « 24 = [ ] de 40 » (la fraction). Fractions
+   irréductibles de dénominateur 3 à 10, jamais 1/2, aucune fraction répétée
+   dans la série.
+ · LA FRACTION SE SAISIT DANS LA CASE DE LA v533, posée DANS la phrase
+   (classe `.dfrac-inline`) : `fractionEquiv`, donc toute fraction égale est
+   juste. Au PDF, `caseFractionPdf()` la remplace par une case vide DESSINÉE
+   EN SVG (en CSS, html2canvas perdait la barre) — branchée dans les TROIS
+   passes « .no-print » (sous-domaine, domaine, prop-concret). Les rangées qui
+   portent une case se centrent (`.multi-grid:has(.dfrac-inline…)`), sinon
+   « a) » et « b) » ne tombaient plus sur la même ligne.
+ · DÉFAUT DE LA v533 CORRIGÉ AU PASSAGE : hors test, la bascule Solutions (et
+   le PDF, qui refait l'écran) VIDAIT les cases à fraction — snapshotInputs ne
+   voyait que `.answer-input`. Les `.dfrac-champ` y sont relevés et
+   restitués ; vaut aussi pour la droite graduée.
+ · CONSÉQUENCES : le PDF du sous-domaine donne désormais « % » puis
+   « Fractions » (avant : deux exercices « % ») ; le PDF du domaine 2 et le
+   test raccourci restent au niveau « % ».
+ Vérifié au vrai navigateur : 3 000 exercices recalculés (24 000 questions,
+ aucun défaut) ; saisie frappée — juste, égale (14/16 pour 7/8), fausse,
+ « / » filtré ; bascule Solutions ; PDF du sous-domaine regardé ; atelier
+ (niveau Fractions) et PDF de série ; test depuis un fichier (aller-retour
+ JSON), 7/8 attendu et obtenu, export regardé ; téléphone ; PDF du domaine 2 :
+ 5 pages comme en v533.
+
+v533 — DROITE GRADUÉE « FRACTIONS » : CASES DE LA FICHE, SANS « / » À TAPER
+ (24.10, demande d'Aurelio sur le modèle de sa fiche UOG « Situer des fractions
+ sur une droite numérique »).
+ · ÉCRAN : chaque case est une case de fiche — plus haute que large, fond gris
+   clair, deux champs EMPILÉS (numérateur / dénominateur) et la barre de
+   fraction entre eux. Chiffres seuls (une barre oblique tapée est retirée).
+   L'aide « utilise la barre oblique : 7/10 » est supprimée.
+ · MÉCANIQUE (renderInput, branche `q.fractionEquiv`) : les deux champs
+   visibles `inp-e-q-n` / `inp-e-q-d` (classe `.dfrac-champ`, PAS
+   `.answer-input`) recomposent « n/d » dans un champ CACHÉ qui garde
+   l'identifiant standard `inp-e-q` (`dfracSaisie`, même principe que le
+   vrai/faux). Validation, barème, champs vides, relevé/restitution du test,
+   atelier : rien n'a eu à changer. Un seul champ rempli donne « 3/ » : compté
+   comme répondu, et faux.
+ · TROIS COLLECTEURS ramassaient tout champ « inp-e-q-… » et auraient donné
+   « 3 | 7 | 3/7 » : `champsDeQuestion`, `reponseSaisieResultats` (tableur) et
+   l'export du test. Ils écartent `.dfrac-champ`. Le tableur reçoit aussi
+   l'attendu « 3/7 » au lieu de « 3 7 » (fraction empilée aplatie).
+ · PDF : cases dessinées au même format (36 × 56, fond #F1F1F1, barre grise
+   déjà tracée) ; DFRAC.hPdf 118 → 128. Corrigé : fraction verte dans la case.
+ Vérifié au vrai navigateur : saisie frappée (juste, équivalente 12/10, fausse,
+ « / » filtré) ; test depuis un fichier, 2 exercices, score 5/8 attendu et
+ obtenu, une case vide signalée, saisies conservées à la bascule Solutions,
+ tableur « 6/14 » / « 3/7 » / juste, export regardé ; PDF du sous-domaine
+ (Fractions 1 + 2, énoncé + corrigé, 2 pages) regardé ; téléphone ; PDF du
+ domaine 1 et PDF de la droite N1-N2 : même nombre de pages qu'en v532.
 
 v532 — « FRACTIONS », CITERNE / CAMION : UNE SEULE PLACE (23.10). Comme pour
  les éliminations (v530) : un seul patron 14, en palier 3, qui tire la
@@ -5737,13 +5804,13 @@ ainsi (une remarque prise pour une consigne, une sélection ambiguë).
     display: block;
     position: relative;
     max-width: 760px;
-    height: 72px;
+    height: 80px;
     /* remonte la grille contre le bas de la figure : marge et rembourrage de
        .number-line (16px) + le blanc de ligne laissé sous un SVG en ligne */
     margin: -22px auto 0;
     padding: 0;
   }
-  .multi-grid-droite-frac:has(.inline-solution) { height: 118px; }
+  .multi-grid-droite-frac:has(.inline-solution) { height: 124px; }
   .multi-grid-droite-frac .multi-item {
     position: absolute;
     top: 0;
@@ -5756,17 +5823,43 @@ ainsi (une remarque prise pour une consigne, une sélection ambiguë).
   }
   .multi-grid-droite-frac .multi-item > strong,
   .multi-grid-droite-frac .dfrac-nom { display: none; }
-  .multi-grid-droite-frac .answer-input {
-    width: 52px;
-    height: 46px;
-    margin: 0;
-    padding: 0 2px;
-    text-align: center;
-    font-size: 15px;
-    font-weight: 700;
+  /* La case : deux champs empilés (numérateur, dénominateur) séparés par la
+     barre de fraction, sur fond gris clair comme la fiche papier. */
+  .dfrac-case {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 46px;
+    height: 74px;
+    padding: 3px 0;
+    background: #F1F1F1;
     border: 1.5px solid #111827;
-    border-radius: 7px;
+    border-radius: 6px;
   }
+  .dfrac-case:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+  .dfrac-case:has(input.correct) { border-color: var(--success); background: var(--success-soft); }
+  .dfrac-case:has(input.incorrect) { border-color: var(--danger); background: var(--danger-soft); }
+  .dfrac-case:has(input.champ-vide) { border-color: #F59E0B; background: #FFFBEB; }
+  .dfrac-champ {
+    width: 38px;
+    height: 30px;
+    margin: 0;
+    padding: 0;
+    border: none;
+    background: transparent;
+    text-align: center;
+    font-family: inherit;
+    font-size: 17px;
+    font-weight: 800;
+    color: var(--text);
+    outline: none;
+  }
+  .dfrac-case.dfrac-inline { vertical-align: middle; margin: 2px 4px; }
+  /* Une case dans la phrase rend sa rangée plus haute : les questions voisines
+     se centrent sur elle, sinon « a) » et « b) » ne sont plus sur la même ligne. */
+  .multi-grid:has(.dfrac-inline), .multi-grid:has(.dfrac-inline-pdf) { align-items: center; }
+  .dfrac-barre { display: block; width: 28px; height: 0; border-top: 1.5px solid #6B7280; margin: 1px 0; }
   .multi-grid-droite-frac .feedback { margin: 0; font-size: 15px; line-height: 1.1; }
   .multi-grid-droite-frac .inline-solution { margin: 0; font-size: 14px; white-space: nowrap; }
   .dfrac-aide { margin-top: 3px; font-size: 13px; color: var(--muted); }
@@ -5775,7 +5868,8 @@ ainsi (une remarque prise pour une consigne, une sélection ambiguë).
     font-family: 'SF Mono', Menlo, Consolas, monospace; font-size: 12.5px;
   }
   @media (max-width: 640px) {
-    .multi-grid-droite-frac .answer-input { width: 42px; height: 40px; font-size: 13px; }
+    .dfrac-case { width: 40px; height: 66px; }
+    .dfrac-champ { width: 34px; height: 27px; font-size: 15px; }
     /* Téléphone : sous 520px de large les cases se chevaucheraient. La figure
        garde cette largeur et défile de gauche à droite dans l'exercice. */
     .exercise:has(.multi-grid-droite-frac) { overflow-x: auto; }
@@ -8846,6 +8940,8 @@ function fmtThousands(n) {
 //   • "résultat = ? % de base" (l'élève cherche le pourcentage)
 // Les valeurs sont choisies pour que les réponses tombent justes (entiers).
 function genPctInverse() {
+  // Niveau 2 « Fractions » (v534) : même exercice, la fraction remplace le %.
+  if (state.niveau === 2) return genPctInverseFractions();
   // Pourcentages "simples" qui donnent des fractions usuelles
   const pctsSimples = [2, 4, 5, 8, 10, 12, 15, 20, 25, 30, 40, 50, 60, 75];
 
@@ -8940,6 +9036,82 @@ function genPctInverse() {
     answer: q.answer,
     inlineInput: !!q.inlineInput
   }));
+  return { multi: true, intro: "Calcule la valeur manquante :", questions };
+}
+
+// 2.2 bis — NIVEAU « FRACTIONS » (v534, demande d'Aurelio). Même forme que le
+// niveau « % » : 8 questions a) à h), QUATRE de chaque format, mélangées.
+//   • « 45 = 3/5 de ? »     → retrouver la grandeur (réponse entière)
+//   • « 24 = ? de 40 »      → retrouver la fraction (réponse « 3/5 » ; toute
+//                             fraction ÉGALE est juste, via `fractionEquiv`)
+// Jamais 1/2 (trop évident) ; fractions toujours irréductibles dans l'énoncé ;
+// une même fraction ne revient pas dans la série.
+function genPctInverseFractions() {
+  const FRAC = [];
+  for (let d = 3; d <= 10; d++) {
+    for (let n = 1; n < d; n++) if (gcd(n, d) === 1) FRAC.push([n, d]);
+  }
+  const FRAC_RONDES = FRAC.filter(([, d]) => [4, 5, 8, 10].includes(d));
+  const patrons = [
+    // Format 1 — la grandeur, petite (base ≤ 250)
+    () => {
+      const [p, q] = choice(FRAC);
+      const k = rand(6, 25);
+      const base = q * k;
+      return { text: `${fmtThousands(p * k)} = ${frac(p, q)} de `, answer: `${base}`, key: `${p}/${q}` };
+    },
+    // Format 1 — la grandeur, en centaines ou en milliers
+    () => {
+      const [p, q] = choice(FRAC_RONDES);
+      const base = q * rand(2, 9) * (q === 10 ? 10 : choice([10, 100]));
+      if (base > 9000) return null;
+      return { text: `${fmtThousands(p * base / q)} = ${frac(p, q)} de `, answer: fmtThousands(base), key: `${p}/${q}` };
+    },
+    // Format 2 — la fraction, petite base
+    () => {
+      const [p, q] = choice(FRAC);
+      const k = rand(3, 12);
+      const base = q * k;
+      return {
+        text: `${fmtThousands(p * k)} = __INPUT__ de ${fmtThousands(base)}`,
+        answer: `${p}/${q}`, fractionEquiv: [p, q], inlineInput: true, key: `${p}/${q}`
+      };
+    },
+    // Format 2 — la fraction, base en dizaines ou centaines
+    () => {
+      const [p, q] = choice(FRAC_RONDES);
+      const base = q * rand(2, 9) * 10;
+      return {
+        text: `${fmtThousands(p * base / q)} = __INPUT__ de ${fmtThousands(base)}`,
+        answer: `${p}/${q}`, fractionEquiv: [p, q], inlineInput: true, key: `${p}/${q}`
+      };
+    }
+  ];
+  const seenTxt = new Set(), seenFrac = new Set();
+  const tirer = (indices, combien) => {
+    const out = [];
+    let safety = 300;
+    while (out.length < combien && safety-- > 0) {
+      const q = patrons[choice(indices)]();
+      if (!q) continue;
+      const cle = q.text.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+      if (seenTxt.has(cle) || seenFrac.has(q.key)) continue;
+      seenTxt.add(cle); seenFrac.add(q.key);
+      out.push(q);
+    }
+    return out;
+  };
+  const brut = [...tirer([0, 1], 4), ...tirer([2, 3], 4)];
+  for (let i = brut.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [brut[i], brut[j]] = [brut[j], brut[i]];
+  }
+  const labels = ['a)', 'b)', 'c)', 'd)', 'e)', 'f)', 'g)', 'h)'];
+  const questions = brut.map((q, i) => {
+    const o = { label: labels[i], text: q.text, answer: q.answer, inlineInput: !!q.inlineInput };
+    if (q.fractionEquiv) o.fractionEquiv = q.fractionEquiv;
+    return o;
+  });
   return { multi: true, intro: "Calcule la valeur manquante :", questions };
 }
 
@@ -9368,8 +9540,8 @@ function genDroiteN2() {
 // position en % de la largeur de la figure). Dans le SVG, les cases dessinées
 // sont dans un groupe `data-pdf-seul`, invisible à l'écran : c'est
 // `droiteFractionsPourPdf` qui le révèle à l'impression et retire les champs.
-const DFRAC = { W: 600, padX: 30, baseY: 30, hEcran: 64, hPdf: 118,
-                caseY: 66, caseW: 44, caseH: 46, ecartMin: 58 };
+const DFRAC = { W: 600, padX: 30, baseY: 30, hEcran: 64, hPdf: 128,
+                caseY: 66, caseW: 36, caseH: 56, ecartMin: 58 };
 function genDroiteFractions(niveau) {
   const avecUn = (niveau === 3);
   const NB = 4;
@@ -9445,12 +9617,16 @@ function buildDroiteFractionsSvg(d, N, pas, pts, repere) {
   // Une case dessinée, vide (énoncé) ou portant sa fraction (corrigé).
   const caseSvg = (k, avecFraction) => {
     let g = `<line x1="${x(k)}" y1="${hEcran - 1}" x2="${x(k)}" y2="${caseY}" stroke="${NOIR}" stroke-width="1.2"/>`;
-    g += `<rect x="${x(k) - caseW / 2}" y="${caseY}" width="${caseW}" height="${caseH}" rx="5" fill="#FFFFFF" stroke="${NOIR}" stroke-width="1.2"/>`;
+    // Case de la fiche : plus haute que large, fond gris clair, barre de
+    // fraction grise déjà tracée — l'élève n'écrit que les deux nombres.
+    g += `<rect x="${x(k) - caseW / 2}" y="${caseY}" width="${caseW}" height="${caseH}" rx="4" fill="#F1F1F1" stroke="${NOIR}" stroke-width="1.1"/>`;
+    const cy = caseY + caseH / 2;
     if (avecFraction) {
-      const cy = caseY + caseH / 2;
-      g += `<text x="${x(k)}" y="${cy - 5}" text-anchor="middle" font-size="15" font-weight="bold" fill="${VERT}">${k}</text>`;
-      g += `<line x1="${x(k) - 12}" y1="${cy}" x2="${x(k) + 12}" y2="${cy}" stroke="${VERT}" stroke-width="1.3"/>`;
-      g += `<text x="${x(k)}" y="${cy + 16}" text-anchor="middle" font-size="15" font-weight="bold" fill="${VERT}">${d}</text>`;
+      g += `<text x="${x(k)}" y="${cy - 6}" text-anchor="middle" font-size="16" font-weight="bold" fill="${VERT}">${k}</text>`;
+      g += `<line x1="${x(k) - 12}" y1="${cy}" x2="${x(k) + 12}" y2="${cy}" stroke="${VERT}" stroke-width="1.6"/>`;
+      g += `<text x="${x(k)}" y="${cy + 18}" text-anchor="middle" font-size="16" font-weight="bold" fill="${VERT}">${d}</text>`;
+    } else {
+      g += `<line x1="${x(k) - 12}" y1="${cy}" x2="${x(k) + 12}" y2="${cy}" stroke="#B5B5B5" stroke-width="1.1"/>`;
     }
     return g;
   };
@@ -9473,10 +9649,9 @@ function buildDroiteFractionsSvg(d, N, pas, pts, repere) {
     fractionEquiv: [k, d],
     posPct: +((x(k) / W) * 100).toFixed(3)
   }));
-  const aide = `<div class="dfrac-aide">Pour écrire une fraction, utilise la barre oblique : <code>7/10</code></div>`;
   return {
     svg, svgCorrige, multi: true, questions, svgId,
-    intro: "Écris, sous chaque point, la fraction qui lui correspond :" + aide,
+    intro: "Écris, sous chaque point, la fraction qui lui correspond :",
     droiteFractions: true,
     // Nom du niveau, affiché à côté du numéro d'exercice dans les PDF (le
     // sous-domaine n'a pas de `niveauLabels`, voir sa déclaration).
@@ -9504,6 +9679,35 @@ function droiteFractionsPourPdf(root) {
     const exo = svg.closest('.exercise') || root;
     exo.querySelectorAll('.multi-grid-droite-frac, .dfrac-aide').forEach(el => el.remove());
   });
+}
+
+// Case à fraction posée DANS une phrase (« 24 = [ ] de 40 ») : au PDF, la case
+// vide de la fiche — même format que celles de la droite (36 × 56, fond gris
+// clair, barre de fraction déjà tracée). Appelée par les trois chaînes PDF.
+function caseFractionPdf() {
+  const c = document.createElement('span');
+  c.className = 'dfrac-inline-pdf';
+  c.style.cssText = 'display:inline-block; width:36px; height:56px; margin:0 4px; vertical-align:middle; line-height:0;';
+  // En SVG : html2canvas perdait la barre dessinée en CSS dans une boîte flex.
+  c.innerHTML = '<svg width="36" height="56" viewBox="0 0 36 56" xmlns="http://www.w3.org/2000/svg">'
+    + '<rect x="0.6" y="0.6" width="34.8" height="54.8" rx="5" fill="#F1F1F1" stroke="#111827" stroke-width="1.2"/>'
+    + '<line x1="7" y1="28" x2="29" y2="28" stroke="#6B7280" stroke-width="1.5"/></svg>';
+  return c;
+}
+
+// Case à fraction de l'écran : recompose « n/d » dans le champ caché à chaque
+// frappe (chiffres seuls). Un champ resté vide laisse « n/ » ou « /d » : la
+// réponse compte comme donnée, et fausse. L'événement `input` relayé efface le
+// signalement « champ vide » du test, accroché au champ caché.
+function dfracSaisie(champ) {
+  const nettoye = (champ.value || '').replace(/\D/g, '');
+  if (nettoye !== champ.value) champ.value = nettoye;
+  const cas = champ.closest('.dfrac-case');
+  if (!cas) return;
+  const cache = cas.querySelector('input[type="hidden"]');
+  const n = cas.querySelector('[id$="-n"]').value, d = cas.querySelector('[id$="-d"]').value;
+  cache.value = (n || d) ? `${n}/${d}` : '';
+  cache.dispatchEvent(new Event('input', { bubbles: true }));
 }
 
 function buildDroiteSvg(start, end, step, subSteps, positions, labelEvery, placePositions, snapStep) {
@@ -19978,7 +20182,7 @@ const ICONE_ENSEIGNANT = '<svg viewBox="0 0 24 24" width="21" height="21" fill="
 const ICONE_PDF = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJkAAACUCAMAAAC3HHtWAAAAk1BMVEXi5ef////xVkKwt73K0dji6OrxW0jyUDnG2eHlzczmgnrV2t/x8/T19vbxUTzwTDX4u7Xnvr28wsf+8/L84N3yYlD1jID1hXf1kYb4q6L4t7D96ujwQib1mY7++Pf70c3zcWHxSC/zeGn3pJv6ysX72dXy2Nbj1dXtgnfyaFf3sKj6w73UubvV4ebco6HkioPitLFLhhsqAAAElUlEQVR4nO3ca5eaOhQG4ICOtHUa7AAqIgiIbdVezv//dUcS7tlAXIYkq4v308xCzeNOCAEVZAzmKxKWj8Xi4324tVbQyGahsqdow7J3wbLFgp82LHsTLuOv2rBMIKyQ8dMGZQLHfyXjpsmX8dIUyDhpKmR8NCUyLpoa2eLjq64yjqqpko1XTZlstGrqZGM0hbIRmkrZME2pbJCmVjZEUywboKmW9dOUy3qnXPWyvqppIOupmg4yuGpayMCq6SGDqiZPthySAVWTJ1sPytiqyZMNdydbNYmykaJ1aRJlY0Xr0GTKnqNJlY3sn22aXBlaL4fr1qBJlpEsB/KmVDZEUywboKmW9dOUy3pp6mV9NA1kPTQdZDBNCxlI00MG0TSRATRdZCxNGxlD00fWpWkkQ/rKkL4ypK8M6StD+sqQvjKkrwzpK0P6ypC+MqSvDOkrQ/rKkL6ytbYyVF+tnWWiZW8T5jlZ4Lby/fN0+YFAGyxzw9hbyUoc/oBooOxi2tiUFmybEA2SRaklz5XH/slZs5PEgtGsPrNFg2R3W7YMf+OTbWbZLJtls2yWzbJWrORYJklaaxFs2WUsiznm1htpoIPySzK8PQVl3Oyc1gQrDX3/nMc/h/t0lbTb3vqthDGwkHlFhneO0YyTXYtHWdvWFsc9xA3b6m504nhs1V6R2QemhT192OrS3WJs4rLx7hvKcz8KlVkbpoWI9ovnMlsMN4ULSnJIJpA5gUNStL+qZRFN+RLBDvfJgpXY3qSy2zXOs/MpIbRLWeT/3OYJb0UFL7R9KnMOdXzRewCV+TYmsa8BKdqxku3oFsvGu4C+SFLL3MakwU4rgmTlv/u8ak5emEJWVcKOadmuuJYBmKlkmHpiQGZaMenrg61EZppknso9jMw8khnG9fSTWWletCjF9TizHnmMwsdInFqG6S4A9mY5keR7LpUFYRX4JFugLPHzf6OK0ZatTuWDmfnM2UO012XnI931zTMZ5KfGrNFsEGdkF0igmdaJgQ59XZaFZE1xO9GZlrx/QGYS2Q2UGdtJZO3c6+NmZ5yRg/wZ6k3j4rEvLlrm0h2NlRW7R17R4uh0qnIA1kCCZVF2pW2wMjvMH+BcG7MGmTbywBfmBMqcU2gWbQDzGSnZhfwpa6Y9nWn2qVm9d0ZGZxQyzOTJzkfaJc0+6cjwMSQ7bmRLrZkPbClkCSZoHG+iumQayIzs9lgV3g73YqYzsuJp6mWdXK7N1baMccYpy7xi2EmQ2ed8C3Q4Zs/qorA6CcFpLhu9WP7a1YNNFB3AdULqRjXKcU/bY+P5OHQiN51UhnG6gz/AsLxdndSz2s+249119IOPF68F9axHyZY6TzxNmGzCzLJZNstm2TSyTPpnwh7nZ8KBbBiOGVfPdw9u7DXeSWHHX785ZVGYJNV52ORJ8J/lmlP2WOv54b6VL5Pl73/LT0/Iunn/NF3yLzXyjjNAxvzkQWy0lQEwPWTAKOOXrScM5PoXvrM3y2bZLJtls+zfk3He90Do3TnFykTe0ZQr9Q8XRmTSi9a4zcyITOQNap+Djckk92fzbin/A8PQxx30Ei25AAAAAElFTkSuQmCC';
 
 // Numéro de version, affiché en pied de menu.
-const APP_VERSION = '532';
+const APP_VERSION = '535';
 
 const DOMAINS = [
   {
@@ -20041,7 +20245,7 @@ const DOMAINS = [
     color: "chip-rose",
     subdomains: [
       { id: 'frac-pct',         title: "Calculer une fraction ou un pourcentage de …",    gen: genFracPct, patrons: () => [genFracPct] },
-      { id: 'pct-inverse',      title: "Retrouver une grandeur dont on connaît un pourcentage", gen: genPctInverse, patrons: () => [genPctInverse] },
+      { id: 'pct-inverse',      title: "Retrouver une grandeur dont on connaît un pourcentage", titreEcran: "Retrouver une grandeur", titrePdf: "Retrouver une grandeur", gen: genPctInverse, hasNiveau2: true, niveauLabels: ['%', 'Fractions'], patrons: () => [genPctInverse] },
       { id: 'proportion',       title: "Poser une proportion et la résoudre",             gen: genProportion, hasNiveau2: true, patrons: () => [genProportion] },
       { id: 'prop-concret',     title: "Résoudre un problème concret de proportionnalité", gen: genPropConcret, hasNiveau2: true, niveauLabels: ['Proportionnalité', 'Fractions', '% - rabais'], patrons: () => [genPropConcret] }
     ]
@@ -25138,7 +25342,7 @@ function renderMain() {
   let html = `
     <div class="content-header">
       <div class="content-header-row">
-        <h2 class="content-header-h2-inline">${found.sub.title}</h2>
+        <h2 class="content-header-h2-inline">${found.sub.titreEcran || found.sub.title}</h2>
         <div class="content-header-actions">${niveauToggle}${variantSelect}
           ${(found.sub.id === 'vocab' && state.niveau === 1) ? '' : `<button class="btn-action btn-icon" id="btn-new" onclick="regenerateExercises()" title="Nouveaux exercices">${ICONE_RECHARGER}</button>`}
           <button class="btn-action btn-icon" id="btn-solutions" onclick="toggleSolutions()" title="${solTitle}">${solLabel}</button>
@@ -26893,7 +27097,13 @@ function renderExercise(ex, num, exIdx) {
         // renderInput retourne " <input ...> <span id=fb ...></span>"
         // On veut juste le <input> au milieu et le feedback à la fin.
         // Solution simple : on génère un input "nu" inline + feedback à la fin.
-        const inputOnly = ` <input type="text" id="${inputId}" class="answer-input answer-input-inline no-print" placeholder="?" autocomplete="off" onkeydown="if(event.key==='Enter'){validateExercise(${exIdx})}"> `;
+        // Réponse en fraction (`fractionEquiv`) : la même case que la droite
+        // graduée — numérateur / dénominateur, sans « / » à taper — posée dans
+        // la phrase. On reprend le rendu de renderInput, sans son feedback
+        // (il va en fin de ligne, comme pour les autres champs du milieu).
+        const inputOnly = Array.isArray(q.fractionEquiv)
+          ? ' ' + inputHtml.split(`<span id="${feedbackId}"`)[0].trim().replace('class="dfrac-case no-print"', 'class="dfrac-case dfrac-inline no-print"') + ' '
+          : ` <input type="text" id="${inputId}" class="answer-input answer-input-inline no-print" placeholder="?" autocomplete="off" onkeydown="if(event.key==='Enter'){validateExercise(${exIdx})}"> `;
         const textWithInput = q.text.replace('__INPUT__', inputOnly);
         content += `<div class="multi-item"><strong>${q.label}</strong> ${textWithInput} <span id="${feedbackId}" class="feedback"></span>`;
         content += solFor(q.answer);
@@ -27307,6 +27517,19 @@ function renderInput(inputId, feedbackId, exIdx, qIdx, q, withButton) {
              </span>${btnHtml}
              <span id="${feedbackId}" class="feedback"></span>`;
   }
+  if (q && Array.isArray(q.fractionEquiv)) {
+    // Droite « Fractions » : la case de la fiche — numérateur en haut,
+    // dénominateur en bas, barre de fraction entre les deux. L'élève ne tape
+    // jamais « / » : `dfracSaisie` recompose « n/d » dans le champ caché, qui
+    // garde l'identifiant standard (validation, test, export, tableur).
+    return ` <span class="dfrac-case no-print">`
+      + `<input type="text" id="${inputId}-n" class="dfrac-champ" data-brut="1" inputmode="numeric" maxlength="3" autocomplete="off" aria-label="numérateur" oninput="dfracSaisie(this)" ${onEnter}>`
+      + `<span class="dfrac-barre"></span>`
+      + `<input type="text" id="${inputId}-d" class="dfrac-champ" data-brut="1" inputmode="numeric" maxlength="3" autocomplete="off" aria-label="dénominateur" oninput="dfracSaisie(this)" ${onEnter}>`
+      + `<input type="hidden" id="${inputId}" class="answer-input" value="">`
+      + `</span>${btnHtml}
+           <span id="${feedbackId}" class="feedback"></span>`;
+  }
   if (q && q.answerType === 'duree') {
     // Durée : « [ ] h [ ] min ». `data-brut` : sans lui, « 2h45 » tapé dans le
     // champ deviendrait « 2h⁴⁵ » (conversion des exposants de l'algèbre).
@@ -27408,6 +27631,12 @@ function snapshotInputs() {
     });
     snap['__tf__' + hidden.id] = { buttonsState };
   });
+  // Cases à fraction (numérateur / dénominateur) : leurs deux champs ne portent
+  // pas `.answer-input` (seul le champ caché la porte) ; sans cette capture, la
+  // bascule Solutions vidait les cases à l'écran.
+  document.querySelectorAll('.dfrac-champ').forEach(c => {
+    if (c.id) snap['__dfrac__' + c.id] = { value: c.value || '' };
+  });
   const feedbacks = document.querySelectorAll('.feedback');
   feedbacks.forEach(fb => {
     if (!fb.id) return;
@@ -27446,6 +27675,11 @@ function snapshotInputs() {
 function restoreInputs(snap) {
   if (!snap) return;
   for (const key of Object.keys(snap)) {
+    if (key.startsWith('__dfrac__')) {
+      const c = document.getElementById(key.slice(9));
+      if (c) c.value = snap[key].value;
+      continue;
+    }
     if (key.startsWith('__fb__')) {
       const id = key.slice(6);
       const fb = document.getElementById(id);
@@ -29437,6 +29671,9 @@ function champsDeQuestion(bloc, exIdx, qIdx) {
   const prefixe = `inp-${exIdx}-${qIdx}`;
   return [...bloc.querySelectorAll('input')].filter(i => {
     const id = i.id || '';
+    // Case à fraction : seul le champ caché (« n/d ») porte la réponse ; ses
+    // deux champs visibles ne sont que la saisie.
+    if (i.classList.contains('dfrac-champ')) return false;
     return id === prefixe || id.startsWith(prefixe + '-');
   });
 }
@@ -30156,6 +30393,8 @@ function texteResultats(html) {
 function attenduTexteResultats(q, ex) {
   if (!q) return '';
   if (q.attenduExport) return texteResultats(q.attenduExport);
+  // Fraction lue sur une droite : « 7/10 », et non « 7 10 » (fraction empilée).
+  if (Array.isArray(q.fractionEquiv)) return `${q.fractionEquiv[0]}/${q.fractionEquiv[1]}`;
   // Les problèmes rédigés gardent leur raisonnement dans `answer` : on n'en
   // retient que le résultat, comme le fait l'export PDF.
   const court = (v) => {
@@ -30184,6 +30423,7 @@ function reponseSaisieResultats(i, j, q) {
     donnee = dureeSaisie(document.getElementById(prefixe), document.getElementById(`${prefixe}-min`)).texte;
   } else if (bloc) {
     donnee = [...bloc.querySelectorAll('input')]
+      .filter(inp => !inp.classList.contains('dfrac-champ'))   // case à fraction : le champ caché suffit
       .filter(inp => (inp.id === prefixe) || (inp.id || '').startsWith(prefixe + '-'))
       .map(inp => (inp.value || '').trim()).filter(v => v !== '').join(' | ');
   }
@@ -31199,6 +31439,7 @@ async function exporterTest(opts) {
         // ce qui collait trois réponses bout à bout sur les exercices longs.
         const prefixe = `inp-${i}-${j}`;
         const champs = [...document.querySelectorAll(`[data-test-ex="${i}"] input`)]
+          .filter(inp => !inp.classList.contains('dfrac-champ'))   // case à fraction : le champ caché suffit
           .filter(inp => (inp.id === prefixe) || (inp.id || '').startsWith(prefixe + '-'));
         // Question à choix : la sélection vit sur le groupe de boutons, pas
         // dans un champ de saisie — sans quoi l'export la croyait vide.
@@ -33402,6 +33643,7 @@ async function downloadDomainPdf(domainNum, compoImposee) {
     }
     // Nettoyage no-print
     exoDiv.querySelectorAll('.no-print').forEach(el => {
+      if (el.classList.contains('dfrac-inline')) { el.replaceWith(caseFractionPdf()); return; }
       if (el.tagName === 'INPUT') replaceInputBlank(el, el.classList.contains('answer-input-inline'));
       else el.remove();
     });
@@ -33521,7 +33763,7 @@ async function downloadDomainPdf(domainNum, compoImposee) {
       //   N1 → "… proportionnalité" (titre normal)
       //   N2 → "… proportionnalité - fractions"
       //   N3 → "… proportionnalité - rabais"
-      let titre = titreDuSousDomaine(sub, niveau);
+      let titre = sub.titrePdf || titreDuSousDomaine(sub, niveau);
       if (sub.id === 'prop-concret' && niveau === 2) {
         titre = `${sub.title} - fractions`;
       } else if (sub.id === 'prop-concret' && niveau === 3) {
@@ -33597,7 +33839,7 @@ async function downloadDomainPdf(domainNum, compoImposee) {
     // Titre (en-tête du corrigé d'un sous-domaine, paginable comme bloc séparé)
     const titleDiv = document.createElement('div');
     titleDiv.style.cssText = 'font-weight: 800; color: #1F2937; margin-bottom: 6px;';
-    titleDiv.innerHTML = `${idx + 1}. ${sub.title}`;
+    titleDiv.innerHTML = `${idx + 1}. ${sub.titrePdf || sub.title}`;
     titleDiv.setAttribute('data-pdf-corrige-title', '1');
     exDiv.appendChild(titleDiv);
     const isLong = (typeof LONG_ANSWER_SUBDOMAINS !== 'undefined') && LONG_ANSWER_SUBDOMAINS.has(sub.id);
@@ -34242,7 +34484,8 @@ async function downloadPdf(opts) {
     const found = findSubdomain(state.activeSubId);
     // Titre : pour « unites », il suit les unités choisies plutôt que d'énumérer
     // les cinq familles (« Transformer les unités d'aire », « … (longueur, temps) »).
-    let title = found.sub.title;
+    // `titrePdf` : titre propre aux PDF (« Retrouver une grandeur », v535).
+    let title = found.sub.titrePdf || found.sub.title;
     if (found.sub.id === 'unites' && Array.isArray(opts.unitesVariants) && opts.unitesVariants.length) {
       const variants = found.sub.variants || [];
       const sel = opts.unitesVariants.map(k => variants.find(v => v.key === k)).filter(Boolean);
@@ -35057,6 +35300,7 @@ async function downloadPdf(opts) {
       }
       // Nettoyage : retirer .no-print, .feedback, .inline-solution
       exoDiv.querySelectorAll('.no-print').forEach(el => {
+        if (el.classList.contains('dfrac-inline')) { el.replaceWith(caseFractionPdf()); return; }
         if (el.tagName === 'INPUT') {
           replaceInputBlank(el, el.classList.contains('answer-input-inline'));
         } else {
@@ -35782,6 +36026,7 @@ async function downloadPdf(opts) {
         }
         // Nettoyage (inputs → traits, retirer solutions/feedback)
         exoDiv.querySelectorAll('.no-print').forEach(el => {
+          if (el.classList.contains('dfrac-inline')) { el.replaceWith(caseFractionPdf()); return; }
           if (el.tagName === 'INPUT') replaceInputBlank(el, el.classList.contains('answer-input-inline'));
           else el.remove();
         });
