@@ -122,6 +122,11 @@ td.sol,td .sol{color:var(--magenta);font-weight:700}
   body{display:flow-root}
 }
 </style>
+<style>
+/* en-tête de série, hors du flux : n'en décale pas le contenu */
+.entete{position:absolute;top:6mm;right:12mm;margin:0;font-size:9.5pt;font-weight:700;color:#ababab}
+.etiquette-corrige{left:20mm;right:auto;top:6mm}
+</style>
 </head>
 <body>
 
@@ -138,6 +143,7 @@ td.sol,td .sol{color:var(--magenta);font-weight:700}
 
 <!-- ══════════════════ PAGE 1 ══════════════════ -->
 <section class="page" data-corrige="">
+  <p class="entete">Proportionnalité</p>
   <h1>Fractions</h1>
   <p class="sur-titre">Résolution de problèmes</p>
   <p class="etiquette-corrige">CORRIGÉ</p>
@@ -152,17 +158,17 @@ td.sol,td .sol{color:var(--magenta);font-weight:700}
 
   <p class="item gras">a) Complétez le tableau ci-dessous :</p>
   <table class="prix">
-    <tr><th class="lib"></th><th>téléviseur</th><th>smartphone</th><th>tablette</th><th>console de jeux</th></tr>
+    <tbody><tr><th class="lib"></th><th>téléviseur</th><th>smartphone</th><th>tablette</th><th>console de jeux</th></tr>
     <tr><td class="lib">Prix affiché<br>(avant réduction)<br>(en CHF)</td><td>1'200.-</td><td>900.-</td><td>600.-</td><td>450.-</td></tr>
     <tr><td class="lib">Prix soldé<br>(après réduction)<br>(en CHF)</td><td><span class="sol">720.-</span></td><td><span class="sol">540.-</span></td><td><span class="sol">360.-</span></td><td><span class="sol">270.-</span></td></tr>
-  </table>
+  </tbody></table>
 
   <p class="item gras" style="margin-top:6mm">b) Complétez le tableau ci-dessous :</p>
   <table class="prix">
-    <tr><th class="lib"></th><th>ordinateur portable</th><th>appareil photo</th><th>montre connectée</th><th>écouteurs sans fil</th></tr>
+    <tbody><tr><th class="lib"></th><th>ordinateur portable</th><th>appareil photo</th><th>montre connectée</th><th>écouteurs sans fil</th></tr>
     <tr><td class="lib">Prix affiché<br>(avant réduction)<br>(en CHF)</td><td><span class="sol">1'500.-</span></td><td><span class="sol">2'100.-</span></td><td><span class="sol">390.-</span></td><td><span class="sol">250.-</span></td></tr>
     <tr><td class="lib">Prix soldé<br>(après réduction)<br>(en CHF)</td><td>900.-</td><td>1'260.-</td><td>234.-</td><td>150.-</td></tr>
-  </table>
+  </tbody></table>
 
   <!-- 2 -->
   <div class="exo-titre" style="margin-top:8mm">
