@@ -80,7 +80,7 @@ body.corrige .sol{visibility:visible}
 </style>
 <style>
 /* propre à la fiche – conversions */
-.exemple{background:#FFF5CC;border:1px solid #E6D38A;border-radius:3mm;padding:3mm 5mm 3.5mm;margin-bottom:8mm;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.exemple{border:0.35mm solid #1F3A5F;border-radius:2mm;padding:3mm 5mm 3.5mm;margin-bottom:8mm}
 .th-titre{font-weight:700;text-align:center;font-size:12.5pt;line-height:1.35;margin:0 0 4mm}
 .th-ex{font-weight:700;margin:0 0 2mm}
 .th{list-style:none;margin:0;padding:0 0 0 2mm}
@@ -122,6 +122,11 @@ body.corrige .sol{visibility:visible}
   body{display:flow-root}
 }
 </style>
+<style>
+/* en-tête de série, hors du flux : n'en décale pas le contenu */
+.entete{position:absolute;top:6mm;right:12mm;margin:0;font-size:9.5pt;font-weight:700;color:#ababab}
+.etiquette-corrige{left:20mm;right:auto;top:6mm}
+</style>
 </head>
 <body>
 
@@ -138,13 +143,14 @@ body.corrige .sol{visibility:visible}
 
 <!-- ══════════════════ PAGE 1 ══════════════════ -->
 <section class="page">
+  <p class="entete">Nombres et opérations</p>
   <h1>Fractions</h1>
   <p class="sur-titre">Conversions</p>
   <p class="etiquette-corrige">CORRIGÉ</p>
 
   <div class="exemple">
     <p class="th-titre">Conversion de nombres décimaux en fractions</p>
-    <p class="th-ex">Exemples&#8239;:</p>
+    <p class="th-ex">Exemples :</p>
     <ul class="th">
       <li><span class="puce">▪</span><span><b>0,6</b> se lit 6 dixièmes et peut s’écrire <span class="fe"><span>6</span><span>10</span></span> ou en simplifiant par 2 = <span class="fe"><span>3</span><span>5</span></span></span></li>
       <li><span class="puce">▪</span><span><b>0,67</b> se lit 67 centièmes et peut s’écrire <span class="fe"><span>67</span><span>100</span></span></span></li>
@@ -155,11 +161,11 @@ body.corrige .sol{visibility:visible}
 
   <div class="exemple">
     <p class="th-titre">Conversion de fractions en nombres décimaux</p>
-    <p class="th-ex">Exemples&#8239;:</p>
+    <p class="th-ex">Exemples :</p>
     <ul class="th">
-      <li><span class="puce">▪</span><span><span class="fe"><span>4</span><span>5</span></span> <span class="esp">c’est</span> 4&#8239;:&#8239;5 <span class="esp">→</span> 4&#8239;:&#8239;5 = 0,8</span></li>
+      <li><span class="puce">▪</span><span><span class="fe"><span>4</span><span>5</span></span> <span class="esp">c’est</span> 4 : 5 <span class="esp">→</span> 4 : 5 = 0,8</span></li>
       <li class="regle"><b>Pour trouver l’équivalent décimal, il suffit d’effectuer la division.</b></li>
-      <li><span class="puce">▪</span><span><span class="fe"><span>5</span><span>6</span></span> = 5&#8239;:&#8239;6 = 0,83333333</span></li>
+      <li><span class="puce">▪</span><span><span class="fe"><span>5</span><span>6</span></span> = 5 : 6 = 0,83333333</span></li>
       <li><span class="puce">▪</span><span><span class="fe"><span>9</span><span>5</span></span> = 1,8</span></li>
     </ul>
   </div>
@@ -169,15 +175,16 @@ body.corrige .sol{visibility:visible}
 
 <!-- ══════════════════ PAGE 2 ══════════════════ -->
 <section class="page" data-corrige="">
+  <p class="entete">Nombres et opérations</p>
   <h1>Fractions</h1>
   <p class="sur-titre">Conversions</p>
   <p class="etiquette-corrige">CORRIGÉ</p>
 
   <div class="exo-titre">
     <svg class="pastille" viewBox="0 0 16 16" aria-hidden="true"><rect width="16" height="16" rx="2" fill="#1F3A5F"></rect><text x="8" y="12" text-anchor="middle" fill="#fff" font-size="11" font-weight="700" font-family="Verdana,sans-serif">1</text></svg>
-    <span class="consigne">Convertir en code fractionnaire&#8239;:</span>
+    <span class="consigne">Convertir en code fractionnaire :</span>
   </div>
-  <p class="exple"><span class="lbl">Exemple&#8239;:</span><b>0,4</b><span class="eg">=</span><span class="fe"><span>4</span><span>10</span></span><span class="eg">=</span><span class="fe"><span>2</span><span>5</span></span></p>
+  <p class="exple"><span class="lbl">Exemple :</span><b>0,4</b><span class="eg">=</span><span class="fe"><span>4</span><span>10</span></span><span class="eg">=</span><span class="fe"><span>2</span><span>5</span></span></p>
   <div class="liste l1">
     <div class="it"><span class="no">1.</span><b class="dec">0,5</b><span class="eg">=</span><span class="rep"><span class="sol"><span class="fe fs"><span>5</span><span>10</span></span> <span class="egs">=</span> <span class="fe fs"><span>1</span><span>2</span></span></span></span></div>
     <div class="it"><span class="no">2.</span><b class="dec">0,35</b><span class="eg">=</span><span class="rep"><span class="sol"><span class="fe fs"><span>35</span><span>100</span></span> <span class="egs">=</span> <span class="fe fs"><span>7</span><span>20</span></span></span></span></div>
@@ -191,9 +198,9 @@ body.corrige .sol{visibility:visible}
 
   <div class="exo-titre ex2">
     <svg class="pastille" viewBox="0 0 16 16" aria-hidden="true"><rect width="16" height="16" rx="2" fill="#1F3A5F"></rect><text x="8" y="12" text-anchor="middle" fill="#fff" font-size="11" font-weight="700" font-family="Verdana,sans-serif">2</text></svg>
-    <span class="consigne">Convertir en code décimal&#8239;:</span>
+    <span class="consigne">Convertir en code décimal :</span>
   </div>
-  <p class="exple"><span class="lbl">Exemple&#8239;:</span><span class="fe"><span>5</span><span>2</span></span><span class="eg">=</span>5&#8239;:&#8239;2<span class="eg">=</span>2,5</p>
+  <p class="exple"><span class="lbl">Exemple :</span><span class="fe"><span>5</span><span>2</span></span><span class="eg">=</span>5 : 2<span class="eg">=</span>2,5</p>
   <div class="liste l2">
     <div class="it it2"><span class="no">1.</span><span class="fe"><span>3</span><span>5</span></span><span class="eg">=</span><span class="rep"><span class="sol sd">0,6</span></span></div>
     <div class="it it2"><span class="no">2.</span><span class="fe"><span>6</span><span>25</span></span><span class="eg">=</span><span class="rep"><span class="sol sd">0,24</span></span></div>
