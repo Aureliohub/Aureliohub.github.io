@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proportionnalité - Règle de trois</title>
+
+<style>
+:root{
+  --encre:#1a1a1a;--navy:#1F3A5F;--bleu:#1E9E4A;--magenta:#E6007E;--filet:#c9c9c9;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:#e9e9e9;color:var(--encre);
+  font-family:"Avenir Next","Avenir","Segoe UI","Trebuchet MS",Verdana,sans-serif;
+  font-size:0;line-height:1.5;
+}
+.barre{
+  position:sticky;top:0;z-index:10;
+  display:flex;gap:10px;align-items:center;justify-content:center;
+  padding:8px;background:var(--navy);color:#fff;font-size:10pt;
+}
+.barre button{font:inherit;font-weight:600;cursor:pointer;background:#fff;color:var(--navy);border:none;border-radius:3px;
+  padding:0;width:30px;height:30px;line-height:1;display:inline-flex;align-items:center;justify-content:center;font-size:13pt}
+.barre button svg{display:block}
+.barre button:focus-visible{outline:2px solid var(--magenta);outline-offset:2px}
+.barre span{opacity:.8}
+.barre .zoom-outils{opacity:1}
+.zoom-outils{display:flex;gap:6px;align-items:center}
+.zoom-taux{font-variant-numeric:tabular-nums;min-width:44px;text-align:center;opacity:.9}
+
+.page{
+  position:relative;zoom:var(--z,1);width:210mm;height:292mm;
+  margin:14px auto;padding:12mm 12mm 18mm 20mm;
+  background:#fff;overflow:hidden;font-size:11.5pt;
+}
+h1{font-size:15pt;font-weight:700;text-align:center;margin:0 0 1mm;letter-spacing:.1px}
+.sur-titre{text-align:center;font-size:11.5pt;margin:0 0 6mm}
+.etiquette-corrige{
+  display:none;position:absolute;top:13mm;right:12mm;margin:0;
+  color:var(--magenta);font-weight:700;font-size:11pt;letter-spacing:1px;
+}
+body.corrige .etiquette-corrige{display:block}
+p{margin:0 0 4mm}
+
+.exo-titre{display:flex;gap:3mm;align-items:flex-start;margin-bottom:2mm}
+.exo-titre .consigne{font-weight:700}
+.pastille{flex:0 0 auto;width:15px;height:15px;margin-top:2px}
+.item{margin:0 0 2mm 8mm}
+
+.fig{display:block;margin:2mm auto 0;width:170mm;height:auto}
+.sol{visibility:hidden}
+body.corrige .sol{visibility:visible}
+
+.pied{
+  position:absolute;left:20mm;right:12mm;bottom:10mm;
+  padding-top:2.5mm;border-top:1px solid var(--filet);
+  display:flex;justify-content:space-between;font-size:9.5pt;color:#333;
+}
+
+@page{size:A4;margin:0}
+@media print{
+  html,body{width:210mm;margin:0;padding:0;overflow:hidden}
+  body{background:#fff}
+  .barre{display:none}
+  .page{zoom:1;margin:0;page-break-after:always}
+  .page:last-of-type{page-break-after:auto}
+}
+@media screen{ .page{box-shadow:0 1px 6px rgba(0,0,0,.18)} }
+/* écran : agrandissement par transform plutôt que par zoom CSS — Firefox pour Android (écran i3TOUCH)
+   ne dessine pas certains tracés SVG quand la page est agrandie avec zoom. L'impression n'est pas touchée.
+   Fiche en paysage : ajouter --pw:297mm;--ph:205mm dans la règle .page. */
+@media screen{
+  .page{
+    zoom:1 !important;
+    transform:scale(var(--z,1));transform-origin:top left;
+    margin-left:max(14px, calc((100% - var(--pw,210mm) * var(--z,1)) / 2));margin-right:0;
+    margin-bottom:calc(14px + (var(--z,1) - 1) * var(--ph,292mm));
+  }
+  /* empêche la marge négative de la dernière page de sortir du body (sinon vide sous la page en réduction) */
+  body{display:flow-root}
+}
+
+.page-corrige{display:none}
+@media print{
+  body.corrige .page:not(.page-corrige) .etiquette-corrige{display:none}
+  body.corrige .page:not(.page-corrige) .sol{visibility:hidden}
+  .page-corrige{display:block}
+  .page-corrige .etiquette-corrige{display:block}
+  .page-corrige .sol{visibility:visible}
+}
+</style>
+
+<style>
+/* propre à la fiche */
+h1{margin-bottom:6mm}
+.sous-titre{font-size:12.5pt;text-align:center;margin:-4mm 0 7mm}
+.cadre{border:0.35mm solid #1F3A5F;border-radius:2mm;padding:4mm 6mm;margin:0 0 7mm}
+.cadre p{margin:0 0 0.6mm}
+.cadre .bloc{margin-top:4mm}
+.cadre-titre{font-weight:700;text-align:center;margin:0 0 3mm!important}
+.schema{display:block;height:auto}
+.schema text{font-family:inherit}
+.ligne-reps{display:flex;justify-content:space-between;margin:5mm 0 6mm 8mm}
+.rep{display:inline-block;position:relative;border-bottom:1.2px dotted #1a1a1a;vertical-align:baseline;height:1.15em}
+.rep .sol{position:absolute;left:0;right:0;bottom:.15em;text-align:center;color:var(--magenta);font-weight:600;white-space:nowrap}
+.cadre .retrait{margin-left:5mm}
+.liste{margin:0 0 1mm 9mm;padding:0;list-style:none}
+.liste li{display:flex;margin:0 0 1mm}
+.liste li::before{content:"•";width:6mm;flex:0 0 auto}
+.liste .lib{width:50mm;flex:0 0 auto;white-space:nowrap}
+.frac{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;line-height:1.25;margin:0 1mm}
+.frac>span:first-child{border-bottom:1px solid currentColor;padding:0 1.5mm 0.5mm}
+.frac>span:last-child{padding-top:0.5mm}
+.formule{text-align:center;margin:2mm 0 0!important}
+.reso{display:flex;align-items:center;gap:14mm;margin:3mm 0 0 8mm;color:var(--magenta)}
+</style>
+</head>
+<body>
+
+<div class="barre">
+  <button id="btn" type="button" title="Afficher le corrigé" aria-label="Afficher le corrigé"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.3 8S3.6 3.8 8 3.8 14.7 8 14.7 8 12.4 12.2 8 12.2 1.3 8 1.3 8z"></path><circle cx="8" cy="8" r="2.1"></circle></svg></button>
+  <span class="zoom-outils">
+    <button id="zoom-moins" type="button" title="Réduire">−</button>
+    <span class="zoom-taux" id="zoom-taux">100 %</span>
+    <button id="zoom-plus" type="button" title="Agrandir">+</button>
+    <button id="zoom-page" type="button" title="Page entière" aria-label="Page entière"><svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3.2" y="1.6" width="9.6" height="12.8" rx="1.2"></rect><path d="M8 4.6v6.8"></path><path d="M6.3 6.3L8 4.6l1.7 1.7"></path><path d="M6.3 9.7L8 11.4l1.7-1.7"></path></svg></button>
+    <button id="plein-ecran" type="button" title="Plein écran" aria-label="Plein écran"><svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6V2h4"></path><path d="M10 2h4v4"></path><path d="M14 10v4h-4"></path><path d="M6 14H2v-4"></path></svg></button>
+  </span>
+</div>
+
+<!-- ══════════════════ PAGE 1 ══════════════════ -->
+<section class="page" data-corrige="">
+  <h1>Proportionnalité</h1>
+  <p class="sous-titre">Facteur de proportionnalité - Règle de trois - Produit en croix</p>
+  <p class="etiquette-corrige">CORRIGÉ</p>
+
+  <div class="cadre">
+    <p><strong>6 croissants coûtent 9 CHF</strong></p>
+    <svg class="schema" style="width:158mm;margin:1mm 0 3mm" viewBox="0 -3 158 63" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Tableau de proportionnalité croissants et prix">
+      <defs><marker id="fl" viewBox="0 0 6 6" refX="5" refY="3" markerWidth="5.2" markerHeight="5.2" orient="auto-start-reverse"><path d="M0.4 0.8L5 3 0.4 5.2" fill="none" stroke="#1a1a1a" stroke-width="0.7" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+      <g stroke="#1a1a1a" stroke-width="0.4" fill="none">
+        <!-- tableau -->
+        <rect x="4" y="10" width="94" height="36"/>
+        <line x1="4" y1="28" x2="98" y2="28"/>
+        <line x1="30" y1="10" x2="30" y2="46"/><line x1="47" y1="10" x2="47" y2="46"/>
+        <line x1="64" y1="10" x2="64" y2="46"/><line x1="81" y1="10" x2="81" y2="46"/>
+      </g>
+      <!-- bulles et flèches : arc continu d'une colonne à l'autre, bulle posée au sommet -->
+      <g stroke="#1a1a1a" stroke-width="0.25" fill="none" stroke-linecap="round">
+        <path d="M54.5 10V3H38.5V9.3" stroke-linejoin="round" marker-end="url(#fl)"/>
+        <path d="M56.5 10V3H72.5V9.3" stroke-linejoin="round" marker-end="url(#fl)"/>
+        <path d="M54.5 46V53H38.5V46.7" stroke-linejoin="round" marker-end="url(#fl)"/>
+        <path d="M56.5 46V53H72.5V46.7" stroke-linejoin="round" marker-end="url(#fl)"/>
+        <path d="M98 19H113V37H98.7" stroke-linejoin="round" marker-end="url(#fl)"/>
+      </g>
+      <g stroke="#1a1a1a" stroke-width="0.25" fill="#fff">
+        <ellipse cx="46.5" cy="3" rx="5.4" ry="4.4"/><ellipse cx="64.5" cy="3" rx="5.4" ry="4.4"/>
+        <ellipse cx="46.5" cy="53" rx="5.4" ry="4.4"/><ellipse cx="64.5" cy="53" rx="5.4" ry="4.4"/>
+        <ellipse cx="113" cy="28" rx="9.6" ry="6.6"/>
+      </g>
+      <g stroke="#1a1a1a" fill="none">
+        <line x1="109.6" y1="30.4" x2="118.8" y2="30.4" stroke-dasharray="0.3 0.9" stroke-linecap="round" stroke-width="0.4"/>
+      </g>
+      <g fill="#1a1a1a" stroke="none" text-anchor="middle">
+        <text x="46.5" y="4.7" font-size="4.8">x2</text><text x="64.5" y="4.7" font-size="4.8">: 2</text>
+        <text x="46.5" y="54.7" font-size="4.8">x2</text><text x="64.5" y="54.7" font-size="4.8">: 2</text>
+        <text x="17" y="20.6" font-size="4.6">croissants</text>
+        <text x="17" y="38.6" font-size="4.6">prix CHF</text>
+        <text x="38.5" y="21.8" font-size="7.6">12</text><text x="55.5" y="21.8" font-size="7.6">6</text><text x="72.5" y="21.8" font-size="7.6">3</text>
+        <text x="55.5" y="39.8" font-size="7.6">9</text>
+        <text x="126" y="4" font-size="4.2">facteur (ou coefficient)</text>
+        <text x="126" y="9.5" font-size="4.2">de proportionnalité</text>
+        <text x="106.6" y="29.8" font-size="4.6" fill="#555">×</text>
+      </g>
+      <g class="sol" fill="#E6007E" stroke="none" text-anchor="middle" font-weight="600">
+        <text x="89.5" y="21.2" font-size="5.6">1</text>
+        <text x="38.5" y="39.2" font-size="5.6">18</text><text x="72.5" y="39.2" font-size="5.6">4,5</text><text x="89.5" y="39.2" font-size="5.6">1,5</text>
+        <text x="114.4" y="29.4" font-size="5.8">1,5</text>
+      </g>
+    </svg>
+    <p>Si on achète 2 fois plus, on paie 2 fois plus.</p>
+    <p>Si on en achète 2 fois moins, on paie 2 fois moins.</p>
+    <p>Le prix payé est <strong>proportionnel</strong> au nombre de croissants achetés.</p>
+    <div class="bloc">
+      <p>Le <strong>facteur de proportionnalité</strong> permet de calculer le prix pour n’importe quelle quantité de croissants.</p>
+      <p>On l’obtient en divisant le prix par le nombre de croissants.</p>
+      <p>Le facteur de proportionnalité correspond à la valeur de 1 croissant.</p>
+    </div>
+  </div>
+
+  <div class="exo-titre">
+    <svg class="pastille" viewBox="0 0 16 16" aria-hidden="true"><rect width="16" height="16" rx="2" fill="#1F3A5F"></rect><text x="8" y="12" text-anchor="middle" fill="#fff" font-size="11" font-weight="700" font-family="Verdana,sans-serif">1</text></svg>
+    <span>Au marché, les tomates sont vendues 2 CHF le kilo. Quel est le prix de 2, 4, 6 et 10 kg ?</span>
+  </div>
+  <div class="ligne-reps">
+    <span>a) 2 kg : <span class="rep" style="width:22mm"><span class="sol">4 CHF</span></span></span>
+    <span>b) 4 kg : <span class="rep" style="width:22mm"><span class="sol">8 CHF</span></span></span>
+    <span>c) 6 kg : <span class="rep" style="width:22mm"><span class="sol">12 CHF</span></span></span>
+    <span>d) 10 kg : <span class="rep" style="width:22mm"><span class="sol">20 CHF</span></span></span>
+  </div>
+  <p class="item">e) Combien de kilos de tomates emporte‑t‑on pour 14 CHF ? <span class="rep" style="width:24mm"><span class="sol">7 kg</span></span></p>
+
+  <div class="exo-titre" style="margin-top:9mm">
+    <svg class="pastille" viewBox="0 0 16 16" aria-hidden="true"><rect width="16" height="16" rx="2" fill="#1F3A5F"></rect><text x="8" y="12" text-anchor="middle" fill="#fff" font-size="11" font-weight="700" font-family="Verdana,sans-serif">2</text></svg>
+    <span>Pour 6 CHF, on peut acheter 3 litres de jus d’orange.<br>Combien de litres peut-on acheter pour 18 CHF ? pour 3 CHF ?</span>
+  </div>
+  <p class="item" style="margin-top:12mm">a) pour 18 CHF : <span class="rep" style="width:80mm"><span class="sol">9 litres</span></span></p>
+  <p class="item" style="margin-top:14mm">b) pour 3 CHF : <span class="rep" style="width:82mm"><span class="sol">1,5 litre</span></span></p>
+
+  <div class="pied"><span>Proportionnalité - Règle de trois - UOG/AM</span><span>1</span></div>
+</section>
+
+<!-- ══════════════════ PAGE 2 ══════════════════ -->
+<section class="page" data-corrige="">
+  <h1>Proportionnalité</h1>
+  <p class="sous-titre">Facteur de proportionnalité - Règle de trois - Produit en croix</p>
+  <p class="etiquette-corrige">CORRIGÉ</p>
+
+  <div class="cadre">
+    <p class="cadre-titre">Règle de trois - Produit en croix</p>
+    <p>4 livres coûtent 52 CHF. Quel est le prix de 11 livres ?</p>
+
+    <p style="margin-top:3mm"><strong>- Règle de trois</strong></p>
+    <p class="retrait">Je cherche <strong>le prix de 1 livre.</strong></p>
+    <ul class="liste">
+      <li><span class="lib">4 livres coûtent 52 CHF</span></li>
+      <li><span class="lib">1 livre coûte</span><span>52 : 4 = 13 CHF</span></li>
+    </ul>
+    <p class="retrait">Ensuite, je calcule le prix de 11 livres</p>
+    <ul class="liste">
+      <li><span class="lib">11 livres coûtent</span><span>13 × 11 = 143 CHF</span></li>
+    </ul>
+
+    <p style="margin-top:3mm"><strong>- Produit en croix</strong></p>
+    <svg class="schema" style="width:90mm;margin:0 0 1mm" viewBox="0 0 100 32" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Produit en croix : 4 livres pour 52 CHF, 11 livres pour ? CHF">
+      <g stroke="#1a1a1a" stroke-width="0.35" fill="none">
+        <line x1="70" y1="0.5" x2="70" y2="31.5"/>
+        <line x1="54" y1="7.2" x2="86" y2="7.2"/>
+        <line x1="65.5" y1="13" x2="74.5" y2="21.5" stroke-width="0.5"/>
+        <line x1="74.5" y1="13" x2="65.5" y2="21.5" stroke-width="0.9" stroke="#1E9E4A"/>
+      </g>
+      <g fill="#1a1a1a" text-anchor="middle">
+        <text x="61" y="5.6" font-size="3.6">Livres</text><text x="79" y="5.6" font-size="3.6">CHF</text>
+        <text x="61" y="15.5" font-size="4.4">4</text><text x="79" y="15.5" font-size="4.4">52</text>
+        <text x="61" y="27.5" font-size="4.4">11</text><text x="79" y="27.8" font-size="5.4" font-weight="700">?</text>
+        <text x="5" y="15.5" font-size="4.4" text-anchor="start">Ce qu’on sait</text>
+        <text x="5" y="27.5" font-size="4.4" text-anchor="start">Ce qu’on cherche</text>
+      </g>
+    </svg>
+    <p>On pose une croix (X) au centre.</p>
+    <p>On <strong style="color:#1E9E4A">multiplie</strong> les deux nombres en <strong>diagonale</strong> (52 × 11) et on divise par le nombre resté seul (4).</p>
+    <p class="formule"><span class="frac"><span>52 <span style="color:#1E9E4A;font-weight:700">×</span> 11</span><span>4</span></span> = 143 CHF</p>
+  </div>
+
+  <div class="exo-titre">
+    <svg class="pastille" viewBox="0 0 16 16" aria-hidden="true"><rect width="16" height="16" rx="2" fill="#1F3A5F"></rect><text x="8" y="12" text-anchor="middle" fill="#fff" font-size="11" font-weight="700" font-family="Verdana,sans-serif">3</text></svg>
+    <span>Un automobiliste consomme 6 litres d’essence aux 100 km. Combien en consommera‑t‑il, dans les mêmes conditions, pour parcourir 84 km ?</span>
+  </div>
+  <div class="reso sol" style="height:28mm">
+    <svg class="schema" style="width:36mm" viewBox="0 0 40 30" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <g stroke="#E6007E" stroke-width="0.35" fill="none">
+        <line x1="18" y1="0.5" x2="18" y2="29.5"/><line x1="2" y1="7.2" x2="34" y2="7.2"/>
+        <line x1="13.5" y1="13" x2="22.5" y2="21.5" stroke-width="0.9" stroke="#1E9E4A"/><line x1="22.5" y1="13" x2="13.5" y2="21.5" stroke-width="0.5"/>
+      </g>
+      <g fill="#E6007E" text-anchor="middle">
+        <text x="9" y="5.6" font-size="3.6">litres</text><text x="27" y="5.6" font-size="3.6">km</text>
+        <text x="9" y="15.5" font-size="4.4">6</text><text x="27" y="15.5" font-size="4.4">100</text>
+        <text x="9" y="26.5" font-size="4.4">?</text><text x="27" y="26.5" font-size="4.4">84</text>
+      </g>
+    </svg>
+    <span><span class="frac"><span>6 × 84</span><span>100</span></span> = <strong>5,04 litres</strong></span>
+  </div>
+
+  <div class="exo-titre" style="margin-top:3mm">
+    <svg class="pastille" viewBox="0 0 16 16" aria-hidden="true"><rect width="16" height="16" rx="2" fill="#1F3A5F"></rect><text x="8" y="12" text-anchor="middle" fill="#fff" font-size="11" font-weight="700" font-family="Verdana,sans-serif">4</text></svg>
+    <span>Il faut 8 pots de peinture pour peindre une surface de 56 m². Quelle surface peut-on peindre avec 13 pots ?</span>
+  </div>
+  <div class="reso sol" style="height:28mm">
+    <svg class="schema" style="width:36mm" viewBox="0 0 40 30" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <g stroke="#E6007E" stroke-width="0.35" fill="none">
+        <line x1="18" y1="0.5" x2="18" y2="29.5"/><line x1="2" y1="7.2" x2="34" y2="7.2"/>
+        <line x1="13.5" y1="13" x2="22.5" y2="21.5" stroke-width="0.5"/><line x1="22.5" y1="13" x2="13.5" y2="21.5" stroke-width="0.9" stroke="#1E9E4A"/>
+      </g>
+      <g fill="#E6007E" text-anchor="middle">
+        <text x="9" y="5.6" font-size="3.6">pots</text><text x="27" y="5.6" font-size="3.6">m²</text>
+        <text x="9" y="15.5" font-size="4.4">8</text><text x="27" y="15.5" font-size="4.4">56</text>
+        <text x="9" y="26.5" font-size="4.4">13</text><text x="27" y="26.5" font-size="4.4">?</text>
+      </g>
+    </svg>
+    <span><span class="frac"><span>13 × 56</span><span>8</span></span> = <strong>91 m²</strong></span>
+  </div>
+
+  <div class="pied"><span>Proportionnalité - Règle de trois - UOG/AM</span><span>2</span></div>
+</section>
+
+<script>
+document.querySelectorAll('.page[data-corrige]').forEach(p => {
+  const c = p.cloneNode(true);          /* le corrigé garde le numéro de la page d'origine */
+  c.removeAttribute('data-corrige');
+  c.classList.add('page-corrige');
+  document.body.appendChild(c);
+});
+
+const btn = document.getElementById('btn');
+const OEIL = '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.3 8S3.6 3.8 8 3.8 14.7 8 14.7 8 12.4 12.2 8 12.2 1.3 8 1.3 8z"/><circle cx="8" cy="8" r="2.1"/></svg>';
+const OEIL_B = '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.3 8S3.6 3.8 8 3.8 14.7 8 14.7 8 12.4 12.2 8 12.2 1.3 8 1.3 8z"/><circle cx="8" cy="8" r="2.1"/><path d="M2.5 13.5L13.5 2.5"/></svg>';
+btn.addEventListener('click', () => {
+  const on = document.body.classList.toggle('corrige');
+  btn.innerHTML = on ? OEIL_B : OEIL;
+  btn.title = on ? 'Masquer le corrigé' : 'Afficher le corrigé';
+  btn.setAttribute('aria-label', btn.title);
+});
+
+(function(){
+  const racine = document.documentElement;
+  const barre = document.querySelector('.barre');
+  const taux = document.getElementById('zoom-taux');
+  let z = 1;
+  function applique(v){
+    z = Math.max(0.15, Math.min(v, 4));
+    racine.style.setProperty('--z', z);
+    if (taux) taux.textContent = Math.round(z * 100) + ' %';
+  }
+  function pageEntiere(){
+    racine.style.setProperty('--z', 1);
+    const p = document.querySelector('.page');
+    if (!p) return;
+    const r = p.getBoundingClientRect();
+    const hBarre = barre ? barre.getBoundingClientRect().height : 0;
+    applique(Math.min((window.innerWidth - 36) / r.width,
+                      (window.innerHeight - hBarre - 36) / r.height));
+  }
+  /* auto = la page suit la taille de la fenêtre ; un zoom manuel coupe ce suivi
+     jusqu'au prochain clic sur « Page entière » */
+  let auto = true, lw = window.innerWidth, lh = window.innerHeight;
+  document.getElementById('zoom-moins').addEventListener('click', () => { auto = false; applique(z / 1.15); });
+  document.getElementById('zoom-plus').addEventListener('click', () => { auto = false; applique(z * 1.15); });
+  document.getElementById('zoom-page').addEventListener('click', () => { auto = true; pageEntiere(); });
+  let t; window.addEventListener('resize', () => {
+    clearTimeout(t);
+    t = setTimeout(() => {
+      const w = window.innerWidth, h = window.innerHeight;
+      /* le défilement tactile fait apparaître ou disparaître des barres du navigateur :
+         seule la hauteur bouge un peu, ce n'est pas un vrai redimensionnement */
+      const vrai = Math.abs(w - lw) > 2 || Math.abs(h - lh) > 150;
+      lw = w; lh = h;
+      if (auto && vrai) pageEntiere();
+    }, 150);
+  });
+  pageEntiere();
+
+  /* position de lecture, mémorisée hors passage en plein écran pour être restituée ensuite */
+  let posY = 0, posH = 1, tPos, transition = false;
+  const notePos = () => { posY = window.scrollY; posH = document.documentElement.scrollHeight || 1; };
+  window.addEventListener('scroll', () => {
+    if (transition) return;
+    clearTimeout(tPos); tPos = setTimeout(notePos, 200);
+  }, { passive: true });
+
+  const bpe = document.getElementById('plein-ecran');
+  if (bpe) {
+    bpe.addEventListener('click', () => {
+      clearTimeout(tPos); notePos();
+      if (document.fullscreenElement) document.exitFullscreen();
+      else document.documentElement.requestFullscreen();
+    });
+    document.addEventListener('fullscreenchange', () => {
+      const plein = !!document.fullscreenElement;
+      bpe.innerHTML = plein
+        ? '<svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2v4H2"/><path d="M14 6h-4V2"/><path d="M10 14v-4h4"/><path d="M2 10h4v4"/></svg>'
+        : '<svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6V2h4"/><path d="M10 2h4v4"/><path d="M14 10v4h-4"/><path d="M6 14H2v-4"/></svg>';
+      bpe.title = plein ? 'Quitter le plein écran' : 'Plein écran';
+      /* le zoom choisi avec + ou − est conservé ; sans zoom manuel, la page se recale en page entière.
+         La même portion de page reste à l'écran. */
+      clearTimeout(tPos); transition = true;
+      setTimeout(() => {
+        lw = window.innerWidth; lh = window.innerHeight;
+        if (auto) pageEntiere();
+        const voulu = posY / posH * document.documentElement.scrollHeight;
+        window.scrollTo(0, voulu);
+        /* si la fenêtre ne permet pas de descendre aussi bas (fiche d'une page en plein écran),
+           la position d'origine est gardée en mémoire pour être restituée au retour */
+        const borne = window.scrollY < voulu - 2;
+        setTimeout(() => { transition = false; if (!borne) notePos(); }, 400);
+      }, 120);
+    });
+  }
+})();
+</script>
+</body>
+</html>
