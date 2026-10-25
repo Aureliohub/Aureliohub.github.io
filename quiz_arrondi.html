@@ -239,6 +239,42 @@ button{font:inherit;color:inherit;cursor:pointer;border:0;background:none;touch-
 .ph .small{font-size:.8em}
 .ph .opt-t{margin-top:8px}
 .ph .ph-btns .btn.ghost{font-size:1.05em}
+/* v2 : cartes à glisser, chiffres globaux, plénière */
+.dragrow{touch-action:none;user-select:none;-webkit-user-select:none}
+.nc.dr{cursor:grab;touch-action:none;transition:box-shadow .15s}
+.nc.drag{cursor:grabbing;position:relative;z-index:3;box-shadow:inset 0 0 0 3px var(--etre),0 10px 18px rgba(29,35,64,.28);background:#E6EFFB}
+.tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1.2em;margin:.6vh 0 1vh}
+.tile{background:var(--white);border-radius:1.2em;padding:1em 1.3em;box-shadow:0 .4em 0 var(--line);display:flex;flex-direction:column;gap:.2em}
+.tile b{font-size:2.6em;line-height:1.05;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.tile b small{font-size:.45em;color:var(--muted);font-weight:700;letter-spacing:0}
+.tile span{color:var(--muted);font-weight:600}
+@media (max-width:900px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.plen{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2.4vh;padding:0 4vw 4vh;font-size:1.25em}
+.pnav{display:flex;align-items:center;gap:1.2em;font-size:.9em}
+.pnav b{font-size:1.2em}
+.plen .qz{max-width:46em;gap:1em}
+.plen .q-txt{font-size:1.35em}
+.plen .q-cond{font-size:1.15em}
+.plen .q-k{font-size:.85em;color:var(--muted);font-weight:600;margin:0}
+.plen .q-txt,.plen .q-cond,.plen p{margin:0}
+.plen .slots{padding:1em;gap:.6em}
+.plen .nc{width:2.1em;height:2.5em;font-size:2.4em;border-radius:.35em}
+.plen .opt-r{padding:.6em 1em;border-radius:.8em}
+.plen .opt-r .nb{font-size:1.7em}
+.plen .fb{border-radius:.8em;padding:.7em 1em}
+.cstat{align-self:flex-start;background:var(--white);border-radius:.8em;padding:.4em .9em;font-weight:700;box-shadow:inset 0 0 0 2px var(--line)}
+.plen .acts .btn{font-size:1em}
+.bar .seg{font-size:.85em}
+
+.plen{font-size:1.05em;gap:1.6vh;justify-content:flex-start;padding-top:1vh}
+.plen .qz{gap:.7em}
+.plen .q-txt{font-size:1.3em}
+.plen .nc{font-size:2em}
+.plen .slots{padding:.7em}
+.plen .opt-r .nb{font-size:1.45em}
+.plen .opt-r{padding:.45em 1em}
+.plen .acts{align-items:center}
+.plen .cstat{margin:0 0 0 .6em}
 
 </style>
 </head>
@@ -2567,9 +2603,7 @@ var qrcode = function() {
 <script>
 
 'use strict';
-const VERSION = 'v1';
-const MAIL = 'ateliertic@uog.ch';
-const MAIL_URL = window.MAIL_URL || 'https://formsubmit.co/ajax/' + MAIL;
+const VERSION = 'v2';
 const TITLE = 'Arrondir un nombre décimal';
 /* ============================================================
    QUESTIONS — modifiables. p = rang de l’arrondi, g = arrondi attendu.
@@ -2611,7 +2645,7 @@ const store = {
   del(k) { try { localStorage.removeItem(k); } catch (e) {} }
 };
 let lastHtml = '';
-function paint(html) { if (html === lastHtml) return false; lastHtml = html; app.innerHTML = html; return true; }
+function paint(html) { if (DRAG) return false; if (html === lastHtml) return false; lastHtml = html; app.innerHTML = html; return true; }
 const plural = (n, a, b) => n + ' ' + (n > 1 ? b : a);
 
 /* ---------- Arrondis (calcul en millièmes, sans erreur de virgule flottante) ---------- */
@@ -2642,34 +2676,33 @@ function cleanV(q, v) {
 }
 
 /* ============================================================
-   DÉROULEMENT D’UNE SÉRIE (téléphone, classe ou jeu individuel)
+   QUESTION : affichage, glisser-déposer, correction
    ============================================================ */
-const newRun = (s, a) => ({ s, a: a || [], sel: [], fb: false });
-const rIdx = R => R.fb ? R.a.length - 1 : R.a.length;
-const rDone = R => R.a.length >= SERIES[R.s].length && !R.fb;
-const score = a => (a || []).filter(x => x && x.ok).length;
-function qDots(R) {
-  const n = SERIES[R.s].length, i = rIdx(R);
-  return '<span class="qdots">' + Array.from({ length: n }, (_, k) => `<i class="${R.a[k] ? (R.a[k].ok ? 'ok' : 'ko') : k === i ? 'cur' : ''}"></i>`).join('') + '</span>';
+const shuffleIdx = n => { const a = [...Array(n).keys()]; for (let i = n - 1; i > 0; i--) { const j = rnd(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+/* Départ des cartes : ordre aléatoire, jamais déjà correct */
+function qStart(q) {
+  if (!q) return null;
+  if (q.t !== 'cards') return { sel: [] };
+  let o, n = 0;
+  do { o = shuffleIdx(q.c.length); n++; } while (n < 200 && cardOk(q, o.map(k => q.c[k]).join('')));
+  return { ord: o };
 }
-function runHtml(R) {
-  const qq = SERIES[R.s], n = qq.length;
-  if (rDone(R)) {
-    const sc = score(R.a);
-    return { top: `<b>Série ${R.s + 1}</b>${qDots(R)}`,
-      mid: `<h1>Série ${R.s + 1} terminée</h1><div class="ph-card"><small>Réponses justes</small><strong>${sc} sur ${n}</strong></div>` +
-        `<ul class="sumlist">${qq.map((q, k) => `<li class="${R.a[k].ok ? 'ok' : 'ko'}"><span>${R.a[k].ok ? '✓' : '✗'} Question ${k + 1}</span><span>${R.a[k].ok ? esc(shown(q, R.a[k].v)) : 'réponse : ' + esc(goodShown(q))}</span></li>`).join('')}</ul>`,
-      btns: '' };
-  }
-  const i = rIdx(R), q = qq[i], last = R.fb ? R.a[i] : null, pl = PLACE[q.p][1];
-  let body, ready;
+const qAnswer = (q, st) => q.t === 'cards' ? st.ord.map(k => q.c[k]).join('') : st.sel.slice().sort((a, b) => a - b);
+const qReady = (q, st) => q.t === 'cards' || st.sel.length === goodOpts(q).length;
+function qSolve(q) {   // état « solution » (plénière)
+  if (q.t !== 'cards') return { sel: goodOpts(q) };
+  const used = [], ord = [...solutions(q)[0]].map(ch => { const k = q.c.findIndex((c, i) => c === ch && !used.includes(i)); used.push(k); return k; });
+  return { ord };
+}
+function qView(q, st, last) {
+  const pl = PLACE[q.p][1];
+  let body;
   if (q.t === 'cards') {
-    const st = last ? (last.ok ? ' ok' : ' ko') : '';
-    body = `<p class="q-txt">Forme un nombre avec ces cartes :</p>
+    const cls = last ? (last.ok ? ' ok' : ' ko') : '';
+    body = `<p class="q-txt">Fais glisser les cartes pour former un nombre :</p>
       <ul class="q-cond"><li>il a <b>deux</b> chiffres après la virgule ;</li><li>son arrondi ${pl} est <b>${esc(q.g)}</b>.</li></ul>
-      <div class="slots${st}">${q.c.map((_, k) => R.sel[k] != null ? `<button class="nc" data-r="out" data-v="${k}"${last ? ' disabled' : ''} aria-label="Retirer ${esc(q.c[R.sel[k]])}">${esc(q.c[R.sel[k]])}</button>` : '<span class="nc empty"></span>').join('')}</div>` +
-      (last ? '' : `<div class="deck">${q.c.map((c, k) => `<button class="nc${R.sel.includes(k) ? ' used' : ''}" data-r="in" data-v="${k}"${R.sel.includes(k) ? ' disabled' : ''}>${esc(c)}</button>`).join('')}</div><p class="q-k">Touche les cartes dans l’ordre. Touche une carte placée pour la retirer.</p>`);
-    ready = R.sel.length === q.c.length;
+      <div class="slots dragrow${cls}"${last ? '' : ' data-drag'}>${st.ord.map(k => `<div class="nc${last ? '' : ' dr'}" data-k="${k}">${esc(q.c[k])}</div>`).join('')}</div>` +
+      (last ? '' : '<p class="q-k">Fais glisser une carte vers la gauche ou vers la droite.</p>');
   } else {
     const g = goodOpts(q), k = g.length;
     body = (q.t === 'who'
@@ -2677,52 +2710,103 @@ function runHtml(R) {
       : `<p class="q-txt"><b>${esc(q.g)}</b> est l’arrondi ${pl} de :</p>`) +
       `<p class="q-k">Choisis ${k} réponse${k > 1 ? 's' : ''}.</p>
       <div class="opts">${q.o.map((o, j) => {
-        const on = R.sel.includes(j);
+        const on = st.sel.includes(j);
         const cls = (on ? ' sel' : '') + (last ? (g.includes(j) ? ' good' : on ? ' bad' : '') : '');
         return `<button class="opt-r${cls}" data-r="opt" data-v="${j}"${last ? ' disabled' : ''}><span class="lt">${L(j)}</span><span class="nb">${esc(o)}</span>${last ? `<span class="rd">→ ${esc(rounded(o, q.p))}</span>` : ''}</button>`;
       }).join('')}</div>`;
-    ready = R.sel.length === k;
   }
-  let fb = '', btns;
-  if (last) {
-    let why;
-    if (q.t === 'cards') {
-      const sol = solutions(q)[0];
-      why = last.ok ? `${esc(last.v)} arrondi ${pl} donne ${esc(q.g)}.`
-        : `La bonne réponse est <b>${esc(sol)}</b> : arrondi ${pl}, il donne ${esc(q.g)}.` +
-          (last.v == null ? '' : /^\d+,\d\d$/.test(last.v) ? ` Ton nombre ${esc(last.v)} donne ${esc(rounded(last.v, q.p))}.` : ' Ton nombre doit avoir deux chiffres après la virgule.');
-    } else {
-      const g = goodOpts(q);
-      why = `${g.length > 1 ? 'Les bonnes réponses sont' : 'La bonne réponse est'} ${letters(g)} : leur arrondi ${pl} est ${esc(q.g)}.`;
-    }
-    fb = `<div class="fb ${last.ok ? 'ok' : 'ko'}" role="status"><strong>${last.ok ? '✓ Correct !' : last.v == null ? 'Question passée' : '✗ Pas tout à fait'}</strong>${why}</div>`;
-    btns = `<div class="ph-btns"><button class="btn next" data-r="next">${i === n - 1 ? 'Voir mon résultat' : 'Question suivante'}</button></div>`;
+  if (!last) return body;
+  let why;
+  if (q.t === 'cards') {
+    const sol = solutions(q)[0];
+    why = last.ok ? `${esc(last.v)} arrondi ${pl} donne ${esc(q.g)}.`
+      : `La bonne réponse est <b>${esc(sol)}</b> : arrondi ${pl}, il donne ${esc(q.g)}.` +
+        (last.v == null ? '' : /^\d+,\d\d$/.test(last.v) ? ` Le nombre ${esc(last.v)} donne ${esc(rounded(last.v, q.p))}.` : ' Le nombre doit avoir deux chiffres après la virgule.');
   } else {
-    btns = `<div class="ph-btns two"><button class="btn ghost" data-r="skip">Je passe</button><button class="btn" data-r="check"${ready ? '' : ' disabled'}>Vérifier</button></div>`;
+    const g = goodOpts(q);
+    why = `${g.length > 1 ? 'Les bonnes réponses sont' : 'La bonne réponse est'} ${letters(g)} : leur arrondi ${pl} est ${esc(q.g)}.`;
   }
-  return { top: `<b>Série ${R.s + 1} · Question ${i + 1} sur ${n}</b>${qDots(R)}`, mid: `<div class="qz">${body}${fb}</div>`, btns };
+  const head = last.sol ? 'Solution' : last.ok ? '✓ Correct !' : last.v == null ? 'Question passée' : '✗ Pas tout à fait';
+  return body + `<div class="fb ${last.ok ? 'ok' : 'ko'}" role="status"><strong>${head}</strong>${why}</div>`;
+}
+
+/* Glisser-déposer des cartes (souris, doigt, stylet de l’écran interactif) */
+let DRAG = null;
+function dragSetup(getSt, rerender) {
+  document.addEventListener('pointerdown', e => {
+    const el = e.target.closest('[data-drag] .dr'); if (!el) return;
+    const st = getSt(); if (!st || !st.ord) return;
+    e.preventDefault();
+    const r = el.getBoundingClientRect();
+    DRAG = { el, row: el.parentElement, st, id: e.pointerId, grab: e.clientX - (r.left + r.width / 2) };
+    el.classList.add('drag');
+    try { el.setPointerCapture(e.pointerId); } catch (_) {}
+  });
+  document.addEventListener('pointermove', e => {
+    if (!DRAG || e.pointerId !== DRAG.id) return;
+    e.preventDefault();
+    const { el, row } = DRAG, x = e.clientX - DRAG.grab;
+    const others = [...row.children].filter(c => c !== el);
+    const idx = others.filter(c => { const b = c.getBoundingClientRect(); return b.left + b.width / 2 < x; }).length;
+    if (idx !== [...row.children].indexOf(el)) { row.insertBefore(el, others[idx] || null); try { el.setPointerCapture(DRAG.id); } catch (_) {} }
+    el.style.transform = '';
+    const b = el.getBoundingClientRect();
+    el.style.transform = `translateX(${x - (b.left + b.width / 2)}px)`;
+  }, { passive: false });
+  const end = e => {
+    if (!DRAG || e.pointerId !== DRAG.id) return;
+    DRAG.st.ord = [...DRAG.row.children].map(c => +c.dataset.k);
+    DRAG = null; lastHtml = ''; rerender();
+  };
+  document.addEventListener('pointerup', end);
+  document.addEventListener('pointercancel', end);
+}
+
+/* ============================================================
+   DÉROULEMENT D’UNE SÉRIE (téléphone, classe ou jeu individuel)
+   ============================================================ */
+const newRun = (s, a) => { a = a || []; return { s, a, fb: false, st: qStart(SERIES[s][a.length]) }; };
+const rIdx = R => R.fb ? R.a.length - 1 : R.a.length;
+const rDone = R => R.a.length >= SERIES[R.s].length && !R.fb;
+const score = a => (a || []).filter(x => x && x.ok).length;
+function qDots(R) {
+  const n = SERIES[R.s].length, i = rIdx(R);
+  return '<span class="qdots">' + Array.from({ length: n }, (_, k) => `<i class="${R.a[k] ? (R.a[k].ok ? 'ok' : 'ko') : k === i ? 'cur' : ''}"></i>`).join('') + '</span>';
+}
+/* Fin de série : série suivante ou quitter */
+function nextBtns(s) {
+  return '<div class="ph-btns">' + (s < SERIES.length - 1 ? `<button class="btn" data-o="${s + 1}">Série ${s + 2}</button>` : '') +
+    '<button class="btn ghost" data-o="quit">Quitter</button></div>';
+}
+function runHtml(R) {
+  const qq = SERIES[R.s], n = qq.length;
+  if (rDone(R)) {
+    const sc = score(R.a);
+    return { top: `<b>Série ${R.s + 1}</b>${qDots(R)}`,
+      mid: `<h1>Série ${R.s + 1} terminée</h1><div class="ph-card"><small>Réponses justes</small><strong>${sc} sur ${n}</strong></div>` +
+        `<ul class="sumlist">${qq.map((q, k) => `<li class="${R.a[k].ok ? 'ok' : 'ko'}"><span>${R.a[k].ok ? '✓' : '✗'} Question ${k + 1}</span><span>${R.a[k].ok ? esc(shown(q, R.a[k].v)) : 'réponse : ' + esc(goodShown(q))}</span></li>`).join('')}</ul>` +
+        (R.s < SERIES.length - 1 ? `<p class="muted opt-t">Tu peux continuer avec la série ${R.s + 2} ou quitter.</p>` : ''),
+      btns: nextBtns(R.s) };
+  }
+  const i = rIdx(R), q = qq[i], last = R.fb ? R.a[i] : null;
+  const btns = last
+    ? `<div class="ph-btns"><button class="btn next" data-r="next">${i === n - 1 ? 'Voir mon résultat' : 'Question suivante'}</button></div>`
+    : `<div class="ph-btns two"><button class="btn ghost" data-r="skip">Je passe</button><button class="btn" data-r="check"${qReady(q, R.st) ? '' : ' disabled'}>Vérifier</button></div>`;
+  return { top: `<b>Série ${R.s + 1} · Question ${i + 1} sur ${n}</b>${qDots(R)}`, mid: `<div class="qz">${qView(q, R.st, last)}</div>`, btns };
 }
 /* Renvoie la réponse enregistrée (ou null) */
 function runAct(R, a, v) {
   if (rDone(R)) return null;
   const q = SERIES[R.s][rIdx(R)];
-  if (R.fb) { if (a === 'next') { R.fb = false; R.sel = []; } return null; }
-  if (a === 'in' && q.t === 'cards' && !R.sel.includes(+v) && R.sel.length < q.c.length) R.sel.push(+v);
-  else if (a === 'out' && q.t === 'cards') R.sel.splice(+v, 1);
-  else if (a === 'opt' && q.t !== 'cards') { const j = +v, k = R.sel.indexOf(j); if (k >= 0) R.sel.splice(k, 1); else R.sel.push(j); }
+  if (R.fb) { if (a === 'next') { R.fb = false; R.st = qStart(SERIES[R.s][R.a.length]); } return null; }
+  if (a === 'opt' && q.t !== 'cards') { const j = +v, k = R.st.sel.indexOf(j); if (k >= 0) R.st.sel.splice(k, 1); else R.st.sel.push(j); }
   else if (a === 'check' || a === 'skip') {
-    const v2 = a === 'skip' ? null : q.t === 'cards' ? R.sel.map(k => q.c[k]).join('') : R.sel.slice().sort((x, y) => x - y);
-    if (a === 'check' && (q.t === 'cards' ? R.sel.length !== q.c.length : R.sel.length !== goodOpts(q).length)) return null;
+    if (a === 'check' && !qReady(q, R.st)) return null;
+    const v2 = a === 'skip' ? null : qAnswer(q, R.st);
     const ans = { i: R.a.length, v: v2, ok: judge(q, v2), t: Date.now() };
     R.a.push(ans); R.fb = true; return ans;
   }
   return null;
-}
-function optMenu(done, extra) {   // séries facultatives (2 et 3)
-  return '<div class="ph-btns">' + [1, 2].map(s => {
-    const a = done[s], fin = a && a.length >= SERIES[s].length;
-    return `<button class="btn${fin ? ' ghost' : ''}" data-o="${s}">Série ${s + 1}${fin ? ' · ' + score(a) + ' sur ' + SERIES[s].length + ' · refaire' : ''}</button>`;
-  }).join('') + (extra || '') + '</div>';
 }
 
 /* ---------- Relais chiffré ---------- */
@@ -2753,14 +2837,15 @@ function openRelay(idx) {
 /* ============================================================
    ÉCRAN DE CLASSE
    ============================================================ */
-const H = { qr: false, set: false, g: null, code: '', ri: 0, room: null, c: null, ready: false, net: false, err: '' };
-const newGame = () => ({ ph: 'lobby', players: [], t0: 0, t1: 0, mail: '' });
+const H = { pv: null, qr: false, set: false, g: null, code: '', ri: 0, room: null, c: null, ready: false, net: false, err: '' };
+const newGame = () => ({ ph: 'lobby', players: [], t0: 0, t1: 0 });
 
 async function hostInit() {
   const saved = store.get('arr-host1');
-  if (saved && saved.g && Date.now() - saved.t < 4 * 3600e3) { H.g = saved.g; H.code = saved.code; H.ri = saved.ri || 0; if (H.g.mail === 'wait') H.g.mail = 'err'; }
+  if (saved && saved.g && Date.now() - saved.t < 4 * 3600e3) { H.g = saved.g; H.code = saved.code; H.ri = saved.ri || 0; }
   else { H.g = newGame(); H.code = rid(6); }
   document.addEventListener('click', hClick);
+  dragSetup(() => H.pv && !H.pv.last ? H.pv.st : null, hRender);
   if (!window.crypto || !crypto.subtle) { H.err = 'Cette page doit être ouverte en https (par exemple depuis GitHub Pages).'; return hRender(); }
   H.room = await mkRoom(H.code);
   hRender();
@@ -2816,64 +2901,50 @@ function hMsg(m) {
   }
 }
 function start() { const g = H.g; if (!g.players.length) return; g.ph = 'run'; g.t0 = Date.now(); commit(); }
-function finish() { const g = H.g; g.ph = 'end'; g.t1 = Date.now(); commit(); sendReport(); }
+function finish() { const g = H.g; g.ph = 'end'; g.t1 = Date.now(); commit(); }
 
-/* ---------- Rapport ---------- */
+/* ---------- Résultats ---------- */
 const two = n => String(n).padStart(2, '0');
 const dDate = t => { const d = new Date(t); return two(d.getDate()) + '.' + two(d.getMonth() + 1) + '.' + d.getFullYear(); };
-const dTime = t => { const d = new Date(t); return two(d.getHours()) + ':' + two(d.getMinutes()); };
 const dur = ms => { const s = Math.max(0, Math.round(ms / 1000)); return Math.floor(s / 60) + ' min ' + two(s % 60) + ' s'; };
-const avgTxt = g => g.players.length ? (g.players.reduce((s, p) => s + score(p.a), 0) / g.players.length).toFixed(1).replace('.', ',') : '–';
 const pDur = (g, p) => { const ts = p.a.filter(Boolean).map(x => x.t); return ts.length ? dur(Math.max(...ts) - Math.max(g.t0, p.tj)) : '–'; };
 const byName = g => g.players.slice().sort((a, b) => a.name.localeCompare(b.name, 'fr'));
-const subj = () => `Rapport – ${TITLE}, série 1 – ${dDate(H.g.t0 || Date.now())} ${dTime(H.g.t0 || Date.now())}`;
-function reportText() {
-  const g = H.g, N = g.players.length, Q = SERIES[0], out = [];
-  out.push(`${TITLE} – Série 1`, `Date : ${dDate(g.t0)}, de ${dTime(g.t0)} à ${dTime(g.t1 || Date.now())}`, `Participants : ${N} · Moyenne : ${avgTxt(g)} sur ${NQ}`, '');
-  out.push('QUESTIONS');
-  Q.forEach((q, i) => {
-    const a = g.players.filter(p => p.a[i]).length, o = g.players.filter(p => p.a[i] && p.a[i].ok).length;
-    out.push(`Q${i + 1}. ${qLabel(q)}` + (q.o ? ' (' + q.o.map((x, j) => L(j) + ' ' + x).join(' · ') + ')' : ' (cartes ' + q.c.join(' ') + ')'),
-      `    Bonne réponse : ${goodShown(q)} — ${o} juste${o > 1 ? 's' : ''} sur ${N}${a < N ? ', ' + (N - a) + ' sans réponse' : ''}`);
-  });
-  out.push('', 'PARTICIPANTS');
-  byName(g).forEach(p => {
-    const fin = p.a.every(Boolean);
-    out.push(`${p.name} : ${score(p.a)}/${NQ}${fin ? '' : ' (inachevé)'} · ${pDur(g, p)}`,
-      '    ' + Q.map((q, i) => `Q${i + 1} ${p.a[i] ? (p.a[i].ok ? '✓' : '✗') + ' ' + shown(q, p.a[i].v) : '–'}`).join(' | '));
-  });
-  return out.join('\n');
-}
 function reportCsv() {
   const g = H.g, Q = SERIES[0], c = s => '"' + String(s).replace(/"/g, '""') + '"';
   const rows = [['Prénom', 'Score', ...Q.flatMap((q, i) => ['Q' + (i + 1) + ' réponse', 'Q' + (i + 1) + ' juste']), 'Durée']];
   byName(g).forEach(p => rows.push([p.name, score(p.a), ...p.a.flatMap((x, i) => x ? [shown(Q[i], x.v), x.ok ? 'oui' : 'non'] : ['', '']), pDur(g, p)]));
   return '﻿' + rows.map(r => r.map(c).join(';')).join('\r\n');
 }
-async function sendReport() {
-  const g = H.g; g.mail = 'wait'; commit();
-  try {
-    const r = await fetch(MAIL_URL, { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-      body: JSON.stringify({ _subject: subj(), _template: 'box', _captcha: 'false', Rapport: reportText() }) });
-    const j = await r.json().catch(() => ({}));
-    g.mail = j.success === true || j.success === 'true' ? 'ok' : /activ/i.test(j.message || '') ? 'act' : 'err';
-  } catch (e) { g.mail = 'err'; }
-  commit();
-}
 function download(name, text, type) {
   const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], { type })); a.download = name;
   document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
 }
 
+/* ---------- Plénière : refaire une question à l’écran ---------- */
+function pvSet(s, i) { H.pv = { s, i, st: qStart(SERIES[s][i]), last: null }; H.set = false; hRender(); }
+function pvAct(a, v) {
+  const V = H.pv, q = SERIES[V.s][V.i];
+  if (a === 'opt' && !V.last && q.t !== 'cards') { const j = +v, k = V.st.sel.indexOf(j); if (k >= 0) V.st.sel.splice(k, 1); else V.st.sel.push(j); }
+  else if (a === 'check' && !V.last && qReady(q, V.st)) { const x = qAnswer(q, V.st); V.last = { v: x, ok: judge(q, x) }; }
+  else if (a === 'sol') { V.st = qSolve(q); const x = qAnswer(q, V.st); V.last = { v: x, ok: true, sol: true }; }
+  else if (a === 'again') { V.st = qStart(q); V.last = null; }
+  hRender();
+}
+
 function hClick(ev) {
+  const r = ev.target.closest('[data-r]');
+  if (r && H.pv) return pvAct(r.dataset.r, r.dataset.v);
   const b = ev.target.closest('[data-a]'); if (!b) return;
   const g = H.g, a = b.dataset.a;
   if (a === 'start') start();
-  else if (a === 'stop') { if (confirm('Terminer la série 1 et envoyer le rapport à ' + MAIL + ' ?')) finish(); }
-  else if (a === 'reopen') { g.ph = 'run'; g.mail = ''; commit(); }
-  else if (a === 'send') sendReport();
-  else if (a === 'mailto') location.href = 'mailto:' + MAIL + '?subject=' + encodeURIComponent(subj()) + '&body=' + encodeURIComponent(reportText());
-  else if (a === 'csv') download('rapport_arrondi_serie1_' + dDate(g.t0).replace(/\./g, '-') + '.csv', reportCsv(), 'text/csv;charset=utf-8');
+  else if (a === 'stop') { if (confirm('Terminer la série 1 ?')) finish(); }
+  else if (a === 'reopen') { g.ph = 'run'; commit(); }
+  else if (a === 'csv') download('resultats_arrondi_serie1_' + dDate(g.t0 || Date.now()).replace(/\./g, '-') + '.csv', reportCsv(), 'text/csv;charset=utf-8');
+  else if (a === 'pv') pvSet(0, 0);
+  else if (a === 'pvs') pvSet(+b.dataset.v, 0);
+  else if (a === 'pvprev' && H.pv && H.pv.i > 0) pvSet(H.pv.s, H.pv.i - 1);
+  else if (a === 'pvnext' && H.pv && H.pv.i < SERIES[H.pv.s].length - 1) pvSet(H.pv.s, H.pv.i + 1);
+  else if (a === 'pvquit') { H.pv = null; hRender(); }
   else if (a === 'reset') { if (confirm('Nouvelle partie avec un nouveau code QR ? Les participants devront scanner à nouveau.')) { store.del('arr-host1'); location.reload(); } }
   else if (a === 'retry') { tryRelay(0, 0); hRender(); }
   else if (a === 'qr') { H.qr = !H.qr; hRender(); }
@@ -2895,18 +2966,14 @@ const EXPAND = '<svg viewBox="0 0 24 24" width="55%" height="55%" fill="none" st
 const CROSS = '<svg viewBox="0 0 24 24" width="55%" height="55%" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M5 5l14 14M19 5 5 19"/></svg>';
 const brand = '<span class="brand"><i class="v-e">Arrondir</i> un nombre décimal</span>';
 const gearBtn = `<button class="btn ghost small gear" data-a="set" aria-label="Paramètres" title="Paramètres">${GEAR}</button>`;
-function qGrid(g) {
-  const N = g.players.length;
-  return '<div class="qgrid">' + SERIES[0].map((q, i) => {
-    const a = g.players.filter(p => p.a[i]).length, o = g.players.filter(p => p.a[i] && p.a[i].ok).length;
-    return `<div class="qc"><div class="qh"><b>Question ${i + 1}</b><span>${a} / ${N}</span></div><p>${esc(qLabel(q))}</p>
-      <div class="qbar"><i class="g-ok" style="width:${N ? o / N * 100 : 0}%"></i><i class="g-ko" style="width:${N ? (a - o) / N * 100 : 0}%"></i></div>
-      <small>${plural(o, 'juste', 'justes')} · ${plural(a - o, 'erreur', 'erreurs')}</small></div>`;
-  }).join('') + '</div>';
-}
-function gBar(g) {
-  const N = g.players.length, T = N * NQ, a = g.players.reduce((s, p) => s + p.a.filter(Boolean).length, 0), o = g.players.reduce((s, p) => s + score(p.a), 0);
-  return { a, o, T, html: `<div class="gbar" role="img" aria-label="${a} réponses sur ${T}"><i class="g-ok" style="width:${T ? o / T * 100 : 0}%"></i><i class="g-ko" style="width:${T ? (a - o) / T * 100 : 0}%"></i></div>` };
+/* L’écran n’affiche que des chiffres globaux : ni prénoms, ni questions */
+function stats(g) {
+  const N = g.players.length, T = N * NQ;
+  const a = g.players.reduce((s, p) => s + p.a.filter(Boolean).length, 0), o = g.players.reduce((s, p) => s + score(p.a), 0);
+  const fin = g.players.filter(p => p.a.every(Boolean)).length;
+  return { N, T, a, o, fin,
+    pct: a ? Math.round(o / a * 100) + ' %' : '–',
+    avg: N ? (o / N).toFixed(1).replace('.', ',') : '–' };
 }
 const legend = '<p class="legend"><i class="g-ok"></i>juste <i class="g-ko"></i>erreur <i></i>pas encore répondu</p>';
 function hRender() {
@@ -2914,6 +2981,24 @@ function hRender() {
   const net = H.ready && !H.net ? '<div class="net" role="status">Connexion au relais perdue, reconnexion…</div>' : '';
   if (H.err) h = `<div class="host"><div class="center"><h1>${brand}</h1><p class="err">${esc(H.err)}</p><button class="btn" data-a="retry">Réessayer</button></div></div>`;
   else if (!H.ready) h = `<div class="host"><div class="center"><h1>${brand}</h1><p class="dots">Connexion au relais</p></div></div>`;
+  else if (H.pv) {
+    const V = H.pv, qq = SERIES[V.s], q = qq[V.i];
+    let cst = '';
+    if (V.s === 0 && V.last && g.players.length) {
+      const N = g.players.length, o = g.players.filter(p => p.a[V.i] && p.a[V.i].ok).length;
+      cst = `<p class="cstat">Classe : ${plural(o, 'réponse juste', 'réponses justes')} sur ${N}</p>`;
+    }
+    const acts = V.last ? '<button class="btn" data-r="again">Recommencer</button>'
+      : `<button class="btn" data-r="check"${qReady(q, V.st) ? '' : ' disabled'}>Vérifier</button><button class="btn ghost" data-r="sol">Montrer la solution</button>`;
+    h = `<div class="host">${net}<header class="bar">${brand}<span class="pill">Correction en plénière</span><span class="sp"></span>
+      <span class="seg">${SERIES.map((_, s) => `<button data-a="pvs" data-v="${s}" aria-pressed="${s === V.s}">Série ${s + 1}</button>`).join('')}</span>
+      <button class="btn ghost small" data-a="full">Plein écran</button><button class="btn ghost small" data-a="pvquit">Fermer</button></header>
+    <main class="plen">
+      <div class="pnav"><button class="btn ghost small" data-a="pvprev"${V.i ? '' : ' disabled'}>‹ Précédente</button><b>Question ${V.i + 1} sur ${qq.length}</b><button class="btn ghost small" data-a="pvnext"${V.i < qq.length - 1 ? '' : ' disabled'}>Suivante ›</button></div>
+      <div class="qz">${qView(q, V.st, V.last)}</div>
+      <div class="acts">${acts}${cst}</div>
+    </main></div>`;
+  }
   else if (g.ph === 'lobby') {
     const n = g.players.length;
     h = `<div class="host">${net}<header class="bar">${brand}<span class="sp"></span><button class="btn ghost small" data-a="solo">Jouer seul</button><button class="btn ghost small" data-a="full">Plein écran</button>${gearBtn}</header>
@@ -2930,39 +3015,34 @@ function hRender() {
     </div>
     <p class="credit">Questions de la série 1 d’après Khan Academy</p></div>`;
   } else {
-    const N = g.players.length, G = gBar(g), fin = g.players.filter(p => p.a.every(Boolean)).length;
-    const run = g.ph === 'run';
-    let tail;
-    if (run) {
-      tail = (N && fin === N ? '<p class="done-msg">Tout le monde a terminé la série 1.</p>' : '') +
-        `<div class="acts"><button class="btn${N && fin === N ? '' : ' ghost'}" data-a="stop">Terminer et envoyer le rapport</button></div>`;
-    } else {
-      const M = {
-        wait: `<p class="mail dots">Envoi du rapport à ${MAIL}</p>`,
-        ok: `<p class="mail ok">✓ Rapport envoyé à ${MAIL}</p>`,
-        act: `<p class="mail ko">Premier envoi : un courriel d’activation est parti à ${MAIL}. Clique sur le lien qu’il contient, puis sur « Renvoyer le rapport ».</p>`,
-        err: `<p class="mail ko">L’envoi automatique à ${MAIL} n’a pas fonctionné.</p>`
-      }[g.mail] || '';
-      tail = M + `<div class="acts"><button class="btn${g.mail === 'ok' ? ' ghost' : ''}" data-a="send"${g.mail === 'wait' ? ' disabled' : ''}>Renvoyer le rapport</button>
-        <button class="btn ghost" data-a="mailto">Ouvrir dans la messagerie</button><button class="btn ghost" data-a="csv">Télécharger (.csv)</button>
+    const S = stats(g), run = g.ph === 'run';
+    const tail = run
+      ? (S.N && S.fin === S.N ? '<p class="done-msg">Tout le monde a terminé la série 1.</p>' : '') +
+        `<div class="acts"><button class="btn${S.N && S.fin === S.N ? '' : ' ghost'}" data-a="stop">Terminer la série 1</button></div>`
+      : `<div class="acts"><button class="btn" data-a="pv">Revoir les questions en plénière</button><button class="btn ghost" data-a="csv">Télécharger les résultats (.csv)</button>
         <button class="btn ghost" data-a="reopen">Rouvrir la série 1</button><button class="btn ghost" data-a="reset">Nouvelle partie</button></div>`;
-    }
     h = `<div class="host">${net}<header class="bar">${brand}<span class="pill">${run ? 'Série 1 en cours' : 'Série 1 terminée'}</span><span class="sp"></span>
       ${run ? '<button class="btn ghost small" data-a="qr">Code QR</button>' : ''}<button class="btn ghost small" data-a="full">Plein écran</button>${gearBtn}</header>
     <main class="prog">
       <h1>${run ? 'Progression de la classe' : 'Résultats de la classe'}</h1>
-      ${G.html}
-      <p class="gsum"><b>${G.a}</b> ${G.a > 1 ? 'réponses' : 'réponse'} sur ${G.T} · <b>${G.o}</b> ${G.o > 1 ? 'justes' : 'juste'} · ${run ? `<b>${fin}</b> sur ${N} ${fin > 1 ? 'ont' : 'a'} terminé` : `moyenne <b>${avgTxt(g)}</b> sur ${NQ}`}</p>
-      ${qGrid(g)}${legend}${tail}
+      <div class="gbar" role="img" aria-label="${S.a} réponses sur ${S.T}"><i class="g-ok" style="width:${S.T ? S.o / S.T * 100 : 0}%"></i><i class="g-ko" style="width:${S.T ? (S.a - S.o) / S.T * 100 : 0}%"></i></div>
+      ${legend}
+      <div class="tiles">
+        <div class="tile"><b>${S.a}<small> / ${S.T}</small></b><span>réponses données</span></div>
+        <div class="tile"><b>${S.fin}<small> / ${S.N}</small></b><span>${run ? 'ont terminé' : 'ont tout fait'}</span></div>
+        <div class="tile"><b>${S.pct}</b><span>de réponses justes</span></div>
+        <div class="tile"><b>${S.avg}<small> / ${NQ}</small></b><span>moyenne de la classe</span></div>
+      </div>
+      ${tail}
     </main></div>`;
   }
-  if (H.ready && !H.err && H.qr && g.ph !== 'end') {
+  if (H.ready && !H.err && H.qr && g.ph !== 'end' && !H.pv) {
     h += `<div class="ovl" data-a="qr"><div class="qrbig" data-a="noop"><button class="qr-x" data-a="qr" aria-label="Fermer" title="Fermer">${CROSS}</button>${qrSvg(joinUrl())}</div></div>`;
   }
   if (H.ready && !H.err && H.set) {
     h += `<div class="ovl pop" data-a="set"><div class="panel${H.setNew ? ' in' : ''}" data-a="noop" role="menu" aria-label="Paramètres">
+      <div class="opt"><span>Plénière</span><button class="btn ghost small" data-a="pv">Revoir les questions</button></div>
       <div class="opt"><span>Code QR</span><button class="btn ghost small" data-a="reset">Nouveau code</button></div>
-      <div class="opt"><span>Rapport</span><small class="muted-s">envoyé à ${MAIL}</small></div>
       <div class="opt"><span>Version</span><small class="muted-s">${VERSION}</small></div></div></div>`;
   }
   H.setNew = false;
@@ -2974,7 +3054,7 @@ function hRender() {
 /* ============================================================
    TÉLÉPHONE (partie en classe)
    ============================================================ */
-const P = { code: '', pid: '', name: '', st: null, room: null, c: null, net: false, late: false, joining: false, done: {}, R1: null, Ro: null };
+const P = { quit: false, code: '', pid: '', name: '', st: null, room: null, c: null, net: false, late: false, joining: false, done: {}, R1: null, Ro: null };
 async function playerInit() {
   P.code = (qs.get('p') || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
   if (P.code.length !== 6 || !window.crypto || !crypto.subtle) { paint('<div class="ph"><div class="ph-mid"><h1>Code QR non valable</h1><p class="muted">Scanne à nouveau le code QR affiché sur l’écran.</p></div></div>'); return; }
@@ -2984,6 +3064,7 @@ async function playerInit() {
   P.R1 = newRun(0, P.done[0] || []);
   P.room = await mkRoom(P.code);
   document.addEventListener('click', pClick);
+  dragSetup(() => P.quit ? null : curSt(P.Ro || (P.st && P.st.ph === 'run' ? P.R1 : null)), pRender);
   document.addEventListener('submit', ev => { ev.preventDefault(); pSubmit(); });
   pRender();
   const c = P.c = openRelay(+qs.get('r') === 1 ? 1 : 0);
@@ -3015,7 +3096,13 @@ function pSubmit() {
 }
 function pClick(ev) {
   const o = ev.target.closest('[data-o]');
-  if (o) { const v = o.dataset.o; P.Ro = v === 'menu' ? null : newRun(+v); window.scrollTo(0, 0); return pRender(); }
+  if (o) {
+    const v = o.dataset.o;
+    if (v === 'quit') P.quit = true;
+    else if (v === 'back') { P.quit = false; P.Ro = null; }
+    else { P.quit = false; P.Ro = newRun(+v); }
+    window.scrollTo(0, 0); return pRender();
+  }
   const b = ev.target.closest('[data-r]'); if (!b || !P.st) return;
   const R = P.Ro || P.R1;
   if (R === P.R1 && P.st.ph !== 'run') return;
@@ -3027,6 +3114,7 @@ function pClick(ev) {
   if (b.dataset.r === 'next') window.scrollTo(0, 0);
   pRender();
 }
+const curSt = R => R && !R.fb && !rDone(R) ? R.st : null;
 function pRender() {
   const st = P.st, me = pMe(); let top = `<b>${esc(P.name || TITLE)}</b><span></span>`, mid, btns = '';
   if (!st) mid = P.late ? '<h1>Partie introuvable</h1><p class="muted">Vérifie que l’écran affiche le code QR, puis scanne-le à nouveau.</p>' : '<h1 class="dots">Connexion</h1>';
@@ -3034,17 +3122,17 @@ function pRender() {
   else if (me == null && st.ph === 'end') mid = '<h1>Partie terminée</h1><p class="muted">Cette série est fermée. Demande le nouveau code QR.</p>';
   else if (me == null) mid = `<h1>Ton prénom</h1><form style="width:100%;display:grid;gap:14px"><input id="nm" maxlength="20" autocomplete="given-name" autocapitalize="words" enterkeyhint="go" aria-label="Ton prénom" value="${esc(P.name)}"><button class="btn" type="submit">Rejoindre</button></form><p class="muted small">Ton prénom n’apparaît pas à l’écran de la classe.</p>`;
   else if (st.ph === 'lobby') mid = `<h1>Bienvenue, ${esc(P.name)} !</h1><p class="muted">Regarde l’écran. La série va commencer.</p>`;
-  else if (P.Ro) {
-    const r = runHtml(P.Ro); top = r.top; mid = r.mid; btns = r.btns;
-    if (rDone(P.Ro)) btns = `<div class="ph-btns"><button class="btn" data-o="menu">Retour</button></div>`;
-  } else if (st.ph === 'run' && !rDone(P.R1)) {
-    const r = runHtml(P.R1); top = r.top; mid = r.mid; btns = r.btns;
-  } else {
-    const a = P.R1.a, fin = a.length >= NQ;
-    if (fin) { const r = runHtml(P.R1); top = r.top; mid = r.mid; }
-    else mid = `<h1>Série 1 terminée</h1><p class="muted">L’enseignant a fermé la série 1. Tu as répondu à ${plural(a.length, 'question', 'questions')}${a.length ? ' (' + score(a) + ' juste' + (score(a) > 1 ? 's' : '') + ')' : ''}.</p>`;
-    mid += '<p class="muted opt-t">Pour t’entraîner encore, choisis une série facultative :</p>';
-    btns = optMenu(P.done);
+  else if (P.quit) {
+    mid = `<h1>Merci, ${esc(P.name)} !</h1><p class="muted">Tu peux fermer cette page.</p>`;
+    btns = '<div class="ph-btns"><button class="btn ghost alt" data-o="back">Revenir aux séries</button></div>';
+  }
+  else if (P.Ro) { const r = runHtml(P.Ro); top = r.top; mid = r.mid; btns = r.btns; }
+  else if (st.ph === 'run' && !rDone(P.R1)) { const r = runHtml(P.R1); top = r.top; mid = r.mid; btns = r.btns; }
+  else if (P.R1.a.length >= NQ) { const r = runHtml(P.R1); top = r.top; mid = r.mid; btns = r.btns; }
+  else {
+    const a = P.R1.a;
+    mid = `<h1>Série 1 terminée</h1><p class="muted">L’enseignant a fermé la série 1. Tu as répondu à ${plural(a.length, 'question', 'questions')}${a.length ? ' (' + score(a) + ' juste' + (score(a) > 1 ? 's' : '') + ')' : ''}.</p><p class="muted opt-t">Tu peux continuer avec la série 2 ou quitter.</p>`;
+    btns = nextBtns(0);
   }
   const off = st && !P.net ? '<p class="muted err" role="status">Connexion perdue, reconnexion…</p>' : '';
   paint(`<div class="ph"><div class="ph-top">${top}</div><div class="ph-mid">${mid}${off}</div>${btns}</div>`);
@@ -3054,10 +3142,10 @@ function pRender() {
    JEU INDIVIDUEL (téléphone ouvert sans code QR)
    ============================================================ */
 const I = { R: null, done: store.get('arr-solo') || {} };
-function soloInit() { document.addEventListener('click', iClick); iRender(); }
+function soloInit() { document.addEventListener('click', iClick); dragSetup(() => curSt(I.R), iRender); iRender(); }
 function iClick(ev) {
   const o = ev.target.closest('[data-o]');
-  if (o) { const v = o.dataset.o; I.R = v === 'menu' ? null : newRun(+v); window.scrollTo(0, 0); return iRender(); }
+  if (o) { const v = o.dataset.o; I.R = v === 'quit' || v === 'menu' ? null : newRun(+v); window.scrollTo(0, 0); return iRender(); }
   if (ev.target.closest('[data-i="class"]')) { location.search = '?classe'; return; }
   const b = ev.target.closest('[data-r]'); if (!b || !I.R) return;
   if (runAct(I.R, b.dataset.r, b.dataset.v)) { I.done[I.R.s] = I.R.a; store.set('arr-solo', I.done); }
@@ -3066,10 +3154,8 @@ function iClick(ev) {
 }
 function iRender() {
   let top = `<b>${TITLE}</b><span></span>`, mid, btns;
-  if (I.R) {
-    const r = runHtml(I.R); top = r.top; mid = r.mid; btns = r.btns;
-    if (rDone(I.R)) btns = '<div class="ph-btns"><button class="btn" data-o="menu">Retour</button></div>';
-  } else {
+  if (I.R) { const r = runHtml(I.R); top = r.top; mid = r.mid; btns = r.btns; }
+  else {
     mid = `<h1>${TITLE}</h1><p class="muted">Choisis une série de ${NQ} questions.</p>`;
     const d = I.done;
     btns = '<div class="ph-btns">' + SERIES.map((q, s) => {
