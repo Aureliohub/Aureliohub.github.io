@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proportionnalité - Pourcentages - calculer un pourcentage</title>
+
+<!--
+  ══════════════════════════════════════════════════════════════════════
+  GABARIT — fiches « Espace », charte UOG/AM
+  ══════════════════════════════════════════════════════════════════════
+-->
+
+<style>
+:root{
+  --encre:#1a1a1a;--navy:#1F3A5F;--bleu:#2E75B6;--magenta:#E6007E;--filet:#c9c9c9;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:#e9e9e9;color:var(--encre);
+  font-family:"Avenir Next","Avenir","Segoe UI","Trebuchet MS",Verdana,sans-serif;
+  font-size:0;line-height:1.5;
+}
+.barre{
+  position:sticky;top:0;z-index:10;
+  display:flex;gap:10px;align-items:center;justify-content:center;
+  padding:8px;background:var(--navy);color:#fff;font-size:10pt;
+}
+.barre button{font:inherit;font-weight:600;cursor:pointer;background:#fff;color:var(--navy);border:none;border-radius:3px;
+  padding:0;width:30px;height:30px;line-height:1;display:inline-flex;align-items:center;justify-content:center;font-size:13pt}
+.barre button svg{display:block}
+.barre button:focus-visible{outline:2px solid var(--magenta);outline-offset:2px}
+.barre span{opacity:.8}
+.barre .zoom-outils{opacity:1}
+.zoom-outils{display:flex;gap:6px;align-items:center}
+.zoom-taux{font-variant-numeric:tabular-nums;min-width:44px;text-align:center;opacity:.9}
+
+.page{
+  position:relative;zoom:var(--z,1);width:210mm;height:292mm;
+  margin:14px auto;padding:12mm 12mm 18mm 20mm;
+  background:#fff;overflow:hidden;font-size:11.5pt;
+}
+h1{font-size:15pt;font-weight:700;text-align:center;margin:0 0 1mm;letter-spacing:.1px}
+.sur-titre{text-align:center;font-size:11.5pt;margin:0 0 6mm}
+.etiquette-corrige{
+  display:none;position:absolute;top:13mm;right:12mm;margin:0;
+  color:var(--magenta);font-weight:700;font-size:11pt;letter-spacing:1px;
+}
+body.corrige .etiquette-corrige{display:block}
+p{margin:0 0 4mm}
+
+.exo-titre{display:flex;gap:3mm;align-items:flex-start;margin-bottom:2mm}
+.exo-titre .consigne{font-weight:700}
+.pastille{flex:0 0 auto;width:15px;height:15px;margin-top:2px}
+.item{margin:0 0 2mm 8mm}
+
+.fig{display:block;margin:2mm auto 0;width:170mm;height:auto}
+.sol{visibility:hidden}
+body.corrige .sol{visibility:visible}
+
+.pied{
+  position:absolute;left:20mm;right:12mm;bottom:10mm;
+  padding-top:2.5mm;border-top:1px solid var(--filet);
+  display:flex;justify-content:space-between;font-size:9.5pt;color:#333;
+}
+
+@page{size:A4;margin:0}
+@media print{
+  html,body{width:210mm;margin:0;padding:0;overflow:hidden}
+  body{background:#fff}
+  .barre{display:none}
+  .page{zoom:1;margin:0;page-break-after:always}
+  .page:last-of-type{page-break-after:auto}
+}
+@media screen{ .page{box-shadow:0 1px 6px rgba(0,0,0,.18)} }
+/* écran : agrandissement par transform plutôt que par zoom CSS — Firefox pour Android (écran i3TOUCH)
+   ne dessine pas certains tracés SVG quand la page est agrandie avec zoom. L'impression n'est pas touchée.
+   Fiche en paysage : ajouter --pw:297mm;--ph:205mm dans la règle .page. */
+@media screen{
+  .page{
+    zoom:1 !important;
+    transform:scale(var(--z,1));transform-origin:top left;
+    margin-left:max(14px, calc((100% - var(--pw,210mm) * var(--z,1)) / 2));margin-right:0;
+    margin-bottom:calc(14px + (var(--z,1) - 1) * var(--ph,292mm));
+  }
+  /* empêche la marge négative de la dernière page de sortir du body (sinon vide sous la page en réduction) */
+  body{display:flow-root}
+}
+
+.page-corrige{display:none}
+@media print{
+  body.corrige .page:not(.page-corrige) .etiquette-corrige{display:none}
+  body.corrige .page:not(.page-corrige) .sol{visibility:hidden}
+  .page-corrige{display:block}
+  .page-corrige .etiquette-corrige{display:block}
+  .page-corrige .sol{visibility:visible}
+}
+</style>
+<style>
+/* propre aux fiches Pourcentages */
+.entete{text-align:right;font-size:9.5pt;font-weight:700;color:#ababab;margin:-5mm 0 4mm}
+h1{margin-bottom:6mm}
+.sous-titre{font-size:12.5pt;text-align:center;margin:-4mm 0 7mm}
+.sol{color:var(--magenta)}
+.cadre{border:0.35mm solid #1F3A5F;border-radius:2mm;padding:4mm 6mm;margin:0 0 7mm}
+.cadre p{margin:0 0 2.5mm}
+.cadre p:last-child{margin-bottom:0}
+.cadre-titre{font-weight:700;color:var(--navy);font-size:12.5pt}
+.regle{display:inline-block;border:0.25mm solid #1F3A5F;padding:1.5mm 4mm}
+.cadre .exemple{font-style:italic;margin-bottom:1mm}
+.fort{font-weight:700;color:var(--navy)}
+.fr{display:inline-flex;flex-direction:column;align-items:stretch;text-align:center;vertical-align:middle;line-height:1.15;font-size:.92em;margin:0 .15em}
+.fr>span{padding:0 .2em}
+.fr>span+span{border-top:0.25mm solid currentColor}
+.var{font-style:italic}
+.ex-prop{display:flex;align-items:center;gap:8mm}
+.ex-prop svg{flex:0 0 auto}
+.exo{margin-bottom:6mm}
+.exo-titre .sec{font-weight:400}
+.item{margin:0 0 2mm 8mm}
+/* trait pointillé à compléter ; la réponse du corrigé s'écrit juste au-dessus */
+.vide{display:inline-block;position:relative;border-bottom:0.3mm dotted #1a1a1a;height:1.1em;vertical-align:baseline}
+.vide>.sol{position:absolute;left:0;right:0;bottom:.15em;text-align:center;white-space:nowrap;font-weight:600}
+.vide.g>.sol{text-align:left;left:3mm}
+.lg{display:flex;align-items:baseline;gap:1.5mm;margin:0 0 2.6mm 8mm}
+.lg .vide{flex:1}
+.lg .u{flex:0 0 14mm}
+.bloc{margin:0 0 5mm}
+.bloc p{margin:0 0 2.6mm 8mm}
+table.t{border-collapse:collapse;text-align:center}
+table.t td,table.t th{border:0.3mm solid #1a1a1a;font-weight:400;padding:0;height:8.5mm}
+table.t th{font-weight:700;color:var(--navy)}
+table.t .sol{font-weight:600}
+.diag{position:relative;padding:0}
+.diag svg{position:absolute;inset:0;width:100%;height:100%}
+.diag .de{position:absolute;right:1.5mm;top:.3mm;font-size:10pt}
+.diag .les{position:absolute;left:1.5mm;bottom:.3mm;font-size:10pt}
+.calc{margin:1mm 0 0 8mm}
+.calc .sol{display:block}
+</style>
+<style>
+.serre{line-height:1.45}
+table.tp{border-collapse:collapse;text-align:center}
+table.tp th,table.tp td{border:0.3mm solid #1a1a1a;width:22mm;height:6.4mm;padding:0}
+table.tp th{font-weight:700;color:var(--navy)}
+table.tp th.coin{border-top-color:transparent;border-left-color:transparent}
+.fr.fl>span{padding:0 .3em}
+.it4{margin-bottom:3.6mm}
+.it4:first-of-type{margin-top:4mm}
+.cadre .ex-prop{margin:1mm 0 2.5mm}
+.grille{display:grid;grid-template-columns:1fr 1fr;gap:1mm 6mm;margin-bottom:3mm}
+.grille.gr{gap:0 6mm}
+.grille .cel{display:flex;gap:3mm;height:13mm}
+.esp .sol{display:block;margin-left:6mm}
+.camembert{position:relative;width:170mm;height:80mm;margin:3mm 0 5mm}
+.camembert svg{position:absolute;inset:0;width:170mm;height:80mm}
+.camembert .lab{position:absolute;font-size:10.5pt;line-height:2;white-space:nowrap}
+.camembert .lab.nou{line-height:2.5}
+.ex3 .item{margin-left:0}
+.ex3 .esp .sol{margin-left:0}
+.camembert .vide{height:1em}
+</style>
+</head>
+<body>
+
+<div class="barre">
+  <button id="btn" type="button" title="Afficher le corrigé" aria-label="Afficher le corrigé"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.3 8S3.6 3.8 8 3.8 14.7 8 14.7 8 12.4 12.2 8 12.2 1.3 8 1.3 8z"></path><circle cx="8" cy="8" r="2.1"></circle></svg></button>
+  <span class="zoom-outils">
+    <button id="zoom-moins" type="button" title="Réduire">−</button>
+    <span class="zoom-taux" id="zoom-taux">100 %</span>
+    <button id="zoom-plus" type="button" title="Agrandir">+</button>
+    <button id="zoom-page" type="button" title="Page entière" aria-label="Page entière"><svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3.2" y="1.6" width="9.6" height="12.8" rx="1.2"></rect><path d="M8 4.6v6.8"></path><path d="M6.3 6.3L8 4.6l1.7 1.7"></path><path d="M6.3 9.7L8 11.4l1.7-1.7"></path></svg></button>
+    <button id="plein-ecran" type="button" title="Plein écran" aria-label="Plein écran"><svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6V2h4"></path><path d="M10 2h4v4"></path><path d="M14 10v4h-4"></path><path d="M6 14H2v-4"></path></svg></button>
+  </span>
+</div>
+
+<!-- ══════════════════ PAGE 1 ══════════════════ -->
+<section class="page" data-corrige="">
+  <p class="entete">Proportionnalité</p>
+  <h1>Pourcentages</h1>
+  <p class="sous-titre">Calculer un pourcentage</p>
+  <p class="etiquette-corrige">CORRIGÉ</p>
+  <div class="cadre">
+    <p class="cadre-titre">Comment calculer un pourcentage ?</p>
+    <p class="exemple">Exemple :</p>
+    <p class="serre">Dans un collège, il y a 264 filles sur un total de 550 élèves.<br>
+    Calculons le pourcentage de filles dans ce collège :<br>
+    (On utilise un tableau de proportionnalité.)</p>
+    <div class="ex-prop"><table class="tp"><tr><th class="coin"></th><th>Nombre</th><th>%</th></tr><tr><th>Élèves</th><td>550</td><td>100</td></tr><tr><th>Filles</th><td>264</td><td>?</td></tr></table>
+      <span><span class="fr fl"><span>100 × 264</span><span>550</span></span> = 48</span></div>
+    <p>Il y a <span class="fort">48 %</span> de filles dans ce collège.</p>
+  </div>
+  <div class="exo"><div class="exo-titre"><svg class="pastille" viewBox="0 0 16 16" aria-hidden="true"><rect width="16" height="16" rx="2" fill="#1F3A5F"></rect><text x="8" y="12" text-anchor="middle" fill="#fff" font-size="11" font-weight="700" font-family="Verdana,sans-serif">1</text></svg><span class="consigne">Calculs de pourcentages</span></div>
+  <p class="item it4">a) Les <span class="vide" style="width:26mm"><span class="sol">30</span></span> % de 450, c’est 135.</p><p class="item it4">b) Les <span class="vide" style="width:26mm"><span class="sol">260</span></span> % de 35, c’est 91.</p><p class="item it4">c) Les <span class="vide" style="width:26mm"><span class="sol">14</span></span> % de 350, c’est 49.</p><p class="item it4">d) Les <span class="vide" style="width:26mm"><span class="sol">74</span></span> % de 30, c’est 22,2.</p></div>
+  <div class="exo"><div class="exo-titre"><svg class="pastille" viewBox="0 0 16 16" aria-hidden="true"><rect width="16" height="16" rx="2" fill="#1F3A5F"></rect><text x="8" y="12" text-anchor="middle" fill="#fff" font-size="11" font-weight="700" font-family="Verdana,sans-serif">2</text></svg><span class="consigne">Heures de travail</span></div>
+  <p class="item">Un auteur d’un livre de mathématiques a consacré :</p>
+  <div class="grille item"><span><b>(1)</b>&ensp;517 h pour l’écriture du manuscrit</span><span><b>(2)</b>&ensp;204 h pour la relecture des épreuves</span><span><b>(3)</b>&ensp;36 h pour la mise en page</span><span><b>(4)</b>&ensp;60 h en déplacements</span></div>
+  <p class="item">a) Combien d’heures de travail a-t-il totalisées (déplacements compris) ?</p>
+  <div class="esp item" style="height:11mm"><span class="sol">517 + 204 + 36 + 60 = <b>817 heures</b></span></div>
+  <p class="item">b) Quels pourcentages du temps total a-t-il consacrés à chacun des quatre postes ?<br>(Arrondir à 0,1 % près)</p>
+  <div class="grille gr item"><div class="cel"><span>(1)</span><span class="sol">517 : 817 × 100 = 63,28… ≈ 63,3 %</span></div><div class="cel"><span>(2)</span><span class="sol">204 : 817 × 100 = 24,96… ≈ 25,0 %</span></div><div class="cel"><span>(3)</span><span class="sol">36 : 817 × 100 = 4,40… ≈ 4,4 %</span></div><div class="cel"><span>(4)</span><span class="sol">60 : 817 × 100 = 7,34… ≈ 7,3 %</span></div></div>
+  </div>
+  <div class="pied"><span>Proportionnalité - Calculer un pourcentage - UOG/AM</span><span>1</span></div>
+</section>
+
+<section class="page" data-corrige="">
+  <p class="entete">Proportionnalité</p>
+  <h1>Pourcentages</h1>
+  <p class="sous-titre">Calculer un pourcentage</p>
+  <p class="etiquette-corrige">CORRIGÉ</p>
+  <div class="exo ex3"><div class="exo-titre"><svg class="pastille" viewBox="0 0 16 16" aria-hidden="true"><rect width="16" height="16" rx="2" fill="#1F3A5F"></rect><text x="8" y="12" text-anchor="middle" fill="#fff" font-size="11" font-weight="700" font-family="Verdana,sans-serif">3</text></svg><span class="consigne">Budget vacances</span></div>
+  <p class="item">Pour camper pendant trois semaines à la montagne, la famille Pensatout adopte le budget vacances correspondant au diagramme ci-dessous.</p>
+  <div class="camembert"><svg viewBox="0 0 170 80" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs><linearGradient id="gheb" gradientUnits="userSpaceOnUse" x1="45" y1="0" x2="125" y2="0"><stop offset="0" stop-color="#8e443e"/><stop offset="0.45" stop-color="#eea09a"/><stop offset="1" stop-color="#a14d46"/></linearGradient><linearGradient id="dheb" gradientUnits="userSpaceOnUse" x1="61.0" y1="14" x2="101.0" y2="48"><stop offset="0" stop-color="#ee9c96"/><stop offset="0.55" stop-color="#e66e65"/><stop offset="1" stop-color="#ca6058"/></linearGradient><linearGradient id="gvis" gradientUnits="userSpaceOnUse" x1="45" y1="0" x2="125" y2="0"><stop offset="0" stop-color="#616161"/><stop offset="0.45" stop-color="#bfbfbf"/><stop offset="1" stop-color="#6e6e6e"/></linearGradient><linearGradient id="dvis" gradientUnits="userSpaceOnUse" x1="61.0" y1="14" x2="101.0" y2="48"><stop offset="0" stop-color="#bdbdbd"/><stop offset="0.55" stop-color="#9e9e9e"/><stop offset="1" stop-color="#8b8b8b"/></linearGradient><linearGradient id="gnou" gradientUnits="userSpaceOnUse" x1="45" y1="0" x2="125" y2="0"><stop offset="0" stop-color="#91516a"/><stop offset="0.45" stop-color="#f2aec9"/><stop offset="1" stop-color="#a45b78"/></linearGradient><linearGradient id="dnou" gradientUnits="userSpaceOnUse" x1="61.0" y1="14" x2="101.0" y2="48"><stop offset="0" stop-color="#f1aac6"/><stop offset="0.55" stop-color="#eb83ac"/><stop offset="1" stop-color="#ce7397"/></linearGradient><linearGradient id="gloi" gradientUnits="userSpaceOnUse" x1="45" y1="0" x2="125" y2="0"><stop offset="0" stop-color="#736282"/><stop offset="0.45" stop-color="#d2c0e1"/><stop offset="1" stop-color="#826f93"/></linearGradient><linearGradient id="dloi" gradientUnits="userSpaceOnUse" x1="61.0" y1="14" x2="101.0" y2="48"><stop offset="0" stop-color="#d0bde0"/><stop offset="0.55" stop-color="#bb9fd2"/><stop offset="1" stop-color="#a48bb8"/></linearGradient><linearGradient id="gvoy" gradientUnits="userSpaceOnUse" x1="45" y1="0" x2="125" y2="0"><stop offset="0" stop-color="#6a7d3e"/><stop offset="0.45" stop-color="#c8dc9a"/><stop offset="1" stop-color="#778d46"/></linearGradient><linearGradient id="dvoy" gradientUnits="userSpaceOnUse" x1="61.0" y1="14" x2="101.0" y2="48"><stop offset="0" stop-color="#c5da96"/><stop offset="0.55" stop-color="#abca65"/><stop offset="1" stop-color="#96b158"/></linearGradient></defs><path d="M84.43 30.27 L54.15 19.17 L54.15 29.17 L84.43 40.27 Z" fill="#6a7d3e" stroke="#6a7d3e" stroke-width="0.15" stroke-linejoin="round"/><path d="M84.43 30.27 L92.74 13.65 L92.74 23.65 L84.43 40.27 Z" fill="#6a7d3e" stroke="#6a7d3e" stroke-width="0.15" stroke-linejoin="round"/><path d="M84.43 30.27 L54.15 19.17 A40 17 0 0 1 92.74 13.65 Z" fill="url(#dvoy)" stroke="#91ab55" stroke-width="0.2" stroke-linejoin="round"/><path d="M85.90 30.34 L115.63 18.96 L115.63 28.96 L85.90 40.34 Z" fill="#8e443e" stroke="#8e443e" stroke-width="0.15" stroke-linejoin="round"/><path d="M85.90 30.34 L94.22 13.71 A40 17 0 0 1 115.63 18.96 Z" fill="url(#dheb)" stroke="#c35d55" stroke-width="0.2" stroke-linejoin="round"/><path d="M86.75 30.83 L125.28 35.40 L125.28 45.40 L86.75 40.83 Z" fill="#616161" stroke="#616161" stroke-width="0.15" stroke-linejoin="round"/><path d="M126.75 30.83 A40 17 0 0 1 125.28 35.40 L125.28 45.40 A40 17 0 0 0 126.75 40.83 Z" fill="url(#gvis)"/><path d="M86.75 30.83 L116.48 19.45 A40 17 0 0 1 125.28 35.40 Z" fill="url(#dvis)" stroke="#868686" stroke-width="0.2" stroke-linejoin="round"/><path d="M83.20 31.01 L53.47 42.38 L53.47 52.38 L83.20 41.01 Z" fill="#736282" stroke="#736282" stroke-width="0.15" stroke-linejoin="round"/><path d="M53.47 42.38 A40 17 0 0 1 43.20 31.01 L43.20 41.01 A40 17 0 0 0 53.47 52.38 Z" fill="url(#gloi)"/><path d="M83.20 31.01 L53.47 42.38 A40 17 0 0 1 52.92 19.90 Z" fill="url(#dloi)" stroke="#9e87b2" stroke-width="0.2" stroke-linejoin="round"/><path d="M123.94 36.32 A40 17 0 0 1 55.69 43.12 L55.69 53.12 A40 17 0 0 0 123.94 46.32 Z" fill="url(#gnou)"/><path d="M85.41 31.74 L123.94 36.32 A40 17 0 0 1 55.69 43.12 Z" fill="url(#dnou)" stroke="#c76f92" stroke-width="0.2" stroke-linejoin="round"/><line x1="97.90" y1="21.50" x2="111" y2="4.5" stroke="#1a1a1a" stroke-width="0.25"/><circle cx="97.90" cy="21.50" r="0.6" fill="#1a1a1a"/><line x1="110.12" y1="28.50" x2="129" y2="24.5" stroke="#1a1a1a" stroke-width="0.25"/><circle cx="110.12" cy="28.50" r="0.6" fill="#1a1a1a"/><line x1="90.89" y1="41.68" x2="109" y2="63" stroke="#1a1a1a" stroke-width="0.25"/><circle cx="90.89" cy="41.68" r="0.6" fill="#1a1a1a"/><line x1="59.20" y1="31.11" x2="35" y2="58.5" stroke="#1a1a1a" stroke-width="0.25"/><circle cx="59.20" cy="31.11" r="0.6" fill="#1a1a1a"/><line x1="76.77" y1="20.61" x2="40" y2="6.5" stroke="#1a1a1a" stroke-width="0.25"/><circle cx="76.77" cy="20.61" r="0.6" fill="#1a1a1a"/></svg><div class="lab" style="left:112mm;top:0mm">hébergement (10 %)<br>soit 142 CHF</div><div class="lab" style="left:130mm;top:20mm">visites (<span class="vide" style="width:16mm"><span class="sol">16</span></span> %)<br>soit 227,2 CHF</div><div class="lab nou" style="left:110mm;top:58mm">nourriture (<span class="vide" style="width:16mm"><span class="sol">34</span></span> %)<br>soit <span class="vide" style="width:20mm"><span class="sol">482,80</span></span> CHF</div><div class="lab" style="left:0mm;top:54mm">loisirs (<span class="vide" style="width:16mm"><span class="sol">23</span></span> %)<br>soit 326,6 CHF</div><div class="lab" style="left:0mm;top:2mm">voyage (<span class="vide" style="width:16mm"><span class="sol">17</span></span> %)<br>soit 241,4 CHF</div></div>
+  <p class="item">a) Calculer le budget total.</p>
+  <div class="esp item" style="height:16mm"><span class="sol">10 % → 142 CHF<br>100 % → 142 × 100 : 10 = <b>1'420 CHF</b></span></div>
+  <p class="item">b) Combien coûte la nourriture ?</p>
+  <div class="esp item" style="height:16mm"><span class="sol">1'420 − 142 − 227,2 − 326,6 − 241,4 = <b>482,80 CHF</b></span></div>
+  <p class="item">c) Compléter le diagramme après avoir calculé les pourcentages manquants.</p>
+  <div class="esp item"><span class="sol">visites : 227,2 : 1'420 × 100 = <b>16 %</b><br>
+  nourriture : 482,8 : 1'420 × 100 = <b>34 %</b><br>
+  loisirs : 326,6 : 1'420 × 100 = <b>23 %</b><br>
+  voyage : 241,4 : 1'420 × 100 = <b>17 %</b></span></div>
+  </div>
+  <div class="pied"><span>Proportionnalité - Calculer un pourcentage - UOG/AM</span><span>2</span></div>
+</section>
+
+
+<script>
+document.querySelectorAll('.page[data-corrige]').forEach(p => {
+  const c = p.cloneNode(true);          /* le corrigé garde le numéro de la page d'origine */
+  c.removeAttribute('data-corrige');
+  c.classList.add('page-corrige');
+  document.body.appendChild(c);
+});
+
+const btn = document.getElementById('btn');
+const OEIL = '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.3 8S3.6 3.8 8 3.8 14.7 8 14.7 8 12.4 12.2 8 12.2 1.3 8 1.3 8z"/><circle cx="8" cy="8" r="2.1"/></svg>';
+const OEIL_B = '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.3 8S3.6 3.8 8 3.8 14.7 8 14.7 8 12.4 12.2 8 12.2 1.3 8 1.3 8z"/><circle cx="8" cy="8" r="2.1"/><path d="M2.5 13.5L13.5 2.5"/></svg>';
+btn.addEventListener('click', () => {
+  const on = document.body.classList.toggle('corrige');
+  btn.innerHTML = on ? OEIL_B : OEIL;
+  btn.title = on ? 'Masquer le corrigé' : 'Afficher le corrigé';
+  btn.setAttribute('aria-label', btn.title);
+});
+
+(function(){
+  const racine = document.documentElement;
+  const barre = document.querySelector('.barre');
+  const taux = document.getElementById('zoom-taux');
+  let z = 1;
+  function applique(v){
+    z = Math.max(0.15, Math.min(v, 4));
+    racine.style.setProperty('--z', z);
+    if (taux) taux.textContent = Math.round(z * 100) + ' %';
+  }
+  function pageEntiere(){
+    racine.style.setProperty('--z', 1);
+    const p = document.querySelector('.page');
+    if (!p) return;
+    const r = p.getBoundingClientRect();
+    const hBarre = barre ? barre.getBoundingClientRect().height : 0;
+    applique(Math.min((window.innerWidth - 36) / r.width,
+                      (window.innerHeight - hBarre - 36) / r.height));
+  }
+  /* auto = la page suit la taille de la fenêtre ; un zoom manuel coupe ce suivi
+     jusqu'au prochain clic sur « Page entière » */
+  let auto = true, lw = window.innerWidth, lh = window.innerHeight;
+  document.getElementById('zoom-moins').addEventListener('click', () => { auto = false; applique(z / 1.15); });
+  document.getElementById('zoom-plus').addEventListener('click', () => { auto = false; applique(z * 1.15); });
+  document.getElementById('zoom-page').addEventListener('click', () => { auto = true; pageEntiere(); });
+  let t; window.addEventListener('resize', () => {
+    clearTimeout(t);
+    t = setTimeout(() => {
+      const w = window.innerWidth, h = window.innerHeight;
+      /* le défilement tactile fait apparaître ou disparaître des barres du navigateur :
+         seule la hauteur bouge un peu, ce n'est pas un vrai redimensionnement */
+      const vrai = Math.abs(w - lw) > 2 || Math.abs(h - lh) > 150;
+      lw = w; lh = h;
+      if (auto && vrai) pageEntiere();
+    }, 150);
+  });
+  pageEntiere();
+
+  /* position de lecture, mémorisée hors passage en plein écran pour être restituée ensuite */
+  let posY = 0, posH = 1, tPos, transition = false;
+  const notePos = () => { posY = window.scrollY; posH = document.documentElement.scrollHeight || 1; };
+  window.addEventListener('scroll', () => {
+    if (transition) return;
+    clearTimeout(tPos); tPos = setTimeout(notePos, 200);
+  }, { passive: true });
+
+  const bpe = document.getElementById('plein-ecran');
+  if (bpe) {
+    bpe.addEventListener('click', () => {
+      clearTimeout(tPos); notePos();
+      if (document.fullscreenElement) document.exitFullscreen();
+      else document.documentElement.requestFullscreen();
+    });
+    document.addEventListener('fullscreenchange', () => {
+      const plein = !!document.fullscreenElement;
+      bpe.innerHTML = plein
+        ? '<svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2v4H2"/><path d="M14 6h-4V2"/><path d="M10 14v-4h4"/><path d="M2 10h4v4"/></svg>'
+        : '<svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6V2h4"/><path d="M10 2h4v4"/><path d="M14 10v4h-4"/><path d="M6 14H2v-4"/></svg>';
+      bpe.title = plein ? 'Quitter le plein écran' : 'Plein écran';
+      /* le zoom choisi avec + ou − est conservé ; sans zoom manuel, la page se recale en page entière.
+         La même portion de page reste à l'écran. */
+      clearTimeout(tPos); transition = true;
+      setTimeout(() => {
+        lw = window.innerWidth; lh = window.innerHeight;
+        if (auto) pageEntiere();
+        const voulu = posY / posH * document.documentElement.scrollHeight;
+        window.scrollTo(0, voulu);
+        /* si la fenêtre ne permet pas de descendre aussi bas (fiche d'une page en plein écran),
+           la position d'origine est gardée en mémoire pour être restituée au retour */
+        const borne = window.scrollY < voulu - 2;
+        setTimeout(() => { transition = false; if (!borne) notePos(); }, 400);
+      }, 120);
+    });
+  }
+})();
+</script>
+</body>
+</html>
