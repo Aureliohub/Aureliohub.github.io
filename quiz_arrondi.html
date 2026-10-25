@@ -276,6 +276,8 @@ button{font:inherit;color:inherit;cursor:pointer;border:0;background:none;touch-
 .plen .acts{align-items:center}
 .plen .cstat{margin:0 0 0 .6em}
 
+.plen .slots.solrow{padding:.5em}.plen .solrow .nc{font-size:1.5em}.plen .dragrow.ok,.plen .dragrow.ko{padding:.5em}.plen .dragrow.ok .nc,.plen .dragrow.ko .nc{font-size:1.6em}
+
 </style>
 </head>
 <body>
@@ -2603,7 +2605,7 @@ var qrcode = function() {
 <script>
 
 'use strict';
-const VERSION = 'v2';
+const VERSION = 'v3';
 const TITLE = 'Arrondir un nombre décimal';
 /* ============================================================
    QUESTIONS — modifiables. p = rang de l’arrondi, g = arrondi attendu.
@@ -2726,7 +2728,8 @@ function qView(q, st, last) {
     const g = goodOpts(q);
     why = `${g.length > 1 ? 'Les bonnes réponses sont' : 'La bonne réponse est'} ${letters(g)} : leur arrondi ${pl} est ${esc(q.g)}.`;
   }
-  const head = last.sol ? 'Solution' : last.ok ? '✓ Correct !' : last.v == null ? 'Question passée' : '✗ Pas tout à fait';
+  const head = last.sol && !last.ok ? 'Solution' : last.ok ? '✓ Correct !' : last.v == null ? 'Question passée' : '✗ Pas tout à fait';
+  if (last.sol && !last.ok && q.t === 'cards') body += `<p class="q-k">Solution :</p><div class="slots ok solrow">${[...solutions(q)[0]].map(c => `<div class="nc">${esc(c)}</div>`).join('')}</div>`;
   return body + `<div class="fb ${last.ok ? 'ok' : 'ko'}" role="status"><strong>${head}</strong>${why}</div>`;
 }
 
@@ -2841,9 +2844,9 @@ const H = { pv: null, qr: false, set: false, g: null, code: '', ri: 0, room: nul
 const newGame = () => ({ ph: 'lobby', players: [], t0: 0, t1: 0 });
 
 async function hostInit() {
-  const saved = store.get('arr-host1');
-  if (saved && saved.g && Date.now() - saved.t < 4 * 3600e3) { H.g = saved.g; H.code = saved.code; H.ri = saved.ri || 0; }
-  else { H.g = newGame(); H.code = rid(6); }
+  /* Chaque ouverture de l’écran démarre une partie vierge, avec un nouveau code QR */
+  const saved = null; store.del('arr-host1');
+  H.g = newGame(); H.code = rid(6);
   document.addEventListener('click', hClick);
   dragSetup(() => H.pv && !H.pv.last ? H.pv.st : null, hRender);
   if (!window.crypto || !crypto.subtle) { H.err = 'Cette page doit être ouverte en https (par exemple depuis GitHub Pages).'; return hRender(); }
@@ -2926,7 +2929,7 @@ function pvAct(a, v) {
   const V = H.pv, q = SERIES[V.s][V.i];
   if (a === 'opt' && !V.last && q.t !== 'cards') { const j = +v, k = V.st.sel.indexOf(j); if (k >= 0) V.st.sel.splice(k, 1); else V.st.sel.push(j); }
   else if (a === 'check' && !V.last && qReady(q, V.st)) { const x = qAnswer(q, V.st); V.last = { v: x, ok: judge(q, x) }; }
-  else if (a === 'sol') { V.st = qSolve(q); const x = qAnswer(q, V.st); V.last = { v: x, ok: true, sol: true }; }
+  else if (a === 'sol') { const x = qAnswer(q, V.st); V.last = { v: x, ok: judge(q, x), sol: true }; }   // garde la réponse en place
   else if (a === 'again') { V.st = qStart(q); V.last = null; }
   hRender();
 }
