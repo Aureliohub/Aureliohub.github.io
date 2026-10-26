@@ -169,6 +169,29 @@
   .dialogue dt { color:var(--gris); }
   .dialogue dd { margin:0; word-break:break-all; }
   .dialogue dd a { color:var(--bleu); }
+  .menu button[hidden] { display:none; }
+  .apercu-doc { position:absolute; inset:0; overflow:hidden; pointer-events:none; background:#fff; }
+  .apercu .icone-type { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; }
+  .visionneuse { position:fixed; inset:0; z-index:25; background:rgba(32,33,36,.92); display:none; flex-direction:column; }
+  .visionneuse.ouvert { display:flex; }
+  .vis-barre { height:64px; flex-shrink:0; display:flex; align-items:center; gap:12px; padding:0 12px; color:#fff; font-size:16px; }
+  #vis-nom { flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  #vis-icone { display:flex; }
+  .vis-bouton { width:44px; height:44px; border:0; border-radius:50%; background:none; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+  .vis-bouton:hover { background:rgba(255,255,255,.12); }
+  .vis-corps { flex:1; min-height:0; overflow:auto; display:flex; justify-content:center; padding:0 24px 24px; }
+  .vis-corps iframe { width:min(1100px, 100%); height:100%; border:0; background:#fff; border-radius:4px; }
+  .vis-corps > img { max-width:100%; max-height:100%; object-fit:contain; align-self:center; }
+  .vis-doc { width:100%; align-self:flex-start; }
+  .vis-doc .docx-wrapper { background:transparent !important; padding:0 0 24px !important; }
+  .vis-tableur { align-self:flex-start; background:#fff; border-radius:4px; max-width:100%; overflow:auto; }
+  .vis-tableur table { border-collapse:collapse; font:13px Calibri, Arial, sans-serif; }
+  .vis-tableur td { border:1px solid #e0e0e0; padding:3px 8px; white-space:nowrap; height:21px; }
+  .vis-onglets { position:sticky; bottom:0; display:flex; gap:2px; background:#f1f3f4; border-top:1px solid #dadce0; padding:0 8px; }
+  .vis-onglets button { border:0; background:none; padding:8px 14px; font-size:13px; cursor:pointer; border-bottom:3px solid transparent; }
+  .vis-onglets button.actif { border-bottom-color:#188038; color:#188038; font-weight:500; background:#fff; }
+  .vis-vide { align-self:center; background:#fff; border-radius:8px; padding:32px 40px; text-align:center; font-size:15px; color:var(--gris); display:flex; flex-direction:column; align-items:center; gap:16px; }
+  .vis-vide button { border:0; border-radius:20px; background:var(--bleu); color:#fff; font-weight:500; padding:10px 20px; cursor:pointer; }
   .toast {
     position:fixed; left:24px; bottom:24px; z-index:30; display:none; align-items:center; gap:24px;
     min-height:48px; padding:6px 8px 6px 16px; border-radius:4px; background:#303030; color:#fff; font-size:14px;
@@ -239,7 +262,7 @@
         <svg width="20" height="20" viewBox="0 0 24 24"><path fill="#444746" d="M19 12v7H5v-7H3v7c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-7h-2zm-6 .67 2.59-2.58L17 11.5l-5 5-5-5 1.41-1.41L11 12.67V3h2v9.67z"/></svg>
         <span class="nom">Exporter les liens</span>
       </div>
-      <input type="file" id="fichier-import" accept=".json,.html,.htm,application/json,text/html" hidden>
+      <input type="file" id="fichier-import" multiple hidden>
     </div>
   </nav>
 
@@ -282,6 +305,15 @@
 <div class="menu menu-fichier" id="menu-corbeille">
   <button data-action="restaurer"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#444746" d="M13 3a9 9 0 0 0-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42A8.954 8.954 0 0 0 13 21a9 9 0 0 0 0-18zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg>Restaurer</button>
   <button data-action="supprimer"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#444746" d="M14.12 10.47 12 12.59l-2.13-2.12-1.41 1.41L10.59 14l-2.12 2.12 1.41 1.41L12 15.41l2.12 2.12 1.41-1.41L13.41 14l2.12-2.12zM15.5 4l-1-1h-5l-1 1H5v2h14V4zM6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM8 9h8v10H8V9z"/></svg>Supprimer définitivement</button>
+</div>
+
+<div class="visionneuse" id="visionneuse">
+  <div class="vis-barre">
+    <button class="vis-bouton" id="vis-fermer" title="Fermer"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#fff" d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></button>
+    <span id="vis-icone"></span><span id="vis-nom"></span>
+    <button class="vis-bouton" id="vis-telecharger" title="Télécharger"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#fff" d="M5 20h14v-2H5v2zm7-18v12.17l-3.59-3.58L7 12l5 5 5-5-1.41-1.41L13 14.17V2h-2z"/></svg></button>
+  </div>
+  <div class="vis-corps" id="vis-corps"></div>
 </div>
 
 <div class="toast" id="toast"><span id="toast-texte"></span><button id="toast-action"></button></div>
@@ -443,7 +475,10 @@ function noeudArbre(id, niveau) {
              ${iconeDossier(D.couleur, niveau > 1 ? 18 : 20)}<span class="nom">${esc(D.nom)}</span></div>`;
   // un dossier qui contient des sous-dossiers ou des liens reçoit une flèche ; déplié, il montre les deux
   if (contenuArbre) h += `<div class="sous ${ouvert ? 'ouvert' : ''}">${kids.map(k => noeudArbre(k, niveau + 1)).join('')}${
-    liensIci.map(l => `<div class="noeud niv2 lien-arbre" data-ouvrir="${esc(l.url)}" title="${esc(l.url)}" style="padding-left:${niveau * 14}px">
+    liensIci.map(l => l.fichier
+      ? `<div class="noeud niv2 lien-arbre" data-fichier="${l.id}" title="${esc(l.fichier.nom)}" style="padding-left:${niveau * 14}px">
+      <span class="caret sans"></span>${iconeType(l.fichier.type, 16)}<span class="nom">${esc(l.titre)}</span></div>`
+      : `<div class="noeud niv2 lien-arbre" data-ouvrir="${esc(l.url)}" title="${esc(l.url)}" style="padding-left:${niveau * 14}px">
       <span class="caret sans"></span><img class="fav" alt="" onerror="this.style.visibility='hidden'" src="https://www.google.com/s2/favicons?sz=32&domain=${encodeURIComponent(domaineDe(l.url))}">
       <span class="nom">${esc(l.titre)}</span></div>`).join('')}</div>`;
   return h;
@@ -454,6 +489,10 @@ const fil = document.getElementById('fil');
 const contenu = document.getElementById('contenu');
 const panneau = document.getElementById('panneau');
 
+const titreSection = liste => {
+  const f = liste.filter(l => l.fichier).length;
+  return f === 0 ? 'Liens' : f === liste.length ? 'Fichiers' : 'Liens et fichiers';
+};
 function renderPanneau() {
   panneau.classList.toggle('liste', etat.vue === 'liste');
   document.getElementById('vue-liste').classList.toggle('actif', etat.vue === 'liste');
@@ -463,7 +502,7 @@ function renderPanneau() {
   if (filtre) {
     fil.innerHTML = `<span class="etape derniere">Résultats pour « ${esc(filtre)} »</span>`;
     const f = filtre.toLowerCase();
-    liens = actifs().filter(l => (l.titre + ' ' + l.url).toLowerCase().includes(f));
+    liens = actifs().filter(l => (l.titre + ' ' + (l.url || '')).toLowerCase().includes(f));
     dossiers = [];
   } else {
     const c = chemin(courant);
@@ -490,15 +529,15 @@ function renderPanneau() {
   if (courant === CORBEILLE && !filtre) {
     h += liens.length
       ? `<div class="corbeille-tete"><span>Les liens restent dans la corbeille jusqu'à ce que vous la vidiez.</span><button id="vider-corbeille">Vider la corbeille</button></div>
-         <div class="section">Liens</div><div class="grille" id="grille-liens"></div>`
+         <div class="section">${titreSection(liens)}</div><div class="grille" id="grille-liens"></div>`
       : `<div class="vide"><strong>La corbeille est vide</strong><span>Les liens placés dans la corbeille apparaissent ici.</span></div>`;
   } else if (liens.length) {
-    h += `<div class="section">Liens</div><div class="grille" id="grille-liens"></div>`;
+    h += `<div class="section">${titreSection(liens)}</div><div class="grille" id="grille-liens"></div>`;
   } else if (filtre) {
     h += `<div class="vide"><strong>Aucun lien trouvé</strong></div>`;
   } else if (!dossiers.length) {
     h += `<div class="vide">${ILLUSTRATION_VIDE}
-            <strong>Déposez vos liens ici</strong>
+            <strong>Déposez vos liens et fichiers ici</strong>
             <span>ou utilisez le bouton « Nouveau ».</span></div>`;
   }
   contenu.innerHTML = h;
@@ -515,6 +554,7 @@ function urlCapture(url, extra) {
 }
 
 function creerCarte(lien) {
+  if (lien.fichier) return creerCarteFichier(lien);
   const a = document.createElement('a');
   a.className = 'carte'; a.href = lien.url; a.target = '_blank'; a.rel = 'noopener';
   a.draggable = true; a.dataset.lien = lien.id; a.title = lien.url;
@@ -678,6 +718,10 @@ document.addEventListener('drop', e => {
   if (!c) return;
   const interne = lienTraine || e.dataTransfer.getData(TYPE_INTERNE);
   if (interne) { if (c.el !== panneau) deplacer(interne, c.dossier); lienTraine = null; return; }
+  if (e.dataTransfer.files && e.dataTransfer.files.length) {
+    if (c.dossier !== CORBEILLE) importerFichiers([...e.dataTransfer.files], c.dossier);
+    return;
+  }
   const lien = lireDepot(e.dataTransfer);
   if (lien && c.dossier !== CORBEILLE) ajouter(lien, c.dossier);
 });
@@ -692,6 +736,8 @@ arbre.addEventListener('click', e => {
   }
   const o = e.target.closest('[data-ouvrir]');
   if (o) { window.open(o.dataset.ouvrir, '_blank', 'noopener'); return; }
+  const fi = e.target.closest('[data-fichier]');
+  if (fi) { const l = etat.liens.find(x => x.id === fi.dataset.fichier); if (l) ouvrirVisionneuse(l); return; }
   const n = e.target.closest('[data-dossier]');
   if (n) aller(n.dataset.dossier);
 });
@@ -701,13 +747,21 @@ panneau.addEventListener('click', e => {
   if (p) {
     e.preventDefault(); e.stopPropagation(); lienMenu = p.closest('.carte').dataset.lien;
     const l = etat.liens.find(x => x.id === lienMenu);
+    majMenuFichier(l);
     ouvrirMenu(l && l.corbeille ? menuCorbeille : menu, p); return;
   }
   if (e.target.id === 'vider-corbeille') {
     const n = etat.liens.filter(l => l.corbeille).length;
-    if (confirm('Supprimer définitivement ' + (n > 1 ? 'les ' + n + ' liens' : 'le lien') + ' de la corbeille ?')) {
-      etat.liens = actifs(); sauver(); render();
+    if (confirm('Supprimer définitivement ' + (n > 1 ? 'les ' + n + ' éléments' : 'l\'élément') + ' de la corbeille ?')) {
+      etat.liens = actifs(); sauver(); render(); nettoyerFichiers();
     }
+    return;
+  }
+  const cf = e.target.closest('.carte');
+  if (cf && cf.dataset.fichier) {
+    e.preventDefault();
+    const l = etat.liens.find(x => x.id === cf.dataset.lien);
+    if (l) ouvrirVisionneuse(l);
     return;
   }
   const g = e.target.closest('[data-aller]');
@@ -779,7 +833,7 @@ function demanderNom(titre, valeur, ok) {
 async function nouveauDossier() {
   const nom = await demanderNom('Nouveau dossier', 'Dossier sans titre', 'Créer');
   if (!nom) return;
-  etat.dossiers.push({ id:'p' + nouvelId(), nom, parent:courant });
+  etat.dossiers.push({ id:'p' + nouvelId(), nom, parent:dossierCible() });
   if (courant !== RACINE && !etat.ouverts.includes(courant)) etat.ouverts.push(courant);
   indexer(); sauver(); render();
 }
@@ -837,6 +891,7 @@ panneau.addEventListener('contextmenu', e => {
     e.preventDefault();
     lienMenu = carte.dataset.lien;
     const l = etat.liens.find(x => x.id === lienMenu);
+    majMenuFichier(l);
     ouvrirMenuEn(l && l.corbeille ? menuCorbeille : menu, e.clientX, e.clientY);
     return;
   }
@@ -881,7 +936,7 @@ document.querySelectorAll('.menu-fichier').forEach(m => m.addEventListener('clic
 
 function actionLien(action, l) {
   switch (action) {
-    case 'telecharger': telecharger(l); break;
+    case 'telecharger': l.fichier ? telechargerFichier(l) : telecharger(l); break;
     case 'renommer':
       demanderNom('Renommer', l.titre, 'OK').then(t => { if (t) { l.titre = t; sauver(); render(); } });
       break;
@@ -895,6 +950,11 @@ function actionLien(action, l) {
     case 'emplacement': aller(DOSSIERS[l.dossier] ? l.dossier : RACINE); break;
     case 'details': afficherDetails(l); break;
     case 'apercu': {
+      if (l.fichier) {
+        const el = document.querySelector(`.carte[data-lien="${l.id}"] .apercu`);
+        if (el) afficherApercuFichier(el, l, true);
+        break;
+      }
       const ap = document.querySelector(`.carte[data-lien="${l.id}"] .apercu`);
       if (ap) chargerApercu(ap, l.url, true);
       break;
@@ -902,7 +962,7 @@ function actionLien(action, l) {
     case 'corbeille': mettreCorbeille(l); break;
     case 'restaurer': restaurer(l); break;
     case 'supprimer':
-      if (confirm('Supprimer définitivement « ' + l.titre + ' » ?')) { etat.liens = etat.liens.filter(x => x !== l); sauver(); render(); }
+      if (confirm('Supprimer définitivement « ' + l.titre + ' » ?')) { etat.liens = etat.liens.filter(x => x !== l); sauver(); render(); nettoyerFichiers(); }
       break;
   }
 }
@@ -933,7 +993,8 @@ function restaurer(l) {
 
 // ── Copie : placée juste après l'original
 function copierLien(l, dossier, titre) {
-  const copie = { id:nouvelId(), url:l.url, titre, dossier, ajoute:Date.now() };
+  const copie = Object.assign({}, l, { id:nouvelId(), titre, dossier, ajoute:Date.now() });
+  delete copie.corbeille;
   const i = etat.liens.indexOf(l);
   if (i >= 0 && l.dossier === dossier) etat.liens.splice(i + 1, 0, copie); else etat.liens.push(copie);
   sauver(); render();
@@ -1018,8 +1079,12 @@ function afficherDetails(l) {
   dialogue.dataset.ok = 'Fermer';
   ouvrirDialogue(`<h2>Détails</h2><dl>
     <dt>Nom</dt><dd>${esc(l.titre)}</dd>
-    <dt>Adresse</dt><dd><a href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.url)}</a></dd>
-    <dt>Site</dt><dd>${esc(domaineDe(l.url))}</dd>
+    ${l.fichier ? `<dt>Fichier</dt><dd>${esc(l.fichier.nom)}</dd>
+    <dt>Type</dt><dd>${esc(NOMS_TYPE[l.fichier.type] || 'Fichier')}</dd>
+    <dt>Taille</dt><dd>${taille(l.fichier.taille)}</dd>
+    <dt>Stocké</dt><dd>dans ce navigateur, sur cet ordinateur</dd>`
+    : `<dt>Adresse</dt><dd><a href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.url)}</a></dd>
+    <dt>Site</dt><dd>${esc(domaineDe(l.url))}</dd>`}
     <dt>Emplacement</dt><dd>${esc(lieu)}</dd>
     ${l.ajoute ? `<dt>Ajouté le</dt><dd>${date(l.ajoute)}</dd>` : ''}
     ${l.corbeille ? `<dt>Dans la corbeille depuis le</dt><dd>${date(l.corbeille)}</dd>` : ''}</dl>`, () => true, true);
@@ -1040,7 +1105,7 @@ function raccourciFichier(e) {
   if (e.code === 'KeyE' && MOD(e) && e.altKey && l) { e.preventDefault(); fermerMenus(); actionLien('renommer', l); return true; }
   if (e.code === 'KeyC' && MOD(e) && !e.altKey && !e.shiftKey && l && !l.corbeille && !String(window.getSelection())) {
     pressePapiersLien = l.id;
-    versPressePapiers(l.url);
+    if (l.url) versPressePapiers(l.url);
     toast('« ' + l.titre + ' » copié. ' + (MAC ? '⌘V' : 'Ctrl+V') + ' crée une copie dans le dossier ouvert.');
     e.preventDefault(); return true;
   }
@@ -1059,10 +1124,17 @@ function raccourciFichier(e) {
 }
 
 // ═══ EXPORT / IMPORT ═════════════════════════════════════════════════════
-document.getElementById('btn-exporter').onclick = () => {
-  const data = JSON.stringify({ format:'liens-eva', version:2,
-    dossiers:etat.dossiers.map(({ id, nom, parent }) => ({ id, nom, parent })),
-    liens:actifs().map(({ url, titre, dossier }) => ({ url, titre, dossier })) }, null, 2);
+document.getElementById('btn-exporter').onclick = async () => {
+  const liens = [];
+  for (const l of actifs()) {
+    if (!l.fichier) { liens.push({ url:l.url, titre:l.titre, dossier:l.dossier }); continue; }
+    const blob = await lireFichier(l.fichier.cle).catch(() => null);
+    if (!blob) continue;
+    const { nom, type, mime, taille } = l.fichier;
+    liens.push({ titre:l.titre, dossier:l.dossier, fichier:{ nom, type, mime, taille }, donnees:await enDataURL(blob) });
+  }
+  const data = JSON.stringify({ format:'liens-eva', version:3,
+    dossiers:etat.dossiers.map(({ id, nom, parent }) => ({ id, nom, parent })), liens }, null, 2);
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([data], { type:'application/json' }));
   a.download = 'liens_eva.json';
@@ -1070,17 +1142,15 @@ document.getElementById('btn-exporter').onclick = () => {
   setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 };
 const fichierImport = document.getElementById('fichier-import');
-// Un seul sélecteur de fichier : un export de cette page (.json) ou des marque-pages exportés du navigateur (.html)
-fichierImport.onchange = async () => {
-  const f = fichierImport.files[0]; fichierImport.value = '';
-  if (!f) return;
-  const texte = await f.text();
-  if (/^\s*[\[{]/.test(texte)) importerJson(texte);
-  else importerMarquePages(texte);
+// Un seul sélecteur : documents (PDF, Word, Excel, images…), sauvegarde de cette page (.json)
+// ou marque-pages exportés du navigateur (.html)
+fichierImport.onchange = () => {
+  const liste = [...fichierImport.files]; fichierImport.value = '';
+  if (liste.length) importerFichiers(liste, dossierCible());
 };
 const pluriel = (n, mot) => n + ' ' + mot + (n > 1 ? 's' : '');
 
-function importerJson(texte) {
+async function importerJson(texte) {
   try {
     const d = JSON.parse(texte);
     const liste = Array.isArray(d) ? d : (d.liens || []);
@@ -1090,15 +1160,318 @@ function importerJson(texte) {
       etat.dossiers.push({ id:String(x.id), nom:String(x.nom), parent:x.parent || RACINE }); nd++;
     });
     indexer();
-    liste.forEach(l => {
-      if (!l || !/^https?:\/\//i.test(l.url)) return;
+    for (const l of liste) {
+      if (!l) continue;
       const dossier = DOSSIERS[l.dossier] ? l.dossier : RACINE;
-      if (etat.liens.some(x => x.url === l.url && x.dossier === dossier)) return;
+      if (l.fichier && l.donnees) {
+        if (actifs().some(x => x.fichier && x.fichier.nom === l.fichier.nom && x.fichier.taille === l.fichier.taille && x.dossier === dossier)) continue;
+        const blob = await (await fetch(l.donnees)).blob();
+        const cle = 'f' + nouvelId();
+        await ecrireFichier(cle, blob);
+        etat.liens.push({ id:nouvelId(), titre:l.titre || l.fichier.nom, dossier, ajoute:Date.now(), fichier:Object.assign({}, l.fichier, { cle }) }); n++;
+        continue;
+      }
+      if (!/^https?:\/\//i.test(l.url)) continue;
+      if (etat.liens.some(x => x.url === l.url && x.dossier === dossier)) continue;
       etat.liens.push({ id:nouvelId(), url:l.url, titre:l.titre || domaineDe(l.url), dossier }); n++;
-    });
+    }
     sauver(); render();
-    alert(pluriel(n, 'lien') + ' et ' + pluriel(nd, 'dossier') + ' importés.');
+    toast(pluriel(n, 'élément') + ' et ' + pluriel(nd, 'dossier') + ' importés');
   } catch (e) { alert('Ce fichier ne peut pas être lu.'); }
+}
+
+// ═══ FICHIERS IMPORTÉS ═══════════════════════════════════════════════════
+// Les fichiers sont gardés dans le navigateur (IndexedDB), qui accepte de gros volumes ;
+// la liste, elle, reste avec les liens. Les aperçus calculés sont gardés à part.
+let baseOuverte = null;
+function base() {
+  if (!baseOuverte) baseOuverte = new Promise((ok, ko) => {
+    const rq = indexedDB.open('drive_maths', 1);
+    rq.onupgradeneeded = () => { rq.result.createObjectStore('fichiers'); rq.result.createObjectStore('apercus'); };
+    rq.onsuccess = () => ok(rq.result);
+    rq.onerror = () => { baseOuverte = null; ko(rq.error); };
+  });
+  return baseOuverte;
+}
+async function stock(magasin, mode, faire) {
+  const db = await base();
+  return new Promise((ok, ko) => {
+    const tx = db.transaction(magasin, mode), rq = faire(tx.objectStore(magasin));
+    tx.oncomplete = () => ok(rq && rq.result);
+    tx.onerror = tx.onabort = () => ko(tx.error);
+  });
+}
+const lireFichier = cle => stock('fichiers', 'readonly', m => m.get(cle));
+const ecrireFichier = (cle, blob) => stock('fichiers', 'readwrite', m => m.put(blob, cle));
+const lireApercuStocke = cle => stock('apercus', 'readonly', m => m.get(cle));
+const ecrireApercuStocke = (cle, v) => stock('apercus', 'readwrite', m => m.put(v, cle));
+async function nettoyerFichiers() {   // efface les fichiers que plus aucun élément n'utilise
+  try {
+    const utiles = new Set(etat.liens.filter(l => l.fichier).map(l => l.fichier.cle));
+    const cles = await stock('fichiers', 'readonly', m => m.getAllKeys());
+    for (const c of cles) if (!utiles.has(c)) {
+      await stock('fichiers', 'readwrite', m => m.delete(c));
+      await stock('apercus', 'readwrite', m => m.delete(c));
+      apercusEnMemoire.delete(c);
+    }
+  } catch (e) {}
+}
+const enDataURL = blob => new Promise(ok => { const f = new FileReader(); f.onload = () => ok(f.result); f.readAsDataURL(blob); });
+const dossierCible = () => courant === CORBEILLE ? RACINE : courant;
+const taille = n => n < 1024 ? n + ' octets' : n < 1048576 ? Math.round(n / 1024) + ' ko' : (n / 1048576).toFixed(1).replace('.', ',') + ' Mo';
+
+function typeFichier(nom, mime) {
+  const ext = (nom.split('.').pop() || '').toLowerCase();
+  if (ext === 'pdf' || mime === 'application/pdf') return 'pdf';
+  if (ext === 'docx') return 'docx';
+  if (['doc', 'odt', 'rtf'].includes(ext)) return 'doc';
+  if (['xlsx', 'xlsm', 'xls', 'ods', 'csv'].includes(ext)) return 'tableur';
+  if (['pptx', 'ppt', 'odp'].includes(ext)) return 'pptx';
+  if (/^image\//.test(mime || '') || ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg'].includes(ext)) return 'image';
+  return 'autre';
+}
+const NOMS_TYPE = { pdf:'Document PDF', docx:'Document Word', doc:'Document texte', tableur:'Classeur Excel', pptx:'Présentation', image:'Image', autre:'Fichier' };
+const COULEURS_TYPE = { pdf:['#EA4335', 'PDF'], docx:['#4285F4', 'W'], doc:['#4285F4', 'W'], tableur:['#0F9D58', 'X'], pptx:['#F29900', 'P'], image:['#EA4335', ''], autre:['#5F6368', ''] };
+function iconeType(t, sz = 20) {
+  const [c, l] = COULEURS_TYPE[t] || COULEURS_TYPE.autre;
+  const motif = t === 'image' ? '<path fill="#fff" d="M4.5 14.5l3.2-4 2.3 2.8 3-3.8 2.5 5z"/>'
+    : t === 'autre' ? '<path fill="#fff" d="M6 4.5h5.5L14 7v8.5H6z" opacity=".95"/>'
+    : `<text x="10" y="${l.length > 1 ? 12.6 : 14.4}" text-anchor="middle" font-family="Roboto, Arial, sans-serif" font-weight="700" font-size="${l.length > 1 ? 6.2 : 11}" fill="#fff">${l}</text>`;
+  return `<svg class="fav" width="${sz}" height="${sz}" viewBox="0 0 20 20"><rect x="1" y="1" width="18" height="18" rx="3" fill="${c}"/>${motif}</svg>`;
+}
+
+async function importerFichiers(liste, dossier) {
+  let n = 0, dernier = '';
+  for (const f of liste) {
+    // une sauvegarde de cette page ou un export de marque-pages garde son traitement propre
+    if (/\.json$/i.test(f.name)) { await importerJson(await f.text()); continue; }
+    if (/\.html?$/i.test(f.name)) {
+      const t = await f.text();
+      if (/NETSCAPE-Bookmark-file/i.test(t.slice(0, 400))) { await importerMarquePages(t); continue; }
+    }
+    const cle = 'f' + nouvelId();
+    try { await ecrireFichier(cle, f); }
+    catch (e) { toast('« ' + f.name + ' » n\'a pas pu être enregistré (espace insuffisant ?)'); continue; }
+    etat.liens.push({ id:nouvelId(), titre:f.name, dossier, ajoute:Date.now(),
+      fichier:{ cle, nom:f.name, type:typeFichier(f.name, f.type), mime:f.type || '', taille:f.size } });
+    n++; dernier = f.name;
+  }
+  if (!n) return;
+  sauver(); render();
+  toast(n > 1 ? n + ' fichiers importés' : '« ' + dernier + ' » importé');
+  try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
+}
+
+function creerCarteFichier(l) {
+  const a = document.createElement('a');
+  a.className = 'carte'; a.href = '#'; a.draggable = true;
+  a.dataset.lien = l.id; a.dataset.fichier = '1'; a.title = l.fichier.nom;
+  const lieu = DOSSIERS[l.dossier] ? DOSSIERS[l.dossier].nom : '';
+  a.innerHTML = `
+    <div class="tete">${iconeType(l.fichier.type)}
+      <span class="titre">${esc(l.titre)}</span>
+      <span class="lieu">${esc(lieu)}</span>
+      <button class="points" title="Plus d'actions">${POINTS}</button>
+    </div>
+    <div class="apercu"><div class="attente">Aperçu en cours…</div></div>`;
+  afficherApercuFichier(a.querySelector('.apercu'), l, false);
+  return a;
+}
+function majMenuFichier(l) {   // un fichier gardé dans ce navigateur ne se partage pas par lien
+  menu.querySelector('[data-sous="menu-partager"]').hidden = !!(l && l.fichier);
+}
+
+// ── Bibliothèques d'aperçu, chargées seulement quand un fichier de ce type est affiché
+const scriptsCharges = {};
+function script(src) {
+  if (!scriptsCharges[src]) scriptsCharges[src] = new Promise((ok, ko) => {
+    const sc = document.createElement('script'); sc.src = src;
+    sc.onload = ok; sc.onerror = () => { delete scriptsCharges[src]; ko(); };
+    document.head.appendChild(sc);
+  });
+  return scriptsCharges[src];
+}
+const LIB = {
+  pdf: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js',
+  pdfWorker: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js',
+  jszip: 'https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js',
+  docx: 'https://cdn.jsdelivr.net/npm/docx-preview@0.3.7/dist/docx-preview.min.js',
+  xlsx: 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'
+};
+async function chargerPdf() { await script(LIB.pdf); pdfjsLib.GlobalWorkerOptions.workerSrc = LIB.pdfWorker; return pdfjsLib; }
+async function chargerDocx() { await script(LIB.jszip); await script(LIB.docx); return window.docx; }
+async function chargerXlsx() { await script(LIB.xlsx); return window.XLSX; }
+
+// Rendu d'un .docx dans un conteneur (images intégrées en base64 pour que l'aperçu survive au rechargement)
+async function rendreDocx(blob, hote, enveloppe) {
+  const docx = await chargerDocx();
+  await docx.renderAsync(blob, hote, null, { inWrapper:enveloppe, ignoreLastRenderedPageBreak:true, breakPages:true,
+    useBase64URL:true, renderHeaders:true, renderFooters:true, experimental:true });
+}
+// Première feuille d'un classeur, limitée au coin supérieur gauche
+function tableHtml(XLSX, ws, lignes, colonnes) {
+  const ref = ws['!ref'];
+  if (!ref) return '<table><tr><td>&nbsp;</td></tr></table>';
+  const z = XLSX.utils.decode_range(ref);
+  if (lignes) z.e.r = Math.min(z.e.r, z.s.r + lignes - 1);
+  if (colonnes) z.e.c = Math.min(z.e.c, z.s.c + colonnes - 1);
+  ws['!ref'] = XLSX.utils.encode_range(z);
+  // nombres décimaux à la suisse : virgule au lieu du point
+  for (let R = z.s.r; R <= z.e.r; R++) for (let C = z.s.c; C <= z.e.c; C++) {
+    const c = ws[XLSX.utils.encode_cell({ r:R, c:C })];
+    if (c && c.t === 'n' && /^-?\d+\.\d+$/.test(c.w || '')) c.w = c.w.replace('.', ',');
+  }
+  const html = XLSX.utils.sheet_to_html(ws, { header:'', footer:'' });
+  ws['!ref'] = ref;
+  return html;
+}
+const STYLE_TABLEUR = '<style>table{border-collapse:collapse;font:13px Calibri,Arial,sans-serif;color:#000}td{border:1px solid #d9d9d9;padding:2px 6px;white-space:nowrap;height:20px;min-width:60px}</style>';
+
+// Aperçu de la vignette : { img } (PDF, image) ou { html, largeur } (Word, Excel), calculé une fois puis gardé
+async function creerApercu(f) {
+  const blob = await lireFichier(f.cle);
+  if (!blob) return null;
+  if (f.type === 'pdf') {
+    const pdfjs = await chargerPdf();
+    const doc = await pdfjs.getDocument({ data:new Uint8Array(await blob.arrayBuffer()) }).promise;
+    const page = await doc.getPage(1);
+    const v1 = page.getViewport({ scale:1 }), vp = page.getViewport({ scale:800 / v1.width });
+    const cv = document.createElement('canvas'); cv.width = Math.round(vp.width); cv.height = Math.round(vp.height);
+    const cx = cv.getContext('2d'); cx.fillStyle = '#fff'; cx.fillRect(0, 0, cv.width, cv.height);
+    await page.render({ canvasContext:cx, viewport:vp }).promise;
+    doc.destroy();
+    return { img:cv.toDataURL('image/jpeg', 0.85) };
+  }
+  if (f.type === 'image') {
+    const url = URL.createObjectURL(blob);
+    try {
+      const im = await new Promise((ok, ko) => { const i = new Image(); i.onload = () => ok(i); i.onerror = ko; i.src = url; });
+      const k = Math.min(1, 800 / (im.naturalWidth || 800));
+      const cv = document.createElement('canvas'); cv.width = Math.max(1, Math.round((im.naturalWidth || 800) * k)); cv.height = Math.max(1, Math.round((im.naturalHeight || 600) * k));
+      cv.getContext('2d').drawImage(im, 0, 0, cv.width, cv.height);
+      return { img:cv.toDataURL('image/jpeg', 0.85) };
+    } finally { URL.revokeObjectURL(url); }
+  }
+  if (f.type === 'docx') {
+    const hote = document.createElement('div');
+    hote.style.cssText = 'position:fixed;left:-20000px;top:0;width:1000px;visibility:hidden';
+    document.body.appendChild(hote);
+    try {
+      await rendreDocx(blob, hote, false);
+      const page = hote.querySelector('section');
+      if (!page) return null;
+      const largeur = page.offsetWidth || 794;
+      const styles = [...hote.querySelectorAll('style')].map(x => x.outerHTML).join('');
+      return { html:styles + page.outerHTML, largeur };
+    } finally { hote.remove(); }
+  }
+  if (f.type === 'tableur') {
+    const XLSX = await chargerXlsx();
+    const wb = XLSX.read(new Uint8Array(await blob.arrayBuffer()), { type:'array' });
+    const html = STYLE_TABLEUR + tableHtml(XLSX, wb.Sheets[wb.SheetNames[0]], 40, 14);
+    // largeur de référence : celle du tableau (au moins 420 px), pour qu'un petit tableau remplisse la vignette
+    const hote = document.createElement('div');
+    hote.style.cssText = 'position:fixed;left:-20000px;top:0;visibility:hidden';
+    hote.innerHTML = html; document.body.appendChild(hote);
+    const t = hote.querySelector('table'), largeur = Math.min(1200, Math.max(420, t ? t.offsetWidth + 8 : 800));
+    hote.remove();
+    return { html, largeur };
+  }
+  return null;
+}
+const apercusEnMemoire = new Map();
+async function afficherApercuFichier(el, l, refaire) {
+  const f = l.fichier;
+  el.innerHTML = '<div class="attente">Aperçu en cours…</div>';
+  let ap = null;
+  if (!refaire) ap = apercusEnMemoire.get(f.cle) || await lireApercuStocke(f.cle).catch(() => null);
+  if (!ap) {
+    try { ap = await creerApercu(f); } catch (e) { ap = null; }
+    if (ap) ecrireApercuStocke(f.cle, ap).catch(() => {});
+  }
+  if (ap) apercusEnMemoire.set(f.cle, ap);
+  el.innerHTML = '';
+  if (ap && ap.img) {
+    const im = new Image(); im.alt = ''; im.src = ap.img; el.appendChild(im);
+  } else if (ap && ap.html) {
+    // le document est rendu à sa vraie largeur dans un espace isolé, puis réduit à la largeur de la vignette
+    const hote = document.createElement('div'); hote.className = 'apercu-doc'; el.appendChild(hote);
+    const ombre = hote.attachShadow({ mode:'open' });
+    ombre.innerHTML = `<div class="echelle" style="width:${ap.largeur}px;transform-origin:0 0;background:#fff">${ap.html}</div>`;
+    const echelle = ombre.querySelector('.echelle');
+    const ajuster = () => { if (el.clientWidth) echelle.style.transform = `scale(${el.clientWidth / ap.largeur})`; };
+    ajuster(); new ResizeObserver(ajuster).observe(el);
+  } else {
+    el.innerHTML = `<div class="icone-type">${iconeType(f.type, 64)}</div>`;
+  }
+}
+
+async function telechargerFichier(l) {
+  const blob = await lireFichier(l.fichier.cle).catch(() => null);
+  if (!blob) { toast('Ce fichier n\'est plus disponible dans ce navigateur'); return; }
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = l.fichier.nom;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+}
+
+// ── Visionneuse plein écran, comme l'aperçu de Drive
+const visionneuse = document.getElementById('visionneuse');
+const visCorps = document.getElementById('vis-corps');
+let visUrl = null, visLien = null;
+function fermerVisionneuse() {
+  visionneuse.classList.remove('ouvert'); visCorps.innerHTML = '';
+  if (visUrl) { URL.revokeObjectURL(visUrl); visUrl = null; }
+  visLien = null;
+}
+document.getElementById('vis-fermer').onclick = fermerVisionneuse;
+document.getElementById('vis-telecharger').onclick = () => { if (visLien) telechargerFichier(visLien); };
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && visionneuse.classList.contains('ouvert')) fermerVisionneuse(); });
+
+async function ouvrirVisionneuse(l) {
+  fermerVisionneuse();
+  visLien = l;
+  const f = l.fichier;
+  document.getElementById('vis-icone').innerHTML = iconeType(f.type, 24);
+  document.getElementById('vis-nom').textContent = l.titre;
+  visCorps.innerHTML = '<div class="vis-vide">Ouverture…</div>';
+  visionneuse.classList.add('ouvert');
+  const blob = await lireFichier(f.cle).catch(() => null);
+  if (visLien !== l) return;
+  if (!blob) { visCorps.innerHTML = '<div class="vis-vide">Ce fichier n\'est plus disponible dans ce navigateur.</div>'; return; }
+  const sansApercu = () => {
+    visCorps.innerHTML = `<div class="vis-vide">${iconeType(f.type, 56)}<span>Aucun aperçu disponible pour ce type de fichier.</span><button id="vis-dl">Télécharger</button></div>`;
+    document.getElementById('vis-dl').onclick = () => telechargerFichier(l);
+  };
+  try {
+    if (f.type === 'pdf') {
+      visUrl = URL.createObjectURL(blob.type ? blob : new Blob([blob], { type:'application/pdf' }));
+      visCorps.innerHTML = `<iframe src="${visUrl}" title="${esc(l.titre)}"></iframe>`;
+    } else if (f.type === 'image') {
+      visUrl = URL.createObjectURL(blob);
+      visCorps.innerHTML = `<img src="${visUrl}" alt="">`;
+    } else if (f.type === 'docx') {
+      const hote = document.createElement('div'); hote.className = 'vis-doc';
+      visCorps.innerHTML = ''; visCorps.appendChild(hote);
+      await rendreDocx(blob, hote, true);
+    } else if (f.type === 'tableur') {
+      const XLSX = await chargerXlsx();
+      const wb = XLSX.read(new Uint8Array(await blob.arrayBuffer()), { type:'array' });
+      const zone = document.createElement('div'); zone.className = 'vis-tableur';
+      const feuille = document.createElement('div');
+      const onglets = document.createElement('div'); onglets.className = 'vis-onglets';
+      const montrer = i => {
+        feuille.innerHTML = tableHtml(XLSX, wb.Sheets[wb.SheetNames[i]], 2000, 100);
+        onglets.querySelectorAll('button').forEach((b, k) => b.classList.toggle('actif', k === i));
+      };
+      wb.SheetNames.forEach((nom, i) => { const b = document.createElement('button'); b.textContent = nom; b.onclick = () => montrer(i); onglets.appendChild(b); });
+      zone.append(feuille, onglets);
+      visCorps.innerHTML = ''; visCorps.appendChild(zone);
+      montrer(0);
+    } else sansApercu();
+  } catch (e) {
+    if (visLien === l) sansApercu();
+  }
 }
 
 // ── Import d'un dossier de marque-pages (fichier HTML exporté par Firefox, Chrome, Edge ou Safari)
