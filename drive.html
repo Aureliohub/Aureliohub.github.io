@@ -1,10 +1,11 @@
 <!DOCTYPE html>
-<html lang="fr-CH"><head>
+<html lang="fr-CH">
+<head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Drive</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root {
     --fond:#f8fafd; --panneau:#fff; --carte:#f0f4f9; --carte-survol:#e1e5ea;
@@ -108,6 +109,16 @@
     cursor:pointer; text-decoration:none; color:inherit; user-select:none;
   }
   .carte:hover { background:var(--carte-survol); }
+  .carte { position:relative; }
+  .carte.traine { opacity:.4; }
+  .carte.ins-avant::before, .carte.ins-apres::after {
+    content:""; position:absolute; top:0; bottom:0; width:4px; border-radius:2px; background:var(--bleu); pointer-events:none;
+  }
+  .carte.ins-avant::before { left:-10px; }
+  .carte.ins-apres::after { right:-10px; }
+  .liste .carte.ins-avant::before, .liste .carte.ins-apres::after { left:0; right:0; width:auto; height:3px; }
+  .liste .carte.ins-avant::before { top:-2px; bottom:auto; }
+  .liste .carte.ins-apres::after { top:auto; bottom:-2px; }
   .carte .tete { height:52px; display:flex; align-items:center; gap:12px; padding:0 0 0 8px; }
   .carte .tete img.fav { width:20px; height:20px; border-radius:4px; }
   .carte .titre { flex:1; min-width:0; font-size:14px; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
@@ -237,11 +248,11 @@
 
 <header class="entete">
   <div class="logo">
-    <svg width="34" height="34" viewBox="0 0 24 24"><path fill="#92CDE2" stroke="rgba(0,0,0,.35)" stroke-width=".8" d="M10 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"></path><path fill="#1f1f1f" d="M10.6 14.4a2.4 2.4 0 0 1 0-3.4l1.6-1.6a2.4 2.4 0 0 1 3.4 3.4l-.8.8-1-1 .8-.8a1 1 0 0 0-1.4-1.4l-1.6 1.6a1 1 0 0 0 0 1.4z"></path><path fill="#1f1f1f" d="M13.4 11.6a2.4 2.4 0 0 1 0 3.4l-1.6 1.6a2.4 2.4 0 0 1-3.4-3.4l.8-.8 1 1-.8.8a1 1 0 0 0 1.4 1.4l1.6-1.6a1 1 0 0 0 0-1.4z"></path></svg>
+    <svg width="34" height="34" viewBox="0 0 24 24"><path fill="#92CDE2" stroke="rgba(0,0,0,.35)" stroke-width=".8" d="M10 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/><path fill="#1f1f1f" d="M10.6 14.4a2.4 2.4 0 0 1 0-3.4l1.6-1.6a2.4 2.4 0 0 1 3.4 3.4l-.8.8-1-1 .8-.8a1 1 0 0 0-1.4-1.4l-1.6 1.6a1 1 0 0 0 0 1.4z"/><path fill="#1f1f1f" d="M13.4 11.6a2.4 2.4 0 0 1 0 3.4l-1.6 1.6a2.4 2.4 0 0 1-3.4-3.4l.8-.8 1 1-.8.8a1 1 0 0 0 1.4 1.4l1.6-1.6a1 1 0 0 0 0-1.4z"/></svg>
     <span>Maths</span>
   </div>
   <label class="recherche">
-    <svg width="22" height="22" viewBox="0 0 24 24"><path fill="#444746" d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"></path></svg>
+    <svg width="22" height="22" viewBox="0 0 24 24"><path fill="#444746" d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
     <input id="recherche" type="search" placeholder="Rechercher dans les liens" autocomplete="off">
   </label>
 </header>
@@ -249,25 +260,25 @@
 <div class="corps">
   <nav class="lateral">
     <button class="nouveau" id="btn-nouveau">
-      <svg width="24" height="24" viewBox="0 0 24 24"><path fill="#1f1f1f" d="M20 13h-7v7h-2v-7H4v-2h7V4h2v7h7v2z"></path></svg>
+      <svg width="24" height="24" viewBox="0 0 24 24"><path fill="#1f1f1f" d="M20 13h-7v7h-2v-7H4v-2h7V4h2v7h7v2z"/></svg>
       Nouveau
     </button>
     <div class="arbre" id="arbre"></div>
     <div class="sep"></div>
     <div class="outils">
       <div class="noeud" id="btn-corbeille" data-dossier="corbeille">
-        <svg width="20" height="20" viewBox="0 0 24 24"><path fill="#444746" d="M16 9v10H8V9h8m-1.5-6h-5l-1 1H5v2h14V4h-3.5l-1-1zM18 7H6v12c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7z"></path></svg>
+        <svg width="20" height="20" viewBox="0 0 24 24"><path fill="#444746" d="M16 9v10H8V9h8m-1.5-6h-5l-1 1H5v2h14V4h-3.5l-1-1zM18 7H6v12c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7z"/></svg>
         <span class="nom">Corbeille</span>
       </div>
       <div class="noeud" id="btn-enregistrer" title="Télécharge un nouveau drive.html contenant vos vignettes, à déposer sur GitHub">
-        <svg width="20" height="20" viewBox="0 0 24 24"><path fill="#444746" d="M17 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm2 16H5V5h11.17L19 7.83V19zm-7-7c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3zM6 6h9v4H6z"></path></svg>
+        <svg width="20" height="20" viewBox="0 0 24 24"><path fill="#444746" d="M17 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm2 16H5V5h11.17L19 7.83V19zm-7-7c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3zM6 6h9v4H6z"/></svg>
         <span class="nom">Enregistrer drive.html</span><span class="pastille" id="pastille" title="Modifications pas encore enregistrées dans drive.html"></span>
       </div>
       <div class="noeud" id="btn-exporter">
-        <svg width="20" height="20" viewBox="0 0 24 24"><path fill="#444746" d="M19 12v7H5v-7H3v7c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-7h-2zm-6 .67 2.59-2.58L17 11.5l-5 5-5-5 1.41-1.41L11 12.67V3h2v9.67z"></path></svg>
+        <svg width="20" height="20" viewBox="0 0 24 24"><path fill="#444746" d="M19 12v7H5v-7H3v7c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-7h-2zm-6 .67 2.59-2.58L17 11.5l-5 5-5-5 1.41-1.41L11 12.67V3h2v9.67z"/></svg>
         <span class="nom">Exporter les liens</span>
       </div>
-      <input type="file" id="fichier-import" multiple="" hidden="">
+      <input type="file" id="fichier-import" multiple hidden>
     </div>
   </nav>
 
@@ -275,8 +286,8 @@
     <div class="barre">
       <div class="fil" id="fil"></div>
       <div class="vues">
-        <button id="vue-liste" title="Liste"><svg width="20" height="20" viewBox="0 0 24 24"><path fill="#1f1f1f" d="M3 5h18v2H3zm0 6h18v2H3zm0 6h18v2H3z"></path></svg></button>
-        <button id="vue-grille" title="Grille"><svg width="20" height="20" viewBox="0 0 24 24"><path fill="#1f1f1f" d="M3 3h8v8H3zm2 2v4h4V5zm8-2h8v8h-8zm2 2v4h4V5zM3 13h8v8H3zm2 2v4h4v-4zm8-2h8v8h-8zm2 2v4h4v-4z"></path></svg></button>
+        <button id="vue-liste" title="Liste"><svg width="20" height="20" viewBox="0 0 24 24"><path fill="#1f1f1f" d="M3 5h18v2H3zm0 6h18v2H3zm0 6h18v2H3z"/></svg></button>
+        <button id="vue-grille" title="Grille"><svg width="20" height="20" viewBox="0 0 24 24"><path fill="#1f1f1f" d="M3 3h8v8H3zm2 2v4h4V5zm8-2h8v8h-8zm2 2v4h4V5zM3 13h8v8H3zm2 2v4h4v-4zm8-2h8v8h-8zm2 2v4h4v-4z"/></svg></button>
       </div>
     </div>
     <div class="contenu" id="contenu"></div>
@@ -284,39 +295,39 @@
 </div>
 
 <div class="menu menu-fichier" id="menu">
-  <button data-action="telecharger"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#444746" d="M5 20h14v-2H5v2zm7-18v12.17l-3.59-3.58L7 12l5 5 5-5-1.41-1.41L13 14.17V2h-2z"></path></svg>Télécharger</button>
-  <button data-action="renommer"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#444746" d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zM7 17h2.2l6.3-6.3-2.2-2.2L7 14.8V17zm9.85-7.65a.6.6 0 0 0 0-.85l-1.35-1.35a.6.6 0 0 0-.85 0l-1 1 2.2 2.2 1-1z"></path></svg>Renommer<span class="raccourci" data-rac="renommer"></span></button>
-  <button data-action="copie"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#444746" d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"></path></svg>Créer une copie<span class="raccourci" data-rac="copie"></span></button>
+  <button data-action="telecharger"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#444746" d="M5 20h14v-2H5v2zm7-18v12.17l-3.59-3.58L7 12l5 5 5-5-1.41-1.41L13 14.17V2h-2z"/></svg>Télécharger</button>
+  <button data-action="renommer"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#444746" d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zM7 17h2.2l6.3-6.3-2.2-2.2L7 14.8V17zm9.85-7.65a.6.6 0 0 0 0-.85l-1.35-1.35a.6.6 0 0 0-.85 0l-1 1 2.2 2.2 1-1z"/></svg>Renommer<span class="raccourci" data-rac="renommer"></span></button>
+  <button data-action="copie"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#444746" d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>Créer une copie<span class="raccourci" data-rac="copie"></span></button>
   <hr>
-  <button data-sous="menu-partager"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#444746" d="M15 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0-6c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2zm0 8c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4zm-6 4c.22-.72 3.31-2 6-2 2.7 0 5.8 1.29 6 2H9zm-3-3v-3h3v-2H6V7H4v3H1v2h3v3z"></path></svg>Partager<span class="fleche"><svg width="20" height="20" viewBox="0 0 24 24"><path fill="#444746" d="M10 17l5-5-5-5v10z"></path></svg></span></button>
-  <button data-sous="menu-organiser"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#444746" d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V8h16v10z"></path></svg>Organiser<span class="fleche"><svg width="20" height="20" viewBox="0 0 24 24"><path fill="#444746" d="M10 17l5-5-5-5v10z"></path></svg></span></button>
-  <button data-sous="menu-infos"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#444746" d="M11 7h2v2h-2zm0 4h2v6h-2zm1-9C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"></path></svg>Informations sur le fichier<span class="fleche"><svg width="20" height="20" viewBox="0 0 24 24"><path fill="#444746" d="M10 17l5-5-5-5v10z"></path></svg></span></button>
+  <button data-sous="menu-partager"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#444746" d="M15 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0-6c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2zm0 8c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4zm-6 4c.22-.72 3.31-2 6-2 2.7 0 5.8 1.29 6 2H9zm-3-3v-3h3v-2H6V7H4v3H1v2h3v3z"/></svg>Partager<span class="fleche"><svg width="20" height="20" viewBox="0 0 24 24"><path fill="#444746" d="M10 17l5-5-5-5v10z"/></svg></span></button>
+  <button data-sous="menu-organiser"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#444746" d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V8h16v10z"/></svg>Organiser<span class="fleche"><svg width="20" height="20" viewBox="0 0 24 24"><path fill="#444746" d="M10 17l5-5-5-5v10z"/></svg></span></button>
+  <button data-sous="menu-infos"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#444746" d="M11 7h2v2h-2zm0 4h2v6h-2zm1-9C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/></svg>Informations sur le fichier<span class="fleche"><svg width="20" height="20" viewBox="0 0 24 24"><path fill="#444746" d="M10 17l5-5-5-5v10z"/></svg></span></button>
   <hr>
-  <button data-action="corbeille"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#444746" d="M16 9v10H8V9h8m-1.5-6h-5l-1 1H5v2h14V4h-3.5l-1-1zM18 7H6v12c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7z"></path></svg>Placer dans la corbeille<span class="raccourci" data-rac="corbeille"></span></button>
+  <button data-action="corbeille"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#444746" d="M16 9v10H8V9h8m-1.5-6h-5l-1 1H5v2h14V4h-3.5l-1-1zM18 7H6v12c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7z"/></svg>Placer dans la corbeille<span class="raccourci" data-rac="corbeille"></span></button>
 </div>
 <div class="menu menu-fichier sous-menu" id="menu-partager">
-  <button data-action="copier-lien"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#444746" d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"></path></svg>Copier le lien</button>
-  <button data-action="email"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#444746" d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 14H4V8l8 5 8-5v10zm-8-7L4 6h16l-8 5z"></path></svg>Envoyer par e-mail</button>
-  <button data-action="qr"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#444746" d="M3 11h8V3H3v8zm2-6h4v4H5V5zM3 21h8v-8H3v8zm2-6h4v4H5v-4zM13 3v8h8V3h-8zm6 6h-4V5h4v4zM19 19h2v2h-2zM13 13h2v2h-2zM15 15h2v2h-2zM13 17h2v2h-2zM15 19h2v2h-2zM17 17h2v2h-2zM17 13h2v2h-2zM19 15h2v2h-2z"></path></svg>Afficher un code QR</button>
+  <button data-action="copier-lien"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#444746" d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>Copier le lien</button>
+  <button data-action="email"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#444746" d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 14H4V8l8 5 8-5v10zm-8-7L4 6h16l-8 5z"/></svg>Envoyer par e-mail</button>
+  <button data-action="qr"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#444746" d="M3 11h8V3H3v8zm2-6h4v4H5V5zM3 21h8v-8H3v8zm2-6h4v4H5v-4zM13 3v8h8V3h-8zm6 6h-4V5h4v4zM19 19h2v2h-2zM13 13h2v2h-2zM15 15h2v2h-2zM13 17h2v2h-2zM15 19h2v2h-2zM17 17h2v2h-2zM17 13h2v2h-2zM19 15h2v2h-2z"/></svg>Afficher un code QR</button>
 </div>
 <div class="menu menu-fichier sous-menu" id="menu-organiser">
-  <button data-action="deplacer"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#444746" d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V6h5.17l2 2H20v10zm-7.84-6H8v2h4.16l-1.59 1.59L11.99 17 16 13.01 11.99 9l-1.41 1.41L12.16 12z"></path></svg>Déplacer</button>
-  <button data-action="emplacement"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#444746" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 0 1 0-5 2.5 2.5 0 0 1 0 5z"></path></svg>Afficher l'emplacement</button>
+  <button data-action="deplacer"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#444746" d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V6h5.17l2 2H20v10zm-7.84-6H8v2h4.16l-1.59 1.59L11.99 17 16 13.01 11.99 9l-1.41 1.41L12.16 12z"/></svg>Déplacer</button>
+  <button data-action="emplacement"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#444746" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 0 1 0-5 2.5 2.5 0 0 1 0 5z"/></svg>Afficher l'emplacement</button>
 </div>
 <div class="menu menu-fichier sous-menu" id="menu-infos">
-  <button data-action="details"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#444746" d="M11 7h2v2h-2zm0 4h2v6h-2zm1-9C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"></path></svg>Détails</button>
-  <button data-action="apercu"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#444746" d="M17.65 6.35A7.96 7.96 0 0 0 12 4a8 8 0 1 0 7.73 10h-2.08A6 6 0 1 1 12 6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"></path></svg>Actualiser l'aperçu</button>
+  <button data-action="details"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#444746" d="M11 7h2v2h-2zm0 4h2v6h-2zm1-9C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/></svg>Détails</button>
+  <button data-action="apercu"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#444746" d="M17.65 6.35A7.96 7.96 0 0 0 12 4a8 8 0 1 0 7.73 10h-2.08A6 6 0 1 1 12 6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>Actualiser l'aperçu</button>
 </div>
 <div class="menu menu-fichier" id="menu-corbeille">
-  <button data-action="restaurer"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#444746" d="M13 3a9 9 0 0 0-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42A8.954 8.954 0 0 0 13 21a9 9 0 0 0 0-18zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"></path></svg>Restaurer</button>
-  <button data-action="supprimer"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#444746" d="M14.12 10.47 12 12.59l-2.13-2.12-1.41 1.41L10.59 14l-2.12 2.12 1.41 1.41L12 15.41l2.12 2.12 1.41-1.41L13.41 14l2.12-2.12zM15.5 4l-1-1h-5l-1 1H5v2h14V4zM6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM8 9h8v10H8V9z"></path></svg>Supprimer définitivement</button>
+  <button data-action="restaurer"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#444746" d="M13 3a9 9 0 0 0-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42A8.954 8.954 0 0 0 13 21a9 9 0 0 0 0-18zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg>Restaurer</button>
+  <button data-action="supprimer"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#444746" d="M14.12 10.47 12 12.59l-2.13-2.12-1.41 1.41L10.59 14l-2.12 2.12 1.41 1.41L12 15.41l2.12 2.12 1.41-1.41L13.41 14l2.12-2.12zM15.5 4l-1-1h-5l-1 1H5v2h14V4zM6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM8 9h8v10H8V9z"/></svg>Supprimer définitivement</button>
 </div>
 
 <div class="visionneuse" id="visionneuse">
   <div class="vis-barre">
-    <button class="vis-bouton" id="vis-fermer" title="Fermer"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#fff" d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"></path></svg></button>
+    <button class="vis-bouton" id="vis-fermer" title="Fermer"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#fff" d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></button>
     <span id="vis-icone"></span><span id="vis-nom"></span>
-    <button class="vis-bouton" id="vis-telecharger" title="Télécharger"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#fff" d="M5 20h14v-2H5v2zm7-18v12.17l-3.59-3.58L7 12l5 5 5-5-1.41-1.41L13 14.17V2h-2z"></path></svg></button>
+    <button class="vis-bouton" id="vis-telecharger" title="Télécharger"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#fff" d="M5 20h14v-2H5v2zm7-18v12.17l-3.59-3.58L7 12l5 5 5-5-1.41-1.41L13 14.17V2h-2z"/></svg></button>
   </div>
   <div class="vis-corps" id="vis-corps"></div>
 </div>
@@ -324,22 +335,22 @@
 <div class="toast" id="toast"><span id="toast-texte"></span><button id="toast-action"></button></div>
 
 <div class="menu" id="menu-nouveau">
-  <button data-nouveau="dossier"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#444746" d="M20 6h-8l-2-2H4c-1.11 0-1.99.89-1.99 2L2 18c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm0 12H4V6h5.17l2 2H20v10zm-8-4h2v2h2v-2h2v-2h-2v-2h-2v2h-2z"></path></svg>Nouveau dossier<span class="raccourci" data-touche="F"></span></button>
+  <button data-nouveau="dossier"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#444746" d="M20 6h-8l-2-2H4c-1.11 0-1.99.89-1.99 2L2 18c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm0 12H4V6h5.17l2 2H20v10zm-8-4h2v2h2v-2h2v-2h-2v-2h-2v2h-2z"/></svg>Nouveau dossier<span class="raccourci" data-touche="F"></span></button>
   <hr>
-  <button data-nouveau="fichier"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#444746" d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11zM8 15.01l1.41 1.41L11 14.84V19h2v-4.16l1.59 1.59L16 15.01 12.01 11z"></path></svg>Importer un fichier<span class="raccourci" data-touche="U"></span></button>
-  <button data-nouveau="import-dossier"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#444746" d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V6h5.17l2 2H20v10zM9.41 14.42 11 12.84V17h2v-4.16l1.59 1.59L16 13.01 12.01 9 8 13.01l1.41 1.41z"></path></svg>Importer un dossier<span class="raccourci" data-touche="I"></span></button>
+  <button data-nouveau="fichier"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#444746" d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11zM8 15.01l1.41 1.41L11 14.84V19h2v-4.16l1.59 1.59L16 15.01 12.01 11z"/></svg>Importer un fichier<span class="raccourci" data-touche="U"></span></button>
+  <button data-nouveau="import-dossier"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#444746" d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V6h5.17l2 2H20v10zM9.41 14.42 11 12.84V17h2v-4.16l1.59 1.59L16 13.01 12.01 9 8 13.01l1.41 1.41z"/></svg>Importer un dossier<span class="raccourci" data-touche="I"></span></button>
 </div>
 
 <div class="menu" id="menu-dossier">
-  <button data-action-dossier="renommer"><svg width="20" height="20" viewBox="0 0 24 24"><path fill="#444746" d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"></path></svg>Renommer</button>
+  <button data-action-dossier="renommer"><svg width="20" height="20" viewBox="0 0 24 24"><path fill="#444746" d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>Renommer</button>
   <hr>
-  <button data-action-dossier="supprimer"><svg width="20" height="20" viewBox="0 0 24 24"><path fill="#444746" d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"></path></svg>Supprimer</button>
+  <button data-action-dossier="supprimer"><svg width="20" height="20" viewBox="0 0 24 24"><path fill="#444746" d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>Supprimer</button>
 </div>
 
 <div class="scrim" id="scrim"><div class="dialogue" id="dialogue"></div></div>
 
 <!-- Vignettes enregistrées dans le fichier (bouton « Enregistrer drive.html ») : lues au démarrage sur tout ordinateur -->
-<script id="donnees" type="application/json">{"version":1793132487745,"dossiers":[],"liens":[{"url":"https://aureliohub.github.io/NO_priorite_operations_1.html","titre":"Nombres et opérations – Priorité des opérations (1)","dossier":"nombres/7","ajoute":1793132464455},{"url":"https://aureliohub.github.io/NO_priorite_operations_2.html","titre":"Nombres et opérations – Priorité des opérations (2)","dossier":"nombres/7","ajoute":1793132466559},{"url":"https://aureliohub.github.io/NO_priorite_operations_3.html","titre":"Nombres et opérations – Priorité des opérations (3)","dossier":"nombres/7","ajoute":1793132468721}]}</script>
+<script id="donnees" type="application/json">null</script>
 
 <script>
 // Copie du fichier tel qu'il est arrivé, avant que la page ne se remplisse : sert à fabriquer le nouveau drive.html
@@ -717,8 +728,31 @@ document.addEventListener('dragstart', e => {
   lienTraine = c.dataset.lien;
   e.dataTransfer.setData(TYPE_INTERNE, lienTraine);
   e.dataTransfer.effectAllowed = 'move';
+  setTimeout(() => c.classList.add('traine'), 0);   // après la capture de l'image de glissement
 });
-document.addEventListener('dragend', () => { lienTraine = null; nettoyerCibles(); });
+document.addEventListener('dragend', () => {
+  lienTraine = null; nettoyerCibles();
+  document.querySelectorAll('.carte.traine').forEach(x => x.classList.remove('traine'));
+});
+
+// Changer l'ordre : vignette glissée sur une autre vignette du dossier ouvert.
+// Un trait bleu indique où elle s'insérera (avant ou après, selon le côté survolé).
+function insertionSous(e) {
+  if (!lienTraine || filtre || courant === CORBEILLE) return null;
+  const carte = e.target.closest && e.target.closest('.carte');
+  if (!carte || carte.dataset.lien === lienTraine) return null;
+  const rc = carte.getBoundingClientRect();
+  const apres = etat.vue === 'liste' ? e.clientY > rc.top + rc.height / 2 : e.clientX > rc.left + rc.width / 2;
+  return { carte, cible:carte.dataset.lien, apres };
+}
+function reordonner(idLien, idCible, apres) {
+  const l = etat.liens.find(x => x.id === idLien), c = etat.liens.find(x => x.id === idCible);
+  if (!l || !c || l === c) return;
+  etat.liens.splice(etat.liens.indexOf(l), 1);
+  etat.liens.splice(etat.liens.indexOf(c) + (apres ? 1 : 0), 0, l);
+  l.dossier = c.dossier;
+  sauver(); render();
+}
 
 function cibleSous(e) {
   const d = e.target.closest && e.target.closest('[data-dossier]');
@@ -726,12 +760,16 @@ function cibleSous(e) {
   if (panneau.contains(e.target) && !filtre && courant !== CORBEILLE) return { el:panneau, dossier:courant };
   return null;
 }
-function nettoyerCibles() { document.querySelectorAll('.cible').forEach(x => x.classList.remove('cible')); }
+function nettoyerCibles() {
+  document.querySelectorAll('.cible, .ins-avant, .ins-apres').forEach(x => x.classList.remove('cible', 'ins-avant', 'ins-apres'));
+}
 
 document.addEventListener('dragover', e => {
   e.preventDefault();
-  const c = cibleSous(e);
   nettoyerCibles();
+  const ins = insertionSous(e);
+  if (ins) { ins.carte.classList.add(ins.apres ? 'ins-apres' : 'ins-avant'); e.dataTransfer.dropEffect = 'move'; return; }
+  const c = cibleSous(e);
   if (!c || (lienTraine && c.el === panneau) || (!lienTraine && c.dossier === CORBEILLE)) { e.dataTransfer.dropEffect = 'none'; return; }
   e.dataTransfer.dropEffect = lienTraine ? 'move' : 'copy';
   c.el.classList.add('cible');
@@ -739,6 +777,8 @@ document.addEventListener('dragover', e => {
 document.addEventListener('dragleave', e => { if (!e.relatedTarget) nettoyerCibles(); });
 document.addEventListener('drop', e => {
   e.preventDefault(); nettoyerCibles();
+  const ins = insertionSous(e);
+  if (ins) { reordonner(lienTraine, ins.cible, ins.apres); lienTraine = null; return; }
   const c = cibleSous(e);
   if (!c) return;
   const interne = lienTraine || e.dataTransfer.getData(TYPE_INTERNE);
@@ -1593,4 +1633,6 @@ async function importerMarquePages(texte) {
 render();
 if (miseAJourIntegree) toast('Vignettes mises à jour depuis drive.html (version du ' +
   new Date(INTEGRE.version).toLocaleString('fr-CH', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' }) + ')');
-</script></body></html>
+</script>
+</body>
+</html>
