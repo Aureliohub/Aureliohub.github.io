@@ -112,13 +112,13 @@
   .carte { position:relative; }
   .carte.traine { opacity:.4; }
   .carte.ins-avant::before, .carte.ins-apres::after {
-    content:""; position:absolute; top:0; bottom:0; width:4px; border-radius:2px; background:var(--bleu); pointer-events:none;
+    content:""; position:absolute; top:0; bottom:0; width:2px; border-radius:1px; background:var(--bleu); pointer-events:none;
   }
-  .carte.ins-avant::before { left:-10px; }
-  .carte.ins-apres::after { right:-10px; }
-  .liste .carte.ins-avant::before, .liste .carte.ins-apres::after { left:0; right:0; width:auto; height:3px; }
-  .liste .carte.ins-avant::before { top:-2px; bottom:auto; }
-  .liste .carte.ins-apres::after { top:auto; bottom:-2px; }
+  .carte.ins-avant::before { left:-9px; }
+  .carte.ins-apres::after { right:-9px; }
+  .liste .carte.ins-avant::before, .liste .carte.ins-apres::after { left:0; right:0; width:auto; height:2px; }
+  .liste .carte.ins-avant::before { top:-1px; bottom:auto; }
+  .liste .carte.ins-apres::after { top:auto; bottom:-1px; }
   .carte .tete { height:52px; display:flex; align-items:center; gap:12px; padding:0 0 0 8px; }
   .carte .tete img.fav { width:20px; height:20px; border-radius:4px; }
   .carte .titre { flex:1; min-width:0; font-size:14px; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
@@ -204,6 +204,10 @@
   .vis-vide button { border:0; border-radius:20px; background:var(--bleu); color:#fff; font-weight:500; padding:10px 20px; cursor:pointer; }
   .pastille { width:8px; height:8px; border-radius:50%; background:#e37400; margin-right:4px; display:none; }
   .pastille.visible { display:block; }
+  .dialogue .alerte { display:flex; gap:12px; align-items:flex-start; padding:12px 14px; border-radius:8px; background:#fce8e6; color:#8c1d18; font-size:14px; line-height:20px; margin:0 0 4px; }
+  .dialogue .actions button.danger { background:#b3261e; color:#fff; }
+  .dialogue .actions button.danger:hover { background:#8c1d18; }
+  .noeud.traine, .dossier.traine { opacity:.4; }
   .toast {
     position:fixed; left:24px; bottom:24px; z-index:30; display:none; align-items:center; gap:24px;
     min-height:48px; padding:6px 8px 6px 16px; border-radius:4px; background:#303030; color:#fff; font-size:14px;
@@ -342,6 +346,7 @@
 </div>
 
 <div class="menu" id="menu-dossier">
+  <button data-action-dossier="deplacer"><svg width="20" height="20" viewBox="0 0 24 24"><path fill="#444746" d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V6h5.17l2 2H20v10zm-7.84-6H8v2h4.16l-1.59 1.59L11.99 17 16 13.01 11.99 9l-1.41 1.41L12.16 12z"/></svg>Déplacer</button>
   <button data-action-dossier="renommer"><svg width="20" height="20" viewBox="0 0 24 24"><path fill="#444746" d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>Renommer</button>
   <hr>
   <button data-action-dossier="supprimer"><svg width="20" height="20" viewBox="0 0 24 24"><path fill="#444746" d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>Supprimer</button>
@@ -506,7 +511,7 @@ function noeudArbre(id, niveau) {
   const D = DOSSIERS[id], kids = enfants(id), ouvert = etat.ouverts.includes(id);
   const liensIci = actifs().filter(l => l.dossier === id);
   const contenuArbre = kids.length + liensIci.length;
-  let h = `<div class="noeud ${niveau > 1 ? 'niv2' : 'niv1'} ${courant === id ? 'actif' : ''}" data-dossier="${id}" title="${esc(D.nom)}" style="padding-left:${(niveau - 1) * 14}px">
+  let h = `<div class="noeud ${niveau > 1 ? 'niv2' : 'niv1'} ${courant === id ? 'actif' : ''}" data-dossier="${id}" title="${esc(D.nom)}" ${D.fixe ? '' : 'draggable="true"'} style="padding-left:${(niveau - 1) * 14}px">
              <button class="caret ${ouvert ? 'ouvert' : ''} ${contenuArbre ? '' : 'sans'}" data-basculer="${id}">${CARET}</button>
              ${iconeDossier(D.couleur, niveau > 1 ? 18 : 20)}<span class="nom">${esc(D.nom)}</span></div>`;
   // un dossier qui contient des sous-dossiers ou des liens reçoit une flèche ; déplié, il montre les deux
@@ -555,7 +560,7 @@ function renderPanneau() {
     h += `<div class="section">Dossiers</div><div class="grille">`;
     dossiers.forEach(id => {
       const n = nbLiens(id);
-      h += `<div class="dossier" data-dossier="${id}" data-aller="${id}" title="${esc(DOSSIERS[id].nom)}">
+      h += `<div class="dossier" data-dossier="${id}" data-aller="${id}" title="${esc(DOSSIERS[id].nom)}" ${DOSSIERS[id].fixe ? '' : 'draggable="true"'}>
               ${iconeDossier(DOSSIERS[id].couleur, 24)}<span class="nom">${esc(DOSSIERS[id].nom)}</span>
               ${n ? `<span class="nb">${n}</span>` : ''}
               ${DOSSIERS[id].fixe ? '' : `<button class="points" data-menu-dossier="${id}" title="Plus d'actions">${POINTS}</button>`}</div>`;
@@ -722,7 +727,18 @@ function deplacer(idLien, dossier) {
 const TYPE_INTERNE = 'application/x-lien-eva';
 let lienTraine = null;
 
+let dossierTraine = null;
 document.addEventListener('dragstart', e => {
+  const dd = e.target.closest && e.target.closest('[data-dossier]');
+  if (dd && !(e.target.closest('.carte'))) {
+    const id = dd.dataset.dossier;
+    if (!DOSSIERS[id] || DOSSIERS[id].fixe) { e.preventDefault(); return; }
+    dossierTraine = id;
+    e.dataTransfer.setData('application/x-dossier-eva', id);
+    e.dataTransfer.effectAllowed = 'move';
+    setTimeout(() => dd.classList.add('traine'), 0);
+    return;
+  }
   const c = e.target.closest && e.target.closest('.carte');
   if (!c) return;
   lienTraine = c.dataset.lien;
@@ -731,8 +747,8 @@ document.addEventListener('dragstart', e => {
   setTimeout(() => c.classList.add('traine'), 0);   // après la capture de l'image de glissement
 });
 document.addEventListener('dragend', () => {
-  lienTraine = null; nettoyerCibles();
-  document.querySelectorAll('.carte.traine').forEach(x => x.classList.remove('traine'));
+  lienTraine = null; dossierTraine = null; nettoyerCibles();
+  document.querySelectorAll('.traine').forEach(x => x.classList.remove('traine'));
 });
 
 // Changer l'ordre : vignette glissée sur une autre vignette du dossier ouvert.
@@ -769,6 +785,13 @@ document.addEventListener('dragover', e => {
   nettoyerCibles();
   const ins = insertionSous(e);
   if (ins) { ins.carte.classList.add(ins.apres ? 'ins-apres' : 'ins-avant'); e.dataTransfer.dropEffect = 'move'; return; }
+  if (dossierTraine) {
+    const d = e.target.closest && e.target.closest('[data-dossier]');
+    const ok = d && (d.dataset.dossier === CORBEILLE || peutRecevoir(dossierTraine, d.dataset.dossier));
+    e.dataTransfer.dropEffect = ok ? 'move' : 'none';
+    if (ok) d.classList.add('cible');
+    return;
+  }
   const c = cibleSous(e);
   if (!c || (lienTraine && c.el === panneau) || (!lienTraine && c.dossier === CORBEILLE)) { e.dataTransfer.dropEffect = 'none'; return; }
   e.dataTransfer.dropEffect = lienTraine ? 'move' : 'copy';
@@ -779,6 +802,13 @@ document.addEventListener('drop', e => {
   e.preventDefault(); nettoyerCibles();
   const ins = insertionSous(e);
   if (ins) { reordonner(lienTraine, ins.cible, ins.apres); lienTraine = null; return; }
+  if (dossierTraine) {
+    const d = e.target.closest && e.target.closest('[data-dossier]'), id = dossierTraine;
+    dossierTraine = null;
+    if (!d) return;
+    if (d.dataset.dossier === CORBEILLE) supprimerDossier(id); else deplacerDossier(id, d.dataset.dossier);
+    return;
+  }
   const c = cibleSous(e);
   if (!c) return;
   const interne = lienTraine || e.dataTransfer.getData(TYPE_INTERNE);
@@ -880,6 +910,7 @@ function ouvrirDialogue(html, valider, seul) {
     scrim.classList.add('ouvert');
     finDialogue = v => { finDialogue = null; scrim.classList.remove('ouvert'); dialogue.innerHTML = ''; res(v); };
     if (!seul) dialogue.querySelector('[data-r=non]').onclick = () => finDialogue(null);
+    if (dialogue.dataset.ok === 'Supprimer') dialogue.querySelector('[data-r=oui]').classList.add('danger');
     dialogue.querySelector('[data-r=oui]').onclick = () => finDialogue(valider());
   });
 }
@@ -910,19 +941,61 @@ menuDossier.addEventListener('click', async e => {
   fermerMenus();
   const d = etat.dossiers.find(x => x.id === dossierMenu);
   if (!d) return;
-  if (b.dataset.actionDossier === 'renommer') {
+  const a = b.dataset.actionDossier;
+  if (a === 'renommer') {
     const nom = await demanderNom('Renommer', d.nom, 'OK');
     if (nom) { d.nom = nom; indexer(); sauver(); render(); }
-  } else {
-    const ids = new Set(descendants(d.id));
-    const dedans = actifs().filter(l => ids.has(l.dossier)), n = dedans.length;
-    if (!confirm('Supprimer le dossier « ' + d.nom + ' » ?' + (n ? (n > 1 ? ' Ses ' + n + ' liens seront placés' : ' Son lien sera placé') + ' dans la corbeille.' : ''))) return;
-    etat.dossiers = etat.dossiers.filter(x => !ids.has(x.id));
-    dedans.forEach(l => { l.corbeille = Date.now(); });
-    if (ids.has(courant)) courant = d.parent;
-    indexer(); sauver(); render();
-  }
+  } else if (a === 'deplacer') choisirDossierPour(d);
+  else supprimerDossier(d.id);
 });
+
+// ── Déplacer un dossier personnel (avec son contenu) ; jamais dans lui-même ni dans un de ses sous-dossiers
+function peutRecevoir(idDossier, cible) {
+  return !!DOSSIERS[cible] && cible !== CORBEILLE && !descendants(idDossier).includes(cible);
+}
+function deplacerDossier(idDossier, cible) {
+  const d = etat.dossiers.find(x => x.id === idDossier);
+  if (!d || !peutRecevoir(idDossier, cible) || d.parent === cible) return;
+  d.parent = cible;
+  if (cible !== RACINE && !etat.ouverts.includes(cible)) etat.ouverts.push(cible);
+  indexer(); sauver(); render();
+  toast('« ' + d.nom + ' » a été déplacé dans « ' + DOSSIERS[cible].nom + ' »', 'Afficher', () => aller(cible));
+}
+async function choisirDossierPour(d) {
+  const lignes = [];
+  (function parcourir(id, prof) {
+    if (id === d.id) return;                       // le dossier lui-même et son contenu ne sont pas proposés
+    lignes.push({ id, prof }); enfants(id).forEach(k => parcourir(k, prof + 1));
+  })(RACINE, 0);
+  dialogue.dataset.ok = 'Déplacer';
+  const cible = await ouvrirDialogue(`<h2>Déplacer « ${esc(d.nom)} »</h2>
+    <div class="choix">${lignes.map(x => `<label class="ligne" style="padding-left:${12 + x.prof * 20}px">
+      <input type="radio" name="dlg-dossier" value="${x.id}" ${x.id === d.parent ? 'checked' : ''}>
+      ${x.id === RACINE ? ICONE_MAISON : iconeDossier(DOSSIERS[x.id].couleur, 18)}<span>${esc(DOSSIERS[x.id].nom)}</span></label>`).join('')}</div>`,
+    () => { const r = dialogue.querySelector('input[name=dlg-dossier]:checked'); return r ? r.value : null; });
+  if (cible) deplacerDossier(d.id, cible);
+}
+
+// ── Supprimer un dossier personnel : message d'alerte, puis son contenu va à la corbeille
+async function supprimerDossier(idDossier) {
+  const d = etat.dossiers.find(x => x.id === idDossier);
+  if (!d) return;
+  const ids = new Set(descendants(d.id));
+  const dedans = actifs().filter(l => ids.has(l.dossier)), n = dedans.length, nd = ids.size - 1;
+  const contenu = [nd ? pluriel(nd, 'sous-dossier') : '', n ? pluriel(n, 'élément') : ''].filter(Boolean).join(' et ');
+  dialogue.dataset.ok = 'Supprimer';
+  const ok = await ouvrirDialogue(`<h2>Supprimer « ${esc(d.nom)} » ?</h2>
+    <div class="alerte"><svg width="22" height="22" viewBox="0 0 24 24" style="flex-shrink:0"><path fill="#b3261e" d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>
+    <span>${contenu
+      ? `Ce dossier contient ${contenu}. Le dossier${nd ? ' et ses sous-dossiers' : ''} seront supprimés définitivement ; ${n ? (n > 1 ? 'les éléments seront placés' : 'l\'élément sera placé') + ' dans la corbeille.' : ''}`
+      : 'Ce dossier est vide. Il sera supprimé définitivement.'}</span></div>`, () => true);
+  if (!ok) return;
+  etat.dossiers = etat.dossiers.filter(x => !ids.has(x.id));
+  dedans.forEach(l => { l.corbeille = Date.now(); });
+  if (ids.has(courant)) courant = d.parent;
+  indexer(); sauver(); render();
+  toast('Dossier « ' + d.nom + ' » supprimé' + (n ? ' ; son contenu est dans la corbeille' : ''));
+}
 
 // ═══ MENU ⋮ ══════════════════════════════════════════════════════════════
 const menu = document.getElementById('menu');
@@ -950,7 +1023,16 @@ function ouvrirMenuEn(m, x, y) {
   const t = (y + m.offsetHeight > innerHeight - 8) ? Math.max(8, y - m.offsetHeight) : y;
   m.style.left = l + 'px'; m.style.top = t + 'px';
 }
+document.querySelector('.lateral').addEventListener('contextmenu', e => {
+  const n = e.target.closest('[data-dossier]');
+  if (!n || !DOSSIERS[n.dataset.dossier] || DOSSIERS[n.dataset.dossier].fixe) return;
+  e.preventDefault(); dossierMenu = n.dataset.dossier; ouvrirMenuEn(menuDossier, e.clientX, e.clientY);
+});
 panneau.addEventListener('contextmenu', e => {
+  const tuile = e.target.closest('.dossier');
+  if (tuile && DOSSIERS[tuile.dataset.dossier] && !DOSSIERS[tuile.dataset.dossier].fixe) {
+    e.preventDefault(); dossierMenu = tuile.dataset.dossier; ouvrirMenuEn(menuDossier, e.clientX, e.clientY); return;
+  }
   const carte = e.target.closest('.carte');
   if (carte) {
     e.preventDefault();
