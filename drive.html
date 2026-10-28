@@ -112,11 +112,11 @@
   .carte { position:relative; }
   .carte.traine { opacity:.4; }
   .carte.ins-avant::before, .carte.ins-apres::after {
-    content:""; position:absolute; top:0; bottom:0; width:2px; border-radius:1px; background:var(--bleu); pointer-events:none;
+    content:""; position:absolute; top:0; bottom:0; width:1px; background:var(--bleu); pointer-events:none;
   }
   .carte.ins-avant::before { left:-9px; }
   .carte.ins-apres::after { right:-9px; }
-  .liste .carte.ins-avant::before, .liste .carte.ins-apres::after { left:0; right:0; width:auto; height:2px; }
+  .liste .carte.ins-avant::before, .liste .carte.ins-apres::after { left:0; right:0; width:auto; height:1px; }
   .liste .carte.ins-avant::before { top:-1px; bottom:auto; }
   .liste .carte.ins-apres::after { top:auto; bottom:-1px; }
   .carte .tete { height:52px; display:flex; align-items:center; gap:12px; padding:0 0 0 8px; }
@@ -179,7 +179,7 @@
   .dialogue dt { color:var(--gris); }
   .dialogue dd { margin:0; word-break:break-all; }
   .dialogue dd a { color:var(--bleu); }
-  .menu button[hidden] { display:none; }
+  .menu button[hidden], .menu hr[hidden] { display:none; }
   .apercu-doc { position:absolute; inset:0; overflow:hidden; pointer-events:none; background:#fff; }
   .apercu .icone-type { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; }
   .visionneuse { position:fixed; inset:0; z-index:25; background:rgba(32,33,36,.92); display:none; flex-direction:column; }
@@ -208,6 +208,15 @@
   .dialogue .actions button.danger { background:#b3261e; color:#fff; }
   .dialogue .actions button.danger:hover { background:#8c1d18; }
   .noeud.traine, .dossier.traine { opacity:.4; }
+  .noeud, .dossier { position:relative; }
+  .noeud.ins-avant::before, .noeud.ins-apres::after, .dossier.ins-avant::before, .dossier.ins-apres::after {
+    content:""; position:absolute; left:8px; right:8px; height:1px; background:var(--bleu); pointer-events:none;
+  }
+  .noeud.ins-avant::before, .liste .dossier.ins-avant::before { top:-1px; }
+  .noeud.ins-apres::after, .liste .dossier.ins-apres::after { bottom:-1px; }
+  .panneau:not(.liste) .dossier.ins-avant::before, .panneau:not(.liste) .dossier.ins-apres::after { top:0; bottom:0; left:auto; right:auto; width:1px; height:auto; }
+  .panneau:not(.liste) .dossier.ins-avant::before { left:-9px; }
+  .panneau:not(.liste) .dossier.ins-apres::after { right:-9px; }
   .toast {
     position:fixed; left:24px; bottom:24px; z-index:30; display:none; align-items:center; gap:24px;
     min-height:48px; padding:6px 8px 6px 16px; border-radius:4px; background:#303030; color:#fff; font-size:14px;
@@ -346,6 +355,8 @@
 </div>
 
 <div class="menu" id="menu-dossier">
+  <button data-action-dossier="nouveau"><svg width="20" height="20" viewBox="0 0 24 24"><path fill="#444746" d="M20 6h-8l-2-2H4c-1.11 0-1.99.89-1.99 2L2 18c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm0 12H4V6h5.17l2 2H20v10zm-8-4h2v2h2v-2h2v-2h-2v-2h-2v2h-2z"/></svg>Nouveau dossier</button>
+  <hr data-hr-dossier>
   <button data-action-dossier="deplacer"><svg width="20" height="20" viewBox="0 0 24 24"><path fill="#444746" d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V6h5.17l2 2H20v10zm-7.84-6H8v2h4.16l-1.59 1.59L11.99 17 16 13.01 11.99 9l-1.41 1.41L12.16 12z"/></svg>Déplacer</button>
   <button data-action-dossier="renommer"><svg width="20" height="20" viewBox="0 0 24 24"><path fill="#444746" d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>Renommer</button>
   <hr>
@@ -355,7 +366,7 @@
 <div class="scrim" id="scrim"><div class="dialogue" id="dialogue"></div></div>
 
 <!-- Vignettes enregistrées dans le fichier (bouton « Enregistrer drive.html ») : lues au démarrage sur tout ordinateur -->
-<script id="donnees" type="application/json">null</script>
+<script id="donnees" type="application/json">{"version": 1793186325337, "structure": 2, "dossiers": [{"id": "nombres", "nom": "Nombres et opérations", "parent": "racine", "couleur": "#92CDE2"}, {"id": "nombres/1", "nom": "Résoudre un problème « concret »", "parent": "nombres"}, {"id": "nombres/2", "nom": "Calculer avec des nombres décimaux (4 opérations)", "parent": "nombres"}, {"id": "nombres/3", "nom": "Calculer avec des nombres relatifs (4 opérations)", "parent": "nombres"}, {"id": "nombres/4", "nom": "Calculer avec des nombres rationnels (4 opérations)", "parent": "nombres"}, {"id": "nombres/5", "nom": "Calculer des puissances", "parent": "nombres"}, {"id": "nombres/6", "nom": "Calculer des racines", "parent": "nombres"}, {"id": "nombres/7", "nom": "Appliquer la hiérarchie des opérations", "parent": "nombres"}, {"id": "nombres/8", "nom": "Lire la valeur d'un nombre sur une droite graduée", "parent": "nombres"}, {"id": "nombres/9", "nom": "Estimer le résultat d'un calcul", "parent": "nombres"}, {"id": "proportionnalite", "nom": "Proportionnalité", "parent": "racine", "couleur": "#F4AFC0"}, {"id": "proportionnalite/1", "nom": "Calculer une fraction ou un pourcentage de…", "parent": "proportionnalite"}, {"id": "proportionnalite/2", "nom": "Retrouver une grandeur dont on connaît un pourcentage", "parent": "proportionnalite"}, {"id": "proportionnalite/3", "nom": "Poser une proportion et la résoudre", "parent": "proportionnalite"}, {"id": "proportionnalite/4", "nom": "Résoudre un problème concret de proportionnalité", "parent": "proportionnalite"}, {"id": "algebre", "nom": "Algèbre", "parent": "racine", "couleur": "#F7DB7F"}, {"id": "algebre/1", "nom": "Vérifier si un nombre est solution d'une équation", "parent": "algebre"}, {"id": "algebre/2", "nom": "Développer et réduire une expression algébrique", "parent": "algebre"}, {"id": "algebre/3", "nom": "Factoriser une expression algébrique", "parent": "algebre"}, {"id": "algebre/4", "nom": "Traduire un problème en langage algébrique", "parent": "algebre"}, {"id": "algebre/5", "nom": "Résoudre une équation", "parent": "algebre"}, {"id": "algebre/6", "nom": "Résoudre un problème à l'aide d'une équation", "parent": "algebre"}, {"id": "grandeurs", "nom": "Grandeurs et mesures · Pythagore", "parent": "racine", "couleur": "#BCE29A"}, {"id": "grandeurs/1", "nom": "Utiliser les formules de calcul de périmètres et d'aires", "parent": "grandeurs"}, {"id": "grandeurs/2", "nom": "Utiliser les formules de calcul de volumes", "parent": "grandeurs"}, {"id": "grandeurs/3", "nom": "Transformer les unités (longueur, aire, volume, capacité et temps)", "parent": "grandeurs"}, {"id": "grandeurs/4", "nom": "Utiliser le théorème de Pythagore", "parent": "grandeurs"}, {"id": "espace", "nom": "Espace", "parent": "racine", "couleur": "#D4D4D4"}, {"id": "espace/1", "nom": "Connaître le vocabulaire relatif aux figures planes et aux solides", "parent": "espace"}, {"id": "espace/2", "nom": "Appliquer les propriétés des figures planes (triangles, cercles)", "parent": "espace"}, {"id": "espace/3", "nom": "Connaître l'utilisation des instruments de géométrie", "parent": "espace"}, {"id": "espace/4", "nom": "Identifier les développements de solides", "parent": "espace"}, {"id": "espace/5", "nom": "Repérer un point dans un système d'axes orthonormés", "parent": "espace"}, {"id": "espace/6", "nom": "Identifier les axes et le centre de symétrie d'une figure plane", "parent": "espace"}], "liens": [{"url": "https://aureliohub.github.io/NO_priorite_operations_1.html", "titre": "Nombres et opérations – Priorité des opérations (1)", "dossier": "nombres/7"}, {"url": "https://aureliohub.github.io/NO_priorite_operations_2.html", "titre": "Nombres et opérations – Priorité des opérations (2)", "dossier": "nombres/7"}, {"url": "https://aureliohub.github.io/NO_priorite_operations_3.html", "titre": "Nombres et opérations – Priorité des opérations (3)", "dossier": "nombres/7"}, {"url": "https://aureliohub.github.io/NO_fractions_reduire.html", "titre": "Fractions – Réduire", "dossier": "nombres/4"}, {"url": "https://aureliohub.github.io/NO_fractions_amplifier.html", "titre": "Fractions – Amplifier", "dossier": "nombres/4"}, {"url": "https://aureliohub.github.io/NO_fractions_criteres_divisibilite.html", "titre": "Fractions – Critères de divisibilité", "dossier": "nombres/4"}, {"url": "https://aureliohub.github.io/NO_fractions_addition_soustraction.html", "titre": "Nombres et opérations – Addition et soustraction de fractions", "dossier": "nombres/4"}, {"url": "https://aureliohub.github.io/NO_fractions_multiplication.html", "titre": "Nombres et opérations – Fractions - multiplication", "dossier": "nombres/4"}, {"url": "https://aureliohub.github.io/NO_fractions_division.html", "titre": "Nombres et opérations – Fractions - division", "dossier": "nombres/4"}, {"url": "https://aureliohub.github.io/NO_fractions_4_operations_exercices.html", "titre": "Nombres et opérations – Fractions - les 4 opérations", "dossier": "nombres/4"}, {"url": "https://aureliohub.github.io/NO_fractions_4_operations_niveau_2.html", "titre": "Nombres et opérations – Fractions - les 4 opérations - niveau 2", "dossier": "nombres/4"}]}</script>
 
 <script>
 // Copie du fichier tel qu'il est arrivé, avant que la page ne se remplisse : sert à fabriquer le nouveau drive.html
@@ -406,30 +417,32 @@ const COULEUR_PERSO = '#FFFFFF';   // dossier créé directement dans « Mes lie
 // Index des dossiers : id → { nom, couleur, parent, fixe }
 // Un dossier créé par l'utilisateur prend la couleur du domaine qui le contient.
 let DOSSIERS = {};
+// Structure de départ : les domaines et sous-domaines EVA, ensuite modifiables comme tout dossier
+function structureParDefaut() {
+  const l = [];
+  DOMAINES.forEach(d => {
+    l.push({ id:d.id, nom:d.nom, parent:RACINE, couleur:d.couleur });
+    d.sous.forEach((nom, i) => l.push({ id:d.id + '/' + (i + 1), nom, parent:d.id }));
+  });
+  return l;
+}
+// Un dossier à la racine a sa propre couleur ; un sous-dossier prend celle du dossier qui le contient
 function indexer() {
   DOSSIERS = { [RACINE]: { nom:'Mes liens', couleur:'#444746', parent:null, fixe:true },
                [CORBEILLE]: { nom:'Corbeille', couleur:'#444746', parent:null, fixe:true } };
-  DOMAINES.forEach(d => {
-    DOSSIERS[d.id] = { nom:d.nom, couleur:d.couleur, parent:RACINE, fixe:true };
-    d.sous.forEach((nom, i) => { DOSSIERS[d.id + '/' + (i + 1)] = { nom, couleur:d.couleur, parent:d.id, fixe:true }; });
-  });
   let reste = etat.dossiers.slice(), avance = true;
   while (reste.length && avance) {
     avance = false;
     reste = reste.filter(d => {
       const p = DOSSIERS[d.parent];
-      if (!p) return true;
-      DOSSIERS[d.id] = { nom:d.nom, parent:d.parent, couleur: d.parent === RACINE ? COULEUR_PERSO : p.couleur, fixe:false };
+      if (!p || d.parent === CORBEILLE) return true;
+      DOSSIERS[d.id] = { nom:d.nom, parent:d.parent, couleur: d.parent === RACINE ? (d.couleur || COULEUR_PERSO) : p.couleur, fixe:false };
       avance = true; return false;
     });
   }
-  reste.forEach(d => { d.parent = RACINE; DOSSIERS[d.id] = { nom:d.nom, parent:RACINE, couleur:COULEUR_PERSO, fixe:false }; });
+  reste.forEach(d => { d.parent = RACINE; DOSSIERS[d.id] = { nom:d.nom, parent:RACINE, couleur:d.couleur || COULEUR_PERSO, fixe:false }; });
 }
-function enfants(id) {
-  const d = DOMAINES.find(x => x.id === id);
-  const fixes = id === RACINE ? DOMAINES.map(x => x.id) : d ? d.sous.map((_, i) => d.id + '/' + (i + 1)) : [];
-  return fixes.concat(etat.dossiers.filter(x => x.parent === id).map(x => x.id));
-}
+function enfants(id) { return etat.dossiers.filter(x => x.parent === id).map(x => x.id); }
 function descendants(id) { return [id].concat(...enfants(id).map(descendants)); }
 
 // ═══ ÉTAT ET SAUVEGARDE ══════════════════════════════════════════════════
@@ -454,11 +467,17 @@ let miseAJourIntegree = false;
 if (INTEGRE && INTEGRE.version && etat.base !== INTEGRE.version) {
   miseAJourIntegree = etat.liens.some(l => !l.fichier);
   const locaux = etat.liens.filter(l => l.fichier);
-  etat.dossiers = (INTEGRE.dossiers || []).map(d => ({ id:d.id, nom:d.nom, parent:d.parent }));
+  etat.dossiers = (INTEGRE.dossiers || []).map(d => ({ id:d.id, nom:d.nom, parent:d.parent, couleur:d.couleur }));
+  etat.structure = INTEGRE.structure;
   etat.liens = (INTEGRE.liens || []).map(l => ({ id:nouvelId(), url:l.url, titre:l.titre, dossier:l.dossier, ajoute:l.ajoute }))
     .concat(locaux);
   etat.base = INTEGRE.version;
   etat.signatureBase = null;   // recalculée ci-dessous, une fois les dossiers indexés
+}
+if (!etat.structure) {   // anciennes données : seuls les dossiers personnels étaient enregistrés
+  const defaut = structureParDefaut(), ids = new Set(defaut.map(d => d.id));
+  etat.dossiers = defaut.concat(etat.dossiers.filter(d => !ids.has(d.id)));
+  etat.structure = 2;
 }
 indexer();
 etat.liens.forEach(l => { if (!DOSSIERS[l.dossier]) l.dossier = RACINE; });
@@ -776,6 +795,28 @@ function cibleSous(e) {
   if (panneau.contains(e.target) && !filtre && courant !== CORBEILLE) return { el:panneau, dossier:courant };
   return null;
 }
+function viseeDossier(e) {
+  const el = e.target.closest && e.target.closest('[data-dossier]');
+  if (!el || !dossierTraine) return null;
+  const cible = el.dataset.dossier;
+  if (cible === dossierTraine) return null;
+  if (cible === CORBEILLE) return { el, cible, mode:'dans' };
+  // bord du dossier visé : insertion à côté de lui, s'il est permis de rejoindre son dossier parent
+  const D = DOSSIERS[cible], rc = el.getBoundingClientRect();
+  const horizontal = el.classList.contains('dossier') && etat.vue !== 'liste';
+  const pos = horizontal ? (e.clientX - rc.left) / rc.width : (e.clientY - rc.top) / rc.height;
+  if (D && !D.fixe && (pos < .25 || pos > .75) && peutRecevoir(dossierTraine, D.parent))
+    return { el, cible, mode: pos < .25 ? 'avant' : 'apres' };
+  return peutRecevoir(dossierTraine, cible) ? { el, cible, mode:'dans' } : null;
+}
+function reordonnerDossier(id, idCible, apres) {
+  const d = etat.dossiers.find(x => x.id === id), c = etat.dossiers.find(x => x.id === idCible);
+  if (!d || !c || !peutRecevoir(id, c.parent)) return;
+  etat.dossiers.splice(etat.dossiers.indexOf(d), 1);
+  etat.dossiers.splice(etat.dossiers.indexOf(c) + (apres ? 1 : 0), 0, d);
+  d.parent = c.parent;
+  indexer(); sauver(); render();
+}
 function nettoyerCibles() {
   document.querySelectorAll('.cible, .ins-avant, .ins-apres').forEach(x => x.classList.remove('cible', 'ins-avant', 'ins-apres'));
 }
@@ -786,10 +827,9 @@ document.addEventListener('dragover', e => {
   const ins = insertionSous(e);
   if (ins) { ins.carte.classList.add(ins.apres ? 'ins-apres' : 'ins-avant'); e.dataTransfer.dropEffect = 'move'; return; }
   if (dossierTraine) {
-    const d = e.target.closest && e.target.closest('[data-dossier]');
-    const ok = d && (d.dataset.dossier === CORBEILLE || peutRecevoir(dossierTraine, d.dataset.dossier));
-    e.dataTransfer.dropEffect = ok ? 'move' : 'none';
-    if (ok) d.classList.add('cible');
+    const v = viseeDossier(e);
+    e.dataTransfer.dropEffect = v ? 'move' : 'none';
+    if (v) v.el.classList.add(v.mode === 'dans' ? 'cible' : v.mode === 'avant' ? 'ins-avant' : 'ins-apres');
     return;
   }
   const c = cibleSous(e);
@@ -803,10 +843,12 @@ document.addEventListener('drop', e => {
   const ins = insertionSous(e);
   if (ins) { reordonner(lienTraine, ins.cible, ins.apres); lienTraine = null; return; }
   if (dossierTraine) {
-    const d = e.target.closest && e.target.closest('[data-dossier]'), id = dossierTraine;
+    const v = viseeDossier(e), id = dossierTraine;
     dossierTraine = null;
-    if (!d) return;
-    if (d.dataset.dossier === CORBEILLE) supprimerDossier(id); else deplacerDossier(id, d.dataset.dossier);
+    if (!v) return;
+    if (v.cible === CORBEILLE) supprimerDossier(id);
+    else if (v.mode === 'dans') deplacerDossier(id, v.cible);
+    else reordonnerDossier(id, v.cible, v.mode === 'apres');
     return;
   }
   const c = cibleSous(e);
@@ -838,7 +880,7 @@ arbre.addEventListener('click', e => {
 });
 panneau.addEventListener('click', e => {
   const p = e.target.closest('.points');
-  if (p && p.dataset.menuDossier) { e.stopPropagation(); dossierMenu = p.dataset.menuDossier; ouvrirMenu(menuDossier, p); return; }
+  if (p && p.dataset.menuDossier) { e.stopPropagation(); ouvrirMenuDossier(p.dataset.menuDossier, 0, 0, p); return; }
   if (p) {
     e.preventDefault(); e.stopPropagation(); lienMenu = p.closest('.carte').dataset.lien;
     const l = etat.liens.find(x => x.id === lienMenu);
@@ -925,12 +967,14 @@ function demanderNom(titre, valeur, ok) {
 }
 
 // ═══ DOSSIERS PERSONNELS ═════════════════════════════════════════════════
-async function nouveauDossier() {
+async function nouveauDossier(parent) {
+  parent = parent && DOSSIERS[parent] && parent !== CORBEILLE ? parent : dossierCible();
   const nom = await demanderNom('Nouveau dossier', 'Dossier sans titre', 'Créer');
   if (!nom) return;
-  etat.dossiers.push({ id:'p' + nouvelId(), nom, parent:dossierCible() });
-  if (courant !== RACINE && !etat.ouverts.includes(courant)) etat.ouverts.push(courant);
+  etat.dossiers.push({ id:'p' + nouvelId(), nom, parent });
+  if (parent !== RACINE && !etat.ouverts.includes(parent)) etat.ouverts.push(parent);
   indexer(); sauver(); render();
+  toast('Dossier « ' + nom + ' » créé dans « ' + DOSSIERS[parent].nom + ' »');
 }
 const menuDossier = document.getElementById('menu-dossier');
 let dossierMenu = null;
@@ -938,9 +982,10 @@ menuDossier.addEventListener('click', async e => {
   const b = e.target.closest('[data-action-dossier]');
   if (!b) return;
   fermerMenus();
+  const a = b.dataset.actionDossier;
+  if (a === 'nouveau') { nouveauDossier(dossierMenu); return; }
   const d = etat.dossiers.find(x => x.id === dossierMenu);
   if (!d) return;
-  const a = b.dataset.actionDossier;
   if (a === 'renommer') {
     const nom = await demanderNom('Renommer', d.nom, 'OK');
     if (nom) { d.nom = nom; indexer(); sauver(); render(); }
@@ -949,6 +994,13 @@ menuDossier.addEventListener('click', async e => {
 });
 
 // ── Déplacer un dossier personnel (avec son contenu) ; jamais dans lui-même ni dans un de ses sous-dossiers
+// « Mes liens » n'offre que la création ; les autres dossiers tout le menu
+function ouvrirMenuDossier(id, x, y, bouton) {
+  dossierMenu = id;
+  const fixe = DOSSIERS[id].fixe;
+  menuDossier.querySelectorAll('[data-action-dossier]:not([data-action-dossier="nouveau"]), [data-hr-dossier], hr').forEach(el => { el.hidden = fixe; });
+  if (bouton) ouvrirMenu(menuDossier, bouton); else ouvrirMenuEn(menuDossier, x, y);
+}
 function peutRecevoir(idDossier, cible) {
   return !!DOSSIERS[cible] && cible !== CORBEILLE && !descendants(idDossier).includes(cible);
 }
@@ -1024,13 +1076,13 @@ function ouvrirMenuEn(m, x, y) {
 }
 document.querySelector('.lateral').addEventListener('contextmenu', e => {
   const n = e.target.closest('[data-dossier]');
-  if (!n || !DOSSIERS[n.dataset.dossier] || DOSSIERS[n.dataset.dossier].fixe) return;
-  e.preventDefault(); dossierMenu = n.dataset.dossier; ouvrirMenuEn(menuDossier, e.clientX, e.clientY);
+  if (!n || !DOSSIERS[n.dataset.dossier] || n.dataset.dossier === CORBEILLE) return;
+  e.preventDefault(); ouvrirMenuDossier(n.dataset.dossier, e.clientX, e.clientY);
 });
 panneau.addEventListener('contextmenu', e => {
   const tuile = e.target.closest('.dossier');
   if (tuile && DOSSIERS[tuile.dataset.dossier] && !DOSSIERS[tuile.dataset.dossier].fixe) {
-    e.preventDefault(); dossierMenu = tuile.dataset.dossier; ouvrirMenuEn(menuDossier, e.clientX, e.clientY); return;
+    e.preventDefault(); ouvrirMenuDossier(tuile.dataset.dossier, e.clientX, e.clientY); return;
   }
   const carte = e.target.closest('.carte');
   if (carte) {
@@ -1273,7 +1325,8 @@ function raccourciFichier(e) {
 // Ce qui part dans le fichier : dossiers personnels et liens (pas la corbeille, pas les fichiers du navigateur)
 function contenuIntegrable() {
   return {
-    dossiers:etat.dossiers.map(({ id, nom, parent }) => ({ id, nom, parent })),
+    structure:2,
+    dossiers:etat.dossiers.map(({ id, nom, parent, couleur }) => ({ id, nom, parent, couleur })),
     liens:actifs().filter(l => !l.fichier).map(({ url, titre, dossier, ajoute }) => ({ url, titre, dossier, ajoute }))
   };
 }
@@ -1316,7 +1369,7 @@ document.getElementById('btn-exporter').onclick = async () => {
     liens.push({ titre:l.titre, dossier:l.dossier, fichier:{ nom, type, mime, taille }, donnees:await enDataURL(blob) });
   }
   const data = JSON.stringify({ format:'liens-eva', version:3,
-    dossiers:etat.dossiers.map(({ id, nom, parent }) => ({ id, nom, parent })), liens }, null, 2);
+    structure:2, dossiers:etat.dossiers.map(({ id, nom, parent, couleur }) => ({ id, nom, parent, couleur })), liens }, null, 2);
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([data], { type:'application/json' }));
   a.download = 'drive.json';
@@ -1339,7 +1392,7 @@ async function importerJson(texte) {
     let nd = 0, n = 0;
     (Array.isArray(d) ? [] : (d.dossiers || [])).forEach(x => {
       if (!x || !x.id || !x.nom || DOSSIERS[x.id]) return;
-      etat.dossiers.push({ id:String(x.id), nom:String(x.nom), parent:x.parent || RACINE }); nd++;
+      etat.dossiers.push({ id:String(x.id), nom:String(x.nom), parent:x.parent || RACINE, couleur:x.couleur }); nd++;
     });
     indexer();
     for (const l of liste) {
