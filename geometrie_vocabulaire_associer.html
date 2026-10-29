@@ -406,8 +406,8 @@ btn.addEventListener('click', () => {
     applique(entier >= 0.55 ? entier : m.largeur);
   }
   /* auto = la page suit la taille de la fenêtre ; un zoom manuel coupe ce suivi
-     jusqu'au prochain clic sur « Page entière » */
-  let auto = true, lw = window.innerWidth, lh = window.innerHeight;
+     jusqu'au prochain clic sur « Page entière ». À l'ouverture : 100 %, sans suivi. */
+  let auto = false, lw = window.innerWidth, lh = window.innerHeight;
   document.getElementById('zoom-moins').addEventListener('click', () => { auto = false; applique(z / 1.15); });
   document.getElementById('zoom-plus').addEventListener('click', () => { auto = false; applique(z * 1.15); });
   document.getElementById('zoom-page').addEventListener('click', () => { auto = true; pageEntiere(); });
@@ -425,7 +425,7 @@ btn.addEventListener('click', () => {
   /* iOS déclenche resize avant la mise à jour du viewport, d'où le délai */
   window.addEventListener('orientationchange', () => rejoue(350));
   if (window.visualViewport) window.visualViewport.addEventListener('resize', () => rejoue(150));
-  ajusteAuto();
+  applique(1);
 
   /* plein écran */
   /* position de lecture, mémorisée hors passage en plein écran pour être restituée ensuite */

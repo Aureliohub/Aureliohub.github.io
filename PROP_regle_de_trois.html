@@ -342,8 +342,8 @@ btn.addEventListener('click', () => {
                       (window.innerHeight - hBarre - 36) / r.height));
   }
   /* auto = la page suit la taille de la fenêtre ; un zoom manuel coupe ce suivi
-     jusqu'au prochain clic sur « Page entière » */
-  let auto = true, lw = window.innerWidth, lh = window.innerHeight;
+     jusqu'au prochain clic sur « Page entière ». À l'ouverture : 100 %, sans suivi. */
+  let auto = false, lw = window.innerWidth, lh = window.innerHeight;
   document.getElementById('zoom-moins').addEventListener('click', () => { auto = false; applique(z / 1.15); });
   document.getElementById('zoom-plus').addEventListener('click', () => { auto = false; applique(z * 1.15); });
   document.getElementById('zoom-page').addEventListener('click', () => { auto = true; pageEntiere(); });
@@ -358,7 +358,7 @@ btn.addEventListener('click', () => {
       if (auto && vrai) pageEntiere();
     }, 150);
   });
-  pageEntiere();
+  applique(1);
 
   /* position de lecture, mémorisée hors passage en plein écran pour être restituée ensuite */
   let posY = 0, posH = 1, tPos, transition = false;
