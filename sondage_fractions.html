@@ -2565,7 +2565,7 @@ var qrcode = function() {
 <script>
 
 'use strict';
-const VERSION = 'v2';
+const VERSION = 'v3';
 const MAIL = 'ateliertic@uog.ch';
 const MAIL_URL = window.MAIL_URL || 'https://formsubmit.co/ajax/' + MAIL;
 const TITLE = 'Les fractions : où j’en suis ?';
@@ -2678,7 +2678,7 @@ function tryRelay(idx, tries) {
   c.on('message', async (t, payload) => { const m = await unseal(H.room.key, payload.toString()); if (m && H.c === c) hMsg(m); });
 }
 /* Les téléphones ne reçoivent que des identifiants anonymes : aucun prénom ne circule vers les autres. */
-function pub() { const d = {}; H.g.players.forEach(p => { d[p.id] = p.r; }); return { ph: H.g.ph, d }; }
+function pub() { const d = {}; H.g.players.forEach(p => { d[p.id] = p.r + (p.v ? 'V' : ''); }); return { ph: H.g.ph, d }; }
 async function hPublish() { if (H.c && H.c.connected) H.c.publish(H.room.topic + '/s', await seal(H.room.key, pub())); }
 function commit() { hPublish(); hRender(); }
 
@@ -2688,14 +2688,14 @@ function hMsg(m) {
   if (m.t === 'join' && m.pid) {
     if (g.ph === 'open' && !g.players.some(p => p.id === m.pid)) {
       const name = String(m.name || '').replace(/\s+/g, ' ').trim().slice(0, 20) || 'Sans nom';
-      g.players.push({ id: String(m.pid).slice(0, 16), name, r: cleanR(m.r), tj: Date.now() });
+      g.players.push({ id: String(m.pid).slice(0, 16), name, r: cleanR(m.r), v: !!m.v, tj: Date.now() });
       return commit();
     }
     return hPublish();
   }
   if (m.t === 'ans' && g.ph === 'open') {
     const p = g.players.find(p => p.id === m.pid); if (!p) return hPublish();
-    const r = cleanR(m.r); if (r !== p.r) { p.r = r; return commit(); }
+    const r = cleanR(m.r), v = !!m.v; if (r !== p.r || v !== !!p.v) { p.r = r; p.v = v; return commit(); }
     return hPublish();
   }
 }
@@ -2704,7 +2704,7 @@ function hMsg(m) {
 function counts(i) { const c = [0, 0, 0, 0]; H.g.players.forEach(p => c[+p.r[i]]++); return c; }
 function stats() {
   const P = H.g.players;
-  return { N: P.length, full: P.filter(p => nAns(p.r) === NQ).length, any: P.filter(p => nAns(p.r)).length };
+  return { N: P.length, full: P.filter(p => p.v).length, any: P.filter(p => nAns(p.r)).length };
 }
 
 /* ---------- Rapport détaillé (envoyé par courriel, jamais affiché à l’écran) ---------- */
@@ -2724,7 +2724,7 @@ function reportText() {
   L.push('Niveaux : 1 = je ne sais pas encore · 2 = je sais avec de l’aide · 3 = je sais faire · – = pas de réponse', '');
   L.push('DÉTAIL PAR PERSONNE');
   byName().forEach(p => {
-    L.push('', p.name);
+    L.push('', p.name + (p.v ? '' : ' (n’a pas validé)'));
     ITEMS.forEach((it, i) => L.push(`  ${it.s} : ${lvTxt(p.r[i])}`));
   });
   L.push('', 'SYNTHÈSE DE LA CLASSE', ...synth());
@@ -2736,7 +2736,7 @@ function reportFields() {
     'Échelle': '1 = je ne sais pas encore · 2 = avec de l’aide · 3 = je sais faire · – = pas de réponse' };
   const seen = {};
   byName().forEach(p => {
-    let k = p.name; seen[k] = (seen[k] || 0) + 1; if (seen[k] > 1) k += ' (' + seen[k] + ')';
+    let k = p.name + (p.v ? '' : ' (non validé)'); seen[k] = (seen[k] || 0) + 1; if (seen[k] > 1) k += ' (' + seen[k] + ')';
     f[k] = ITEMS.map((it, i) => `${it.s} ${lvTxt(p.r[i])}`).join(' · ');
   });
   f['Synthèse'] = synth().join(' | ');
@@ -2750,11 +2750,26 @@ function reportCsv() {
 }
 async function sendReport() {
   const g = H.g; g.mail = 'wait'; hRender();
+  g.why = '';
+  if (location.protocol === 'file:') { g.mail = 'err'; g.why = 'la page est ouverte depuis l’ordinateur. Ouvre-la depuis GitHub Pages.'; return hRender(); }
+  let net = false;
   try {
     const r = await fetch(MAIL_URL, { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify(reportFields()) });
     const j = await r.json().catch(() => ({}));
-    g.mail = j.success === true || j.success === 'true' ? 'ok' : /activ/i.test(j.message || '') ? 'act' : 'err';
-  } catch (e) { g.mail = 'err'; }
+    if (j.success === true || j.success === 'true') g.mail = 'ok';
+    else if (/activ/i.test(j.message || '')) g.mail = 'act';
+    else { g.mail = 'err'; g.why = (j.message || 'réponse ' + r.status + ' du service d’envoi'); }
+  } catch (e) { net = true; g.why = 'le service d’envoi ne répond pas (' + (e.message || e) + ').'; }
+  if (net) {   /* seconde voie : formulaire classique dans un cadre caché (pas d’accusé de réception) */
+    try {
+      let ifr = document.getElementById('mailfr');
+      if (!ifr) { ifr = document.createElement('iframe'); ifr.id = ifr.name = 'mailfr'; ifr.style.display = 'none'; document.body.appendChild(ifr); }
+      const f = document.createElement('form'); f.method = 'POST'; f.target = 'mailfr'; f.action = MAIL_URL.replace('/ajax/', '/'); f.style.display = 'none';
+      Object.entries(reportFields()).forEach(([k, v]) => { const i = document.createElement('input'); i.type = 'hidden'; i.name = k; i.value = v; f.appendChild(i); });
+      document.body.appendChild(f); f.submit(); setTimeout(() => f.remove(), 2000);
+      g.mail = 'ifr';
+    } catch (e) { g.mail = 'err'; }
+  }
   hRender();
 }
 function download(name, text, type) {
@@ -2767,7 +2782,7 @@ function hClick(ev) {
   const g = H.g, a = b.dataset.a;
   if (a === 'res') { H.view = 'res'; hRender(); }
   else if (a === 'stop') {
-    if (confirm('Terminer le sondage et envoyer le détail à ' + MAIL + ' ?\nLes participants ne pourront plus modifier leurs réponses.')) { g.ph = 'end'; g.t1 = Date.now(); H.view = 'res'; commit(); sendReport(); }
+    g.ph = 'end'; g.t1 = Date.now(); H.view = 'res'; commit(); sendReport();
   }
   else if (a === 'send') sendReport();
   else if (a === 'mailto') location.href = 'mailto:' + MAIL + '?subject=' + encodeURIComponent(subj()) + '&body=' + encodeURIComponent(reportText());
@@ -2816,28 +2831,29 @@ function hRender() {
         <h1>Les <span class="v-e">fractions</span>&nbsp;:<br>où j’en suis&nbsp;?</h1>
         <p class="sub">Scanne le code QR et écris ton prénom. Pour chaque point, indique ton niveau : pas encore, avec de l’aide ou je sais faire.</p>
         ${location.protocol === 'file:' ? '<p class="err">Page ouverte depuis l’ordinateur : les téléphones ne pourront pas se connecter. Ouvre-la depuis GitHub Pages.</p>' : ''}
-        <p class="joined">${S.N ? plural(S.N, 'participant', 'participants') + ' · ' + S.full + ' ' + (S.full > 1 ? 'ont' : 'a') + ' tout rempli' : 'En attente des participants…'}</p>
+        <p class="joined">${S.N ? plural(S.N, 'participant', 'participants') + ' · ' + S.full + ' ' + (S.full > 1 ? 'ont' : 'a') + ' validé' : 'En attente des participants…'}</p>
         <button class="btn go" data-a="res"${S.any ? '' : ' disabled'}>Afficher les résultats</button>
-        <p class="anon">Les résultats sont anonymes à l’écran. Le détail avec les prénoms est envoyé à ${MAIL}.</p>
+        <p class="anon">Les résultats sont anonymes à l’écran.</p>
       </div>
     </div></div>`;
   } else {
     const open = g.ph === 'open';
     const M = {
-      wait: `<p class="mail dots">Envoi du détail à ${MAIL}</p>`,
-      ok: `<p class="mail ok">✓ Détail envoyé à ${MAIL}</p>`,
-      act: `<p class="mail ko">Premier envoi : un courriel d’activation est parti à ${MAIL}. Clique sur le lien qu’il contient, puis sur « Renvoyer le détail ».</p>`,
-      err: `<p class="mail ko">L’envoi automatique à ${MAIL} n’a pas fonctionné.</p>`
+      wait: '<p class="mail dots">Envoi des résultats</p>',
+      ok: '<p class="mail ok">✓ Résultats envoyés</p>',
+      act: '<p class="mail ko">Premier envoi : un courriel d’activation a été envoyé au destinataire. Clique sur le lien qu’il contient, puis sur « Renvoyer ».</p>',
+      ifr: '<p class="mail ok">✓ Résultats transmis (par la seconde voie, sans accusé de réception)</p>',
+      err: '<p class="mail ko">L’envoi n’a pas fonctionné' + (g.why ? ' : ' + esc(g.why) : '.') + '</p>'
     }[g.mail] || '';
     const tail = open
-      ? `<div class="acts"><button class="btn" data-a="stop">Terminer et envoyer le détail</button></div>`
-      : M + `<div class="acts"><button class="btn${g.mail === 'ok' ? ' ghost' : ''}" data-a="send"${g.mail === 'wait' ? ' disabled' : ''}>Renvoyer le détail</button>
+      ? `<div class="acts"><button class="btn" data-a="stop">Terminer</button></div>`
+      : M + `<div class="acts"><button class="btn${g.mail === 'ok' ? ' ghost' : ''}" data-a="send"${g.mail === 'wait' ? ' disabled' : ''}>Renvoyer</button>
         <button class="btn ghost" data-a="mailto">Ouvrir dans la messagerie</button><button class="btn ghost" data-a="csv">Télécharger (.csv)</button><button class="btn ghost" data-a="reset">Nouveau sondage</button></div>`;
     h = `<div class="host">${net}<header class="bar">${brand}<span class="pill">${open ? 'Sondage ouvert' : 'Sondage terminé'}</span><span class="sp"></span>
       ${open ? '<button class="btn ghost small" data-a="qr">Code QR</button>' : ''}<button class="btn ghost small" data-a="full">Plein écran</button>${gearBtn}</header>
     <main class="res">
       <h1>Résultats de la classe</h1>
-      <p class="rsum"><b>${S.N}</b> ${S.N > 1 ? 'participants' : 'participant'} · <b>${S.full}</b> ${S.full > 1 ? 'ont' : 'a'} tout rempli</p>
+      <p class="rsum"><b>${S.N}</b> ${S.N > 1 ? 'participants' : 'participant'} · <b>${S.full}</b> ${S.full > 1 ? 'ont' : 'a'} validé</p>
       ${legend}
       <div class="rlist">${ITEMS.map((it, i) => `<div class="row"><b>${it.s}</b>${bar(i)}</div>`).join('')}</div>
       ${tail}
@@ -2860,13 +2876,14 @@ function hRender() {
 /* ============================================================
    TÉLÉPHONE
    ============================================================ */
-const P = { code: '', pid: '', name: '', st: null, room: null, c: null, net: false, late: false, joining: false, r: '', i: 0, busy: 0 };
+const P = { code: '', pid: '', name: '', st: null, room: null, c: null, net: false, late: false, joining: false, r: '', v: false, i: 0, busy: 0 };
 async function playerInit() {
   P.code = (qs.get('p') || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
   if (P.code.length !== 6 || !window.crypto || !crypto.subtle) { paint('<div class="ph"><div class="ph-mid"><h1>Code QR non valable</h1><p class="muted">Scanne à nouveau le code QR affiché sur l’écran.</p></div></div>'); return; }
   const saved = store.get('frac-p-' + P.code) || {};
   P.pid = saved.pid || rid(10); P.name = saved.name || ''; P.joining = !!saved.name;
   P.r = cleanR(store.get('frac-r-' + P.code));
+  P.v = !!store.get('frac-v-' + P.code);
   P.i = P.r.indexOf('0'); if (P.i < 0) P.i = NQ;
   P.room = await mkRoom(P.code);
   document.addEventListener('click', pClick);
@@ -2881,13 +2898,13 @@ async function playerInit() {
   document.addEventListener('visibilitychange', () => { if (!document.hidden) pSend({ t: 'hello' }); });
 }
 async function pSend(m) { if (P.c && P.c.connected) P.c.publish(P.room.topic + '/h', await seal(P.room.key, m)); }
-function pJoin() { pSend({ t: 'join', pid: P.pid, name: P.name, r: P.r }); }
+function pJoin() { pSend({ t: 'join', pid: P.pid, name: P.name, r: P.r, v: P.v }); }
 const pMe = () => P.st && P.st.d && P.st.d[P.pid] != null ? P.st.d[P.pid] : null;
 function pTick() {
   if (!P.st) return pSend({ t: 'hello' });
   const me = pMe();
   if (me == null) { if (P.joining) pJoin(); return; }
-  if (P.st.ph === 'open' && me !== P.r) pSend({ t: 'ans', pid: P.pid, r: P.r });
+  if (P.st.ph === 'open' && me !== P.r + (P.v ? 'V' : '')) pSend({ t: 'ans', pid: P.pid, r: P.r, v: P.v });
 }
 function pSubmit() {
   const i = document.getElementById('nm'); if (!i) return;
@@ -2896,7 +2913,8 @@ function pSubmit() {
   pJoin(); pRender();
 }
 function pClick(ev) {
-  const b = ev.target.closest('[data-l],[data-go]'); if (!b || !P.st || P.st.ph !== 'open') return;
+  const b = ev.target.closest('[data-l],[data-go],[data-ok]'); if (!b || !P.st || P.st.ph !== 'open' || P.v) return;
+  if (b.dataset.ok != null) { if (nAns(P.r) < NQ) return; P.v = true; store.set('frac-v-' + P.code, true); pSend({ t: 'ans', pid: P.pid, r: P.r, v: true }); window.scrollTo(0, 0); return pRender(); }
   if (b.dataset.go != null) { P.i = +b.dataset.go; window.scrollTo(0, 0); return pRender(); }
   const i = P.i, v = b.dataset.l;
   P.r = P.r.slice(0, i) + v + P.r.slice(i + 1);
@@ -2919,11 +2937,13 @@ function pRender() {
   else if (me == null && P.joining && P.name && st.ph === 'open') mid = '<h1 class="dots">Inscription</h1>';
   else if (st.ph === 'end') mid = me != null ? `<h1>Merci, ${esc(P.name)} !</h1><p class="muted">Le sondage est terminé. Tu peux fermer cette page.</p>` : '<h1>Sondage terminé</h1><p class="muted">Ce sondage est fermé.</p>';
   else if (me == null) mid = `<h1>Ton prénom</h1><form style="width:100%;display:grid;gap:14px"><input id="nm" maxlength="20" autocomplete="given-name" autocapitalize="words" enterkeyhint="go" aria-label="Ton prénom" value="${esc(P.name)}"><button class="btn" type="submit">Commencer</button></form><p class="muted small">Ton prénom n’apparaît pas à l’écran de la classe. Il est transmis seulement à ton enseignant.</p>`;
+  else if (P.v) mid = `<h1>Merci, ${esc(P.name)} !</h1><p class="muted">Tes réponses sont validées. Tu peux fermer cette page.</p>`;
   else if (P.i >= NQ) {
     const miss = NQ - nAns(P.r);
     top = `<b>${esc(P.name)}</b>${dots(-1)}`;
-    mid = `<h1>${miss ? 'Presque fini' : 'Merci, ' + esc(P.name) + ' !'}</h1><p class="muted">${miss ? plural(miss, 'point n’a', 'points n’ont') + ' pas encore de réponse.' : 'Tes réponses sont enregistrées. Touche un point pour changer ta réponse.'}</p>
+    mid = `<h1>Mes réponses</h1><p class="muted">${miss ? plural(miss, 'point n’a', 'points n’ont') + ' pas encore de réponse.' : 'Touche un point pour changer ta réponse, puis valide.'}</p>
       <ul class="recap">${ITEMS.map((it, k) => `<li><button data-go="${k}"><span>${it.s}</span>${P.r[k] !== '0' ? gauge(P.r[k]) : '<em class="none">à remplir</em>'}</button></li>`).join('')}</ul>`;
+    btns = `<div class="ph-btns"><button class="btn" data-ok${miss ? ' disabled' : ''}>Valider</button></div>`;
   } else {
     const i = P.i, it = ITEMS[i], v = P.r[i];
     top = `<b>Point ${i + 1} sur ${NQ}</b>${dots(i)}`;
