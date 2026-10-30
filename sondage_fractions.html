@@ -2583,7 +2583,7 @@ var qrcode = function() {
 <script>
 
 'use strict';
-const VERSION = 'v6';
+const VERSION = 'v7';
 const MAIL = 'ateliertic@uog.ch';
 const MAIL_URL = window.MAIL_URL || 'https://formsubmit.co/ajax/' + MAIL;
 /* Adresse de l’application Web Google Apps Script (fichier envoi_sondage.gs) — à coller entre les apostrophes.
@@ -2764,6 +2764,47 @@ function reportFields() {
   f['Synthèse'] = synth().join(' | ');
   return f;
 }
+/* ---------- Classeur Excel (.xlsx) construit sans bibliothèque : ZIP non compressé ---------- */
+const CRC = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+function crc32(u) { let c = 0xFFFFFFFF; for (let i = 0; i < u.length; i++) c = CRC[(c ^ u[i]) & 255] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; }
+function zipStore(files) {
+  const enc = new TextEncoder(), parts = [], cen = []; let off = 0;
+  const w16 = (a, v) => a.push(v & 255, v >> 8 & 255), w32 = (a, v) => a.push(v & 255, v >> 8 & 255, v >> 16 & 255, v >>> 24 & 255);
+  files.forEach(([name, text]) => {
+    const nb = enc.encode(name), data = enc.encode(text), crc = crc32(data), h = [];
+    w32(h, 0x04034b50); w16(h, 20); w16(h, 0x0800); w16(h, 0); w16(h, 0); w16(h, 0x21);
+    w32(h, crc); w32(h, data.length); w32(h, data.length); w16(h, nb.length); w16(h, 0);
+    parts.push(new Uint8Array(h), nb, data);
+    const c = []; w32(c, 0x02014b50); w16(c, 20); w16(c, 20); w16(c, 0x0800); w16(c, 0); w16(c, 0); w16(c, 0x21);
+    w32(c, crc); w32(c, data.length); w32(c, data.length); w16(c, nb.length); w16(c, 0); w16(c, 0); w16(c, 0); w16(c, 0); w32(c, 0); w32(c, off);
+    cen.push(new Uint8Array(c), nb); off += h.length + nb.length + data.length;
+  });
+  const csz = cen.reduce((s, p) => s + p.length, 0), e = [];
+  w32(e, 0x06054b50); w16(e, 0); w16(e, 0); w16(e, files.length); w16(e, files.length); w32(e, csz); w32(e, off); w16(e, 0);
+  const all = [...parts, ...cen, new Uint8Array(e)], out = new Uint8Array(all.reduce((s, p) => s + p.length, 0));
+  let p = 0; all.forEach(x => { out.set(x, p); p += x.length; }); return out;
+}
+function reportXlsx() {
+  const x = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  const col = i => String.fromCharCode(65 + i);
+  const cell = (v, r, c, st) => typeof v === 'number'
+    ? `<c r="${col(c)}${r}"${st ? ` s="${st}"` : ''}><v>${v}</v></c>`
+    : `<c r="${col(c)}${r}" t="inlineStr"${st ? ` s="${st}"` : ''}><is><t>${x(v)}</t></is></c>`;
+  const rows = [[['Prénom', ...ITEMS.map(it => it.s), 'Validé'], 1]];
+  byName().forEach(p => rows.push([[p.name, ...[...p.r].map(c => c === '0' ? '–' : +c), p.v ? 'oui' : 'non'], 0]));
+  rows.push([[], 0], [['Niveaux : 1 = je ne sais pas encore · 2 = je sais avec de l’aide · 3 = je sais faire · – = pas de réponse'], 2],
+    [[`Sondage du ${dDate(H.g.t0)}, ${dTime(H.g.t0)}–${dTime(H.g.t1 || Date.now())}`], 2]);
+  const sd = rows.map(([vals, st], i) => `<row r="${i + 1}">${vals.map((v, c) => cell(v, i + 1, c, st === 1 ? 1 : st === 2 ? 2 : c && c <= NQ ? 3 : 0)).join('')}</row>`).join('');
+  const files = [
+    ['[Content_Types].xml', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>'],
+    ['_rels/.rels', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>'],
+    ['xl/workbook.xml', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Sondage" sheetId="1" r:id="rId1"/></sheets></workbook>'],
+    ['xl/_rels/workbook.xml.rels', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>'],
+    ['xl/styles.xml', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><fonts count="3"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><name val="Calibri"/></font><font><i/><sz val="10"/><color rgb="FF666666"/><name val="Calibri"/></font></fonts><fills count="3"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FFE8ECF4"/><bgColor indexed="64"/></patternFill></fill></fills><borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="4"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1" applyAlignment="1"><alignment horizontal="center" vertical="center" wrapText="1"/></xf><xf numFmtId="0" fontId="2" fillId="0" borderId="0" xfId="0" applyFont="1"/><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0" applyAlignment="1"><alignment horizontal="center"/></xf></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>'],
+    ['xl/worksheets/sheet1.xml', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews><cols><col min="1" max="1" width="20" customWidth="1"/><col min="2" max="${NQ + 1}" width="18" customWidth="1"/><col min="${NQ + 2}" max="${NQ + 2}" width="10" customWidth="1"/></cols><sheetData>${sd}</sheetData></worksheet>`]
+  ];
+  return b64(zipStore(files));
+}
 function reportCsv() {
   const c = s => '"' + String(s).replace(/"/g, '""') + '"';
   const rows = [['Prénom', ...ITEMS.map(it => it.s), 'Validé']];
@@ -2776,7 +2817,7 @@ async function sendReport() {
   if (location.protocol === 'file:') { g.mail = 'err'; g.why = 'la page est ouverte depuis l’ordinateur. Ouvre-la depuis GitHub Pages.'; return hRender(); }
   if (SCRIPT_URL) {
     try {
-      const r = await fetch(SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ t: 'rapport', subject: subj(), text: reportText(), csv: { name: 'sondage_fractions_' + dDate(g.t0).replace(/\./g, '-') + '.csv', text: reportCsv() } }) });
+      const r = await fetch(SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ t: 'rapport', subject: subj(), text: reportText(), xlsx: { name: 'sondage_fractions_' + dDate(g.t0).replace(/\./g, '-') + '.xlsx', b64: reportXlsx() } }) });
       const j = await r.json().catch(() => ({}));
       if (j.ok) g.mail = 'ok'; else { g.mail = 'err'; g.why = j.err || 'réponse ' + r.status + ' du script d’envoi'; }
     } catch (e) { g.mail = 'err'; g.why = 'le script d’envoi ne répond pas (' + (e.message || e) + ').'; }
@@ -2968,9 +3009,9 @@ function pRender() {
   if (!st) mid = P.late ? '<h1>Sondage introuvable</h1><p class="muted">Vérifie que l’écran affiche le code QR, puis scanne-le à nouveau.</p>' : '<h1 class="dots">Connexion</h1>';
   else if (me == null && P.joining && P.name && st.ph === 'open') mid = '<h1 class="dots">Inscription</h1>';
   else if (P.view === 'ex' && me != null) { mid = exScreen(); btns = '<button class="back" data-x="back">‹ Retour</button>'; }
-  else if (st.ph === 'end') { mid = me != null ? `<h1>Merci, ${esc(P.name)} !</h1><p class="muted">Le sondage est terminé.</p>` : '<h1>Sondage terminé</h1><p class="muted">Ce sondage est fermé.</p>'; if (me != null) btns = EXBTN; }
+  else if (st.ph === 'end') { mid = me != null ? `<h1>Merci, ${esc(P.name)} !</h1><p class="muted">Le sondage est terminé.</p>${exDone()}` : '<h1>Sondage terminé</h1><p class="muted">Ce sondage est fermé.</p>'; if (me != null && !store.get(sentKey())) btns = EXBTN; }
   else if (me == null) mid = `<h1>Ton prénom</h1><form style="width:100%;display:grid;gap:14px"><input id="nm" maxlength="20" autocomplete="given-name" autocapitalize="words" enterkeyhint="go" aria-label="Ton prénom" value="${esc(P.name)}"><button class="btn" type="submit">Commencer</button></form><p class="muted small">Ton prénom n’apparaît pas à l’écran de la classe. Il est transmis seulement à ton enseignant.</p>`;
-  else if (P.v) { mid = `<h1>Merci, ${esc(P.name)} !</h1><p class="muted">Tes réponses sont validées.</p><p class="muted">Tu veux t’entraîner ? Reçois des exercices adaptés à ton niveau.</p>`; btns = EXBTN; }
+  else if (P.v) { const sent = store.get(sentKey()); mid = `<h1>Merci, ${esc(P.name)} !</h1><p class="muted">Tes réponses sont validées.</p>${sent ? exDone() : '<p class="muted">Tu veux t’entraîner ? Reçois des fiches d’exercices.</p>'}`; if (!sent) btns = EXBTN; }
   else if (P.i >= NQ) {
     const miss = NQ - nAns(P.r);
     top = `<b>${esc(P.name)}</b>${dots(-1)}`;
@@ -2996,6 +3037,7 @@ const DOCS = [
   { f: 'Prop_fractions_problemes_5.pdf', t: 'Problèmes 5', s: 'Problèmes avec des fractions', k: [3] }];
 const EXBTN = '<div class="ph-btns"><button class="btn" data-x="open">Recevoir des exercices</button></div>';
 const lvOf = k => +P.r[k] || 2;
+function exDone() { const to = store.get(sentKey()); return to ? `<p class="xmsg ok">✓ Fiches envoyées à ${esc(to)}.</p>` : ''; }
 const sentKey = () => 'frac-sent-' + P.code;
 function exScreen() {
   const n = P.sel.size, sent = P.xs === 'ok';
