@@ -62,6 +62,9 @@
   .noeud.niv2 { font-size:13px; }
   .noeud.niv2 .nom { display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
   .lien-arbre .fav { width:16px; height:16px; margin:0 1px; border-radius:3px; }
+  .noeud.racine .nom { font-weight:500; }
+  .noeud.espace-suivant { margin-top:8px; }
+  .sous.espace { padding-left:14px; }
   .sous { display:none; }
   .sous.ouvert { display:block; }
   .sep { flex-shrink:0; height:1px; background:var(--ligne); opacity:.5; margin:12px 12px; }
@@ -262,7 +265,7 @@
 <header class="entete">
   <div class="logo">
     <svg width="34" height="34" viewBox="0 0 24 24"><path fill="#92CDE2" stroke="rgba(0,0,0,.35)" stroke-width=".8" d="M10 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/><path fill="#1f1f1f" d="M10.6 14.4a2.4 2.4 0 0 1 0-3.4l1.6-1.6a2.4 2.4 0 0 1 3.4 3.4l-.8.8-1-1 .8-.8a1 1 0 0 0-1.4-1.4l-1.6 1.6a1 1 0 0 0 0 1.4z"/><path fill="#1f1f1f" d="M13.4 11.6a2.4 2.4 0 0 1 0 3.4l-1.6 1.6a2.4 2.4 0 0 1-3.4-3.4l.8-.8 1 1-.8.8a1 1 0 0 0 1.4 1.4l1.6-1.6a1 1 0 0 0 0-1.4z"/></svg>
-    <span>Maths</span>
+    <span>Drive</span>
   </div>
   <label class="recherche">
     <svg width="22" height="22" viewBox="0 0 24 24"><path fill="#444746" d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
@@ -366,7 +369,7 @@
 <div class="scrim" id="scrim"><div class="dialogue" id="dialogue"></div></div>
 
 <!-- Vignettes enregistrées dans le fichier (bouton « Enregistrer drive.html ») : lues au démarrage sur tout ordinateur -->
-<script id="donnees" type="application/json">{"version": 1793186325337, "structure": 2, "dossiers": [{"id": "nombres", "nom": "Nombres et opérations", "parent": "racine", "couleur": "#92CDE2"}, {"id": "nombres/1", "nom": "Résoudre un problème « concret »", "parent": "nombres"}, {"id": "nombres/2", "nom": "Calculer avec des nombres décimaux (4 opérations)", "parent": "nombres"}, {"id": "nombres/3", "nom": "Calculer avec des nombres relatifs (4 opérations)", "parent": "nombres"}, {"id": "nombres/4", "nom": "Calculer avec des nombres rationnels (4 opérations)", "parent": "nombres"}, {"id": "nombres/5", "nom": "Calculer des puissances", "parent": "nombres"}, {"id": "nombres/6", "nom": "Calculer des racines", "parent": "nombres"}, {"id": "nombres/7", "nom": "Appliquer la hiérarchie des opérations", "parent": "nombres"}, {"id": "nombres/8", "nom": "Lire la valeur d'un nombre sur une droite graduée", "parent": "nombres"}, {"id": "nombres/9", "nom": "Estimer le résultat d'un calcul", "parent": "nombres"}, {"id": "proportionnalite", "nom": "Proportionnalité", "parent": "racine", "couleur": "#F4AFC0"}, {"id": "proportionnalite/1", "nom": "Calculer une fraction ou un pourcentage de…", "parent": "proportionnalite"}, {"id": "proportionnalite/2", "nom": "Retrouver une grandeur dont on connaît un pourcentage", "parent": "proportionnalite"}, {"id": "proportionnalite/3", "nom": "Poser une proportion et la résoudre", "parent": "proportionnalite"}, {"id": "proportionnalite/4", "nom": "Résoudre un problème concret de proportionnalité", "parent": "proportionnalite"}, {"id": "algebre", "nom": "Algèbre", "parent": "racine", "couleur": "#F7DB7F"}, {"id": "algebre/1", "nom": "Vérifier si un nombre est solution d'une équation", "parent": "algebre"}, {"id": "algebre/2", "nom": "Développer et réduire une expression algébrique", "parent": "algebre"}, {"id": "algebre/3", "nom": "Factoriser une expression algébrique", "parent": "algebre"}, {"id": "algebre/4", "nom": "Traduire un problème en langage algébrique", "parent": "algebre"}, {"id": "algebre/5", "nom": "Résoudre une équation", "parent": "algebre"}, {"id": "algebre/6", "nom": "Résoudre un problème à l'aide d'une équation", "parent": "algebre"}, {"id": "grandeurs", "nom": "Grandeurs et mesures · Pythagore", "parent": "racine", "couleur": "#BCE29A"}, {"id": "grandeurs/1", "nom": "Utiliser les formules de calcul de périmètres et d'aires", "parent": "grandeurs"}, {"id": "grandeurs/2", "nom": "Utiliser les formules de calcul de volumes", "parent": "grandeurs"}, {"id": "grandeurs/3", "nom": "Transformer les unités (longueur, aire, volume, capacité et temps)", "parent": "grandeurs"}, {"id": "grandeurs/4", "nom": "Utiliser le théorème de Pythagore", "parent": "grandeurs"}, {"id": "espace", "nom": "Espace", "parent": "racine", "couleur": "#D4D4D4"}, {"id": "espace/1", "nom": "Connaître le vocabulaire relatif aux figures planes et aux solides", "parent": "espace"}, {"id": "espace/2", "nom": "Appliquer les propriétés des figures planes (triangles, cercles)", "parent": "espace"}, {"id": "espace/3", "nom": "Connaître l'utilisation des instruments de géométrie", "parent": "espace"}, {"id": "espace/4", "nom": "Identifier les développements de solides", "parent": "espace"}, {"id": "espace/5", "nom": "Repérer un point dans un système d'axes orthonormés", "parent": "espace"}, {"id": "espace/6", "nom": "Identifier les axes et le centre de symétrie d'une figure plane", "parent": "espace"}], "liens": [{"url": "https://aureliohub.github.io/NO_priorite_operations_1.html", "titre": "Nombres et opérations – Priorité des opérations (1)", "dossier": "nombres/7"}, {"url": "https://aureliohub.github.io/NO_priorite_operations_2.html", "titre": "Nombres et opérations – Priorité des opérations (2)", "dossier": "nombres/7"}, {"url": "https://aureliohub.github.io/NO_priorite_operations_3.html", "titre": "Nombres et opérations – Priorité des opérations (3)", "dossier": "nombres/7"}, {"url": "https://aureliohub.github.io/NO_fractions_reduire.html", "titre": "Fractions – Réduire", "dossier": "nombres/4"}, {"url": "https://aureliohub.github.io/NO_fractions_amplifier.html", "titre": "Fractions – Amplifier", "dossier": "nombres/4"}, {"url": "https://aureliohub.github.io/NO_fractions_criteres_divisibilite.html", "titre": "Fractions – Critères de divisibilité", "dossier": "nombres/4"}, {"url": "https://aureliohub.github.io/NO_fractions_addition_soustraction.html", "titre": "Nombres et opérations – Addition et soustraction de fractions", "dossier": "nombres/4"}, {"url": "https://aureliohub.github.io/NO_fractions_multiplication.html", "titre": "Nombres et opérations – Fractions - multiplication", "dossier": "nombres/4"}, {"url": "https://aureliohub.github.io/NO_fractions_division.html", "titre": "Nombres et opérations – Fractions - division", "dossier": "nombres/4"}, {"url": "https://aureliohub.github.io/NO_fractions_4_operations_exercices.html", "titre": "Nombres et opérations – Fractions - les 4 opérations", "dossier": "nombres/4"}, {"url": "https://aureliohub.github.io/NO_fractions_4_operations_niveau_2.html", "titre": "Nombres et opérations – Fractions - les 4 opérations - niveau 2", "dossier": "nombres/4"}]}</script>
+<script id="donnees" type="application/json">{"version": 1793381787562, "structure": 3, "dossiers": [{"id": "nombres", "nom": "Nombres et opérations", "parent": "racine", "couleur": "#92CDE2"}, {"id": "nombres/1", "nom": "Résoudre un problème « concret »", "parent": "nombres"}, {"id": "nombres/2", "nom": "Calculer avec des nombres décimaux (4 opérations)", "parent": "nombres"}, {"id": "nombres/3", "nom": "Calculer avec des nombres relatifs (4 opérations)", "parent": "nombres"}, {"id": "nombres/4", "nom": "Calculer avec des nombres rationnels (4 opérations)", "parent": "nombres"}, {"id": "nombres/5", "nom": "Calculer des puissances", "parent": "nombres"}, {"id": "nombres/6", "nom": "Calculer des racines", "parent": "nombres"}, {"id": "nombres/7", "nom": "Appliquer la hiérarchie des opérations", "parent": "nombres"}, {"id": "nombres/8", "nom": "Lire la valeur d'un nombre sur une droite graduée", "parent": "nombres"}, {"id": "nombres/9", "nom": "Estimer le résultat d'un calcul", "parent": "nombres"}, {"id": "proportionnalite", "nom": "Proportionnalité", "parent": "racine", "couleur": "#F4AFC0"}, {"id": "proportionnalite/1", "nom": "Calculer une fraction ou un pourcentage de…", "parent": "proportionnalite"}, {"id": "proportionnalite/2", "nom": "Retrouver une grandeur dont on connaît un pourcentage", "parent": "proportionnalite"}, {"id": "proportionnalite/3", "nom": "Poser une proportion et la résoudre", "parent": "proportionnalite"}, {"id": "proportionnalite/4", "nom": "Résoudre un problème concret de proportionnalité", "parent": "proportionnalite"}, {"id": "algebre", "nom": "Algèbre", "parent": "racine", "couleur": "#F7DB7F"}, {"id": "algebre/1", "nom": "Vérifier si un nombre est solution d'une équation", "parent": "algebre"}, {"id": "algebre/2", "nom": "Développer et réduire une expression algébrique", "parent": "algebre"}, {"id": "algebre/3", "nom": "Factoriser une expression algébrique", "parent": "algebre"}, {"id": "algebre/4", "nom": "Traduire un problème en langage algébrique", "parent": "algebre"}, {"id": "algebre/5", "nom": "Résoudre une équation", "parent": "algebre"}, {"id": "algebre/6", "nom": "Résoudre un problème à l'aide d'une équation", "parent": "algebre"}, {"id": "grandeurs", "nom": "Grandeurs et mesures · Pythagore", "parent": "racine", "couleur": "#BCE29A"}, {"id": "grandeurs/1", "nom": "Utiliser les formules de calcul de périmètres et d'aires", "parent": "grandeurs"}, {"id": "grandeurs/2", "nom": "Utiliser les formules de calcul de volumes", "parent": "grandeurs"}, {"id": "grandeurs/3", "nom": "Transformer les unités (longueur, aire, volume, capacité et temps)", "parent": "grandeurs"}, {"id": "grandeurs/4", "nom": "Utiliser le théorème de Pythagore", "parent": "grandeurs"}, {"id": "espace", "nom": "Espace", "parent": "racine", "couleur": "#D4D4D4"}, {"id": "espace/1", "nom": "Connaître le vocabulaire relatif aux figures planes et aux solides", "parent": "espace"}, {"id": "espace/2", "nom": "Appliquer les propriétés des figures planes (triangles, cercles)", "parent": "espace"}, {"id": "espace/3", "nom": "Connaître l'utilisation des instruments de géométrie", "parent": "espace"}, {"id": "espace/4", "nom": "Identifier les développements de solides", "parent": "espace"}, {"id": "espace/5", "nom": "Repérer un point dans un système d'axes orthonormés", "parent": "espace"}, {"id": "espace/6", "nom": "Identifier les axes et le centre de symétrie d'une figure plane", "parent": "espace"}, {"id": "tic/tt", "nom": "Traitement de texte", "parent": "tic"}, {"id": "tic/tableur", "nom": "Tableur", "parent": "tic"}], "liens": [{"url": "https://aureliohub.github.io/NO_priorite_operations_1.html", "titre": "Nombres et opérations – Priorité des opérations (1)", "dossier": "nombres/7"}, {"url": "https://aureliohub.github.io/NO_priorite_operations_2.html", "titre": "Nombres et opérations – Priorité des opérations (2)", "dossier": "nombres/7"}, {"url": "https://aureliohub.github.io/NO_priorite_operations_3.html", "titre": "Nombres et opérations – Priorité des opérations (3)", "dossier": "nombres/7"}, {"url": "https://aureliohub.github.io/NO_fractions_reduire.html", "titre": "Fractions – Réduire", "dossier": "nombres/4"}, {"url": "https://aureliohub.github.io/NO_fractions_amplifier.html", "titre": "Fractions – Amplifier", "dossier": "nombres/4"}, {"url": "https://aureliohub.github.io/NO_fractions_criteres_divisibilite.html", "titre": "Fractions – Critères de divisibilité", "dossier": "nombres/4"}, {"url": "https://aureliohub.github.io/NO_fractions_addition_soustraction.html", "titre": "Nombres et opérations – Addition et soustraction de fractions", "dossier": "nombres/4"}, {"url": "https://aureliohub.github.io/NO_fractions_multiplication.html", "titre": "Nombres et opérations – Fractions - multiplication", "dossier": "nombres/4"}, {"url": "https://aureliohub.github.io/NO_fractions_division.html", "titre": "Nombres et opérations – Fractions - division", "dossier": "nombres/4"}, {"url": "https://aureliohub.github.io/NO_fractions_4_operations_exercices.html", "titre": "Nombres et opérations – Fractions - les 4 opérations", "dossier": "nombres/4"}, {"url": "https://aureliohub.github.io/NO_fractions_4_operations_niveau_2.html", "titre": "Nombres et opérations – Fractions - les 4 opérations - niveau 2", "dossier": "nombres/4"}, {"url": "https://aureliohub.github.io/NO_droite_numerique_fractions.html", "titre": "Nombres et opérations – Lire la valeur d'un nombre sur une droite graduée", "dossier": "nombres/8"}, {"url": "https://aureliohub.github.io/NO_droite_graduee_fractions.html", "titre": "Nombres et opérations – Situer des fractions sur une droite numérique", "dossier": "nombres/8"}]}</script>
 
 <script>
 // Copie du fichier tel qu'il est arrivé, avant que la page ne se remplisse : sert à fabriquer le nouveau drive.html
@@ -410,13 +413,25 @@ const DOMAINES = [
     "Identifier les axes et le centre de symétrie d'une figure plane" ]}
 ];
 const RACINE = 'racine';
+// Espaces de premier niveau de la colonne de gauche, chacun avec son icône
+const RACINES = [
+  { id:RACINE, nom:'Maths', icone:'M7 2h10a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zm0 2v4h10V4H7zm0 6v2h2v-2H7zm4 0v2h2v-2h-2zm4 0v6h2v-6h-2zm-8 4v2h2v-2H7zm4 0v2h2v-2h-2zm-4 4v2h2v-2H7zm4 0v2h2v-2h-2zm4 0v2h2v-2h-2z' },
+  { id:'tic', nom:'TIC', icone:'M20 18c1.1 0 1.99-.9 1.99-2L22 6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2H0v2h24v-2h-4zM4 6h16v10H4V6z' },
+  { id:'francais', nom:'Français', icone:'M21 5c-1.11-.35-2.33-.5-3.5-.5-1.95 0-4.05.4-5.5 1.5-1.45-1.1-3.55-1.5-5.5-1.5S2.45 4.9 1 6v14.65c0 .25.25.5.5.5.1 0 .15-.05.25-.05C3.1 20.45 5.05 20 6.5 20c1.95 0 4.05.4 5.5 1.5 1.35-.85 3.8-1.5 5.5-1.5 1.65 0 3.35.3 4.75 1.05.1.05.15.05.25.05.25 0 .5-.25.5-.5V6c-.6-.45-1.25-.75-2-1zm0 13.5c-1.1-.35-2.3-.5-3.5-.5-1.7 0-4.15.65-5.5 1.5V8c1.35-.85 3.8-1.5 5.5-1.5 1.2 0 2.4.15 3.5.5v11.5z' }
+];
+const estRacine = id => RACINES.some(x => x.id === id);
+const iconeRacine = (id, sz = 20) => `<svg width="${sz}" height="${sz}" viewBox="0 0 24 24"><path fill="#444746" d="${RACINES.find(x => x.id === id).icone}"/></svg>`;
 const CORBEILLE = 'corbeille';
 
-const COULEUR_PERSO = '#FFFFFF';   // dossier créé directement dans « Mes liens »
+const COULEUR_PERSO = '#FFFFFF';   // dossier créé au premier niveau d'un espace (Maths, TIC, Français)
 
 // Index des dossiers : id → { nom, couleur, parent, fixe }
 // Un dossier créé par l'utilisateur prend la couleur du domaine qui le contient.
 let DOSSIERS = {};
+const STRUCTURE_TIC = [
+  { id:'tic/tt', nom:'Traitement de texte', parent:'tic' },
+  { id:'tic/tableur', nom:'Tableur', parent:'tic' }
+];
 // Structure de départ : les domaines et sous-domaines EVA, ensuite modifiables comme tout dossier
 function structureParDefaut() {
   const l = [];
@@ -424,19 +439,19 @@ function structureParDefaut() {
     l.push({ id:d.id, nom:d.nom, parent:RACINE, couleur:d.couleur });
     d.sous.forEach((nom, i) => l.push({ id:d.id + '/' + (i + 1), nom, parent:d.id }));
   });
-  return l;
+  return l.concat(STRUCTURE_TIC);
 }
 // Un dossier à la racine a sa propre couleur ; un sous-dossier prend celle du dossier qui le contient
 function indexer() {
-  DOSSIERS = { [RACINE]: { nom:'Mes liens', couleur:'#444746', parent:null, fixe:true },
-               [CORBEILLE]: { nom:'Corbeille', couleur:'#444746', parent:null, fixe:true } };
+  DOSSIERS = { [CORBEILLE]: { nom:'Corbeille', couleur:'#444746', parent:null, fixe:true } };
+  RACINES.forEach(x => { DOSSIERS[x.id] = { nom:x.nom, couleur:'#444746', parent:null, fixe:true }; });
   let reste = etat.dossiers.slice(), avance = true;
   while (reste.length && avance) {
     avance = false;
     reste = reste.filter(d => {
       const p = DOSSIERS[d.parent];
       if (!p || d.parent === CORBEILLE) return true;
-      DOSSIERS[d.id] = { nom:d.nom, parent:d.parent, couleur: d.parent === RACINE ? (d.couleur || COULEUR_PERSO) : p.couleur, fixe:false };
+      DOSSIERS[d.id] = { nom:d.nom, parent:d.parent, couleur: estRacine(d.parent) ? (d.couleur || COULEUR_PERSO) : p.couleur, fixe:false };
       avance = true; return false;
     });
   }
@@ -477,12 +492,18 @@ if (INTEGRE && INTEGRE.version && etat.base !== INTEGRE.version) {
 if (!etat.structure) {   // anciennes données : seuls les dossiers personnels étaient enregistrés
   const defaut = structureParDefaut(), ids = new Set(defaut.map(d => d.id));
   etat.dossiers = defaut.concat(etat.dossiers.filter(d => !ids.has(d.id)));
-  etat.structure = 2;
+  etat.structure = 3;
+}
+if (etat.structure < 3) {   // ajout de l'espace TIC et de ses dossiers de départ
+  const presents = new Set(etat.dossiers.map(d => d.id));
+  etat.dossiers = etat.dossiers.concat(STRUCTURE_TIC.filter(d => !presents.has(d.id)));
+  etat.structure = 3;
 }
 indexer();
 etat.liens.forEach(l => { if (!DOSSIERS[l.dossier]) l.dossier = RACINE; });
 
 let courant = RACINE;
+const racinesOuvertes = new Set([RACINE]);   // à l'ouverture : Maths déplié, TIC et Français repliés
 let filtre = '';
 
 // ═══ OUTILS ══════════════════════════════════════════════════════════════
@@ -521,9 +542,15 @@ function nbLiens(id) { // liens du dossier et de ses sous-dossiers
 // ═══ AFFICHAGE : barre latérale ══════════════════════════════════════════
 const arbre = document.getElementById('arbre');
 function renderArbre() {
-  let h = `<div class="noeud niv1 ${courant === RACINE ? 'actif' : ''}" data-dossier="${RACINE}" style="padding-left:12px">
-             ${ICONE_MAISON}<span class="nom">Mes liens</span></div>`;
-  enfants(RACINE).forEach(id => { h += noeudArbre(id, 1); });
+  let h = '';
+  RACINES.forEach((x, i) => {
+    const ouvert = racinesOuvertes.has(x.id), kids = enfants(x.id);
+    const liensIci = actifs().filter(l => l.dossier === x.id);
+    h += `<div class="noeud niv1 racine ${courant === x.id ? 'actif' : ''} ${i ? 'espace-suivant' : ''}" data-dossier="${x.id}">
+            <button class="caret ${ouvert ? 'ouvert' : ''} ${kids.length + liensIci.length ? '' : 'sans'}" data-basculer="${x.id}">${CARET}</button>
+            ${iconeRacine(x.id)}<span class="nom">${esc(x.nom)}</span></div>
+          <div class="sous espace ${ouvert ? 'ouvert' : ''}">${kids.map(id => noeudArbre(id, 1)).join('')}${liensIci.map(l => noeudLien(l, 0)).join('')}</div>`;
+  });
   arbre.innerHTML = h;
 }
 function noeudArbre(id, niveau) {
@@ -535,13 +562,17 @@ function noeudArbre(id, niveau) {
              ${iconeDossier(D.couleur, niveau > 1 ? 18 : 20)}<span class="nom">${esc(D.nom)}</span></div>`;
   // un dossier qui contient des sous-dossiers ou des liens reçoit une flèche ; déplié, il montre les deux
   if (contenuArbre) h += `<div class="sous ${ouvert ? 'ouvert' : ''}">${kids.map(k => noeudArbre(k, niveau + 1)).join('')}${
-    liensIci.map(l => l.fichier
-      ? `<div class="noeud niv2 lien-arbre" data-fichier="${l.id}" title="${esc(l.fichier.nom)}" style="padding-left:${niveau * 14}px">
-      <span class="caret sans"></span>${iconeType(l.fichier.type, 16)}<span class="nom">${esc(l.titre)}</span></div>`
-      : `<div class="noeud niv2 lien-arbre" data-ouvrir="${esc(l.url)}" title="${esc(l.url)}" style="padding-left:${niveau * 14}px">
-      <span class="caret sans"></span><img class="fav" alt="" onerror="this.style.visibility='hidden'" src="https://www.google.com/s2/favicons?sz=32&domain=${encodeURIComponent(domaineDe(l.url))}">
-      <span class="nom">${esc(l.titre)}</span></div>`).join('')}</div>`;
+    liensIci.map(l => noeudLien(l, niveau)).join('')}</div>`;
   return h;
+}
+// Un lien ou un fichier affiché dans l'arbre de la colonne de gauche
+function noeudLien(l, niveau) {
+  return l.fichier
+    ? `<div class="noeud niv2 lien-arbre" data-fichier="${l.id}" title="${esc(l.fichier.nom)}" style="padding-left:${niveau * 14}px">
+      <span class="caret sans"></span>${iconeType(l.fichier.type, 16)}<span class="nom">${esc(l.titre)}</span></div>`
+    : `<div class="noeud niv2 lien-arbre" data-ouvrir="${esc(l.url)}" title="${esc(l.url)}" style="padding-left:${niveau * 14}px">
+      <span class="caret sans"></span><img class="fav" alt="" onerror="this.style.visibility='hidden'" src="https://www.google.com/s2/favicons?sz=32&domain=${encodeURIComponent(domaineDe(l.url))}">
+      <span class="nom">${esc(l.titre)}</span></div>`;
 }
 
 // ═══ AFFICHAGE : panneau principal ═══════════════════════════════════════
@@ -703,7 +734,9 @@ function render() {
 }
 function aller(id) {
   courant = id; filtre = ''; document.getElementById('recherche').value = '';
-  chemin(id).slice(0, -1).forEach(x => { if (x !== RACINE && !etat.ouverts.includes(x)) etat.ouverts.push(x); });
+  const c = chemin(id);
+  if (estRacine(c[0])) racinesOuvertes.add(c[0]);
+  c.slice(0, -1).forEach(x => { if (!estRacine(x) && !etat.ouverts.includes(x)) etat.ouverts.push(x); });
   sauver(); render();
 }
 
@@ -867,7 +900,9 @@ document.addEventListener('drop', e => {
 arbre.addEventListener('click', e => {
   const b = e.target.closest('[data-basculer]');
   if (b) {
-    const id = b.dataset.basculer, i = etat.ouverts.indexOf(id);
+    const id = b.dataset.basculer;
+    if (estRacine(id)) { racinesOuvertes.has(id) ? racinesOuvertes.delete(id) : racinesOuvertes.add(id); renderArbre(); return; }
+    const i = etat.ouverts.indexOf(id);
     if (i >= 0) etat.ouverts.splice(i, 1); else etat.ouverts.push(id);
     sauver(); renderArbre(); return;
   }
@@ -972,7 +1007,7 @@ async function nouveauDossier(parent) {
   const nom = await demanderNom('Nouveau dossier', 'Dossier sans titre', 'Créer');
   if (!nom) return;
   etat.dossiers.push({ id:'p' + nouvelId(), nom, parent });
-  if (parent !== RACINE && !etat.ouverts.includes(parent)) etat.ouverts.push(parent);
+  if (!estRacine(parent) && !etat.ouverts.includes(parent)) etat.ouverts.push(parent);
   indexer(); sauver(); render();
   toast('Dossier « ' + nom + ' » créé dans « ' + DOSSIERS[parent].nom + ' »');
 }
@@ -994,7 +1029,7 @@ menuDossier.addEventListener('click', async e => {
 });
 
 // ── Déplacer un dossier personnel (avec son contenu) ; jamais dans lui-même ni dans un de ses sous-dossiers
-// « Mes liens » n'offre que la création ; les autres dossiers tout le menu
+// Maths, TIC et Français n'offrent que la création ; les autres dossiers tout le menu
 function ouvrirMenuDossier(id, x, y, bouton) {
   dossierMenu = id;
   const fixe = DOSSIERS[id].fixe;
@@ -1008,7 +1043,7 @@ function deplacerDossier(idDossier, cible) {
   const d = etat.dossiers.find(x => x.id === idDossier);
   if (!d || !peutRecevoir(idDossier, cible) || d.parent === cible) return;
   d.parent = cible;
-  if (cible !== RACINE && !etat.ouverts.includes(cible)) etat.ouverts.push(cible);
+  if (!estRacine(cible) && !etat.ouverts.includes(cible)) etat.ouverts.push(cible);
   indexer(); sauver(); render();
   toast('« ' + d.nom + ' » a été déplacé dans « ' + DOSSIERS[cible].nom + ' »', 'Afficher', () => aller(cible));
 }
@@ -1018,11 +1053,15 @@ async function choisirDossierPour(d) {
     if (id === d.id) return;                       // le dossier lui-même et son contenu ne sont pas proposés
     lignes.push({ id, prof }); enfants(id).forEach(k => parcourir(k, prof + 1));
   })(RACINE, 0);
+  RACINES.slice(1).forEach(x => (function parcourir(id, prof) {
+    if (id === d.id) return;
+    lignes.push({ id, prof }); enfants(id).forEach(k => parcourir(k, prof + 1));
+  })(x.id, 0));
   dialogue.dataset.ok = 'Déplacer';
   const cible = await ouvrirDialogue(`<h2>Déplacer « ${esc(d.nom)} »</h2>
     <div class="choix">${lignes.map(x => `<label class="ligne" style="padding-left:${12 + x.prof * 20}px">
       <input type="radio" name="dlg-dossier" value="${x.id}" ${x.id === d.parent ? 'checked' : ''}>
-      ${x.id === RACINE ? ICONE_MAISON : iconeDossier(DOSSIERS[x.id].couleur, 18)}<span>${esc(DOSSIERS[x.id].nom)}</span></label>`).join('')}</div>`,
+      ${estRacine(x.id) ? iconeRacine(x.id, 18) : iconeDossier(DOSSIERS[x.id].couleur, 18)}<span>${esc(DOSSIERS[x.id].nom)}</span></label>`).join('')}</div>`,
     () => { const r = dialogue.querySelector('input[name=dlg-dossier]:checked'); return r ? r.value : null; });
   if (cible) deplacerDossier(d.id, cible);
 }
@@ -1257,12 +1296,12 @@ async function afficherQR(l) {
 // ── Déplacer : choix du dossier dans l'arborescence
 async function choisirDossier(l) {
   const lignes = [];
-  (function parcourir(id, prof) { lignes.push({ id, prof }); enfants(id).forEach(k => parcourir(k, prof + 1)); })(RACINE, 0);
+  RACINES.forEach(x => (function parcourir(id, prof) { lignes.push({ id, prof }); enfants(id).forEach(k => parcourir(k, prof + 1)); })(x.id, 0));
   dialogue.dataset.ok = 'Déplacer';
   const cible = await ouvrirDialogue(`<h2>Déplacer « ${esc(l.titre)} »</h2>
     <div class="choix">${lignes.map(x => `<label class="ligne" style="padding-left:${12 + x.prof * 20}px">
       <input type="radio" name="dlg-dossier" value="${x.id}" ${x.id === l.dossier ? 'checked' : ''}>
-      ${x.id === RACINE ? ICONE_MAISON : iconeDossier(DOSSIERS[x.id].couleur, 18)}<span>${esc(DOSSIERS[x.id].nom)}</span></label>`).join('')}</div>`,
+      ${estRacine(x.id) ? iconeRacine(x.id, 18) : iconeDossier(DOSSIERS[x.id].couleur, 18)}<span>${esc(DOSSIERS[x.id].nom)}</span></label>`).join('')}</div>`,
     () => { const r = dialogue.querySelector('input[name=dlg-dossier]:checked'); return r ? r.value : null; });
   if (cible && cible !== l.dossier) {
     deplacer(l.id, cible);
@@ -1272,7 +1311,7 @@ async function choisirDossier(l) {
 
 // ── Détails
 function afficherDetails(l) {
-  const lieu = DOSSIERS[l.dossier] ? chemin(l.dossier).map(x => DOSSIERS[x].nom).join(' › ') : 'Mes liens';
+  const lieu = DOSSIERS[l.dossier] ? chemin(l.dossier).map(x => DOSSIERS[x].nom).join(' › ') : 'Maths';
   const date = t => new Date(t).toLocaleString('fr-CH', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' });
   dialogue.dataset.ok = 'Fermer';
   ouvrirDialogue(`<h2>Détails</h2><dl>
@@ -1325,7 +1364,7 @@ function raccourciFichier(e) {
 // Ce qui part dans le fichier : dossiers personnels et liens (pas la corbeille, pas les fichiers du navigateur)
 function contenuIntegrable() {
   return {
-    structure:2,
+    structure:3,
     dossiers:etat.dossiers.map(({ id, nom, parent, couleur }) => ({ id, nom, parent, couleur })),
     liens:actifs().filter(l => !l.fichier).map(({ url, titre, dossier, ajoute }) => ({ url, titre, dossier, ajoute }))
   };
@@ -1369,7 +1408,7 @@ document.getElementById('btn-exporter').onclick = async () => {
     liens.push({ titre:l.titre, dossier:l.dossier, fichier:{ nom, type, mime, taille }, donnees:await enDataURL(blob) });
   }
   const data = JSON.stringify({ format:'liens-eva', version:3,
-    structure:2, dossiers:etat.dossiers.map(({ id, nom, parent, couleur }) => ({ id, nom, parent, couleur })), liens }, null, 2);
+    structure:3, dossiers:etat.dossiers.map(({ id, nom, parent, couleur }) => ({ id, nom, parent, couleur })), liens }, null, 2);
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([data], { type:'application/json' }));
   a.download = 'drive.json';
@@ -1760,7 +1799,7 @@ async function importerMarquePages(texte) {
     n.liens.forEach(l => etat.liens.push({ id:nouvelId(), url:l.url, titre:l.titre, dossier:id }));
     n.dossiers.filter(x => totalMP(x)).forEach(x => creer(x, id));
   })(choix, courant);
-  if (courant !== RACINE && !etat.ouverts.includes(courant)) etat.ouverts.push(courant);
+  if (!estRacine(courant) && !etat.ouverts.includes(courant)) etat.ouverts.push(courant);
   indexer(); sauver(); render();
 }
 
