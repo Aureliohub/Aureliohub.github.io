@@ -187,15 +187,25 @@ btn.addEventListener('click', () => {
     if (!p) return;
     const r = p.getBoundingClientRect();
     const hBarre = barre ? barre.getBoundingClientRect().height : 0;
-    applique(Math.min((window.innerWidth - 36) / r.width,
-                      (window.innerHeight - hBarre - 36) / r.height));
+    applique(Math.min((document.documentElement.clientWidth - 36) / r.width,
+                      (document.documentElement.clientHeight - hBarre - 36) / r.height));
   }
+  /* largeur de l'écran : page calée sur la largeur, défilement vertical.
+     clientWidth et offsetWidth ne sont pas faussés si le navigateur du téléphone a dézoomé. */
+  function largeur(){
+    const p = document.querySelector('.page');
+    if (!p) return;
+    applique((document.documentElement.clientWidth - 28) / p.offsetWidth);
+  }
+  /* téléphone (côté court de l'écran < 600 px) : 100 % y est plus large que l'écran */
+  const petitEcran = Math.min(screen.width, screen.height) < 600;
+  let cale = pageEntiere;   /* recalage automatique en cours */
   /* auto = la page suit la taille de la fenêtre ; un zoom manuel coupe ce suivi
      jusqu'au prochain clic sur « Page entière ». À l'ouverture : 100 %, sans suivi. */
   let auto = false, lw = window.innerWidth, lh = window.innerHeight;
   document.getElementById('zoom-moins').addEventListener('click', () => { auto = false; applique(z / 1.15); });
   document.getElementById('zoom-plus').addEventListener('click', () => { auto = false; applique(z * 1.15); });
-  document.getElementById('zoom-page').addEventListener('click', () => { auto = true; pageEntiere(); });
+  document.getElementById('zoom-page').addEventListener('click', () => { auto = true; cale = pageEntiere; pageEntiere(); });
   let t; window.addEventListener('resize', () => {
     clearTimeout(t);
     t = setTimeout(() => {
@@ -204,10 +214,12 @@ btn.addEventListener('click', () => {
          seule la hauteur bouge un peu, ce n'est pas un vrai redimensionnement */
       const vrai = Math.abs(w - lw) > 2 || Math.abs(h - lh) > 150;
       lw = w; lh = h;
-      if (auto && vrai) pageEntiere();
+      if (auto && vrai) cale();
     }, 150);
   });
-  applique(1);
+  /* téléphone : ouverture calée sur la largeur, et la page suit les rotations ;
+     ailleurs : 100 %, sans suivi */
+  if (petitEcran) { auto = true; cale = largeur; largeur(); } else applique(1);
 
   /* position de lecture, mémorisée hors passage en plein écran pour être restituée ensuite */
   let posY = 0, posH = 1, tPos, transition = false;
@@ -235,7 +247,7 @@ btn.addEventListener('click', () => {
       clearTimeout(tPos); transition = true;
       setTimeout(() => {
         lw = window.innerWidth; lh = window.innerHeight;
-        if (auto) pageEntiere();
+        if (auto) cale();
         window.scrollTo(0, posY / posH * document.documentElement.scrollHeight);
         setTimeout(() => { transition = false; notePos(); }, 400);
       }, 120);
