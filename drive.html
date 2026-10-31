@@ -92,6 +92,9 @@
   .vues button + button { border-left:1px solid var(--gris-clair); }
   .vues button.actif { background:var(--actif); }
   .contenu { flex:1; overflow-y:auto; padding:8px 20px 24px 24px; }
+  .contenu > .grille { margin-top:16px; }
+  .contenu > .grille + .grille { margin-top:24px; }
+  .liste .contenu > .grille + .grille { margin-top:0; }
   .section { font-size:14px; font-weight:500; color:var(--texte); margin:16px 0 12px 4px; }
   .grille { display:grid; gap:16px; grid-template-columns:repeat(4, minmax(0, 1fr)); }
   @media (max-width:1000px) { .logo { width:auto; } .lateral { width:250px; } }
@@ -351,6 +354,7 @@
 <div class="toast" id="toast"><span id="toast-texte"></span><button id="toast-action"></button></div>
 
 <div class="menu" id="menu-nouveau">
+  <button data-nouveau="lien"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#444746" d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>Nouveau lien</button>
   <button data-nouveau="dossier"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#444746" d="M20 6h-8l-2-2H4c-1.11 0-1.99.89-1.99 2L2 18c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm0 12H4V6h5.17l2 2H20v10zm-8-4h2v2h2v-2h2v-2h-2v-2h-2v2h-2z"/></svg>Nouveau dossier<span class="raccourci" data-touche="F"></span></button>
   <hr>
   <button data-nouveau="fichier"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#444746" d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11zM8 15.01l1.41 1.41L11 14.84V19h2v-4.16l1.59 1.59L16 15.01 12.01 11z"/></svg>Importer un fichier<span class="raccourci" data-touche="U"></span></button>
@@ -358,6 +362,7 @@
 </div>
 
 <div class="menu" id="menu-dossier">
+  <button data-action-dossier="nouveau-lien"><svg width="20" height="20" viewBox="0 0 24 24"><path fill="#444746" d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>Nouveau lien</button>
   <button data-action-dossier="nouveau"><svg width="20" height="20" viewBox="0 0 24 24"><path fill="#444746" d="M20 6h-8l-2-2H4c-1.11 0-1.99.89-1.99 2L2 18c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm0 12H4V6h5.17l2 2H20v10zm-8-4h2v2h2v-2h2v-2h-2v-2h-2v2h-2z"/></svg>Nouveau dossier</button>
   <hr data-hr-dossier>
   <button data-action-dossier="deplacer"><svg width="20" height="20" viewBox="0 0 24 24"><path fill="#444746" d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V6h5.17l2 2H20v10zm-7.84-6H8v2h4.16l-1.59 1.59L11.99 17 16 13.01 11.99 9l-1.41 1.41L12.16 12z"/></svg>Déplacer</button>
@@ -607,7 +612,7 @@ function renderPanneau() {
 
   let h = '';
   if (dossiers.length) {
-    h += `<div class="section">Dossiers</div><div class="grille">`;
+    h += `<div class="grille">`;
     dossiers.forEach(id => {
       const n = nbLiens(id);
       h += `<div class="dossier" data-dossier="${id}" data-aller="${id}" title="${esc(DOSSIERS[id].nom)}" ${DOSSIERS[id].fixe ? '' : 'draggable="true"'}>
@@ -620,10 +625,10 @@ function renderPanneau() {
   if (courant === CORBEILLE && !filtre) {
     h += liens.length
       ? `<div class="corbeille-tete"><span>Les liens restent dans la corbeille jusqu'à ce que vous la vidiez.</span><button id="vider-corbeille">Vider la corbeille</button></div>
-         <div class="section">${titreSection(liens)}</div><div class="grille" id="grille-liens"></div>`
+         <div class="grille" id="grille-liens"></div>`
       : `<div class="vide"><strong>La corbeille est vide</strong><span>Les liens placés dans la corbeille apparaissent ici.</span></div>`;
   } else if (liens.length) {
-    h += `<div class="section">${titreSection(liens)}</div><div class="grille" id="grille-liens"></div>`;
+    h += `<div class="grille" id="grille-liens"></div>`;
   } else if (filtre) {
     h += `<div class="vide"><strong>Aucun lien trouvé</strong></div>`;
   } else if (!dossiers.length) {
@@ -953,7 +958,8 @@ menuNouveau.addEventListener('click', e => {
   if (b) { fermerMenus(); actionNouveau(b.dataset.nouveau); }
 });
 function actionNouveau(action) {
-  if (action === 'dossier') nouveauDossier();
+  if (action === 'lien') nouveauLien();
+  else if (action === 'dossier') nouveauDossier();
   else if (action === 'fichier') fichierImport.click();
   else if (action === 'import-dossier') aideImportDossier();
 }
@@ -991,6 +997,46 @@ function ouvrirDialogue(html, valider, seul) {
   });
 }
 scrim.addEventListener('mousedown', e => { if (e.target === scrim && finDialogue) finDialogue(null); });
+// ── Nouveau lien : adresse saisie (ou collée), nom facultatif
+async function nouveauLien(parent) {
+  parent = parent && DOSSIERS[parent] && parent !== CORBEILLE ? parent : dossierCible();
+  dialogue.dataset.ok = 'Ajouter';
+  const p = ouvrirDialogue(`<h2>Nouveau lien</h2>
+    <p class="info">Dans « ${esc(DOSSIERS[parent].nom)} »</p>
+    <input type="text" id="dlg-url" placeholder="Adresse : https://…" autocomplete="off" spellcheck="false">
+    <input type="text" id="dlg-nom" placeholder="Nom de la vignette (facultatif)" autocomplete="off" style="margin-top:12px">
+    <p class="info" id="dlg-err" style="color:#b3261e;margin:8px 0 0;min-height:20px"></p>`,
+    () => ({ url:document.getElementById('dlg-url').value.trim(), nom:document.getElementById('dlg-nom').value.trim() }));
+  const champUrl = document.getElementById('dlg-url'), champNom = document.getElementById('dlg-nom');
+  const valider = dialogue.querySelector('[data-r=oui]'), err = document.getElementById('dlg-err');
+  const adresse = v => { v = v.trim(); if (v && !/^[a-z][a-z0-9+.-]*:/i.test(v)) v = 'https://' + v; try { const u = new URL(v); return /^https?:$/.test(u.protocol) && u.hostname.includes('.') ? u.href : null; } catch (e) { return null; } };
+  // l'adresse est contrôlée avant de fermer la fenêtre
+  const ancien = valider.onclick;
+  valider.onclick = () => { if (adresse(champUrl.value)) ancien(); else { err.textContent = 'Adresse non valide'; champUrl.focus(); } };
+  [champUrl, champNom].forEach(c => c.addEventListener('keydown', e => { if (e.key === 'Enter') valider.onclick(); }));
+  champUrl.addEventListener('input', () => { err.textContent = ''; });
+  champUrl.focus();
+  try { const t = (await navigator.clipboard.readText()).trim(); if (adresse(t) && /^https?:\/\//i.test(t) && !champUrl.value) { champUrl.value = t; champUrl.select(); } } catch (e) {}
+  const v = await p;
+  if (!v) return;
+  const url = adresse(v.url);
+  let titre = v.nom;
+  if (!titre) titre = await titrePage(url) || domaineDe(url);
+  ajouter({ url, titre }, parent);
+  if (!estRacine(parent) && !etat.ouverts.includes(parent)) { etat.ouverts.push(parent); sauver(); renderArbre(); }
+  toast('« ' + titre + ' » ajouté dans « ' + DOSSIERS[parent].nom + ' »', 'Afficher', () => aller(parent));
+}
+// Titre de la page quand le site le permet (c'est le cas de GitHub Pages) ; sinon rien
+async function titrePage(url) {
+  try {
+    const ctl = new AbortController(); setTimeout(() => ctl.abort(), 4000);
+    const rep = await fetch(url, { signal:ctl.signal });
+    if (!rep.ok || !/html/i.test(rep.headers.get('content-type') || '')) return '';
+    const t = new DOMParser().parseFromString(await rep.text(), 'text/html').title;
+    return (t || '').trim().slice(0, 150);
+  } catch (e) { return ''; }
+}
+
 function demanderNom(titre, valeur, ok) {
   dialogue.dataset.ok = ok;
   const p = ouvrirDialogue(`<h2>${esc(titre)}</h2><input type="text" id="dlg-champ" value="${esc(valeur)}" autocomplete="off">`,
@@ -1019,6 +1065,7 @@ menuDossier.addEventListener('click', async e => {
   fermerMenus();
   const a = b.dataset.actionDossier;
   if (a === 'nouveau') { nouveauDossier(dossierMenu); return; }
+  if (a === 'nouveau-lien') { nouveauLien(dossierMenu); return; }
   const d = etat.dossiers.find(x => x.id === dossierMenu);
   if (!d) return;
   if (a === 'renommer') {
@@ -1033,7 +1080,7 @@ menuDossier.addEventListener('click', async e => {
 function ouvrirMenuDossier(id, x, y, bouton) {
   dossierMenu = id;
   const fixe = DOSSIERS[id].fixe;
-  menuDossier.querySelectorAll('[data-action-dossier]:not([data-action-dossier="nouveau"]), [data-hr-dossier], hr').forEach(el => { el.hidden = fixe; });
+  menuDossier.querySelectorAll('[data-action-dossier]:not([data-action-dossier^="nouveau"]), [data-hr-dossier], hr').forEach(el => { el.hidden = fixe; });
   if (bouton) ouvrirMenu(menuDossier, bouton); else ouvrirMenuEn(menuDossier, x, y);
 }
 function peutRecevoir(idDossier, cible) {
