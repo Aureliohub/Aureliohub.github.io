@@ -357,7 +357,7 @@ ol.corrections li{cursor:pointer}
 <header class="tete">
   <span class="pil">Informatique · PAI · traitement de texte</span>
   <div class="tete-texte">
-    <h1>Document complexe : contrôle de votre mise en forme</h1>
+    <h1 title="v2">Document complexe : contrôle de votre mise en forme</h1>
     <p><span class="insecable">Déposez votre fichier, il est analysé dans votre navigateur (rien n’est envoyé sur Internet).</span>
       <span class="insecable">Vous obtenez votre note ainsi que la liste des corrections à apporter.</span></p>
   </div>
@@ -577,21 +577,55 @@ function lireParagraphes(xml, defaultTab){
     return st;
   };
 
+  const WP = "http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing";
+  const RL = "http://schemas.openxmlformats.org/officeDocument/2006/relationships";
+  const dessin = d => {                            // taille, fichier et position d'une image
+    const e = d.getElementsByTagNameNS(WP, "extent")[0];
+    const blip = d.getElementsByTagName("*");
+    let id = null;
+    for(const x of blip) if(x.localName === "blip" || x.localName === "imagedata"){
+      id = x.getAttributeNS(RL, "embed") || x.getAttributeNS(RL, "id") || x.getAttribute("r:embed") || x.getAttribute("r:id");
+      if(id) break;
+    }
+    const an = d.getElementsByTagNameNS(WP, "anchor")[0];
+    let flottant = null;
+    if(an){
+      const h = an.getElementsByTagNameNS(WP, "positionH")[0];
+      const al = h && h.getElementsByTagNameNS(WP, "align")[0];
+      const of = h && h.getElementsByTagNameNS(WP, "posOffset")[0];
+      flottant = { rel: h ? h.getAttribute("relativeFrom") : null,
+                   align: al ? al.textContent.trim() : null,
+                   off: of ? +of.textContent : null, cx: e ? +e.getAttribute("cx") : 0 };
+    }
+    return { taille: e ? { l: (+e.getAttribute("cx") || 0) / 36000, h: (+e.getAttribute("cy") || 0) / 36000 } : null,
+             blip: id, flottant };
+  };
+
   for(const p of ps){
-    let s = "";
-    const styles = [];
+    // un retour à la ligne (Maj+Entrée) découpe le paragraphe en segments : chaque ligne
+    // est alors reconnue, et le défaut est signalé à part
+    const segs = [];
+    let g = { s:"", styles:[], images:0, dessins:[], saut:false };
+    const couper = () => { g.saut = true; segs.push(g); g = { s:"", styles:[], images:0, dessins:[], saut:false }; };
     for(const el of p.getElementsByTagName("*")){
       const nom = el.localName;
+      if(nom === "drawing" || nom === "pict"){
+        const anc = ancetres(el, p);
+        if(anc.includes("Fallback") || anc.includes("drawing") || anc.includes("pict")) continue;
+        g.images++; g.dessins.push(el);
+        continue;
+      }
       if(nom !== "t" && nom !== "tab" && nom !== "br" && nom !== "cr" && nom !== "noBreakHyphen") continue;
       const anc = ancetres(el, p);
       if(anc.includes("pPr") || anc.includes("rPr") || anc.includes("del") || anc.includes("instrText")) continue;
+      if(nom === "br" || nom === "cr"){ if(!anc.includes("txbxContent")) couper(); continue; }
       let t;
       if(nom === "t") t = el.textContent;
       else if(nom === "tab") t = "\t";
-      else if(nom === "noBreakHyphen") t = "-";
-      else t = "\n";
-      if(t){ const d = s.length; s += t; styles.push({ debut: d, fin: s.length, ...styleDuRun(el) }); }
+      else t = "-";
+      if(t){ const d = g.s.length; g.s += t; g.styles.push({ debut: d, fin: g.s.length, ...styleDuRun(el) }); }
     }
+    segs.push(g);
     const pPr = p.getElementsByTagNameNS(W, "pPr")[0];
     let ind = 0, indD = 0, indP = 0, jc = "", apres = null, avant = null, interligne = null, taquets = [], numero = null, style = null;
     if(pPr){
@@ -625,19 +659,14 @@ function lireParagraphes(xml, defaultTab){
         taquets.push({ pos: num(t, "pos", 0), type, points: (att(t, "leader") || "none") });
       }
     }
-    res.push({
-      texte: s, styles,
-      lignes: s.split("\n"),
+    const plein = x => x.s.replace(/[\s\t]/g, "") !== "" || x.images > 0;
+    const nPleins = segs.filter(plein).length;
+    const premier = segs.find(plein) || segs[0];
+    segs[segs.length - 1].saut = false;
+    const pid = res.length ? res[res.length - 1].pid + 1 : 0;
+    const commun = {
       dansTableau: ancetres(p, body).includes("tc"),
-      ind, indD, indP, jc, apres, avant, interligne, taquets, numero, style,
-      images: p.getElementsByTagNameNS(W, "drawing").length
-            + p.getElementsByTagName("pict").length,
-      taille: (() => {                      // dimensions d'affichage de l'image, en mm
-        const WP = "http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing";
-        const e = p.getElementsByTagNameNS(WP, "extent")[0];
-        if(!e) return null;
-        return { l: (+e.getAttribute("cx") || 0) / 36000, h: (+e.getAttribute("cy") || 0) / 36000 };
-      })(),
+      ind, indD, indP, jc, apres, avant, interligne, taquets, style,
       cellule: ancetres(p, body).includes("tc"),
       place: (() => {                       // position dans le tableau : ligne / colonne
         let tc = p.parentNode;
@@ -649,7 +678,16 @@ function lireParagraphes(xml, defaultTab){
         return { ligne: lignes.indexOf(tr), colonne: cases.indexOf(tc),
                  nbLignes: lignes.length, nbColonnes: cases.length };
       })()
-    });
+    };
+    for(const x of segs){
+      const d = x.dessins.length ? dessin(x.dessins[0]) : { taille:null, blip:null, flottant:null };
+      res.push({ ...commun, texte: x.s, styles: x.styles, lignes: [x.s],
+        numero: x === premier ? numero : null,
+        images: x.images, taille: d.taille, blip: d.blip, flottant: d.flottant,
+        // plusieurs images sans texte : des lignes du modèle collées comme images
+        texteImage: x.images >= 3 && !x.s.trim(),
+        pid, multi: nPleins > 1, saut: x.saut && nPleins > 1 });
+    }
   }
 
   const sect = body.getElementsByTagNameNS(W, "sectPr")[0];
@@ -1002,6 +1040,18 @@ function messages(ops){
 /* =========================================================
    4. Analyse
    ========================================================= */
+/* une image flottante est centrée par sa position, pas par son paragraphe (tolérance 5 mm) */
+function imageCentree(p, page){
+  const f = p.flottant;
+  if(!f) return p.jc === "center";
+  if(f.align) return f.align === "center";
+  if(f.off === null) return false;
+  const tw = 635;                                    // EMU par twip
+  const base = f.rel === "page" ? page.pgW * tw
+             : (f.rel === "column" || f.rel === "margin") ? (page.pgW - page.gauche - page.droite) * tw : null;
+  return base !== null && Math.abs(f.off - (base - f.cx) / 2) <= 180000;
+}
+
 function analyser(paras, page, police, formats){
   const lignes = paras.filter(p => p.texte.replace(/[\s\t]/g,"") !== "" || p.images > 0);
 
@@ -1012,7 +1062,7 @@ function analyser(paras, page, police, formats){
     let best = -1, bs = 0;
     if(m.image){
       for(let i = curseur; i < Math.min(lignes.length, curseur + 6); i++)
-        if(lignes[i].images > 0){ best = i; bs = 1; break; }
+        if(lignes[i].images > 0 && !lignes[i].texteImage){ best = i; bs = 1; break; }
     }else{
       for(let i = curseur; i < Math.min(lignes.length, curseur + 8); i++){
         const s = similitude(m.ref, lignes[i].texte);
@@ -1027,8 +1077,27 @@ function analyser(paras, page, police, formats){
 
   /* --- A : fidélité du texte --- */
   let fautives = 0;
+  const rangL = new Map(lignes.map((p, i) => [p, i]));
+  const enImage = new Map();                 // ligne collée en image -> éléments du modèle qu'elle remplace
+  MODELE.forEach((m, k) => {
+    if(m.image || app.get(m.id)) return;
+    let avant = -1, apres = lignes.length;
+    for(let j = k - 1; j >= 0; j--) if(app.get(MODELE[j].id)){ avant = rangL.get(app.get(MODELE[j].id)); break; }
+    for(let j = k + 1; j < MODELE.length; j++) if(app.get(MODELE[j].id)){ apres = rangL.get(app.get(MODELE[j].id)); break; }
+    const im = lignes.find((p, i) => p.texteImage && i > avant && i < apres);
+    if(im){ if(!enImage.has(im)) enImage.set(im, []); enImage.get(im).push(m); }
+  });
+  for(const [im, ms] of enImage){           // un seul défaut : le texte a été collé au lieu d'être tapé
+    fautives++;
+    corr.push({ t:"Texte collé comme image",
+      d: ms.map(m => "« " + norm(m.ref).slice(0, 30).trimEnd() + (norm(m.ref).length > 30 ? "…" : "") + " »").join(", ")
+         + (ms.length > 1 ? " ne sont pas du texte mais des images" : " n’est pas du texte mais une image")
+         + " (copie du modèle). Word ne peut pas les mettre en forme : supprimez ces images et tapez le texte au clavier.",
+      cible: im });
+  }
+  const colle = new Set([...enImage.values()].flat().map(m => m.id));
   for(const m of MODELE){
-    if(m.image) continue;
+    if(m.image || colle.has(m.id)) continue;
     const p = app.get(m.id);
     if(!p){ fautives++; corr.push({ t:"Élément manquant", d:"« " + norm(m.ref).slice(0,60) + " » n’a pas été trouvé." }); continue; }
     // une puce ou un numéro tapé au clavier relève des critères de liste, pas du texte
@@ -1066,7 +1135,7 @@ function analyser(paras, page, police, formats){
     const im = app.get("image");
     const manque = [];
     if(!im) manque.push("insérer l’image (Insertion ▸ Images)");
-    else if(im.jc !== "center") manque.push("centrer le paragraphe de l’image");
+    else if(!imageCentree(im, page)) manque.push(im.flottant ? "centrer l’image sur la page" : "centrer le paragraphe de l’image");
     res.C = Math.max(0, 2 - PENALITE * manque.length);
     if(manque.length) corr.push({ t:"Image", d:"À corriger : " + manque.join(", ") + ".", cible: im || null });
   }
@@ -1139,7 +1208,7 @@ function analyser(paras, page, police, formats){
     const manque = []; let premierFautif = null;
     for(const [id, lib, f] of tests){
       const p = app.get(id);
-      if(!(p && f(p))){ manque.push(lib); premierFautif = premierFautif || p; }
+      if(!(p && f(p))){ manque.push(lib + (p ? "" : " (texte absent)")); premierFautif = premierFautif || p; }
     }
     res.G = Math.max(0, 2 - PENALITE * manque.length);
     if(manque.length)
@@ -1170,6 +1239,18 @@ function analyser(paras, page, police, formats){
   for(const x of BAREME) if(res[x.c] === undefined) res[x.c] = 0;
 
   /* --- remarques non notées --- */
+  {                                           // retours à la ligne (Maj+Entrée) au lieu de nouveaux paragraphes
+    const groupes = new Map();
+    for(const p of lignes) if(p.multi){ if(!groupes.has(p.pid)) groupes.set(p.pid, []); groupes.get(p.pid).push(p); }
+    const nomme = p => !p.modele ? null : p.modele.id === "titre" ? "le titre" : p.modele.image ? "l’image"
+      : "« " + norm(p.modele.ref).slice(0, 28).trimEnd() + (norm(p.modele.ref).length > 28 ? "…" : "") + " »";
+    const liste = [...groupes.values()].map(g => g.map(nomme).filter(Boolean)).filter(l => l.length > 1);
+    if(liste.length)
+      remarques.push({ t:"Retours à la ligne au lieu de paragraphes",
+        d: liste.map(l => l.join(", ")).join(" ; puis ") + (liste.length > 1 ? " sont, chaque fois," : " sont")
+         + " dans un même paragraphe, séparés par des retours à la ligne (Maj+Entrée, ↵ dans l’aperçu)."
+         + " Le centrage et les listes s’appliquent au paragraphe entier : terminez chaque ligne par Entrée seule (¶)." });
+  }
   if(police.nomBase && !/arial|helvetica|liberation sans/i.test(police.nomBase))
     remarques.push({ t:"Police", d:"Le document est en " + police.nomBase + ". Le modèle est en Arial." });
   const gcm = page.gauche / 566.93, dcm = page.droite / 566.93;
@@ -1250,12 +1331,14 @@ function apercu(r){
     i++;
     if(p.images > 0 && !p.texte.trim()){
       const t = p.taille || { l:60, h:40 };
-      const dedans = r.imageURL
-        ? `<img src="${r.imageURL}" alt="" style="width:${t.l}mm;height:${t.h}mm">`
+      const url = !p.texteImage && r.imageURL && (r.imageURL.get(p.blip) || r.imageURL.get(null));
+      const dedans = p.texteImage ? "texte collé comme image"
+        : url ? `<img src="${url}" alt="" style="width:${t.l}mm;height:${t.h}mm">`
         : "image insérée";
-      html += `<div class="ap-l" style="text-align:${p.jc === "center" ? "center" : "left"}">`
+      html += `<div class="ap-l" style="text-align:${!p.texteImage && imageCentree(p, r.page) ? "center" : "left"}">`
             + (p.numeros && p.numeros.length ? `<i class="ap-num">${p.numeros.map(n=>'<span data-n="'+n+'">'+n+"</span>").join("")}</i>` : "")
-            + `<span class="ap-img">${dedans}</span></div>`;
+            + `<span class="ap-img"${p.texteImage ? ' style="padding:0 3mm"' : ""}>${dedans}</span>`
+            + (p.saut ? '<span class="mk" style="display:inline-block;margin-left:.3em">↵</span>' : "") + `</div>`;
       continue;
     }
 
@@ -1278,7 +1361,7 @@ function apercu(r){
           + `margin-left:${p.numero ? 8 : 0}mm">`
           + (p.numeros && p.numeros.length ? `<i class="ap-num"${p.numero ? ' style="left:-27mm"' : ""}>${p.numeros.map(n=>'<span data-n="'+n+'">'+n+"</span>").join("")}</i>` : "")
           + (puce ? `<span class="puce">${puce}</span>` : "")
-          + (texteMarque(p) || "&nbsp;") + `</p>`;
+          + (texteMarque(p) || "&nbsp;") + (p.saut ? '<span class="mk" style="display:inline-block;margin-left:.3em;font-weight:400;font-style:normal">↵</span>' : "") + `</p>`;
   }
 
   const legende = '<span>Ce qui est à corriger est <span class="ex">surligné</span> ; '
@@ -1406,20 +1489,29 @@ async function traiter(f){
       if(!p.jc && p.herite.jc) p.jc = p.herite.jc;          // alignement porté par le style
     }
 
-    // l'image du document, pour l'aperçu
-    let imageURL = null;
+    // les images du document, pour l'aperçu : chacune par son lien (r:embed), pas par
+    // son rang dans le zip, où la première venue peut être n'importe quel fragment
+    const imageURL = new Map();
     const media = [...zip.keys()].filter(n => /^word\/media\/.+\.(png|jpe?g|gif|bmp|webp)$/i.test(n));
-    if(media.length){
-      const nom = media[0];
-      const oct = await binaireEntree(zip.get(nom));
-      if(oct){
-        let bin = "";
-        for(let i = 0; i < oct.length; i += 8192)
-          bin += String.fromCharCode.apply(null, oct.subarray(i, i + 8192));
-        const ext = (nom.match(/\.(\w+)$/) || ["","jpeg"])[1].toLowerCase();
-        const type = "image/" + (ext === "jpg" ? "jpeg" : ext);
-        imageURL = "data:" + type + ";base64," + btoa(bin);
-      }
+    const rels = await lireSi("word/_rels/document.xml.rels") || "";
+    const cible = new Map([...rels.matchAll(/<Relationship\b[^>]*>/g)].map(m => [
+      (m[0].match(/\bId="([^"]+)"/) || [])[1], "word/" + ((m[0].match(/\bTarget="([^"]+)"/) || [])[1] || "").replace(/^\/?word\//, "")]));
+    const enURL = async nom => {
+      const oct = zip.get(nom) && await binaireEntree(zip.get(nom));
+      if(!oct) return null;
+      let bin = "";
+      for(let i = 0; i < oct.length; i += 8192)
+        bin += String.fromCharCode.apply(null, oct.subarray(i, i + 8192));
+      const ext = (nom.match(/\.(\w+)$/) || ["","jpeg"])[1].toLowerCase();
+      return "data:image/" + (ext === "jpg" ? "jpeg" : ext) + ";base64," + btoa(bin);
+    };
+    for(const p of paragraphes) if(p.images > 0 && !p.texteImage && !p.texte.trim() && p.blip && !imageURL.has(p.blip)){
+      const nom = cible.get(p.blip);
+      if(nom && media.includes(nom)) imageURL.set(p.blip, await enURL(nom));
+    }
+    if(!imageURL.size && media.length){        // repli : la plus lourde des images
+      const lourde = media.map(n => [n, zip.get(n).data.length]).sort((a, b) => b[1] - a[1])[0][0];
+      imageURL.set(null, await enURL(lourde));
     }
 
     const r = analyser(paragraphes, page, police, formats);
