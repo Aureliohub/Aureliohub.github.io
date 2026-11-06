@@ -35,6 +35,7 @@ h1{margin:0;font-size:1.25rem;color:var(--navy)}
 #etat[aria-expanded=true] .fleche{transform:rotate(180deg)}
 .outils{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;color:var(--doux);font-size:.9rem}
 .outils button{font:inherit;padding:5px 12px;border:1px solid var(--filet);border-radius:5px;background:var(--carte);color:var(--encre);cursor:pointer}
+.outils button:disabled{opacity:.5;cursor:default}
 #message{margin:0;padding:10px 12px;border-left:3px solid var(--rouge);background:var(--carte)}
 #liste{margin:0;padding:0;list-style:none;background:var(--carte);border:1px solid var(--filet);border-radius:8px}
 #liste li{display:grid;grid-template-columns:150px minmax(0,1fr);gap:4px 14px;padding:12px 14px;border-top:1px solid var(--filet)}
@@ -80,11 +81,26 @@ h1{margin:0;font-size:1.25rem;color:var(--navy)}
   function lit(sha){ try { return JSON.parse(localStorage.getItem('commit:' + sha)); } catch(e) { return null; } }
   function garde(sha, v){ try { localStorage.setItem('commit:' + sha, JSON.stringify(v)); } catch(e) {} }
 
-  class Limite extends Error { constructor(reprise){ super('limite'); this.reprise = reprise; } }
+  /* Une fois limité par GitHub, plus aucune demande avant l'heure de reprise, même après un rechargement de la page. */
+  let reprise = 0;
+  try { reprise = Number(localStorage.getItem('reprise')) || 0; } catch(e) {}
+  function enPause(){ return Date.now() < reprise; }
+  function pause(jusque){
+    reprise = jusque;
+    try { localStorage.setItem('reprise', String(jusque)); } catch(e) {}
+  }
+  class Limite extends Error { constructor(q){ super('limite'); this.reprise = q; } }
   async function api(chemin){
+    if (enPause()) throw new Limite(reprise);
     const r = await fetch(API + chemin, {headers:{Accept:'application/vnd.github+json'}, cache:'no-store'});
-    if ((r.status === 403 || r.status === 429) && r.headers.get('x-ratelimit-remaining') === '0')
-      throw new Limite(Number(r.headers.get('x-ratelimit-reset')) * 1000 || 0);
+    if (r.status === 403 || r.status === 429) {
+      const attente = Number(r.headers.get('retry-after')) * 1000;
+      const fin = Number(r.headers.get('x-ratelimit-reset')) * 1000;
+      pause(attente ? Date.now() + attente
+        : r.headers.get('x-ratelimit-remaining') === '0' && fin > Date.now() ? fin
+        : Date.now() + 60 * 1000);
+      throw new Limite(reprise);
+    }
     if (!r.ok) throw new Error('HTTP ' + r.status);
     return r.json();
   }
@@ -168,10 +184,13 @@ h1{margin:0;font-size:1.25rem;color:var(--navy)}
       $('detail').textContent = '';
       if (err instanceof Limite) {
         message('GitHub limite les consultations depuis ce réseau. Nouvel essai possible après ' + heure.format(new Date(err.reprise)) + '.');
-        delai = Math.max(60000, err.reprise - Date.now() + 5000);
       } else message('GitHub ne répond pas. Vérifie la connexion, puis clique sur Actualiser.');
     }
     enCours = false;
+    const bloque = enPause();
+    $('actualiser').disabled = bloque;
+    $('actualiser').title = bloque ? 'Disponible après ' + heure.format(new Date(reprise)) : '';
+    if (bloque) delai = reprise - Date.now() + 5000;
     minuterie = setTimeout(() => { document.hidden ? (minuterie = null) : verifie(); }, delai);
   }
   $('etat').addEventListener('click', () => {
