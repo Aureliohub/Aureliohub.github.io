@@ -287,7 +287,7 @@ kbd{
 <header class="tete">
   <span class="pil">Informatique · PAI · traitement de texte</span>
   <div class="tete-texte">
-    <h1 title="v4">Lettre de réclamation : contrôle de votre fichier Word</h1>
+    <h1 title="v5">Lettre de réclamation : contrôle de votre fichier Word</h1>
     <p><span class="insecable">Déposez votre fichier, il est analysé dans votre navigateur (rien n’est envoyé sur Internet).</span>
       <span class="insecable">Vous obtenez votre note ainsi que la liste des corrections à apporter.</span></p>
   </div>
@@ -1329,6 +1329,26 @@ function analyser(paragraphes, tableaux, police){
       "Le numéro postal n’est pas suivi d’une virgule : on écrit « 1208 Genève » et non « 1208, Genève ».", pExp.i);
     const ligne = pExp.lignes.find(l => /^\s*\d{4}\s*,/.test(norm(l)));
     lier(marquerSuite(pExp, norm(ligne).split(" ")[0], "à écrire sans virgule"), cNpa);
+  }
+  // ni virgule ni point entre le prénom et le nom : « Negassi, Medhanie » → « Negassi Medhanie »
+  const motsPonctues = t => { const m = norm(t).split(" ").filter(Boolean);
+    return m.slice(0, -1).map((w, k) => /[.,;]$/.test(w) ? k : -1).filter(k => k >= 0); };
+  const nomExpL = pExp ? pExp.lignes[0] : "";
+  const ponctNom = motsPonctues(nomExpL), ponctSig = pSign ? motsPonctues(pSign.n) : [];
+  if(ponctNom.length || ponctSig.length){
+    ecriture = false;
+    const sansPonct = t => norm(t).split(" ").map((w, k, a) => k < a.length - 1 ? w.replace(/[.,;]+$/, "") : w).join(" ");
+    const ex = ponctNom.length ? nomExpL : pSign.n;
+    const cNom = corr("Ponctuation entre le prénom et le nom",
+      "Le prénom et le nom sont séparés par une simple espace, sans virgule ni point : écrivez « " + sansPonct(ex) + " » et non « " + norm(ex) + " »" +
+      (ponctNom.length && ponctSig.length ? ", dans l’en-tête comme dans la signature." : "."),
+      ponctNom.length ? pExp.i : pSign.i);
+    if(ponctNom.length && ponctSig.length) cNom.idx2 = pSign.i;
+    if(ponctNom.length){ const c = mq(pExp.i); ponctNom.forEach(k => c.err[k] = { type: "mot", titre: "sans virgule ni point", corr: cNom }); }
+    if(ponctSig.length){
+      const c = mq(pSign.i);
+      ponctSig.forEach(k => c.err[k] = { type: "mot", titre: "sans virgule ni point", corr: cNom });
+    }
   }
   // numéro de rue collé au nom de la rue : « France36 » au lieu de « France 36 »
   // (un numéro suivi d'une lettre, 36A ou 7bis, reste correct)
