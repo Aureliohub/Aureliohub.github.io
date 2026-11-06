@@ -287,7 +287,7 @@ kbd{
 <header class="tete">
   <span class="pil">Informatique · PAI · traitement de texte</span>
   <div class="tete-texte">
-    <h1 title="v3">Lettre de réclamation : contrôle de votre fichier Word</h1>
+    <h1 title="v4">Lettre de réclamation : contrôle de votre fichier Word</h1>
     <p><span class="insecable">Déposez votre fichier, il est analysé dans votre navigateur (rien n’est envoyé sur Internet).</span>
       <span class="insecable">Vous obtenez votre note ainsi que la liste des corrections à apporter.</span></p>
   </div>
@@ -1180,12 +1180,20 @@ function analyser(paragraphes, tableaux, police){
       comE = "Forme incorrecte.";
       const d0 = litDate(texteDate);
       const lieu = (texteDate.match(/^([A-ZÀ-Ÿ][\wÀ-ÿ' -]*),\s*le\b/) || [])[1] || "Genève";
-      const attendue = lieu + ", le " + (d0
-        ? d0.getDate() + " " + MOIS[d0.getMonth()] + " " + d0.getFullYear()
-        : "8 septembre 2026");
+      const regle = "lieu, virgule, « le », jour en chiffres, mois en toutes lettres et sans majuscule, année en chiffres";
+      const attendue = d0
+        ? lieu + ", le " + (d0.getDate() === 1 ? "1er" : d0.getDate()) + " " + MOIS[d0.getMonth()] + " " + d0.getFullYear()
+        : null;
+      // ce qui cloche dans le mois, dit en clair
+      const moisMaj = MOIS.find(mo => new RegExp("\\b" + mo.charAt(0).toUpperCase() + mo.slice(1) + "\\b").test(texteDate));
+      const moisChiffres = d0 && !MOIS.some(mo => texteDate.toLowerCase().includes(mo));
+      const precision = moisMaj ? " Le mois s’écrit sans majuscule : « " + moisMaj + " »."
+                      : moisChiffres ? " Le mois s’écrit en toutes lettres et sans majuscule." : "";
       corr("Format de la date",
-        "Vous avez écrit « " + texteDate + " ». Forme attendue : " + attendue + ".", pDate.i);
-      lier(marquerSuite(pDate, texteDate, "à écrire : " + attendue), corrections[corrections.length - 1]);
+        "Vous avez écrit « " + texteDate + " ». " +
+        (attendue ? "Forme attendue : " + attendue + "." + precision
+                  : "Forme attendue : " + regle + "."), pDate.i);
+      lier(marquerSuite(pDate, texteDate, attendue ? "à écrire : " + attendue : "à écrire : " + regle), corrections[corrections.length - 1]);
     }
   }else{
     comE = "Date absente.";
