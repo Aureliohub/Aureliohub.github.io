@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Publications du site</title>
+<style>
+/* Une colonne : le bouton d'état d'abord, la liste des publications dessous. Couleurs de la charte UOG/AM. */
+:root{
+  --fond:#f3f5f8;--carte:#fff;--encre:#1a1a1a;--doux:#5a6472;--filet:#d5dae1;--navy:#1F3A5F;--lien:#1d5f99;
+  --vert:#1a7f45;--orange:#b86200;--rouge:#c0342b;--gris:#667080;--sur-etat:#fff;--t-ok:#1a7f45;--t-encours:#b86200;--t-echec:#c0342b;
+}
+@media (prefers-color-scheme:dark){:root{
+  --fond:#14181e;--carte:#1d232b;--encre:#eceff3;--doux:#a4adb9;--filet:#343c47;--navy:#9dbde3;--lien:#8cc0f0;
+  --vert:#1f8a4d;--orange:#b86a0a;--rouge:#c8443a;--gris:#5f6875;--sur-etat:#fff;--t-ok:#62cf8e;--t-encours:#f0a64d;--t-echec:#f0837a;color-scheme:dark;
+}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--fond);color:var(--encre);font:16px/1.45 "Avenir Next","Avenir","Segoe UI","Trebuchet MS",Verdana,sans-serif}
+main{max-width:760px;margin:0 auto;padding:24px max(16px,env(safe-area-inset-right,0px)) 40px max(16px,env(safe-area-inset-left,0px));display:grid;gap:14px}
+h1{margin:0;font-size:1.25rem;color:var(--navy)}
+#etat{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:14px;width:100%;padding:16px 18px;border-radius:8px;
+  color:var(--sur-etat);cursor:pointer;background:var(--gris)}
+#etat:focus-visible{outline:3px solid var(--navy);outline-offset:2px}
+#etat[data-etat=actif]{background:var(--vert)}
+#etat[data-etat=encours]{background:var(--orange)}
+#etat[data-etat=echec]{background:var(--rouge)}
+#etat .pastille{flex:none;width:14px;height:14px;border-radius:50%;background:currentColor}
+#etat[data-etat=encours] .pastille{animation:pulse 1.2s infinite}
+@keyframes pulse{50%{opacity:.35}}
+@media (prefers-reduced-motion:reduce){#etat .pastille{animation:none!important}}
+#etat .textes{flex:1;min-width:0;display:grid;gap:2px}
+#etat strong{font-size:1.1rem}
+#etat .detail{overflow-wrap:anywhere}
+#etat .fleche{flex:none;transition:transform .15s}
+#etat[aria-expanded=true] .fleche{transform:rotate(180deg)}
+.outils{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;color:var(--doux);font-size:.9rem}
+.outils button{font:inherit;padding:5px 12px;border:1px solid var(--filet);border-radius:5px;background:var(--carte);color:var(--encre);cursor:pointer}
+#message{margin:0;padding:10px 12px;border-left:3px solid var(--rouge);background:var(--carte)}
+#liste{margin:0;padding:0;list-style:none;background:var(--carte);border:1px solid var(--filet);border-radius:8px}
+#liste li{display:grid;grid-template-columns:150px minmax(0,1fr);gap:4px 14px;padding:12px 14px;border-top:1px solid var(--filet)}
+#liste li:first-child{border-top:0}
+.quand{font-variant-numeric:tabular-nums}
+.statut{display:block;font-size:.85rem;color:var(--doux)}
+.statut.ok{color:var(--t-ok)}.statut.encours{color:var(--t-encours)}.statut.echec{color:var(--t-echec)}
+.fichiers{min-width:0;display:grid;gap:3px}
+.fichiers a{color:var(--lien);overflow-wrap:anywhere}
+.fichiers .retire{color:var(--doux);text-decoration:line-through;overflow-wrap:anywhere}
+.fichiers details summary{cursor:pointer;color:var(--doux)}
+.fichiers details div{display:grid;gap:3px;margin-top:3px}
+.note{margin:0;color:var(--doux);font-size:.85rem}
+@media (max-width:520px){#liste li{grid-template-columns:minmax(0,1fr)}}
+</style>
+</head>
+<body>
+<main>
+  <h1>Publications du site</h1>
+  <button id="etat" type="button" aria-expanded="false" aria-controls="liste" data-etat="attente">
+    <span class="pastille" aria-hidden="true"></span>
+    <span class="textes"><strong id="titre">Vérification…</strong><span class="detail" id="detail"></span></span>
+    <svg class="fleche" viewBox="0 0 16 16" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6l5 5 5-5"/></svg>
+  </button>
+  <p id="message" hidden></p>
+  <ol id="liste" hidden></ol>
+  <div class="outils"><button id="actualiser" type="button">Actualiser</button><span id="verifie"></span></div>
+  <p class="note">« Actif » signifie que GitHub a terminé la publication. Le navigateur peut encore montrer l'ancienne version quelques minutes : recharge alors la page du fichier.</p>
+</main>
+<script>
+(function(){
+  const DEPOT = 'aureliohub/aureliohub.github.io', SITE = 'https://aureliohub.github.io/', API = 'https://api.github.com/repos/' + DEPOT;
+  const NB = 15, MAX_FICHIERS = 8, TACHE = 'pages build and deployment';
+  const $ = id => document.getElementById(id);
+  const heure = new Intl.DateTimeFormat('fr-CH', {timeZone:'Europe/Zurich', hour:'2-digit', minute:'2-digit'});
+  const pad = n => String(n).padStart(2, '0');
+  function date(iso){
+    const p = {}; new Intl.DateTimeFormat('en-GB', {timeZone:'Europe/Zurich', year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit', hour12:false})
+      .formatToParts(new Date(iso)).forEach(x => p[x.type] = x.value);
+    return p.day + '.' + p.month + '.' + p.year + ' ' + (p.hour === '24' ? '00' : p.hour) + ':' + p.minute;
+  }
+  /* Le détail d'un commit ne change jamais : gardé dans le navigateur pour ménager la limite de 60 requêtes par heure de GitHub. */
+  function lit(sha){ try { return JSON.parse(localStorage.getItem('commit:' + sha)); } catch(e) { return null; } }
+  function garde(sha, v){ try { localStorage.setItem('commit:' + sha, JSON.stringify(v)); } catch(e) {} }
+
+  class Limite extends Error { constructor(reprise){ super('limite'); this.reprise = reprise; } }
+  async function api(chemin){
+    const r = await fetch(API + chemin, {headers:{Accept:'application/vnd.github+json'}, cache:'no-store'});
+    if ((r.status === 403 || r.status === 429) && r.headers.get('x-ratelimit-remaining') === '0')
+      throw new Limite(Number(r.headers.get('x-ratelimit-reset')) * 1000 || 0);
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return r.json();
+  }
+  async function fichiersDe(sha){
+    const connu = lit(sha);
+    if (connu) return connu;
+    const c = await api('/commits/' + sha);
+    const v = (c.files || []).map(f => ({n:f.filename, r:f.status === 'removed'}));
+    garde(sha, v);
+    return v;
+  }
+  function etatDe(run){
+    if (run.status !== 'completed') return 'encours';
+    if (run.conclusion === 'success') return 'actif';
+    if (run.conclusion === 'cancelled' || run.conclusion === 'skipped') return 'remplace';
+    return 'echec';
+  }
+  function lienFichier(f){
+    if (f.r) { const s = document.createElement('span'); s.className = 'retire'; s.textContent = f.n; return s; }
+    const a = document.createElement('a');
+    a.href = SITE + f.n.split('/').map(encodeURIComponent).join('/');
+    a.textContent = f.n; a.target = '_blank'; a.rel = 'noopener';
+    return a;
+  }
+  function ligne(run, fichiers){
+    const li = document.createElement('li'), e = etatDe(run);
+    const q = document.createElement('div'); q.className = 'quand';
+    q.textContent = e === 'actif' ? date(run.updated_at) : date(run.run_started_at || run.created_at);
+    const s = document.createElement('span');
+    s.className = 'statut ' + ({actif:'ok', encours:'encours', echec:'echec'}[e] || '');
+    s.textContent = {actif:'Activé', encours:'Publication en cours', echec:'Échec', remplace:'Remplacée'}[e];
+    q.appendChild(s);
+    const b = document.createElement('div'); b.className = 'fichiers';
+    if (!fichiers) { const n = document.createElement('a'); n.href = 'https://github.com/' + DEPOT + '/commit/' + run.head_sha; n.target = '_blank'; n.rel = 'noopener'; n.textContent = 'Fichiers non chargés : voir sur GitHub'; b.appendChild(n); }
+    else if (!fichiers.length) { const n = document.createElement('span'); n.className = 'statut'; n.textContent = 'Aucun fichier modifié'; b.appendChild(n); }
+    else {
+      fichiers.slice(0, MAX_FICHIERS).forEach(f => b.appendChild(lienFichier(f)));
+      if (fichiers.length > MAX_FICHIERS) {
+        const d = document.createElement('details'), r = document.createElement('summary'), c = document.createElement('div');
+        r.textContent = (fichiers.length - MAX_FICHIERS) + ' autres fichiers';
+        fichiers.slice(MAX_FICHIERS).forEach(f => c.appendChild(lienFichier(f)));
+        d.append(r, c); b.appendChild(d);
+      }
+    }
+    li.append(q, b);
+    return li;
+  }
+  function resume(fichiers){
+    if (!fichiers) return '';
+    if (!fichiers.length) return 'aucun fichier modifié';
+    return fichiers[0].n + (fichiers.length > 1 ? ' et ' + (fichiers.length - 1) + (fichiers.length > 2 ? ' autres fichiers' : ' autre fichier') : '');
+  }
+  function message(t){ $('message').textContent = t || ''; $('message').hidden = !t; }
+
+  let minuterie, enCours = false;
+  async function verifie(){
+    if (enCours) return;
+    enCours = true; clearTimeout(minuterie);
+    let delai = 5 * 60 * 1000;
+    try {
+      const d = await api('/actions/runs?per_page=' + (NB * 2));
+      const runs = (d.workflow_runs || []).filter(r => r.name === TACHE).slice(0, NB);
+      if (!runs.length) throw new Error('aucune publication');
+      let limite = null;
+      const fichiers = [];
+      for (const r of runs) {
+        try { fichiers.push(await fichiersDe(r.head_sha)); }
+        catch(e) { fichiers.push(null); if (e instanceof Limite) limite = e; }
+      }
+      const e = etatDe(runs[0]), dernier = resume(fichiers[0]);
+      $('etat').dataset.etat = e === 'remplace' ? 'attente' : e;
+      $('titre').textContent = {actif:'Actif', encours:'Publication en cours', echec:'Échec de la publication', remplace:'Publication remplacée'}[e];
+      $('detail').textContent = [dernier, e === 'actif' ? 'activé le ' + date(runs[0].updated_at) : ''].filter(Boolean).join(' · ');
+      const l = $('liste'); l.replaceChildren(...runs.map((r, i) => ligne(r, fichiers[i])));
+      message(limite ? 'GitHub limite les consultations : certains fichiers ne sont pas chargés. Actualise après ' + heure.format(new Date(limite.reprise)) + '.' : '');
+      if (e === 'encours') delai = 20 * 1000;
+      $('verifie').textContent = 'Vérifié à ' + heure.format(new Date());
+    } catch(err) {
+      $('etat').dataset.etat = 'attente';
+      $('titre').textContent = 'État inconnu';
+      $('detail').textContent = '';
+      if (err instanceof Limite) {
+        message('GitHub limite les consultations depuis ce réseau. Nouvel essai possible après ' + heure.format(new Date(err.reprise)) + '.');
+        delai = Math.max(60000, err.reprise - Date.now() + 5000);
+      } else message('GitHub ne répond pas. Vérifie la connexion, puis clique sur Actualiser.');
+    }
+    enCours = false;
+    minuterie = setTimeout(() => { document.hidden ? (minuterie = null) : verifie(); }, delai);
+  }
+  $('etat').addEventListener('click', () => {
+    const ouvert = $('etat').getAttribute('aria-expanded') !== 'true';
+    $('etat').setAttribute('aria-expanded', ouvert);
+    $('liste').hidden = !ouvert;
+  });
+  $('actualiser').addEventListener('click', verifie);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden && !minuterie) verifie(); });
+  verifie();
+})();
+</script>
+</body>
+</html>
