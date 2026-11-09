@@ -2494,7 +2494,7 @@ var qrcode = function() {
 </script>
 <script>
 'use strict';
-const VERSION = 'v15';   // numéro interne, non affiché
+const VERSION = 'v16';   // numéro interne, non affiché
 /* ============================================================
    CARTES — modifiables. 'e' = je suis, 'a' = j'ai
    ============================================================ */
@@ -2597,15 +2597,30 @@ function openRelay(idx) {
 const H = { qr: false, set: false, g: null, code: '', ri: 0, room: null, c: null, ready: false, net: false, err: '', timer: 0 };
 const newGame = () => ({ ph: 'lobby', players: [], order: [], ti: -1, deck: [], card: -1, n: 0, total: 20, won: 0, err: 0, fix: 0, cur: null, miss: [], queue: [], rev: false, revd: false, res: null, auto: false });
 
+/* Passage classe ↔ jeu seul sans recharger la page : un rechargement ferait quitter le plein écran. */
+let hIv = 0;
+function toSolo() {
+  document.removeEventListener('click', hClick);
+  clearInterval(hIv); clearTimeout(H.timer);
+  if (H.c) { try { H.c.end(true); } catch (e) {} H.c = null; }
+  Object.assign(H, { ready: false, net: false, qr: false, set: false, err: '' });
+  history.replaceState(null, '', location.pathname + '?solo');
+  I.ph = 'menu'; soloInit();
+}
+function toClass() {
+  document.removeEventListener('click', iClick);
+  history.replaceState(null, '', location.pathname + '?classe');
+  hostInit();
+}
 async function hostInit() {
   const saved = store.get('jsoj-host4');
   if (saved && saved.g && Date.now() - saved.t < 3 * 3600e3) { H.g = saved.g; H.code = saved.code; H.ri = saved.ri || 0; }
-  else { H.g = newGame(); H.code = rid(6); }
+  else if (!H.g) { H.g = newGame(); H.code = rid(6); }
   if (!window.crypto || !crypto.subtle) { H.err = 'Cette page doit être ouverte en https (par exemple depuis GitHub Pages).'; return hRender(); }
   H.room = await mkRoom(H.code);
   hRender();
   tryRelay(saved ? H.ri : 0, 0);
-  setInterval(hPublish, 4000);
+  hIv = setInterval(hPublish, 4000);
   document.addEventListener('click', hClick);
   if (H.g.ph === 'result' && H.g.auto) H.timer = setTimeout(next, 2500);
 }
@@ -2749,7 +2764,7 @@ function hClick(ev) {
   else if (a === 'retry') tryRelay(0, 0), hRender();
   else if (a === 'qr') { H.qr = !H.qr; hRender(); }
   else if (a === 'set') { H.set = !H.set; H.setNew = H.set; hRender(); }
-  else if (a === 'solo') location.search = '?solo';
+  else if (a === 'solo') toSolo();
   else if (a === 'full') { const d = document; d.fullscreenElement ? d.exitFullscreen() : d.documentElement.requestFullscreen && d.documentElement.requestFullscreen().catch(() => {}); }
 }
 function joinUrl() {
@@ -3008,7 +3023,7 @@ function iClick(ev) {
   }
   else if (a === 'next' && I.ph === 'res') { I.q.shift(); I.n++; I.res = null; if (I.q.length) I.ph = 'q'; else { I.miss = I.ko; I.ph = 'end'; } }
   else if (a === 'menu') I.ph = 'menu';
-  else if (a === 'class') { location.search = '?classe'; return; }
+  else if (a === 'class') return toClass();
   iRender();
 }
 function iRender() {
