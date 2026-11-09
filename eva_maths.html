@@ -8,7 +8,7 @@ générant des exercices de mathématiques pour adultes (programme PAI, Suisse).
 Product owner : Aurelio (Onex/Genève). Répondre en FRANÇAIS.
 
 ───────────────────────────────────────────────────────────────────────────────
-0. OÙ ON EN EST (v538, 31.10.2026) — à lire en premier
+0. OÙ ON EN EST (v541, 09.11.2026) — à lire en premier
 ───────────────────────────────────────────────────────────────────────────────
 L'application est en ligne : https://aureliohub.github.io/eva_maths.html
 Les fichiers de série et de test (.json) sont déposés à côté d'elle, et s'ouvrent
@@ -545,6 +545,19 @@ PDF de domaine :
 ───────────────────────────────────────────────────────────────────────────────
 Cette section décrit l'ÉTAT, non l'historique. Les numéros de version ne sont
 cités que lorsqu'ils aident à retrouver un choix dans le fichier.
+
+v541 — « FRACTIONS », FRACTION D'UNE FRACTION, CINÉMA (09.11). « viennent en
+ train » n'avait pas de sens (Aurelio) → « ont réservé leur place en ligne ».
+
+v540 — « FRACTIONS », DIMINUTION : INSCRITS ET EMPLOYÉS RETIRÉS (09.11, demande
+ d'Aurelio). Il ne reste que économies, trajet et stock.
+
+v539 — « FRACTIONS », DIMINUTION : PLUS DE SPECTATEURS (09.11). Aurelio : « ça
+ n'a pas beaucoup de sens, une baisse de spectateurs ». Trois contextes validés
+ remplacent celui-là : économies (vélo, CHF ; dépense d'au moins 150 CHF), trajet
+ d'un camionneur (km), paires de chaussures vendues pendant les soldes. Inscrits
+ et employés, non commentés, restent. Mêmes nombres, même palier (2). L'unité
+ « paires » est apprise par `uniteDeLaReponse`.
 
 v538 — « FRACTIONS », CITERNE : QUESTION REFORMULÉE (31.10). Aurelio : « les
  apprenants comprennent que les 5/9 sont apportés par la pluie ». Désormais
@@ -11126,7 +11139,7 @@ function uniteDeLaReponse(rep) {
   }
   // Monnaies et grandeurs hors du tableau métrique, plus les objets dénombrés
   // qui font office d'unité dans la réponse (« 26 portions », « 12 employés »).
-  if (/^(CHF|EUR|USD|hectares?|ares?|portions?|employ[ée]s?|inscrits?|spectateurs?|livres?|gar[çc]ons?|filles?|voitures?|[oœ]ufs?|[ée]l[èe]ves?|animaux|personnes?|pages?|fruits?|romans?|chats?|pi[èe]ces?|participants?|joueurs?|dossiers?)$/i.test(mot)) {
+  if (/^(CHF|EUR|USD|hectares?|ares?|portions?|employ[ée]s?|inscrits?|spectateurs?|paires?|livres?|gar[çc]ons?|filles?|voitures?|[oœ]ufs?|[ée]l[èe]ves?|animaux|personnes?|pages?|fruits?|romans?|chats?|pi[èe]ces?|participants?|joueurs?|dossiers?)$/i.test(mot)) {
     return mot;
   }
   // « 30 autres animaux », « 4 c.s. » : fragments de phrase, pas des unités.
@@ -11441,7 +11454,7 @@ function genPropConcretFractions() {
     const ctx = choice([
       { lieu: 'Dans un club', groupe: 'membres', sous: 'adultes', verbe: 'ont un abonnement annuel' },
       { lieu: 'Dans une école', groupe: 'élèves', sous: 'demi-pensionnaires', verbe: 'mangent végétarien' },
-      { lieu: 'Dans un cinéma', groupe: 'spectateurs', sous: 'abonnés', verbe: 'viennent en train' }
+      { lieu: 'Dans un cinéma', groupe: 'spectateurs', sous: 'abonnés', verbe: 'ont réservé leur place en ligne' }
     ]);
     // v523 : les deux fractions viennent de FRAC (avant : dénominateurs de 2
     // à 6, « 2/3 de 3/5 » se faisait de tête).
@@ -11489,12 +11502,21 @@ function genPropConcretFractions() {
 
   // --- Type 8 : diminution fractionnaire → retrouver la valeur de départ ---
   function patDiminutionFraction() {
+    // v539 : les spectateurs ont fait place à trois situations où « il reste »
+    // va de soi : économies, trajet, stock (choix d'Aurelio, 09.11).
+    const { prenom, genre } = pickPrenom();
     const ctx = choice([
-      { sujet: 'Le nombre de spectateurs', grp: 'spectateurs' },
-      { sujet: "Le nombre d'inscrits à un cours", grp: 'inscrits' },
-      { sujet: "Le nombre d'employés d'une entreprise", grp: 'employés' }
+      { u: ' CHF', depenseMin: 150,                 // un vélo à moins de 150 CHF : invraisemblable
+        enonce: (f, v) => `${prenom} a dépensé les ${f} de ses économies pour acheter un vélo. Il lui reste ${v} CHF. Combien avait-${genre === 'M' ? 'il' : 'elle'} au départ ?`,
+        intro: (f, r) => `${f} sont dépensés : il reste ${r} des économies.` },
+      { u: ' km',
+        enonce: (f, v) => `Un camionneur a déjà parcouru les ${f} de son trajet. Il lui reste ${v} km à faire. Quelle est la longueur totale du trajet ?`,
+        fin: 'Trajet total',
+        intro: (f, r) => `${f} sont parcourus : il reste ${r} du trajet.` },
+      { u: ' paires',
+        enonce: (f, v) => `Un magasin a vendu les ${f} de ses paires de chaussures pendant les soldes. Il en reste ${v}. Combien de paires y avait-il au départ ?`,
+        intro: (f, r) => `${f} sont vendus : il reste ${r} du stock.` }
     ]);
-    const verbe = choice(['diminué', 'baissé']);
     // v523 : diminution tirée de FRAC ; la part qui reste vaut rn/rd et UN
     // rd-ième (w) sort des tables ; départ non rond, sous 1'000.
     let ar = 3, br = 8, rn = 5, rd = 8, w = 37, safety = 400;
@@ -11504,13 +11526,14 @@ function genPropConcretFractions() {
       const n2 = (y - x) / g2, d2 = y / g2, v = rand(11, 99);
       const dep = d2 * v;
       if (!unite(v) || dep % 10 === 0 || dep < 150 || dep > 990 || n2 * v < 30) continue;
+      if (x * (d2 / y) * v < (ctx.depenseMin || 0)) continue;
       ar = x; br = y; rn = n2; rd = d2; w = v; break;
     }
     const V = rn * w, depart = rd * w;
     return {
-      text: `${ctx.sujet} a ${verbe} de ${ar}/${br} ; il en reste ${V}. Combien y en avait-il au départ ?`,
-      answer: `${depart} ${ctx.grp}`,
-      solutionDetail: `Diminuer de ${ar}/${br}, c'est garder ${rn}/${rd} du total. ${rn}/${rd} → ${V}, donc 1/${rd} → ${V} ÷ ${rn} = ${w}. Au départ (${rd}/${rd}) : ${w} × ${rd} = ${depart} ${ctx.grp}.`
+      text: ctx.enonce(`${ar}/${br}`, V),
+      answer: `${depart}${ctx.u}`,
+      solutionDetail: `${ctx.intro(`${ar}/${br}`, `${rn}/${rd}`)} ${rn === 1 ? `1/${rd} → ${V}${ctx.u}` : `${rn}/${rd} → ${V}${ctx.u}, donc 1/${rd} → ${V} ÷ ${rn} = ${w}${ctx.u}`}. ${ctx.fin || 'Au départ'} (${rd}/${rd}) : ${w} × ${rd} = ${depart}${ctx.u}.`
     };
   }
 
@@ -20214,7 +20237,7 @@ const ICONE_ENSEIGNANT = '<svg viewBox="0 0 24 24" width="21" height="21" fill="
 const ICONE_PDF = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJkAAACUCAMAAAC3HHtWAAAAk1BMVEXi5ef////xVkKwt73K0dji6OrxW0jyUDnG2eHlzczmgnrV2t/x8/T19vbxUTzwTDX4u7Xnvr28wsf+8/L84N3yYlD1jID1hXf1kYb4q6L4t7D96ujwQib1mY7++Pf70c3zcWHxSC/zeGn3pJv6ysX72dXy2Nbj1dXtgnfyaFf3sKj6w73UubvV4ebco6HkioPitLFLhhsqAAAElUlEQVR4nO3ca5eaOhQG4ICOtHUa7AAqIgiIbdVezv//dUcS7tlAXIYkq4v308xCzeNOCAEVZAzmKxKWj8Xi4324tVbQyGahsqdow7J3wbLFgp82LHsTLuOv2rBMIKyQ8dMGZQLHfyXjpsmX8dIUyDhpKmR8NCUyLpoa2eLjq64yjqqpko1XTZlstGrqZGM0hbIRmkrZME2pbJCmVjZEUywboKmW9dOUy3qnXPWyvqppIOupmg4yuGpayMCq6SGDqiZPthySAVWTJ1sPytiqyZMNdydbNYmykaJ1aRJlY0Xr0GTKnqNJlY3sn22aXBlaL4fr1qBJlpEsB/KmVDZEUywboKmW9dOUy3pp6mV9NA1kPTQdZDBNCxlI00MG0TSRATRdZCxNGxlD00fWpWkkQ/rKkL4ypK8M6StD+sqQvjKkrwzpK0P6ypC+MqSvDOkrQ/rKkL6ytbYyVF+tnWWiZW8T5jlZ4Lby/fN0+YFAGyxzw9hbyUoc/oBooOxi2tiUFmybEA2SRaklz5XH/slZs5PEgtGsPrNFg2R3W7YMf+OTbWbZLJtls2yWzbJWrORYJklaaxFs2WUsiznm1htpoIPySzK8PQVl3Oyc1gQrDX3/nMc/h/t0lbTb3vqthDGwkHlFhneO0YyTXYtHWdvWFsc9xA3b6m504nhs1V6R2QemhT192OrS3WJs4rLx7hvKcz8KlVkbpoWI9ovnMlsMN4ULSnJIJpA5gUNStL+qZRFN+RLBDvfJgpXY3qSy2zXOs/MpIbRLWeT/3OYJb0UFL7R9KnMOdXzRewCV+TYmsa8BKdqxku3oFsvGu4C+SFLL3MakwU4rgmTlv/u8ak5emEJWVcKOadmuuJYBmKlkmHpiQGZaMenrg61EZppknso9jMw8khnG9fSTWWletCjF9TizHnmMwsdInFqG6S4A9mY5keR7LpUFYRX4JFugLPHzf6OK0ZatTuWDmfnM2UO012XnI931zTMZ5KfGrNFsEGdkF0igmdaJgQ59XZaFZE1xO9GZlrx/QGYS2Q2UGdtJZO3c6+NmZ5yRg/wZ6k3j4rEvLlrm0h2NlRW7R17R4uh0qnIA1kCCZVF2pW2wMjvMH+BcG7MGmTbywBfmBMqcU2gWbQDzGSnZhfwpa6Y9nWn2qVm9d0ZGZxQyzOTJzkfaJc0+6cjwMSQ7bmRLrZkPbClkCSZoHG+iumQayIzs9lgV3g73YqYzsuJp6mWdXK7N1baMccYpy7xi2EmQ2ed8C3Q4Zs/qorA6CcFpLhu9WP7a1YNNFB3AdULqRjXKcU/bY+P5OHQiN51UhnG6gz/AsLxdndSz2s+249119IOPF68F9axHyZY6TzxNmGzCzLJZNstm2TSyTPpnwh7nZ8KBbBiOGVfPdw9u7DXeSWHHX785ZVGYJNV52ORJ8J/lmlP2WOv54b6VL5Pl73/LT0/Iunn/NF3yLzXyjjNAxvzkQWy0lQEwPWTAKOOXrScM5PoXvrM3y2bZLJtls+zfk3He90Do3TnFykTe0ZQr9Q8XRmTSi9a4zcyITOQNap+Djckk92fzbin/A8PQxx30Ei25AAAAAElFTkSuQmCC';
 
 // Numéro de version, affiché en pied de menu.
-const APP_VERSION = '538';
+const APP_VERSION = '541';
 
 const DOMAINS = [
   {
