@@ -8,7 +8,7 @@ générant des exercices de mathématiques pour adultes (programme PAI, Suisse).
 Product owner : Aurelio (Onex/Genève). Répondre en FRANÇAIS.
 
 ───────────────────────────────────────────────────────────────────────────────
-0. OÙ ON EN EST (v541, 09.11.2026) — à lire en premier
+0. OÙ ON EN EST (v542, 10.11.2026) — à lire en premier
 ───────────────────────────────────────────────────────────────────────────────
 L'application est en ligne : https://aureliohub.github.io/eva_maths.html
 Les fichiers de série et de test (.json) sont déposés à côté d'elle, et s'ouvrent
@@ -388,7 +388,8 @@ PDF de domaine :
   Titre et nom de fichier suivent la sélection.
 - Mention « (sans calculatrice) » : DOMAINES_SANS_CALCULATRICE (domaine 1 seul),
   dans la barre de titre et les en-têtes PDF. Les PDF de sous-domaine
-  n'affichent plus « Domaine N – ».
+  n'affichent plus « Domaine N – ». Depuis la v542, aussi par EXERCICE
+  (`ex._sansCalc` + consigne, niveau « Équivalences » de frac-pct).
 
 ───────────────────────────────────────────────────────────────────────────────
 5 bis. MODE ÉVALUATION (chantier principal d'août 2026)
@@ -545,6 +546,71 @@ PDF de domaine :
 ───────────────────────────────────────────────────────────────────────────────
 Cette section décrit l'ÉTAT, non l'historique. Les numéros de version ne sont
 cités que lorsqu'ils aident à retrouver un choix dans le fichier.
+
+v542 — « CALCULER UNE FRACTION OU UN POURCENTAGE DE … » : NIVEAU
+ « ÉQUIVALENCES » (10.11, demande d'Aurelio sur le modèle de sa fiche GoMaths
+ « Code fractionnaire - Équivalences »). Tableau à quatre colonnes — fraction
+ irréductible, fraction sur 100, nombre à virgule, pourcentage —, une ligne
+ d'exemple en gras, dix lignes où UNE écriture est donnée.
+ · NIVEAU 2, AFFICHÉ EN PREMIER (`niveauMenu` : « Équivalences », puis
+   « Fraction ou % de » pour le niveau 1). Le niveau 1 garde son numéro : PDF
+   du domaine 2, test raccourci et séries existantes NE CHANGENT PAS (vérifié,
+   voir plus bas). PAS de `niveauLabels` : il renommerait le niveau 1 dans les
+   titres du PDF de domaine et du test.
+ · SANS CALCULATRICE POUR CE NIVEAU SEULEMENT (demande d'Aurelio). Deux
+   supports : la consigne (« Complète le tableau selon l'exemple (sans
+   calculatrice) : ») qui suit l'exercice partout — écran, PDF, série, test,
+   export — et le drapeau générique `ex._sansCalc`, lu par
+   `notesCalculatrice` : dans un test, la ligne du domaine 2 dit alors
+   « sans calculatrice – exercice 2 · calculatrice autorisée – exercice 3 »
+   au lieu de couvrir l'exercice d'un « calculatrice autorisée ». La barre de
+   titre de l'écran n'a pas été touchée (DOMAINES_SANS_CALCULATRICE reste {1}).
+ · `genFracPctEquivalences` (aiguillé par genFracPct quand state.niveau vaut
+   2) — lire son commentaire pour les règles du tirage : pourcentages tous
+   différents ; fraction donnée de dénominateur 4, 5, 10, 20, 25 ou 50, jamais
+   1/2 ; fraction sur 100 donnée toujours simplifiable ; un seul « 0,09 »
+   (fraction irréductible sur 100) ; au plus deux sous 10 % ; colonnes données
+   3, 3, 2, 2, jamais deux fois de suite. Secours = les dix lignes de la fiche,
+   jamais atteint sur 5 000 tirages.
+ · `tableMode` (comme le tableau de proportionnalité), une question par case
+   (30), libellées « 1b », « 1c »… Barème `frac-pct#2` : demi-champ (15 points).
+ · CASES À FRACTION de la v533 dans les deux premières colonnes, avec un
+   champ générique neuf `q.fractionExacte` : l'écriture est imposée par la
+   colonne — 18/50 est refusé là où l'on attend 9/25, 9/25 refusé là où l'on
+   attend 36/100. Pourcentage : « 36 », « 36% », « 36 % » justes ; nombre à
+   virgule : « 0,36 » et « 0.36 » justes.
+ · QUATRE RETOUCHES GÉNÉRIQUES rendues nécessaires, à connaître :
+   – renderExercise (tableMode) remplace l'identifiant par split/join : une
+     case à fraction le porte TROIS fois (-n, -d, champ caché), `replace` ne
+     changeait que le premier ;
+   – applyTableSolutions écrit la solution DANS les deux champs visibles d'une
+     case à fraction ; snapshotInputs les ignore (solution-shown) et
+     restoreInputs leur retire cette classe — sans quoi une saisie partielle
+     disparaissait à la bascule Solutions ;
+   – export du test : le tableau cloné apparie les cases aux questions en
+     écartant `.dfrac-champ` (trois champs par case faussaient le compte) ;
+   – `sub.ordrePdf` (opt-in) : ordre des niveaux du PDF de sous-domaine
+     générique. frac-pct : [2, 1].
+ · PDF DU SOUS-DOMAINE : « Exercice 1. – Équivalences » sur sa page (pageGroups :
+   partagée, la page à hauteur fixe coupait les dernières lignes), puis
+   « Exercice 2. » (niveau 1, `_noNiveauTag` pour ne pas afficher « – Niveau
+   1 ») sur la suivante, puis le corrigé (tableau complet, trouvé en vert,
+   `equivCorrigeHtml`, branché en tête d'espaceCorrigeInner comme
+   `_poseColonne`). Avant : deux exercices du niveau 1 sur une page.
+   Au PDF, cases vides comme sur la fiche (le pointillé de la passe est
+   rendu transparent par `.pdf-mode .equiv-saisie span`).
+ · `_realNiveau` posé par les DEUX générateurs : l'atelier retrouve un niveau
+   par `_realNiveau`, sinon par son rang — et le rang ne vaut plus depuis
+   `ordrePdf` (l'atelier rendait le niveau 1 pour « Équivalences »).
+ Vérifié au vrai navigateur : 5 000 tableaux (règles, réponses recalculées,
+ JSON) ; saisie FRAPPÉE dans les 30 cases (justes, fraction égale mais mal
+ écrite, fausses, formats du % et de la virgule) ; bascule Solutions avec
+ saisie partielle ; PDF du sous-domaine regardé (3 pages) ; atelier → PDF de
+ série regardé ; test depuis un fichier (aller-retour JSON), 10 cases justes
+ = 5/15, ligne de calculatrice, tableur (« 2b », « 48/100 »), export regardé ;
+ téléphone (le tableau défile dans son cadre). NON-RÉGRESSION, graine fixe,
+ 33 documents (5 domaines + 28 sous-domaines) : 32 IDENTIQUES au pixel à la
+ v541, seul frac-pct diffère (attendu).
 
 v541 — « FRACTIONS », FRACTION D'UNE FRACTION, CINÉMA (09.11). « viennent en
  train » n'avait pas de sens (Aurelio) → « ont réservé leur place en ligne ».
@@ -4923,6 +4989,33 @@ ainsi (une remarque prise pour une consigne, une sélection ambiguë).
   }
 
   /* Tableau de proportionnalité (proportion N1) */
+  /* Tableau d'équivalences (frac-pct niveau 2, v542) — la fiche « Code
+     fractionnaire - Équivalences » : quatre colonnes de même largeur, ligne
+     d'exemple en gras, cases à fraction de la v533 dans les deux premières. */
+  .equiv-wrap { overflow-x: auto; margin: 12px 0 6px; }
+  .equiv-table { border-collapse: collapse; font-size: 16px; margin-left: 4px; }
+  .equiv-table th, .equiv-table td {
+    border: 1px solid #6B7280; text-align: center; vertical-align: middle;
+    padding: 6px 10px; width: 150px; height: 74px;
+  }
+  .equiv-table th { font-size: 13px; font-weight: 700; line-height: 1.25; height: auto; background: var(--surface-alt); }
+  .equiv-table .equiv-num { width: 40px; font-size: 13px; color: var(--muted); }
+  .equiv-table .equiv-exemple td { font-weight: 800; background: var(--surface-alt); }
+  .equiv-table .answer-input-cell { width: 96px; text-align: center; }
+  .equiv-table .dfrac-case { vertical-align: middle; }
+  .dfrac-case:has(.dfrac-champ.solution-shown) { border-color: var(--success); background: var(--success-soft); }
+  .dfrac-champ.solution-shown { color: #065F46; font-style: italic; }
+  /* Au PDF, les champs disparaissent : la case reste vide, comme sur la fiche. */
+  .pdf-mode .equiv-table th, .pdf-mode .equiv-table td { height: 60px; }
+  .pdf-mode .equiv-table th { height: auto; background: #F3F4F6; }
+  .pdf-mode .equiv-table .equiv-exemple td { background: #F3F4F6; }
+  /* La passe PDF remplace les champs par un pointillé : la fiche laisse la
+     case vide. */
+  .pdf-mode .equiv-table .equiv-saisie span { border-bottom-color: transparent !important; }
+  @media (max-width: 640px) {
+    .equiv-table th, .equiv-table td { width: auto; padding: 4px 5px; }
+    .equiv-table .answer-input-cell { width: 64px; }
+  }
   .prop-table {
     border-collapse: collapse;
     margin: 12px 0 14px 16px;
@@ -9160,10 +9253,166 @@ function genPctInverseFractions() {
   return { multi: true, intro: "Calcule la valeur manquante :", questions };
 }
 
+// 2.1 bis — Niveau « Équivalences » (v542, demande d'Aurelio sur le modèle de sa
+// fiche « Code fractionnaire - Équivalences ») : tableau à quatre colonnes —
+// fraction irréductible, fraction de dénominateur 100, nombre à virgule,
+// pourcentage. Une ligne d'exemple complète, puis dix lignes où UNE écriture
+// est donnée et les trois autres sont à trouver.
+// · Calculatrice NON autorisée pour CE niveau seulement : `_sansCalc` sur
+//   l'exercice (lu par `notesCalculatrice` dans un test) et mention dans la
+//   consigne, qui suit l'exercice partout (écran, PDF, série, test, export).
+// · Les cases de fraction sont celles de la v533 (numérateur / dénominateur
+//   empilés), avec `fractionExacte` : l'écriture est imposée par la colonne —
+//   9/25 et non 18/50 dans la première, 36/100 et non 9/25 dans la deuxième.
+// · Une question par case (`tableMode`, comme le tableau de proportionnalité),
+//   libellées « 1b », « 1c »… par ligne et colonne. Barème : 1/2 point par
+//   case (`frac-pct#2` : demi-champ).
+// · Tirage : pourcentages tous différents ; une fraction donnée a un
+//   dénominateur de 4, 5, 10, 20, 25 ou 50 (jamais 1/2) ; une fraction sur 100
+//   donnée se simplifie toujours ; un seul pourcentage dont la fraction
+//   irréductible garde 100 (« 0,09 ») ; au plus deux sous 10 % ; au plus trois
+//   lignes de même dénominateur ; une colonne donnée ne revient jamais deux
+//   lignes de suite.
+const EQUIV_COLONNES = [
+  'Fraction<br>irréductible',
+  'Fraction dont<br>le dénominateur<br>est 100',
+  'Nombre<br>à virgule',
+  'Pourcentage'
+];
+function genFracPctEquivalences() {
+  const LIGNES = 10;
+  const reduit = p => { const g = gcd(p, 100); return [p / g, 100 / g]; };
+  const virgule = p => String(p / 100).replace('.', ',');
+  // Ordre des colonnes données : 3, 3, 2, 2 lignes, jamais deux fois de suite.
+  let ordre;
+  for (let essai = 0; essai < 500; essai++) {
+    const cpt = [0, 1, 2, 3].sort(() => Math.random() - 0.5);
+    const sac = [cpt[0], cpt[0], cpt[0], cpt[1], cpt[1], cpt[1], cpt[2], cpt[2], cpt[3], cpt[3]];
+    for (let i = sac.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [sac[i], sac[j]] = [sac[j], sac[i]];
+    }
+    if (sac.every((c, i) => i === 0 || c !== sac[i - 1])) { ordre = sac; break; }
+  }
+  if (!ordre) ordre = [0, 1, 2, 3, 0, 1, 2, 3, 0, 1];
+  // Exemple : dénominateur 25, comme la fiche (9/25 = 36/100 = 0,36 = 36 %).
+  const exemple = choice([12, 28, 36, 44, 52, 64, 84, 92]);
+  const admis = (col, p) => {
+    const [n, d] = reduit(p);
+    if (col === 0) return [4, 5, 10, 20, 25, 50].includes(d) && !(n === 1 && d === 2);
+    if (col === 1) return d !== 100;
+    if (col === 3) return d !== 100;
+    return true;   // nombre à virgule : 0,09 (9/100) est permis, une fois
+  };
+  let lignes = null;
+  for (let essai = 0; essai < 400 && !lignes; essai++) {
+    const vus = new Set([exemple]);
+    const parD = {};
+    let cent = 0, petits = 0;
+    const out = [];
+    for (const col of ordre) {
+      let p = null;
+      for (let k = 0; k < 60; k++) {
+        const c = rand(1, 99);
+        if (vus.has(c) || !admis(col, c)) continue;
+        const d = reduit(c)[1];
+        if (d === 100 && cent >= 1) continue;
+        if (c < 10 && petits >= 2) continue;
+        if ((parD[d] || 0) >= 3) continue;
+        p = c; break;
+      }
+      if (p === null) break;
+      const d = reduit(p)[1];
+      vus.add(p); parD[d] = (parD[d] || 0) + 1;
+      if (d === 100) cent++;
+      if (p < 10) petits++;
+      out.push({ p, col });
+    }
+    if (out.length === LIGNES && Object.keys(parD).length >= 4) lignes = out;
+  }
+  if (!lignes) {
+    // Secours (jamais atteint au banc) : les dix lignes de la fiche d'Aurelio.
+    lignes = [[22, 0], [40, 1], [50, 2], [30, 3], [96, 0], [5, 1], [9, 2], [76, 3], [65, 0], [48, 1]]
+      .map(([p, col]) => ({ p, col }));
+  }
+  // Les quatre écritures d'un pourcentage : [html affiché, réponse, champs].
+  const ecritures = p => {
+    const [n, d] = reduit(p);
+    return [
+      { html: frac(n, d), answer: `${n}/${d}`, fraction: [n, d] },
+      { html: frac(p, 100), answer: `${p}/100`, fraction: [p, 100] },
+      { html: virgule(p), answer: virgule(p) },
+      { html: `${p} %`, answer: `${p} %` }
+    ];
+  };
+  const caseFraction = id => `<span class="dfrac-case no-print">`
+    + `<input type="text" id="${id}-n" class="dfrac-champ" data-brut="1" inputmode="numeric" maxlength="3" autocomplete="off" aria-label="numérateur" oninput="dfracSaisie(this)">`
+    + `<span class="dfrac-barre"></span>`
+    + `<input type="text" id="${id}-d" class="dfrac-champ" data-brut="1" inputmode="numeric" maxlength="3" autocomplete="off" aria-label="dénominateur" oninput="dfracSaisie(this)">`
+    + `<input type="hidden" id="${id}" class="answer-input" value="">`
+    + `</span>`;
+  const caseTexte = id => `<input type="text" class="answer-input answer-input-cell no-print" id="${id}" placeholder="?" autocomplete="off">`;
+  const lettres = ['a', 'b', 'c', 'd'];
+  const questions = [];
+  let table = `<table class="equiv-table"><thead><tr><th class="equiv-num"></th>`
+    + EQUIV_COLONNES.map(t => `<th>${t}</th>`).join('') + `</tr></thead><tbody>`;
+  table += `<tr class="equiv-exemple"><td class="equiv-num">ex.</td>`
+    + ecritures(exemple).map(e => `<td>${e.html}</td>`).join('') + `</tr>`;
+  lignes.forEach((l, r) => {
+    const ec = ecritures(l.p);
+    table += `<tr><td class="equiv-num">${r + 1}.</td>`;
+    ec.forEach((e, c) => {
+      if (c === l.col) { table += `<td class="equiv-donnee">${e.html}</td>`; return; }
+      const hint = `__INP_eq_${r}_${c}__`;
+      table += `<td class="equiv-saisie${e.fraction ? ' equiv-saisie-frac' : ''}">${e.fraction ? caseFraction(hint) : caseTexte(hint)}</td>`;
+      const q = { label: `${r + 1}${lettres[c]}`, text: '', answer: e.answer, inputIdHint: hint,
+                  _equivLigne: r, _equivCol: c };
+      if (e.fraction) { q.fractionEquiv = e.fraction; q.fractionExacte = true; }
+      questions.push(q);
+    });
+    table += `</tr>`;
+  });
+  table += `</tbody></table>`;
+  return {
+    intro: `Complète le tableau selon l'exemple (sans calculatrice) :<div class="equiv-wrap">${table}</div>`,
+    tableMode: true,
+    _sansCalc: true,
+    _niveauLibelle: 'Équivalences',
+    _realNiveau: 2,
+    _equivTableau: { exemple, lignes },
+    // Le tableau est UN TOUT, comme celui de proportionnalité : pas de commande
+    // par case dans l'atelier, seul le bouton d'exercice le renouvelle.
+    _sansOutilsQuestion: true,
+    questions
+  };
+}
+
+// Corrigé du tableau d'équivalences, commun à toutes les chaînes (branché en
+// tête d'espaceCorrigeInner) : le tableau complet, écritures données en noir,
+// écritures trouvées en vert.
+function equivCorrigeHtml(ex) {
+  const t = ex._equivTableau;
+  if (!t) return null;
+  const reduit = p => { const g = gcd(p, 100); return [p / g, 100 / g]; };
+  const ecr = p => { const [n, d] = reduit(p); return [frac(n, d), frac(p, 100), String(p / 100).replace('.', ','), `${p} %`]; };
+  const bord = 'border:0.75px solid #555; padding:4px 10px; text-align:center;';
+  let h = `<table style="border-collapse:collapse; font-size:13.5px; margin-left:16px;">`
+    + `<tr><th style="${bord} background:#F3F4F6;"></th>`
+    + EQUIV_COLONNES.map(c => `<th style="${bord} background:#F3F4F6; font-size:12px; font-weight:700; line-height:1.25;">${c}</th>`).join('') + `</tr>`;
+  t.lignes.forEach((l, r) => {
+    h += `<tr><td style="${bord} color:#6B7280;">${r + 1}.</td>`
+      + ecr(l.p).map((v, c) => `<td style="${bord}${c === l.col ? '' : ' color:#16A34A; font-weight:700;'}">${v}</td>`).join('')
+      + `</tr>`;
+  });
+  return h + `</table>`;
+}
+
 // 2.1 Calculer une fraction ou un pourcentage d'une grandeur
 // 1 exercice, 8 questions a-h. Mélange de pourcentages et de fractions.
 // Les valeurs sont choisies pour que le résultat soit toujours un entier.
 function genFracPct() {
+  // Niveau 2 « Équivalences » (v542) : tableau fraction / % / nombre à virgule.
+  if (state.niveau === 2) return genFracPctEquivalences();
   // Patrons : chacun retourne {text, answer, key?} où `key` est un identifiant
   // optionnel pour éviter qu'une même fraction (p/q) apparaisse plus d'une fois
   // dans la même série, indépendamment de la base.
@@ -9277,7 +9526,12 @@ function genFracPct() {
     if (q.key) seenFrac.add(q.key);
     questions.push({ label: labels[questions.length], text: q.text, answer: q.answer });
   }
-  return { multi: true, intro: "Calcule :", questions };
+  // `_noNiveauTag` (v542) : depuis qu'il y a deux niveaux, le PDF du
+  // sous-domaine aurait étiqueté cet exercice « – Niveau 1 ». Il reste
+  // « Exercice N. » tout court ; le tableau, lui, porte « – Équivalences ».
+  // `_realNiveau` : le PDF du sous-domaine range ce niveau en SECOND (ordrePdf),
+  // l'atelier ne peut donc plus le retrouver par sa position.
+  return { multi: true, intro: "Calcule :", questions, _noNiveauTag: true, _realNiveau: 1 };
 }
 
 // 1.9 Droite graduée – 2 niveaux
@@ -20237,7 +20491,7 @@ const ICONE_ENSEIGNANT = '<svg viewBox="0 0 24 24" width="21" height="21" fill="
 const ICONE_PDF = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJkAAACUCAMAAAC3HHtWAAAAk1BMVEXi5ef////xVkKwt73K0dji6OrxW0jyUDnG2eHlzczmgnrV2t/x8/T19vbxUTzwTDX4u7Xnvr28wsf+8/L84N3yYlD1jID1hXf1kYb4q6L4t7D96ujwQib1mY7++Pf70c3zcWHxSC/zeGn3pJv6ysX72dXy2Nbj1dXtgnfyaFf3sKj6w73UubvV4ebco6HkioPitLFLhhsqAAAElUlEQVR4nO3ca5eaOhQG4ICOtHUa7AAqIgiIbdVezv//dUcS7tlAXIYkq4v308xCzeNOCAEVZAzmKxKWj8Xi4324tVbQyGahsqdow7J3wbLFgp82LHsTLuOv2rBMIKyQ8dMGZQLHfyXjpsmX8dIUyDhpKmR8NCUyLpoa2eLjq64yjqqpko1XTZlstGrqZGM0hbIRmkrZME2pbJCmVjZEUywboKmW9dOUy3qnXPWyvqppIOupmg4yuGpayMCq6SGDqiZPthySAVWTJ1sPytiqyZMNdydbNYmykaJ1aRJlY0Xr0GTKnqNJlY3sn22aXBlaL4fr1qBJlpEsB/KmVDZEUywboKmW9dOUy3pp6mV9NA1kPTQdZDBNCxlI00MG0TSRATRdZCxNGxlD00fWpWkkQ/rKkL4ypK8M6StD+sqQvjKkrwzpK0P6ypC+MqSvDOkrQ/rKkL6ytbYyVF+tnWWiZW8T5jlZ4Lby/fN0+YFAGyxzw9hbyUoc/oBooOxi2tiUFmybEA2SRaklz5XH/slZs5PEgtGsPrNFg2R3W7YMf+OTbWbZLJtls2yWzbJWrORYJklaaxFs2WUsiznm1htpoIPySzK8PQVl3Oyc1gQrDX3/nMc/h/t0lbTb3vqthDGwkHlFhneO0YyTXYtHWdvWFsc9xA3b6m504nhs1V6R2QemhT192OrS3WJs4rLx7hvKcz8KlVkbpoWI9ovnMlsMN4ULSnJIJpA5gUNStL+qZRFN+RLBDvfJgpXY3qSy2zXOs/MpIbRLWeT/3OYJb0UFL7R9KnMOdXzRewCV+TYmsa8BKdqxku3oFsvGu4C+SFLL3MakwU4rgmTlv/u8ak5emEJWVcKOadmuuJYBmKlkmHpiQGZaMenrg61EZppknso9jMw8khnG9fSTWWletCjF9TizHnmMwsdInFqG6S4A9mY5keR7LpUFYRX4JFugLPHzf6OK0ZatTuWDmfnM2UO012XnI931zTMZ5KfGrNFsEGdkF0igmdaJgQ59XZaFZE1xO9GZlrx/QGYS2Q2UGdtJZO3c6+NmZ5yRg/wZ6k3j4rEvLlrm0h2NlRW7R17R4uh0qnIA1kCCZVF2pW2wMjvMH+BcG7MGmTbywBfmBMqcU2gWbQDzGSnZhfwpa6Y9nWn2qVm9d0ZGZxQyzOTJzkfaJc0+6cjwMSQ7bmRLrZkPbClkCSZoHG+iumQayIzs9lgV3g73YqYzsuJp6mWdXK7N1baMccYpy7xi2EmQ2ed8C3Q4Zs/qorA6CcFpLhu9WP7a1YNNFB3AdULqRjXKcU/bY+P5OHQiN51UhnG6gz/AsLxdndSz2s+249119IOPF68F9axHyZY6TzxNmGzCzLJZNstm2TSyTPpnwh7nZ8KBbBiOGVfPdw9u7DXeSWHHX785ZVGYJNV52ORJ8J/lmlP2WOv54b6VL5Pl73/LT0/Iunn/NF3yLzXyjjNAxvzkQWy0lQEwPWTAKOOXrScM5PoXvrM3y2bZLJtls+zfk3He90Do3TnFykTe0ZQr9Q8XRmTSi9a4zcyITOQNap+Djckk92fzbin/A8PQxx30Ei25AAAAAElFTkSuQmCC';
 
 // Numéro de version, affiché en pied de menu.
-const APP_VERSION = '541';
+const APP_VERSION = '542';
 
 const DOMAINS = [
   {
@@ -20299,7 +20553,17 @@ const DOMAINS = [
     icon: "%",
     color: "chip-rose",
     subdomains: [
-      { id: 'frac-pct',         title: "Calculer une fraction ou un pourcentage de …",    gen: genFracPct, patrons: () => [genFracPct] },
+      { id: 'frac-pct',         title: "Calculer une fraction ou un pourcentage de …",    gen: genFracPct, hasNiveau2: true,
+        // v542 : niveau 2 « Équivalences », AFFICHÉ EN PREMIER (`niveauMenu`),
+        // le niveau 1 garde son numéro — PDF de domaine, test raccourci et
+        // séries existantes restent au niveau 1. PAS de `niveauLabels` : il
+        // renommerait le niveau 1 dans les titres du PDF de domaine et du test.
+        niveauMenu: [
+          { niveau: 2, label: 'Équivalences' },
+          { niveau: 1, label: 'Fraction ou % de' }
+        ],
+        ordrePdf: [2, 1],
+        patrons: () => [genFracPct] },
       { id: 'pct-inverse',      title: "Retrouver une grandeur dont on connaît un pourcentage", titreEcran: "Retrouver une grandeur", titrePdf: "Retrouver une grandeur", gen: genPctInverse, hasNiveau2: true, niveauLabels: ['%', 'Fractions'], patrons: () => [genPctInverse] },
       { id: 'proportion',       title: "Poser une proportion et la résoudre",             gen: genProportion, hasNiveau2: true, patrons: () => [genProportion] },
       { id: 'prop-concret',     title: "Résoudre un problème concret de proportionnalité", gen: genPropConcret, hasNiveau2: true, niveauLabels: ['Proportionnalité', 'Fractions', '% - rabais'], patrons: () => [genPropConcret] }
@@ -22642,6 +22906,22 @@ function notesCalculatrice(items) {
     notes[debut] = (debut === fin)
       ? `${quoi} – exercice ${debut + 1}`
       : `${quoi} – exercices ${debut + 1} à ${fin + 1}`;
+    // v542 : un exercice peut interdire la calculatrice dans un domaine qui
+    // l'autorise (`ex._sansCalc`, tableau d'équivalences). Le bloc le dit,
+    // sans quoi « calculatrice autorisée » contredirait sa consigne.
+    if (!sans && items.slice(debut, fin + 1).some(it => it && it.ex && it.ex._sansCalc)) {
+      const morceaux = [];
+      let a = debut;
+      while (a <= fin) {
+        const sc = !!(items[a].ex && items[a].ex._sansCalc);
+        let z = a;
+        while (z + 1 <= fin && !!(items[z + 1].ex && items[z + 1].ex._sansCalc) === sc) z++;
+        const q = sc ? 'sans calculatrice' : 'calculatrice autorisée';
+        morceaux.push(a === z ? `${q} – exercice ${a + 1}` : `${q} – exercices ${a + 1} à ${z + 1}`);
+        a = z + 1;
+      }
+      notes[debut] = morceaux.join(' · ');
+    }
     debut = fin + 1;
   }
   return notes;
@@ -25473,6 +25753,16 @@ function applyTableSolutions() {
           // Sans l'unité : elle figure déjà dans l'en-tête de colonne.
           inp.value = (q.answerNum != null) ? q.answerNum : q.answer;
           inp.classList.add('solution-shown');
+          // Case à fraction (tableau d'équivalences) : la réponse s'écrit dans
+          // ses deux champs visibles, le champ caché ne se voit pas.
+          if (Array.isArray(q.fractionEquiv)) {
+            const cn = document.getElementById(`inp-${exIdx}-${qIdx}-n`);
+            const cd = document.getElementById(`inp-${exIdx}-${qIdx}-d`);
+            if (cn && cd && !cn.value && !cd.value) {
+              cn.value = q.fractionEquiv[0]; cd.value = q.fractionEquiv[1];
+              cn.classList.add('solution-shown'); cd.classList.add('solution-shown');
+            }
+          }
         }
       });
     } else if (ex.unitesTemps && Array.isArray(ex.questions)) {
@@ -26966,7 +27256,9 @@ function renderExercise(ex, num, exIdx) {
     let tableHtml = ex.intro;
     ex.questions.forEach((q, qIdx) => {
       const inputId = `inp-${exIdx}-${qIdx}`;
-      tableHtml = tableHtml.replace(q.inputIdHint, inputId);
+      // split/join : une case à fraction porte l'identifiant TROIS fois
+      // (champ caché, -n, -d) ; `replace` n'en changeait que le premier.
+      tableHtml = tableHtml.split(q.inputIdHint).join(inputId);
       // Cas spécial Pythagore : il y a aussi un span "solution" à remplir
       // après validation, identifié par solIdHint.
       if (q.solIdHint) {
@@ -27692,6 +27984,9 @@ function snapshotInputs() {
   // pas `.answer-input` (seul le champ caché la porte) ; sans cette capture, la
   // bascule Solutions vidait les cases à l'écran.
   document.querySelectorAll('.dfrac-champ').forEach(c => {
+    // Case remplie par la solution affichée (tableau d'équivalences) : ce
+    // n'est pas une saisie de l'élève.
+    if (c.classList.contains('solution-shown')) return;
     if (c.id) snap['__dfrac__' + c.id] = { value: c.value || '' };
   });
   const feedbacks = document.querySelectorAll('.feedback');
@@ -27734,7 +28029,9 @@ function restoreInputs(snap) {
   for (const key of Object.keys(snap)) {
     if (key.startsWith('__dfrac__')) {
       const c = document.getElementById(key.slice(9));
-      if (c) c.value = snap[key].value;
+      // Comme pour les autres champs : une saisie restaurée n'est plus une
+      // solution affichée (applyTableSolutions repasse ensuite sur les vides).
+      if (c) { c.value = snap[key].value; c.classList.remove('solution-shown'); }
       continue;
     }
     if (key.startsWith('__fb__')) {
@@ -29288,9 +29585,14 @@ function validateAnswer(exIdx, qIdx) {
     const m = brut.replace(/\s+/g, '').match(/^(\d+)[\/:÷](\d+)$/);
     const ok = !!m && parseInt(m[2], 10) !== 0
       && parseInt(m[1], 10) * qObj.fractionEquiv[1] === parseInt(m[2], 10) * qObj.fractionEquiv[0];
-    input.classList.add(ok ? 'correct' : 'incorrect');
-    feedback.classList.add(ok ? 'correct' : 'incorrect');
-    feedback.innerHTML = ok ? '✓' : '✗';
+    // `fractionExacte` (tableau d'équivalences) : la colonne impose l'écriture,
+    // une fraction seulement égale n'y suffit pas.
+    const okExact = !qObj.fractionExacte || (!!m
+      && parseInt(m[1], 10) === qObj.fractionEquiv[0] && parseInt(m[2], 10) === qObj.fractionEquiv[1]);
+    const juste = ok && okExact;
+    input.classList.add(juste ? 'correct' : 'incorrect');
+    feedback.classList.add(juste ? 'correct' : 'incorrect');
+    feedback.innerHTML = juste ? '✓' : '✗';
     return;
   }
 
@@ -29689,6 +29991,7 @@ const BAREME = {
   'vocab#3':          'groupe',       // Compléter
   reperage:           'reperage',
   'proportion#1':     'proportion',
+  'frac-pct#2':       'demi-champ',   // Équivalences : 1/2 point par case
   'proportion#2':     'prop-table',   // 4 cases à remplir, dont la réponse
   'pb-equation':      'pb-equation',
 };
@@ -31591,10 +31894,14 @@ async function exporterTest(opts) {
           ? document.querySelector(`[data-test-ex="${i}"] table`) : null;
         if (tableauVivant) {
           const copie = tableauVivant.cloneNode(true);
-          const src = tableauVivant.querySelectorAll('input');
-          const dst = copie.querySelectorAll('input');
+          // Case à fraction : seul le champ caché porte la réponse (« n/d ») ;
+          // on remplace la CASE entière, ses deux champs visibles avec.
+          const champs = racine => [...racine.querySelectorAll('input')].filter(x => !x.classList.contains('dfrac-champ'));
+          const src = champs(tableauVivant);
+          const dst = champs(copie);
           src.forEach((o, k) => {
-            const cible = dst[k];
+            let cible = dst[k];
+            if (cible && cible.closest('.dfrac-case')) cible = cible.closest('.dfrac-case');
             if (!cible || !cible.parentNode) return;
             const juste = o.classList.contains('correct');
             const q = (it.ex.questions || [])[k];
@@ -32498,6 +32805,8 @@ function espaceCorrigeInner(ex, opts) {
   // mais les quatre opérations POSÉES, retenues et cassages compris. Marqueur
   // posé par genDecimal ; aucun autre sous-domaine ne le porte.
   if (ex && ex._poseColonne && Array.isArray(ex.questions)) return poseColonneCorrigeHtml(ex);
+  // Tableau d'équivalences (frac-pct niveau 2, v542) : le tableau rempli.
+  if (ex && ex._equivTableau && Array.isArray(ex.questions)) return equivCorrigeHtml(ex);
   opts = opts || {};
   let out = '';
       if (ex.fillBlanks) {
@@ -34912,7 +35221,12 @@ async function downloadPdf(opts) {
       const savedNiveau = state.niveau;
       try {
         exercisesForPdf = [];
-        for (let niv = 1; niv <= nbNiveaux; niv++) {
+        // `sub.ordrePdf` (v542) : ordre des niveaux dans ce PDF quand il n'est
+        // pas celui des numéros — frac-pct donne « Équivalences » (niveau 2)
+        // AVANT le niveau 1, comme son menu. Absent : 1, 2, … comme avant.
+        const ordreNiv = Array.isArray(found.sub.ordrePdf) ? found.sub.ordrePdf
+          : Array.from({ length: nbNiveaux }, (_, k) => k + 1);
+        for (const niv of ordreNiv) {
           const ck = `${state.activeSubId}|${variantKey}|${niv}`;
           let src = (state.exercisesCache[ck] && state.exercisesCache[ck][0]) || null;
           if (!src) { state.niveau = niv; src = genPourPdf(); }
@@ -36336,6 +36650,11 @@ async function downloadPdf(opts) {
       for (let i = 0; i < exercisesForPdf.length; i += 2) {
         pageGroups.push(exercisesForPdf.slice(i, i + 2).map((_, k) => i + k));
       }
+    } else if (found.sub.id === 'frac-pct' && exercicesEnonce.length >= 2
+               && exercicesEnonce.some(e => e && e._equivTableau)) {
+      // Le tableau d'équivalences (v542) occupe une page à lui seul : partagée,
+      // la page à hauteur fixe coupait ses dernières lignes.
+      pageGroups = exercicesEnonce.map((_, i) => [i]);
     } else if (found.sub.id === 'developper' && exercisesForPdf.length >= 3) {
       pageGroups = [[0, 1], [2]];
       for (let i = 3; i < exercisesForPdf.length; i++) pageGroups[1].push(i);
