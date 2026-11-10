@@ -8,7 +8,7 @@ générant des exercices de mathématiques pour adultes (programme PAI, Suisse).
 Product owner : Aurelio (Onex/Genève). Répondre en FRANÇAIS.
 
 ───────────────────────────────────────────────────────────────────────────────
-0. OÙ ON EN EST (v544, 10.11.2026) — à lire en premier
+0. OÙ ON EN EST (v545, 10.11.2026) — à lire en premier
 ───────────────────────────────────────────────────────────────────────────────
 L'application est en ligne : https://aureliohub.github.io/eva_maths.html
 Les fichiers de série et de test (.json) sont déposés à côté d'elle, et s'ouvrent
@@ -546,6 +546,19 @@ PDF de domaine :
 ───────────────────────────────────────────────────────────────────────────────
 Cette section décrit l'ÉTAT, non l'historique. Les numéros de version ne sont
 cités que lorsqu'ils aident à retrouver un choix dans le fichier.
+
+v545 — ÉQUIVALENCES : TROIS RETOUCHES (10.11, demandes d'Aurelio).
+ · « ,32 » (ou « .32 ») accepté dans la colonne décimale : en tête de
+   validateAnswer, une question `_equivCol === 2` dont le champ commence par
+   la virgule voit ce champ réécrit « 0,32 » avant la correction — à l'écran
+   comme dans un test (même chemin). Frappé : « ,56 », « .76 » justes et
+   réécrits, « ,929 » faux.
+ · « Nombre à virgule » devient « Nombre décimal » (en-tête du tableau, du
+   corrigé, et menu de l'atelier : « Décimal »).
+ · Corrigé : plus de gras sur le nombre décimal et le pourcentage trouvés
+   (le vert reste).
+ NON-RÉGRESSION : 32 documents sur 33 identiques à la v541, seul frac-pct
+ diffère.
 
 v544 — DEUX DEMANDES D'AURELIO (10.11).
  · « FRACTION OU % DE » (niveau 1) : JAMAIS DEUX FOIS LE MÊME % NI LA MÊME
@@ -9356,7 +9369,7 @@ function genPctInverseFractions() {
 const EQUIV_COLONNES = [
   'Fraction<br>irréductible',
   'Fraction dont<br>le dénominateur<br>est 100',
-  'Nombre<br>à virgule',
+  'Nombre<br>décimal',
   'Pourcentage'
 ];
 // Règle d'admission d'un pourcentage selon la colonne donnée (partagée par le
@@ -9512,7 +9525,7 @@ function equivCorrigeHtml(ex) {
     + EQUIV_COLONNES.map(c => `<th style="${bord} background:#F3F4F6; font-size:12px; font-weight:700; line-height:1.25;">${c}</th>`).join('') + `</tr>`;
   t.lignes.forEach((l, r) => {
     h += `<tr><td style="${bord} color:#6B7280;">${r + 1}.</td>`
-      + ecr(l.p).map((v, c) => `<td style="${bord}${c === l.col ? '' : ' color:#16A34A;' + (c < 2 ? '' : ' font-weight:700;')}">${v}</td>`).join('')
+      + ecr(l.p).map((v, c) => `<td style="${bord}${c === l.col ? '' : ' color:#16A34A;'}">${v}</td>`).join('')
       + `</tr>`;
   });
   return h + `</table>`;
@@ -20606,7 +20619,7 @@ const ICONE_ENSEIGNANT = '<svg viewBox="0 0 24 24" width="21" height="21" fill="
 const ICONE_PDF = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJkAAACUCAMAAAC3HHtWAAAAk1BMVEXi5ef////xVkKwt73K0dji6OrxW0jyUDnG2eHlzczmgnrV2t/x8/T19vbxUTzwTDX4u7Xnvr28wsf+8/L84N3yYlD1jID1hXf1kYb4q6L4t7D96ujwQib1mY7++Pf70c3zcWHxSC/zeGn3pJv6ysX72dXy2Nbj1dXtgnfyaFf3sKj6w73UubvV4ebco6HkioPitLFLhhsqAAAElUlEQVR4nO3ca5eaOhQG4ICOtHUa7AAqIgiIbdVezv//dUcS7tlAXIYkq4v308xCzeNOCAEVZAzmKxKWj8Xi4324tVbQyGahsqdow7J3wbLFgp82LHsTLuOv2rBMIKyQ8dMGZQLHfyXjpsmX8dIUyDhpKmR8NCUyLpoa2eLjq64yjqqpko1XTZlstGrqZGM0hbIRmkrZME2pbJCmVjZEUywboKmW9dOUy3qnXPWyvqppIOupmg4yuGpayMCq6SGDqiZPthySAVWTJ1sPytiqyZMNdydbNYmykaJ1aRJlY0Xr0GTKnqNJlY3sn22aXBlaL4fr1qBJlpEsB/KmVDZEUywboKmW9dOUy3pp6mV9NA1kPTQdZDBNCxlI00MG0TSRATRdZCxNGxlD00fWpWkkQ/rKkL4ypK8M6StD+sqQvjKkrwzpK0P6ypC+MqSvDOkrQ/rKkL6ytbYyVF+tnWWiZW8T5jlZ4Lby/fN0+YFAGyxzw9hbyUoc/oBooOxi2tiUFmybEA2SRaklz5XH/slZs5PEgtGsPrNFg2R3W7YMf+OTbWbZLJtls2yWzbJWrORYJklaaxFs2WUsiznm1htpoIPySzK8PQVl3Oyc1gQrDX3/nMc/h/t0lbTb3vqthDGwkHlFhneO0YyTXYtHWdvWFsc9xA3b6m504nhs1V6R2QemhT192OrS3WJs4rLx7hvKcz8KlVkbpoWI9ovnMlsMN4ULSnJIJpA5gUNStL+qZRFN+RLBDvfJgpXY3qSy2zXOs/MpIbRLWeT/3OYJb0UFL7R9KnMOdXzRewCV+TYmsa8BKdqxku3oFsvGu4C+SFLL3MakwU4rgmTlv/u8ak5emEJWVcKOadmuuJYBmKlkmHpiQGZaMenrg61EZppknso9jMw8khnG9fSTWWletCjF9TizHnmMwsdInFqG6S4A9mY5keR7LpUFYRX4JFugLPHzf6OK0ZatTuWDmfnM2UO012XnI931zTMZ5KfGrNFsEGdkF0igmdaJgQ59XZaFZE1xO9GZlrx/QGYS2Q2UGdtJZO3c6+NmZ5yRg/wZ6k3j4rEvLlrm0h2NlRW7R17R4uh0qnIA1kCCZVF2pW2wMjvMH+BcG7MGmTbywBfmBMqcU2gWbQDzGSnZhfwpa6Y9nWn2qVm9d0ZGZxQyzOTJzkfaJc0+6cjwMSQ7bmRLrZkPbClkCSZoHG+iumQayIzs9lgV3g73YqYzsuJp6mWdXK7N1baMccYpy7xi2EmQ2ed8C3Q4Zs/qorA6CcFpLhu9WP7a1YNNFB3AdULqRjXKcU/bY+P5OHQiN51UhnG6gz/AsLxdndSz2s+249119IOPF68F9axHyZY6TzxNmGzCzLJZNstm2TSyTPpnwh7nZ8KBbBiOGVfPdw9u7DXeSWHHX785ZVGYJNV52ORJ8J/lmlP2WOv54b6VL5Pl73/LT0/Iunn/NF3yLzXyjjNAxvzkQWy0lQEwPWTAKOOXrScM5PoXvrM3y2bZLJtls+zfk3He90Do3TnFykTe0ZQr9Q8XRmTSi9a4zcyITOQNap+Djckk92fzbin/A8PQxx30Ei25AAAAAElFTkSuQmCC';
 
 // Numéro de version, affiché en pied de menu.
-const APP_VERSION = '544';
+const APP_VERSION = '545';
 
 const DOMAINS = [
   {
@@ -24884,7 +24897,7 @@ function atelierDefusionner(i) {
 // tableau, « ＋ Ajouter une ligne ». Chaque geste modifie les lignes de
 // `_equivTableau` et RECONSTRUIT l'exercice (equivConstruire) : questions,
 // libellés et corrigé suivent d'eux-mêmes.
-const EQUIV_COL_COURT = ['Fraction', 'Sur 100', 'Virgule', '%'];
+const EQUIV_COL_COURT = ['Fraction', 'Sur 100', 'Décimal', '%'];
 const EQUIV_MAX_LIGNES = 12;
 function poserOutilsEquiv(bloc, i) {
   const it = state.atelier.items[i];
@@ -29521,6 +29534,14 @@ function validateAnswer(exIdx, qIdx) {
 
   // Cas spécial : la question attend une puissance (2 champs : base + exposant)
   const qObj = (qIdx === null || qIdx === undefined) ? ex : ex.questions[qIdx];
+  // Tableau d'équivalences, colonne « Nombre décimal » (v545, demande
+  // d'Aurelio) : « ,32 » (ou « .32 ») tapé pour 0,32 est accepté et réécrit
+  // « 0,32 » dans le champ à la validation.
+  if (qObj && qObj._equivCol === 2 && qIdx !== null && qIdx !== undefined) {
+    const champ = document.getElementById(`inp-${exIdx}-${qIdx}`);
+    const m = champ && String(champ.value || '').trim().match(/^[,.](\d+)$/);
+    if (m) champ.value = `0,${m[1]}`;
+  }
   if (qObj && qObj.answerType === 'prop-table') {
     // Le tableau a 4 cellules ; l'élève recopie 3 valeurs depuis l'énoncé
     // et calcule la 4e (l'inconnue, marquée null dans le patron).
