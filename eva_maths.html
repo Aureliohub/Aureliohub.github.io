@@ -8,7 +8,7 @@ générant des exercices de mathématiques pour adultes (programme PAI, Suisse).
 Product owner : Aurelio (Onex/Genève). Répondre en FRANÇAIS.
 
 ───────────────────────────────────────────────────────────────────────────────
-0. OÙ ON EN EST (v545, 10.11.2026) — à lire en premier
+0. OÙ ON EN EST (v547, 11.11.2026) — à lire en premier
 ───────────────────────────────────────────────────────────────────────────────
 L'application est en ligne : https://aureliohub.github.io/eva_maths.html
 Les fichiers de série et de test (.json) sont déposés à côté d'elle, et s'ouvrent
@@ -546,6 +546,47 @@ PDF de domaine :
 ───────────────────────────────────────────────────────────────────────────────
 Cette section décrit l'ÉTAT, non l'historique. Les numéros de version ne sont
 cités que lorsqu'ils aident à retrouver un choix dans le fichier.
+
+v547 — SALAIRE : CHAQUE CHAMP APRÈS SON « ? » (11.11, demande d'Aurelio sur
+ la v546). « … Combien gagnera-t-il pour 38 heures ? [ ] CHF », puis à la
+ ligne « Combien d'heures doit-il travailler pour gagner 650 CHF ? [ ] heures ».
+ Plus de libellés « Il gagnera : » / « Il doit travailler : » à l'écran ni au
+ PDF (énoncé sans trait, comme les autres questions du niveau) ; ils restent
+ pour le corrigé, l'export et le tableur.
+ MÉCANIQUE GÉNÉRIQUE : une question `dualPA` qui porte `q.texteA` (la seconde
+ question, telle qu'elle termine `q.text`) est rendue « dans le texte » —
+ champ P après la première partie, retour à la ligne, `texteA`, champ A.
+ Chaque champ est dans un `span.dual-champ-texte.no-print`, retiré entier par
+ les passes PDF ; la solution s'affiche après chaque champ. `q.text` garde
+ l'énoncé complet pour tous les autres lecteurs.
+ Vérifié au vrai navigateur : saisie frappée, Solutions, PDF de série et PDF
+ du domaine 2 (salaire forcé) regardés, corrigé intact.
+
+v546 — DEUX DEMANDES D'AURELIO (11.11).
+ · « FRACTION OU % DE » (niveau 1) : PLUS JAMAIS 50 % (« trop facile »).
+   Retiré des deux listes de % de genFracPct ; les fractions qui VALENT 1/2
+   (2/4, 3/6, 4/8, 5/10) sont refusées aussi, pas seulement 1/2. Vaut pour
+   l'écran, les PDF, le domaine 2 (ex 1) et l'atelier. « Retrouver une
+   grandeur » (pct-inverse) n'a pas été touché. Banc : 40 000 questions, aucun
+   50 %, aucune fraction égale à 1/2.
+ · PROP-CONCRET, NIVEAU « PROPORTIONNALITÉ », SALAIRE (patron 5) : les DEUX
+   questions dans le même énoncé — « Combien gagnera-t-il pour 38 heures ?
+   Combien d'heures doit-il travailler pour gagner 650 CHF ? ». Avant, l'une
+   OU l'autre à pile ou face. UNE question à DEUX champs (`dualPA`, libellés
+   « Il gagnera : » / « Il doit travailler : »), si bien que paliers, atelier
+   (↻, ▲▼, anti-répétition), barème et test raccourci ne voient toujours
+   qu'une question. Nouveau champ générique `q.uniteP` / `q.uniteA` : unité
+   d'aide après chaque champ d'une question dualPA (`.answer-unite`, donc
+   retirée au PDF). L'assemblage de genPropConcretProp transmet ces champs.
+   Les deux durées : sans facteur commun avec la durée de référence, jamais
+   multiples de 10, écart d'au moins 4 h.
+   AU PDF : « Il gagnera : ____  Il doit travailler : ____ » sous l'énoncé
+   (les autres questions du niveau n'ont pas de trait) ; corrigé « Il
+   gagnera : 950 CHF ; Il doit travailler : 26 heures ».
+ Vérifié au vrai navigateur : 3 000 exercices, 1 001 salaires recalculés sans
+ défaut ; saisie frappée (« 950 », « 950 CHF », « 26 h », « 26 heures »
+ justes, « 25 » faux) ; PDF de série (composition d'Aurelio) et PDF du
+ domaine 2 produits et regardés. AUCUNE chaîne PDF touchée.
 
 v545 — ÉQUIVALENCES : TROIS RETOUCHES (10.11, demandes d'Aurelio).
  · « ,32 » (ou « .32 ») accepté dans la colonne décimale : en tête de
@@ -3778,6 +3819,8 @@ ainsi (une remarque prise pour une consigne, une sélection ambiguë).
   .duree-champs { display: inline-flex; align-items: center; gap: 2px; white-space: nowrap; vertical-align: middle; }
   .answer-input.answer-input-duree { width: 68px; text-align: center; }
   .duree-champs .answer-unite { margin-right: 4px; }
+  /* v547 : champ posé après le « ? » d'une question à deux réponses. */
+  .dual-champ-texte { display: inline-flex; align-items: center; gap: 2px; white-space: nowrap; vertical-align: middle; margin-left: 4px; }
   .answer-unite {
     font-weight: 700;
     color: #374151;
@@ -9544,7 +9587,8 @@ function genFracPct() {
     // -------- Pourcentages "simples" : n% de 100·k = n·k
     // 4% de 800 = 32, 12% de 900 = 108, etc.
     () => {
-      const pct = choice([4, 5, 8, 12, 15, 20, 25, 30, 40, 50, 75]);
+      // v546 : jamais 50 % (« trop facile » — Aurelio, 11.11).
+      const pct = choice([4, 5, 8, 12, 15, 20, 25, 30, 40, 75]);
       const k = rand(3, 9);
       const base = 100 * k;
       const result = (pct * base) / 100;
@@ -9560,7 +9604,7 @@ function genFracPct() {
     },
     // Pourcentages avec base x000 (résultat plus grand)
     () => {
-      const pct = choice([5, 10, 20, 25, 50]);
+      const pct = choice([5, 10, 20, 25]);   // v546 : sans 50 %
       const k = rand(2, 8);
       const base = 1000 * k;
       const result = (pct * base) / 100;
@@ -9576,7 +9620,8 @@ function genFracPct() {
         q = rand(2, 10);
         p = rand(1, q - 1);
         safety--;
-      } while (safety > 0 && p === 1 && q === 2);
+      } while (safety > 0 && 2 * p === q);   // v546 : ni 1/2 ni 2/4, 3/6… (= 50 %)
+      if (2 * p === q) { p = 3; q = 4; }
       const k = rand(2, 9);
       const base = q * k * (choice([1, 10]));
       const result = (p * base) / q;
@@ -9594,7 +9639,8 @@ function genFracPct() {
         q = choice([2, 3, 4, 5, 6, 8, 10]);
         p = rand(1, q - 1);
         safety--;
-      } while (safety > 0 && p === 1 && q === 2);
+      } while (safety > 0 && 2 * p === q);   // v546 : ni 1/2 ni 2/4, 3/6… (= 50 %)
+      if (2 * p === q) { p = 2; q = 5; }
       const k = rand(2, 6);
       const base = q * k * 10;
       const result = (p * base) / q;
@@ -12667,29 +12713,39 @@ function genPropConcretProp() {
     };
   }
 
-  // --- Patron 6 : Salaire horaire, sens alterné (PALIER 1 : taux entier) ---
+  // --- Patron 6 : Salaire horaire (PALIER 1 : taux entier) ---
   // v517 : les deux durées n'ont aucun facteur commun (avant : 6 h puis 27 h,
   // soit ×4,5). Il faut passer par le salaire horaire.
+  // v546 (demande d'Aurelio) : les DEUX questions dans le même énoncé —
+  // combien il gagnera pour N heures, puis combien d'heures pour gagner une
+  // somme donnée. Deux champs (`dualPA`, libellés propres), un seul énoncé :
+  // le palier, l'atelier et le ↻ voient toujours UNE question.
   function patSalaire() {
     const rate = choice([18, 21, 24, 25, 28, 30, 35]); // CHF/h
-    let refH = 7, qH = 23, safety = 80;
+    const okH = (refH, h) => pgcd(refH, h) === 1 && h % 10 !== 0;
+    let refH = 7, qH = 23, qH2 = 32, safety = 200;
     do {
       refH = choice([6, 7, 8, 9]);
       qH = rand(11, 38);
+      qH2 = rand(11, 38);
       safety--;
-    } while (safety > 0 && (pgcd(refH, qH) !== 1 || qH % 10 === 0));
-    if (safety <= 0) { refH = 7; qH = 23; }
+    } while (safety > 0 && (!okH(refH, qH) || !okH(refH, qH2) || Math.abs(qH - qH2) < 4));
+    if (safety <= 0) { refH = 7; qH = 23; qH2 = 32; }
     const refPay = rate * refH;
     const qPay = rate * qH;
-    if (Math.random() < 0.5) {
-      return {
-        text: `Un employé gagne ${refPay} CHF pour ${refH} heures de travail. Combien gagnera-t-il pour ${qH} heures ?`,
-        answer: `Salaire horaire : ${refPay} ÷ ${refH} = ${rate} CHF/h. ${qH} × ${rate} = ${qPay} CHF.`
-      };
-    }
+    const qPay2 = rate * qH2;
     return {
-      text: `Un employé gagne ${refPay} CHF pour ${refH} heures de travail. Combien d'heures doit-il travailler pour gagner ${qPay} CHF ?`,
-      answer: `Salaire horaire : ${refPay} ÷ ${refH} = ${rate} CHF/h. ${qPay} ÷ ${rate} = ${qH} heures.`
+      text: `Un employé gagne ${refPay} CHF pour ${refH} heures de travail. Combien gagnera-t-il pour ${qH} heures ? Combien d'heures doit-il travailler pour gagner ${qPay2} CHF ?`,
+      answer: `Salaire horaire : ${refPay} ÷ ${refH} = ${rate} CHF/h. Pour ${qH} heures : ${qH} × ${rate} = ${qPay} CHF. Pour ${qPay2} CHF : ${qPay2} ÷ ${rate} = ${qH2} heures.`,
+      dualPA: true,
+      answerP: `${qPay} CHF`,
+      answerA: `${qH2} heures`,
+      labelP: 'Il gagnera :',
+      labelA: 'Il doit travailler :',
+      uniteP: 'CHF',
+      uniteA: 'heures',
+      // v547 : chaque champ suit SA question (rendu « dans le texte »).
+      texteA: `Combien d'heures doit-il travailler pour gagner ${qPay2} CHF ?`
     };
   }
 
@@ -12885,6 +12941,10 @@ function genPropConcretProp() {
       ...(q.solutionDetail ? { solutionDetail: q.solutionDetail } : {}),
       ...(q.dureeMin != null ? { dureeMin: q.dureeMin } : {}),
       ...(q.attenduExport ? { attenduExport: q.attenduExport } : {}),
+      // v546 : deux réponses (salaire : gain ET heures).
+      ...(q.dualPA ? { dualPA: true, answerP: q.answerP, answerA: q.answerA,
+        labelP: q.labelP, labelA: q.labelA, uniteP: q.uniteP, uniteA: q.uniteA,
+        ...(q.texteA ? { texteA: q.texteA } : {}) } : {}),
       // Étiquette du modèle : l'anti-répétition de l'atelier s'en sert.
       _modele: `prop-${idx}`
     };
@@ -20619,7 +20679,7 @@ const ICONE_ENSEIGNANT = '<svg viewBox="0 0 24 24" width="21" height="21" fill="
 const ICONE_PDF = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJkAAACUCAMAAAC3HHtWAAAAk1BMVEXi5ef////xVkKwt73K0dji6OrxW0jyUDnG2eHlzczmgnrV2t/x8/T19vbxUTzwTDX4u7Xnvr28wsf+8/L84N3yYlD1jID1hXf1kYb4q6L4t7D96ujwQib1mY7++Pf70c3zcWHxSC/zeGn3pJv6ysX72dXy2Nbj1dXtgnfyaFf3sKj6w73UubvV4ebco6HkioPitLFLhhsqAAAElUlEQVR4nO3ca5eaOhQG4ICOtHUa7AAqIgiIbdVezv//dUcS7tlAXIYkq4v308xCzeNOCAEVZAzmKxKWj8Xi4324tVbQyGahsqdow7J3wbLFgp82LHsTLuOv2rBMIKyQ8dMGZQLHfyXjpsmX8dIUyDhpKmR8NCUyLpoa2eLjq64yjqqpko1XTZlstGrqZGM0hbIRmkrZME2pbJCmVjZEUywboKmW9dOUy3qnXPWyvqppIOupmg4yuGpayMCq6SGDqiZPthySAVWTJ1sPytiqyZMNdydbNYmykaJ1aRJlY0Xr0GTKnqNJlY3sn22aXBlaL4fr1qBJlpEsB/KmVDZEUywboKmW9dOUy3pp6mV9NA1kPTQdZDBNCxlI00MG0TSRATRdZCxNGxlD00fWpWkkQ/rKkL4ypK8M6StD+sqQvjKkrwzpK0P6ypC+MqSvDOkrQ/rKkL6ytbYyVF+tnWWiZW8T5jlZ4Lby/fN0+YFAGyxzw9hbyUoc/oBooOxi2tiUFmybEA2SRaklz5XH/slZs5PEgtGsPrNFg2R3W7YMf+OTbWbZLJtls2yWzbJWrORYJklaaxFs2WUsiznm1htpoIPySzK8PQVl3Oyc1gQrDX3/nMc/h/t0lbTb3vqthDGwkHlFhneO0YyTXYtHWdvWFsc9xA3b6m504nhs1V6R2QemhT192OrS3WJs4rLx7hvKcz8KlVkbpoWI9ovnMlsMN4ULSnJIJpA5gUNStL+qZRFN+RLBDvfJgpXY3qSy2zXOs/MpIbRLWeT/3OYJb0UFL7R9KnMOdXzRewCV+TYmsa8BKdqxku3oFsvGu4C+SFLL3MakwU4rgmTlv/u8ak5emEJWVcKOadmuuJYBmKlkmHpiQGZaMenrg61EZppknso9jMw8khnG9fSTWWletCjF9TizHnmMwsdInFqG6S4A9mY5keR7LpUFYRX4JFugLPHzf6OK0ZatTuWDmfnM2UO012XnI931zTMZ5KfGrNFsEGdkF0igmdaJgQ59XZaFZE1xO9GZlrx/QGYS2Q2UGdtJZO3c6+NmZ5yRg/wZ6k3j4rEvLlrm0h2NlRW7R17R4uh0qnIA1kCCZVF2pW2wMjvMH+BcG7MGmTbywBfmBMqcU2gWbQDzGSnZhfwpa6Y9nWn2qVm9d0ZGZxQyzOTJzkfaJc0+6cjwMSQ7bmRLrZkPbClkCSZoHG+iumQayIzs9lgV3g73YqYzsuJp6mWdXK7N1baMccYpy7xi2EmQ2ed8C3Q4Zs/qorA6CcFpLhu9WP7a1YNNFB3AdULqRjXKcU/bY+P5OHQiN51UhnG6gz/AsLxdndSz2s+249119IOPF68F9axHyZY6TzxNmGzCzLJZNstm2TSyTPpnwh7nZ8KBbBiOGVfPdw9u7DXeSWHHX785ZVGYJNV52ORJ8J/lmlP2WOv54b6VL5Pl73/LT0/Iunn/NF3yLzXyjjNAxvzkQWy0lQEwPWTAKOOXrScM5PoXvrM3y2bZLJtls+zfk3He90Do3TnFykTe0ZQr9Q8XRmTSi9a4zcyITOQNap+Djckk92fzbin/A8PQxx30Ei25AAAAAElFTkSuQmCC';
 
 // Numéro de version, affiché en pied de menu.
-const APP_VERSION = '545';
+const APP_VERSION = '547';
 
 const DOMAINS = [
   {
@@ -27940,9 +28000,27 @@ function renderExercise(ex, num, exIdx) {
       }
       const itemCls = q.layoutFigure ? 'multi-item layout-figure' : 'multi-item';
       const itemPos = (ex.droiteFractions && q.posPct != null) ? ` style="left:${q.posPct}%"` : '';
+      // v547 : question à deux champs PLACÉS DANS LE TEXTE (`q.texteA` = la
+      // seconde question, telle qu'elle figure à la fin de `q.text`). Chaque
+      // champ suit son « ? », la seconde question passe à la ligne ; pas de
+      // libellés (« Il gagnera : » ne sert plus qu'aux corrigés et au tableur).
+      // Le texte complet reste dans `q.text` pour tous les autres lecteurs.
+      const dualDansTexte = q.dualPA && q.texteA && String(q.text).indexOf(q.texteA) > 0;
+      if (dualDansTexte) {
+        const iA = String(q.text).lastIndexOf(q.texteA);
+        const champ = (sfx, unite, sol) => `<span class="dual-champ-texte no-print">`
+          + `<input type="text" id="inp-${exIdx}-${qIdx}-${sfx}" class="answer-input no-print" placeholder="?" autocomplete="off">`
+          + (unite ? `<span class="answer-unite">${unite}</span>` : '')
+          + `<span id="fb-${exIdx}-${qIdx}-${sfx}" class="feedback"></span></span>`
+          + (showSol ? ` <span class="inline-solution">→ ${sol}</span>` : '');
+        content += `<div class="${itemCls}"${itemPos}><strong>${q.label}</strong> ${String(q.text).slice(0, iA).trim()} ${champ('P', q.uniteP, q.answerP)}`
+          + `<br>${q.texteA} ${champ('A', q.uniteA, q.answerA)}`;
+      } else {
       content += `<div class="${itemCls}"${itemPos}><strong>${q.label}</strong> ${q.text}`;
+      }
       // Cas spécial : question demandant P ET A → deux champs "P = __" et "A = __"
-      if (q.dualPA) {
+      if (dualDansTexte) { /* champs déjà posés dans le texte */ }
+      else if (q.dualPA) {
         const inpP = `inp-${exIdx}-${qIdx}-P`;
         const inpA = `inp-${exIdx}-${qIdx}-A`;
         const fbP = `fb-${exIdx}-${qIdx}-P`;
@@ -27951,8 +28029,12 @@ function renderExercise(ex, num, exIdx) {
         // la mise en page est gérée par CSS (.layout-figure .perim-aire-fields).
         content += `<div class="perim-aire-fields">`;
         const labI = dualLabels(q);
-        content += `<span><strong>${labI.p}</strong> <input type="text" id="${inpP}" class="answer-input answer-input-cell no-print" placeholder="?" autocomplete="off"><span id="${fbP}" class="feedback"></span></span>`;
-        content += `<span><strong>${labI.a}</strong> <input type="text" id="${inpA}" class="answer-input answer-input-cell no-print" placeholder="?" autocomplete="off"><span id="${fbA}" class="feedback"></span></span>`;
+        // v546 : unité d'aide après chaque champ (`uniteP` / `uniteA`), comme
+        // `uniteApres` — `.answer-unite`, donc retirée par les passes PDF.
+        const uP = q.uniteP ? `<span class="answer-unite">${q.uniteP}</span>` : '';
+        const uA = q.uniteA ? `<span class="answer-unite">${q.uniteA}</span>` : '';
+        content += `<span><strong>${labI.p}</strong> <input type="text" id="${inpP}" class="answer-input answer-input-cell no-print" placeholder="?" autocomplete="off">${uP}<span id="${fbP}" class="feedback"></span></span>`;
+        content += `<span><strong>${labI.a}</strong> <input type="text" id="${inpA}" class="answer-input answer-input-cell no-print" placeholder="?" autocomplete="off">${uA}<span id="${fbA}" class="feedback"></span></span>`;
         content += `</div>`;
         if (showSol) {
           content += ` <span class="inline-solution">→ ${labI.p} ${q.answerP} ; ${labI.a} ${q.answerA}</span>`;
