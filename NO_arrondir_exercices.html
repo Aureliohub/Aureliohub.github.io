@@ -103,14 +103,25 @@ body.corrige .sol{visibility:visible}
 /* propre à la fiche « Arrondir un nombre – exercices » */
 .entete{text-align:right;font-size:9.5pt;font-weight:700;color:#ababab;margin:-5mm 0 4mm;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 h1{margin-bottom:6mm}
-.sous-titre{font-size:12.5pt;text-align:center;margin:-4mm 0 9mm}
+.sous-titre{font-size:12.5pt;text-align:center;margin:-4mm 0 7mm}
 .exo-titre{margin-top:0}
 .exo-titre .consigne{font-weight:400}
-.grille{display:grid;grid-template-columns:1fr 1fr;column-gap:18mm;row-gap:9mm;margin:5mm 0 13mm 8mm;font-size:12pt}
+.grille{display:grid;grid-template-columns:1fr 1fr;column-gap:18mm;row-gap:5mm;margin:3.5mm 0 7mm 8mm;font-size:12pt}
 .q{display:flex;align-items:flex-end;gap:2.5mm}
 .q .lettre{display:inline-block;width:6mm}
 .q .nb{display:inline-block;width:17mm;text-align:right}
-.rep{flex:0 0 30mm;border-bottom:0.3mm solid #1a1a1a;text-align:center;line-height:1.2;padding-bottom:.3mm}
+.rep{flex:0 0 30mm;border-bottom:0.35mm dotted #9a9a9a;text-align:center;line-height:1.2;padding-bottom:.3mm}
+.g1 .q .nb{width:19mm}
+.g1 .rep{flex-basis:32mm}
+.q u{text-decoration-thickness:0.3mm;text-underline-offset:0.9mm}
+table.num{border-collapse:collapse;margin:4mm 0 0 8mm;font-size:12pt}
+table.num th,table.num td{border:0.3mm solid #555;text-align:center;width:22mm;padding:0}
+table.num th{height:10mm;font-weight:400;font-size:10.5pt}
+table.num td{height:9mm}
+table.num .virg{width:5mm;border-top:none;border-bottom:none}
+table.num th.virg{border:none}
+table.num td.virg{border-left:none;border-right:none;font-weight:700}
+.sous-consigne{margin:5mm 0 0 8mm}
 .sol{color:#E6007E}
 </style>
 </head>
@@ -131,11 +142,26 @@ h1{margin-bottom:6mm}
 <section class="page" data-corrige="">
   <p class="entete">Nombres et opérations</p>
   <h1>Arrondir un nombre</h1>
-  <p class="sous-titre">Exercices</p>
   <p class="etiquette-corrige">CORRIGÉ</p>
 
   <div class="exo-titre">
     <svg class="pastille" viewBox="0 0 16 16" aria-hidden="true"><rect width="16" height="16" rx="2" fill="#1F3A5F"></rect><text x="8" y="12" text-anchor="middle" fill="#fff" font-size="11" font-weight="700" font-family="Verdana,sans-serif">1</text></svg>
+    <span class="consigne">Écrire le nom de la position de chaque chiffre</span>
+  </div>
+  <table class="num">
+    <tr><th><span class="sol">milliers</span></th><th><span class="sol">centaines</span></th><th><span class="sol">dizaines</span></th><th><span class="sol">unités</span></th><th class="virg"></th><th><span class="sol">dixièmes</span></th><th><span class="sol">centièmes</span></th><th><span class="sol">millièmes</span></th></tr>
+    <tr><td>4</td><td>7</td><td>3</td><td>5</td><td class="virg">,</td><td>2</td><td>8</td><td>6</td></tr>
+  </table>
+  <p class="sous-consigne">Écrire le rang du chiffre souligné</p>
+  <div class="grille g1">
+    <div class="q"><span class="lettre">a)</span><span class="nb">52,6<u>8</u>3</span><span class="env">→</span><span class="rep"><span class="sol">centièmes</span></span></div>
+    <div class="q"><span class="lettre">b)</span><span class="nb">3<u>4</u>17,5</span><span class="env">→</span><span class="rep"><span class="sol">centaines</span></span></div>
+    <div class="q"><span class="lettre">c)</span><span class="nb">948,<u>7</u>1</span><span class="env">→</span><span class="rep"><span class="sol">dixièmes</span></span></div>
+    <div class="q"><span class="lettre">d)</span><span class="nb">1<u>6</u>2,49</span><span class="env">→</span><span class="rep"><span class="sol">dizaines</span></span></div>
+  </div>
+
+  <div class="exo-titre">
+    <svg class="pastille" viewBox="0 0 16 16" aria-hidden="true"><rect width="16" height="16" rx="2" fill="#1F3A5F"></rect><text x="8" y="12" text-anchor="middle" fill="#fff" font-size="11" font-weight="700" font-family="Verdana,sans-serif">2</text></svg>
     <span class="consigne">Arrondir à l’unité</span>
   </div>
   <div class="grille">
@@ -146,7 +172,7 @@ h1{margin-bottom:6mm}
   </div>
 
   <div class="exo-titre">
-    <svg class="pastille" viewBox="0 0 16 16" aria-hidden="true"><rect width="16" height="16" rx="2" fill="#1F3A5F"></rect><text x="8" y="12" text-anchor="middle" fill="#fff" font-size="11" font-weight="700" font-family="Verdana,sans-serif">2</text></svg>
+    <svg class="pastille" viewBox="0 0 16 16" aria-hidden="true"><rect width="16" height="16" rx="2" fill="#1F3A5F"></rect><text x="8" y="12" text-anchor="middle" fill="#fff" font-size="11" font-weight="700" font-family="Verdana,sans-serif">3</text></svg>
     <span class="consigne">Arrondir à la dizaine</span>
   </div>
   <div class="grille">
@@ -157,7 +183,7 @@ h1{margin-bottom:6mm}
   </div>
 
   <div class="exo-titre">
-    <svg class="pastille" viewBox="0 0 16 16" aria-hidden="true"><rect width="16" height="16" rx="2" fill="#1F3A5F"></rect><text x="8" y="12" text-anchor="middle" fill="#fff" font-size="11" font-weight="700" font-family="Verdana,sans-serif">3</text></svg>
+    <svg class="pastille" viewBox="0 0 16 16" aria-hidden="true"><rect width="16" height="16" rx="2" fill="#1F3A5F"></rect><text x="8" y="12" text-anchor="middle" fill="#fff" font-size="11" font-weight="700" font-family="Verdana,sans-serif">4</text></svg>
     <span class="consigne">Arrondir à la centaine</span>
   </div>
   <div class="grille">
@@ -168,7 +194,7 @@ h1{margin-bottom:6mm}
   </div>
 
   <div class="exo-titre">
-    <svg class="pastille" viewBox="0 0 16 16" aria-hidden="true"><rect width="16" height="16" rx="2" fill="#1F3A5F"></rect><text x="8" y="12" text-anchor="middle" fill="#fff" font-size="11" font-weight="700" font-family="Verdana,sans-serif">4</text></svg>
+    <svg class="pastille" viewBox="0 0 16 16" aria-hidden="true"><rect width="16" height="16" rx="2" fill="#1F3A5F"></rect><text x="8" y="12" text-anchor="middle" fill="#fff" font-size="11" font-weight="700" font-family="Verdana,sans-serif">5</text></svg>
     <span class="consigne">Arrondir au dixième</span>
   </div>
   <div class="grille">
@@ -179,7 +205,7 @@ h1{margin-bottom:6mm}
   </div>
 
   <div class="exo-titre">
-    <svg class="pastille" viewBox="0 0 16 16" aria-hidden="true"><rect width="16" height="16" rx="2" fill="#1F3A5F"></rect><text x="8" y="12" text-anchor="middle" fill="#fff" font-size="11" font-weight="700" font-family="Verdana,sans-serif">5</text></svg>
+    <svg class="pastille" viewBox="0 0 16 16" aria-hidden="true"><rect width="16" height="16" rx="2" fill="#1F3A5F"></rect><text x="8" y="12" text-anchor="middle" fill="#fff" font-size="11" font-weight="700" font-family="Verdana,sans-serif">6</text></svg>
     <span class="consigne">Arrondir au centième</span>
   </div>
   <div class="grille">
