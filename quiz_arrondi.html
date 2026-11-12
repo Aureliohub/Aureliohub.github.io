@@ -2620,12 +2620,12 @@ var qrcode = function() {
 <script>
 
 'use strict';
-const VERSION = 'v4';
+const VERSION = 'v5';
 const TITLE = 'Arrondir un nombre décimal';
 /* ============================================================
    QUESTIONS — modifiables. p = rang de l’arrondi, g = arrondi attendu.
    cards : cartes à ordonner ; le nombre doit avoir 2 chiffres après la virgule.
-   who   : « Je suis l’un des nombres ci-dessous. Mon arrondi … est g. Qui suis-je ? »
+   who   : « Mon arrondi … est g. Qui suis-je ? »
    of    : « g est l’arrondi … de : »
    Les bonnes réponses sont calculées par la page.
    ============================================================ */
@@ -2723,7 +2723,7 @@ function qView(q, st, last) {
   } else {
     const g = goodOpts(q), k = g.length;
     body = (q.t === 'who'
-      ? `<p class="q-txt">Je suis l’un des ${q.o.length} nombres ci-dessous. Mon arrondi ${pl} est <b>${esc(q.g)}</b>. Qui suis-je ?</p>`
+      ? `<p class="q-txt">Mon arrondi ${pl} est <b>${esc(q.g)}</b>. Qui suis-je ?</p>`
       : `<p class="q-txt"><b>${esc(q.g)}</b> est l’arrondi ${pl} de :</p>`) +
       `<p class="q-k">Choisis ${k} réponse${k > 1 ? 's' : ''}.</p>
       <div class="opts">${q.o.map((o, j) => {
