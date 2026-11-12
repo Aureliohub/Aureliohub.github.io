@@ -109,8 +109,14 @@ h1{margin-bottom:6mm}
 .cadre .ex-titre{font-weight:700;margin:3mm 0 1mm}
 .cadre .ex{margin:0 0 .5mm}
 .cadre .sous-ex{display:grid;grid-template-columns:38mm auto;margin:0 0 .5mm 5mm}
-.sous-ex span:first-child::before{content:"-";display:inline-block;width:6mm}
+.sous-ex > span:first-child::before{content:"-";display:inline-block;width:6mm}
 .cadre .ex.suite{margin-left:4.5mm}
+/* résultats des exemples : à l'écran, case pointillée dévoilée par un toucher (un second la masque) ;
+   l'œil dévoile ou masque tout ; toujours imprimés */
+@media screen{
+  .cadre .res{display:inline-block;min-width:13mm;color:transparent;outline:0.3mm dashed #b9c4d3;outline-offset:0;line-height:1.1;border-radius:0.6mm;cursor:pointer;-webkit-tap-highlight-color:transparent}
+  .cadre .res.vu{color:inherit;outline-color:transparent}
+}
 .cadre .ex-droite{position:relative}
 .droite{position:absolute;right:6mm;top:-0.7mm;width:66mm;height:6mm;overflow:visible}
 .droite .prise{cursor:grab;touch-action:none;outline:none}
@@ -162,16 +168,16 @@ table.arr th.coin svg{width:10mm;height:4mm;vertical-align:middle;margin-left:4m
     <p class="regle">si ce chiffre est de <b>0 à 4</b>, on garde le chiffre de la position (arrondi <span class="r-defaut">par défaut</span>).</p>
 
     <p class="ex-titre">Exemples</p>
-    <p class="ex ex-droite">1) Arrondir 4,29 à l’unité&nbsp;: 4,29 ≅ 4<svg class="droite" viewBox="0 0 66 6" role="img" aria-label="droite graduée de 4 à 5, 4,29 placé dessus" data-a="4" data-b="5" data-v="4.29" data-pas="0.01" data-haut="1"><g stroke="#1a1a1a" stroke-width="0.3"><line x1="6.5" y1="3.3" x2="59.5" y2="3.3"/><line x1="8.0" y1="2.00" x2="8.0" y2="4.60"/><line x1="13.0" y1="2.65" x2="13.0" y2="3.95"/><line x1="18.0" y1="2.65" x2="18.0" y2="3.95"/><line x1="23.0" y1="2.65" x2="23.0" y2="3.95"/><line x1="28.0" y1="2.65" x2="28.0" y2="3.95"/><line x1="33.0" y1="2.30" x2="33.0" y2="4.30"/><line x1="38.0" y1="2.65" x2="38.0" y2="3.95"/><line x1="43.0" y1="2.65" x2="43.0" y2="3.95"/><line x1="48.0" y1="2.65" x2="48.0" y2="3.95"/><line x1="53.0" y1="2.65" x2="53.0" y2="3.95"/><line x1="58.0" y1="2.00" x2="58.0" y2="4.60"/></g><g font-family="inherit" font-size="3.3" fill="#1a1a1a"><text x="8" y="1.2" text-anchor="middle">4</text><text x="58" y="1.2" text-anchor="middle">5</text></g><circle class="pt" cx="22.50" cy="3.3" r="0.75" fill="#2E75B6"/><circle class="prise" cx="22.50" cy="3.3" r="3" fill="#fff" fill-opacity="0" tabindex="0"/><text class="val" x="22.50" y="1.20" text-anchor="middle" font-family="inherit" font-size="3.3" font-weight="700" fill="#2E75B6">4,29</text></svg></p>
-    <p class="ex ex-droite">2) Arrondir 3274 à la centaine&nbsp;: 3274 ≅ 3300<svg class="droite" viewBox="0 0 66 6" role="img" aria-label="droite graduée de 3200 à 3300, 3274 placé dessus" data-a="3200" data-b="3300" data-v="3274" data-pas="1" data-haut="0"><g stroke="#1a1a1a" stroke-width="0.3"><line x1="6.5" y1="3.3" x2="59.5" y2="3.3"/><line x1="8.0" y1="2.00" x2="8.0" y2="4.60"/><line x1="13.0" y1="2.65" x2="13.0" y2="3.95"/><line x1="18.0" y1="2.65" x2="18.0" y2="3.95"/><line x1="23.0" y1="2.65" x2="23.0" y2="3.95"/><line x1="28.0" y1="2.65" x2="28.0" y2="3.95"/><line x1="33.0" y1="2.30" x2="33.0" y2="4.30"/><line x1="38.0" y1="2.65" x2="38.0" y2="3.95"/><line x1="43.0" y1="2.65" x2="43.0" y2="3.95"/><line x1="48.0" y1="2.65" x2="48.0" y2="3.95"/><line x1="53.0" y1="2.65" x2="53.0" y2="3.95"/><line x1="58.0" y1="2.00" x2="58.0" y2="4.60"/></g><g font-family="inherit" font-size="3.3" fill="#1a1a1a"><text x="8" y="7.7" text-anchor="middle">3200</text><text x="58" y="7.7" text-anchor="middle">3300</text></g><circle class="pt" cx="45.00" cy="3.3" r="0.75" fill="#2E75B6"/><circle class="prise" cx="45.00" cy="3.3" r="3" fill="#fff" fill-opacity="0" tabindex="0"/><text class="val" x="45.00" y="7.70" text-anchor="middle" font-family="inherit" font-size="3.3" font-weight="700" fill="#2E75B6">3274</text></svg></p>
-    <p class="ex">3) Arrondir 4677,05 au millier&nbsp;: 4677,05 ≅ 5000</p>
+    <p class="ex ex-droite">1) Arrondir 4,29 à l’unité&nbsp;: 4,29 ≅ <span class="res">4</span><svg class="droite" viewBox="0 0 66 6" role="img" aria-label="droite graduée de 4 à 5, 4,29 placé dessus" data-a="4" data-b="5" data-v="4.29" data-pas="0.01" data-haut="1"><g stroke="#1a1a1a" stroke-width="0.3"><line x1="6.5" y1="3.3" x2="59.5" y2="3.3"/><line x1="8.0" y1="2.00" x2="8.0" y2="4.60"/><line x1="13.0" y1="2.65" x2="13.0" y2="3.95"/><line x1="18.0" y1="2.65" x2="18.0" y2="3.95"/><line x1="23.0" y1="2.65" x2="23.0" y2="3.95"/><line x1="28.0" y1="2.65" x2="28.0" y2="3.95"/><line x1="33.0" y1="2.30" x2="33.0" y2="4.30"/><line x1="38.0" y1="2.65" x2="38.0" y2="3.95"/><line x1="43.0" y1="2.65" x2="43.0" y2="3.95"/><line x1="48.0" y1="2.65" x2="48.0" y2="3.95"/><line x1="53.0" y1="2.65" x2="53.0" y2="3.95"/><line x1="58.0" y1="2.00" x2="58.0" y2="4.60"/></g><g font-family="inherit" font-size="3.3" fill="#1a1a1a"><text x="8" y="1.2" text-anchor="middle">4</text><text x="58" y="1.2" text-anchor="middle">5</text></g><circle class="pt" cx="22.50" cy="3.3" r="0.75" fill="#2E75B6"/><circle class="prise" cx="22.50" cy="3.3" r="3" fill="#fff" fill-opacity="0" tabindex="0"/><text class="val" x="22.50" y="1.20" text-anchor="middle" font-family="inherit" font-size="3.3" font-weight="700" fill="#2E75B6">4,29</text></svg></p>
+    <p class="ex ex-droite">2) Arrondir 3274 à la centaine&nbsp;: 3274 ≅ <span class="res">3300</span><svg class="droite" viewBox="0 0 66 6" role="img" aria-label="droite graduée de 3200 à 3300, 3274 placé dessus" data-a="3200" data-b="3300" data-v="3274" data-pas="1" data-haut="0"><g stroke="#1a1a1a" stroke-width="0.3"><line x1="6.5" y1="3.3" x2="59.5" y2="3.3"/><line x1="8.0" y1="2.00" x2="8.0" y2="4.60"/><line x1="13.0" y1="2.65" x2="13.0" y2="3.95"/><line x1="18.0" y1="2.65" x2="18.0" y2="3.95"/><line x1="23.0" y1="2.65" x2="23.0" y2="3.95"/><line x1="28.0" y1="2.65" x2="28.0" y2="3.95"/><line x1="33.0" y1="2.30" x2="33.0" y2="4.30"/><line x1="38.0" y1="2.65" x2="38.0" y2="3.95"/><line x1="43.0" y1="2.65" x2="43.0" y2="3.95"/><line x1="48.0" y1="2.65" x2="48.0" y2="3.95"/><line x1="53.0" y1="2.65" x2="53.0" y2="3.95"/><line x1="58.0" y1="2.00" x2="58.0" y2="4.60"/></g><g font-family="inherit" font-size="3.3" fill="#1a1a1a"><text x="8" y="7.7" text-anchor="middle">3200</text><text x="58" y="7.7" text-anchor="middle">3300</text></g><circle class="pt" cx="45.00" cy="3.3" r="0.75" fill="#2E75B6"/><circle class="prise" cx="45.00" cy="3.3" r="3" fill="#fff" fill-opacity="0" tabindex="0"/><text class="val" x="45.00" y="7.70" text-anchor="middle" font-family="inherit" font-size="3.3" font-weight="700" fill="#2E75B6">3274</text></svg></p>
+    <p class="ex">3) Arrondir 4677,05 au millier&nbsp;: 4677,05 ≅ <span class="res">5000</span></p>
     <p class="ex">4) Arrondir 53,754</p>
-    <p class="sous-ex"><span>à la dizaine&nbsp;:</span><span>53,754 ≅ 50</span></p>
-    <p class="sous-ex"><span>à l’unité&nbsp;:</span><span>53,754 ≅ 54</span></p>
-    <p class="sous-ex"><span>au dixième</span><span>53,754 ≅ 53,8</span></p>
-    <p class="sous-ex"><span>au centième</span><span>53,754 ≅ 53,75</span></p>
-    <p class="ex">5) Arrondir 5,944 au centième&nbsp;: 5,944 ≅ 5,94</p>
-    <p class="ex suite">Arrondir 5,945 au centième&nbsp;: 5,945 ≅ 5,95</p>
+    <p class="sous-ex"><span>à la dizaine&nbsp;:</span><span>53,754 ≅ <span class="res">50</span></span></p>
+    <p class="sous-ex"><span>à l’unité&nbsp;:</span><span>53,754 ≅ <span class="res">54</span></span></p>
+    <p class="sous-ex"><span>au dixième</span><span>53,754 ≅ <span class="res">53,8</span></span></p>
+    <p class="sous-ex"><span>au centième</span><span>53,754 ≅ <span class="res">53,75</span></span></p>
+    <p class="ex">5) Arrondir 5,944 au centième&nbsp;: 5,944 ≅ <span class="res">5,94</span></p>
+    <p class="ex suite">Arrondir 5,945 au centième&nbsp;: 5,945 ≅ <span class="res">5,95</span></p>
   </div>
 
   <div class="exo-titre">
@@ -381,5 +387,17 @@ btn.addEventListener('click', () => {
   window.addEventListener('afterprint',()=>{ droites.forEach((o,i)=>o.pose(gardes[i])); });
 })();
 </script>
+<script>
+/* résultats des exemples dévoilés un à un au toucher ; l'œil les montre ou les masque tous */
+(function(){
+  const res = [...document.querySelectorAll('.page:not(.page-corrige) .cadre .res')];
+  res.forEach(r => r.addEventListener('click', () => r.classList.toggle('vu')));
+  document.getElementById('btn').addEventListener('click', () => {
+    const on = document.body.classList.contains('corrige');
+    res.forEach(r => r.classList.toggle('vu', on));
+  });
+})();
+</script>
+
 </body>
 </html>
