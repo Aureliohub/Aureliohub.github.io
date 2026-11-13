@@ -320,7 +320,7 @@ ol.corrections li.vise{box-shadow:0 0 0 2px var(--revision)}
 <header class="tete">
   <span class="pil">Informatique · PAI · traitement de texte</span>
   <div class="tete-texte">
-    <h1 title="v8">La recette des crêpes : contrôle de votre mise en page</h1>
+    <h1 title="v10">La recette des crêpes : contrôle de votre mise en page</h1>
     <p><span class="insecable">Déposez votre fichier, il est analysé dans votre navigateur (rien n’est envoyé sur Internet).</span>
       <span class="insecable">Vous obtenez votre note, l’image de votre page et la liste de ce qui reste à reprendre.</span></p>
   </div>
@@ -596,7 +596,10 @@ function lireObjet(dr, ctx){
       else if(al) o[cle + "al"] = al.textContent.trim();
     }
     for(const w of ["wrapNone", "wrapSquare", "wrapTight", "wrapTopAndBottom", "wrapThrough"])
-      if(enfant(node, w)) o.wrap = w.slice(4).toLowerCase();
+      if(enfant(node, w)){ o.wrap = w.slice(4).toLowerCase(); o.cote = attr(enfant(node, w), "wrapText") || "bothSides"; }
+    // écart que Word laisse entre l'objet et le texte qui le contourne
+    o.dist = { t: nb(node, "distT", 0) / EMU, b: nb(node, "distB", 0) / EMU,
+               l: nb(node, "distL", 114300) / EMU, r: nb(node, "distR", 114300) / EMU };
   } else { o.inline = 1; o.wrap = "inline"; }
 
   // c'est l'uri du graphicData qui dit la nature de l'objet : une image nichée
@@ -628,13 +631,23 @@ function lireObjet(dr, ctx){
     };
     const sf = spPr && [...spPr.children].find(x => x.localName === "solidFill");
     const gf = spPr && [...spPr.children].find(x => x.localName === "gradFill");
+    const autreFond = spPr && [...spPr.children].some(x => /^(noFill|blipFill|pattFill|grpFill)$/.test(x.localName));
+    const style = [...wsp.children].find(x => x.localName === "style");
     if(sf) o.fill = teinte(sf);
     else if(gf){                                   // remplissage dégradé : le modèle est uni
       o.degrade = [...gf.getElementsByTagName("*")]
         .filter(x => x.localName === "gs").map(teinte).filter(Boolean);
       if(!o.degrade.length) o.degrade = ["5B9BD5"];
       o.fill = o.degrade[0];
+    } else if(!autreFond && style){
+      // sans remplissage déclaré, la forme prend celui de son style : c'est le bleu
+      // que Word donne d'office à une forme qu'on vient de dessiner
+      const fr = enfant(style, "fillRef");
+      if(fr && attr(fr, "idx") && attr(fr, "idx") !== "0") o.fill = teinte(fr) || "4472C4";
     }
+    // couleur du texte de la forme, quand le texte n'en porte pas (blanc d'office)
+    const fo = style && enfant(style, "fontRef");
+    if(fo && teinte(fo)) o.couleurTx = teinte(fo);
     // contour : un <a:ln> rempli, ou le contour que Word pose par défaut (lnRef non nul)
     const ln = spPr && [...spPr.children].find(x => x.localName === "ln");
     if(ln){
@@ -655,10 +668,77 @@ function lireObjet(dr, ctx){
   return o;
 }
 
+/* propriétés d'un style de paragraphe, chaîne basedOn comprise : retraits,
+   espacements et taquets peuvent venir du style (Paragraphe de liste, Titre…) */
+function lireStylesPara(xml){
+  const m = new Map();
+  if(!xml) return m;
+  const doc = new DOMParser().parseFromString(xml, "application/xml");
+  for(const s of sous(doc, "style")){
+    if(attr(s, "type") !== "paragraph") continue;
+    const b = enfant(s, "basedOn");
+    m.set(attr(s, "styleId"), { base: b ? attr(b, "val") : null, pPr: enfant(s, "pPr") });
+    if(attr(s, "default") === "1") m.defaut = attr(s, "styleId");
+  }
+  return m;
+}
+function proprietesStyle(id, ctx){
+  const r = { tabs: [] };
+  const chaine = [];
+  for(let k = 0; id && ctx.stylesP && ctx.stylesP.has(id) && k < 12; k++){
+    chaine.unshift(ctx.stylesP.get(id));
+    id = ctx.stylesP.get(id).base;
+  }
+  for(const s of chaine){                         // du plus général au plus précis
+    const pPr = s.pPr;
+    if(!pPr) continue;
+    const ind = enfant(pPr, "ind");
+    if(ind && attr(ind, "left")) r.ind = nb(ind, "left", 0) / TW;
+    if(ind && attr(ind, "hanging")) r.hang = nb(ind, "hanging", 0) / TW;
+    else if(ind && attr(ind, "firstLine")) r.hang = -nb(ind, "firstLine", 0) / TW;
+    const sp = enfant(pPr, "spacing");
+    if(sp){
+      if(attr(sp, "after"))  r.ap = nb(sp, "after", 0) / TW;
+      if(attr(sp, "before")) r.av = nb(sp, "before", 0) / TW;
+      if(attr(sp, "line") && (attr(sp, "lineRule") || "auto") === "auto") r.li = nb(sp, "line", 240) / 240;
+    }
+    const cs = enfant(pPr, "contextualSpacing");
+    if(cs) r.ctx = attr(cs, "val") !== "0" && attr(cs, "val") !== "false";
+    const jc = enfant(pPr, "jc");
+    if(jc) r.jc = attr(jc, "val");
+    r.tabs = fusionTaquets(r.tabs, enfant(pPr, "tabs"));
+  }
+  return r;
+}
+/* taquets posés (en mm depuis la marge gauche) ; « clear » retire un taquet hérité */
+function fusionTaquets(liste, tabs){
+  if(!tabs) return liste;
+  let l = liste.slice();
+  for(const t of [...tabs.children].filter(x => x.localName === "tab")){
+    const pos = nb(t, "pos", NaN) / TW;
+    if(isNaN(pos)) continue;
+    l = l.filter(x => Math.abs(x.pos - pos) > 0.3);
+    if(attr(t, "val") !== "clear") l.push({ pos, type: attr(t, "val") || "left" });
+  }
+  return l.sort((a, b) => a.pos - b.pos);
+}
+
 function lireP(p, ctx){
   const runs = [], objs = [], para = { runs };
   const pPr = enfant(p, "pPr");
+  const ps = pPr && enfant(pPr, "pStyle");
+  para.style = ps ? attr(ps, "val") : null;
+  const st = proprietesStyle(para.style || (ctx.stylesP && ctx.stylesP.defaut), ctx);
+  // ce que le style apporte : le paragraphe et la numérotation l'emportent
+  if(st.ind !== undefined) para.sInd = st.ind;
+  if(st.hang !== undefined) para.sHang = st.hang;
+  for(const k of ["ap", "av", "li", "jc"]) if(st[k] !== undefined) para[k] = st[k];
+  if(st.ctx) para.ctxSp = 1;
+  para.tabs = st.tabs;
   if(pPr){
+    para.tabs = fusionTaquets(para.tabs, enfant(pPr, "tabs"));
+    const cs = enfant(pPr, "contextualSpacing");
+    if(cs) para.ctxSp = (attr(cs, "val") !== "0" && attr(cs, "val") !== "false") ? 1 : 0;
     const jc = enfant(pPr, "jc");
     if(jc) para.jc = attr(jc, "val");
     const ind = enfant(pPr, "ind");
@@ -799,11 +879,14 @@ function htmlParagraphe(p, def, marqueur){
   const sz = base.sz || def.sz;
   const inter = (p.li || def.li) * ratioLigne(familleCss(base.f || def.f));
   // retrait de liste : celui du paragraphe l'emporte sur celui du niveau
-  const gauche = p.ind !== undefined ? p.ind : (marqueur && p.num && p.num.ind) || 0;
-  const susp = p.hang !== undefined ? p.hang : ((marqueur && p.num && p.num.hang) || 0);
-  let st = "margin:0 0 " + (p.ap === undefined ? def.ap : p.ap).toFixed(1) + "mm;"
-         + (p.av ? "margin-top:" + p.av.toFixed(1) + "mm;" : "")
+  const { gauche, susp } = retraits(p, marqueur);
+  const apres = p.apCtx !== undefined ? p.apCtx : (p.ap === undefined ? def.ap : p.ap);
+  const avant = p.avCtx !== undefined ? p.avCtx : (p.av || 0);
+  let st = "margin:0 0 " + apres.toFixed(1) + "mm;"
+         + (avant ? "margin-top:" + avant.toFixed(1) + "mm;" : "")
          + "line-height:" + inter.toFixed(3) + ";"
+         // la ligne vide (« strut ») prend la taille du paragraphe, pas celle de la page
+         + "font-size:" + (sz * PT).toFixed(2) + "mm;font-family:" + familleCss(base.f || def.f) + ";"
          + "min-height:" + (sz * PT * inter).toFixed(2) + "mm;"
          + "text-align:" + ({ center:"center", right:"right", both:"justify" }[p.jc] || "left") + ";"
          + (gauche ? "padding-left:" + gauche.toFixed(1) + "mm;" : "")
@@ -813,39 +896,65 @@ function htmlParagraphe(p, def, marqueur){
                        + (susp > 0 ? "display:inline-block;min-width:" + susp.toFixed(1) + "mm;" : "")
                        + '">' + echapper(marqueur.t) + "</span>";
   for(const r of p.runs){
-    if(r.obj){                                        // objet aligné sur le texte
-      const o = r.obj, dim = "width:" + o.w.toFixed(1) + "mm;height:" + o.h.toFixed(1) + "mm;";
-      const rep = ' data-uid="' + o.uid + '"';
-      // un aplat SVG, et non un fond CSS : à l'impression sans arrière-plans, un fond
-      // CSS disparaît alors que le dessin SVG fait partie du contenu
-      const aplat = o.fill
-        ? '<svg viewBox="0 0 100 100" preserveAspectRatio="none" style="width:100%;height:100%;display:block">'
-          + '<rect x="0" y="0" width="100" height="100" fill="#' + o.fill + '"/></svg>'
-        : "";
-      const dedansObjet = (o.paras || []).length
-        ? '<span class="ap-tx">' + o.paras.map(q => htmlParagraphe(q, def, null)).join("") + "</span>"
-        : "";
-      dedans += o.k === "img" && o.src
-        ? '<img class="ap-enligne"' + rep + ' src="' + o.src + '" alt="" style="' + dim + '">'
-        : '<span class="ap-enligne' + (o.fill ? "" : " ap-vide") + '"' + rep
-          + ' style="' + dim + '">' + aplat + dedansObjet + "</span>";
-      continue;
-    }
+    if(r.obj){ dedans += htmlEnLigne(r.obj, def, ""); continue; }   // objet aligné sur le texte
     if(r.t === "\t"){ dedans += '<span class="taq" style="' + styleTexte(r, def) + '"></span>'; continue; }
     if(r.t === "\n"){ dedans += "<br>"; continue; }
     if(!r.t) continue;
     dedans += '<span style="' + styleTexte(r, def) + '">' + echapper(r.t) + "</span>";
   }
-  return '<p class="ap-p" style="' + st + '">' + (dedans || "&#8203;") + "</p>";
+  const taquets = (p.tabs || []).map(t => t.pos.toFixed(2)).join(",");
+  // paragraphe vide : sa hauteur est celle de la marque de paragraphe, dans sa taille
+  return '<p class="ap-p" style="' + st + '"' + (taquets ? ' data-tabs="' + taquets + '"' : "") + ">"
+       + (dedans || '<span style="' + styleTexte(base, def) + '">&#8203;</span>') + "</p>";
+}
+
+/* retrait gauche et retrait suspendu : le paragraphe l'emporte sur la numérotation,
+   qui l'emporte sur le style */
+function retraits(p, marqueur){
+  const n = marqueur && p.num ? p.num : {};
+  const gauche = p.ind !== undefined ? p.ind : (n.ind != null ? n.ind : (p.sInd || 0));
+  const susp = p.hang !== undefined ? p.hang : (n.hang != null ? n.hang : (p.sHang || 0));
+  return { gauche, susp };
+}
+
+function htmlEnLigne(o, def, place){
+  const dim = "width:" + o.w.toFixed(1) + "mm;height:" + o.h.toFixed(1) + "mm;" + place;
+  const rep = ' data-uid="' + o.uid + '"';
+  // un aplat SVG, et non un fond CSS : à l'impression sans arrière-plans, un fond
+  // CSS disparaît alors que le dessin SVG fait partie du contenu
+  const aplat = o.fill
+    ? '<svg viewBox="0 0 100 100" preserveAspectRatio="none" style="width:100%;height:100%;display:block">'
+      + '<rect x="0" y="0" width="100" height="100" fill="#' + o.fill + '"/></svg>'
+    : "";
+  const dedansObjet = (o.paras || []).length
+    ? '<span class="ap-tx"' + (o.couleurTx ? ' style="color:#' + o.couleurTx + '"' : "") + ">"
+      + o.paras.map(q => htmlParagraphe(q, def, null)).join("") + "</span>"
+    : "";
+  return o.k === "img" && o.src
+    ? '<img class="ap-enligne"' + rep + ' src="' + o.src + '" alt="" style="' + dim + '">'
+    : '<span class="ap-enligne' + (o.fill ? "" : " ap-vide") + '"' + rep
+      + ' style="' + dim + '">' + aplat + dedansObjet + "</span>";
 }
 
 /* les tabulations sont posées sur les taquets par défaut, comme Word */
+function prochainTaquet(xMm, posees, pasMm){
+  const tol = 0.15;
+  for(const t of posees) if(t > xMm + tol) return t;
+  return (Math.floor(xMm / pasMm + tol / pasMm) + 1) * pasMm;
+}
 function poserTaquets(flux, pasMm, mmPx){
   const pas = pasMm * mmPx;
   for(const p of flux.querySelectorAll(".ap-p")){
     const boite = p.getBoundingClientRect();
+    // taquets posés par l'apprenant (Word les mesure depuis la marge gauche) ; après le
+    // dernier, les taquets par défaut reprennent
+    const posees = (p.dataset.tabs || "").split(",").filter(Boolean).map(Number);
     for(const t of p.querySelectorAll(".taq")){
       const x = t.getBoundingClientRect().left - boite.left;
+      if(posees.length && posees[posees.length - 1] > x / mmPx + 0.15){
+        t.style.width = Math.max(1, prochainTaquet(x / mmPx, posees, pasMm) * mmPx - x) + "px";
+        continue;
+      }
       // une tabulation posée pile sur un taquet part au suivant, comme dans Word.
       // La tolérance vaut un sixième de millimètre : le texte redessiné ici n'a pas
       // exactement la largeur que Word lui donne, et sans elle un écart de cinq
@@ -900,6 +1009,241 @@ function comicPresente(){
   return (COMIC_VU = Math.abs(a - b) > 1);
 }
 
+/* coin haut gauche d'un objet flottant, en mm depuis le coin de la page */
+function placeObjet(o, pg, hautPara){
+  const orgX = o.relX === "page" ? 0 : (o.relX === "rightMargin" ? pg.w - pg.mr : pg.ml);
+  const orgY = ({ page:0, margin:pg.mt, topMargin:pg.mt })[o.relY] !== undefined
+             ? ({ page:0, margin:pg.mt, topMargin:pg.mt })[o.relY]
+             : hautPara;
+  let x = orgX + (o.x || 0), y = orgY + (o.y || 0);
+  // un alignement se lit dans son cadre de référence : « à gauche de la page » est
+  // au bord de la feuille, « à gauche de la marge » au début de la colonne
+  const pageX = o.relX === "page", pageY = o.relY === "page";
+  const [g, d] = pageX ? [0, pg.w] : [pg.ml, pg.w - pg.mr];
+  const [hh, bb] = pageY ? [0, pg.h] : [pg.mt, pg.h - pg.mb];
+  if(o.xal === "center") x = (g + d - o.w) / 2;
+  if(o.xal === "right" || o.xal === "outside")  x = d - o.w;
+  if(o.xal === "left"  || o.xal === "inside")   x = g;
+  if(o.yal === "center") y = (hh + bb - o.h) / 2;
+  if(o.yal === "top")    y = hh;
+  if(o.yal === "bottom") y = bb - o.h;
+  return { x, y };
+}
+
+/* HABILLAGE. Word fait couler le texte autour des objets en habillage Carré,
+   Rapproché, Au travers ou Haut et bas : le texte ne passe jamais dessous. Le
+   navigateur, lui, ne sait pas creuser un trou au milieu d'une ligne. Chaque
+   paragraphe qui croise un tel objet est donc recomposé ici, ligne par ligne,
+   dans les intervalles libres — les autres gardent la composition du navigateur.
+   La place des objets ancrés dépend de celle des paragraphes, qui dépend des
+   objets : on itère jusqu'à ce que plus rien ne bouge. */
+const HABILLANTS = { square:1, tight:1, through:1, topandbottom:1 };
+
+function habiller(doc, flux, marqueurs, def, mmPx, hautFlux){
+  const ps = [...flux.children].filter(e => e.classList.contains("ap-p"));
+  if(ps.length !== doc.flux.length) return;
+  const objets = [];
+  doc.flux.forEach((p, i) => (p.objs || []).forEach(o => {
+    if(!o.inline && HABILLANTS[o.wrap]) objets.push({ o, i });
+  }));
+  if(!objets.length) return;
+  const pg = doc.page, largeur = pg.w - pg.ml - pg.mr;
+  const nat = ps.map(e => ({ y: parseFloat(e.style.top), h: parseFloat(e.style.height) }));
+  const ecarts = nat.map((m, i) => i + 1 < nat.length ? nat[i + 1].y - (m.y + m.h) : 0);
+  const mesure = mesureur(flux, def, mmPx);
+  let hauts = nat.map(m => m.y), compo = null;
+
+  for(let tour = 0; tour < 6; tour++){
+    // zones interdites au texte, en mm dans la colonne
+    const zones = objets.map(({ o, i }) => {
+      const { x, y } = placeObjet(o, pg, hauts[i] + hautFlux);
+      const d = o.dist || { t:0, b:0, l:3.2, r:3.2 };
+      return { x: x - pg.ml - d.l, w: o.w + d.l + d.r, y: y - hautFlux - d.t, h: o.h + d.t + d.b, dl: d.l,
+               tb: o.wrap === "topandbottom", cote: o.cote || "bothSides" };
+    });
+    const nouv = [];
+    let y = hauts[0];
+    doc.flux.forEach((p, i) => {
+      const touche = zones.some(z => z.y < y + nat[i].h - 0.01 && z.y + z.h > y + 0.01
+                                  && (z.tb || (z.x < largeur && z.x + z.w > 0)));
+      const c = touche ? composer(p, marqueurs[i], def, y, zones, largeur, mesure) : null;
+      const h = c ? c.h : nat[i].h;
+      nouv.push({ y, h, c });
+      y += h + ecarts[i];
+    });
+    const bouge = nouv.some((n, i) => Math.abs(n.y - hauts[i]) > 0.05);
+    hauts = nouv.map(n => n.y);
+    compo = nouv;
+    if(!bouge) break;
+  }
+  mesure.fin();
+  compo.forEach((n, i) => {
+    const e = ps[i];
+    if(n.c) e.innerHTML = n.c.html;
+    e.style.top = n.y.toFixed(2) + "mm";
+    e.style.height = n.h.toFixed(2) + "mm";
+  });
+  const der = compo[compo.length - 1];
+  flux.style.height = (der.y + der.h).toFixed(2) + "mm";
+}
+
+/* largeur d'un bout de texte dans son style, en mm */
+function mesureur(flux, def, mmPx){
+  const boite = document.createElement("div");
+  boite.style.cssText = "position:absolute;left:0;top:0;visibility:hidden;white-space:pre";
+  flux.appendChild(boite);
+  const cache = new Map();
+  const f = (t, st) => {
+    const cle = styleTexte(st, def) + "|" + t;
+    if(cache.has(cle)) return cache.get(cle);
+    const s = document.createElement("span");
+    s.style.cssText = styleTexte(st, def);
+    s.textContent = t;
+    boite.appendChild(s);
+    const w = s.getBoundingClientRect().width / mmPx;
+    s.remove();
+    cache.set(cle, w);
+    return w;
+  };
+  f.fin = () => boite.remove();
+  return f;
+}
+
+/* intervalles libres d'une bande horizontale [y, y + h] entre g et d */
+function intervallesLibres(zones, y, h, g, d){
+  let segs = [[g, d, 0]];
+  for(const z of zones){
+    if(z.y >= y + h - 0.01 || z.y + z.h <= y + 0.01) continue;
+    let a = z.x, b = z.x + z.w;
+    if(z.tb){ a = -1e9; b = 1e9; }
+    else {
+      if(b <= g || a >= d) continue;
+      let cote = z.cote;
+      if(cote === "largest") cote = (a - g) >= (d - b) ? "left" : "right";
+      if(cote === "left") b = 1e9;                 // texte à gauche de l'objet seulement
+      if(cote === "right") a = -1e9;               // texte à droite seulement
+    }
+    // troisième terme : la marge d'habillage entre la fin de l'intervalle et l'objet lui-même
+    segs = segs.flatMap(([s, e, m]) => {
+      const r = [];
+      if(a > s) r.push(a < e ? [s, a, z.dl || 0] : [s, e, m]);
+      if(b < e) r.push([Math.max(s, b), e, m]);
+      return r;
+    }).filter(([s, e]) => e - s > 0.5);
+  }
+  return segs;
+}
+
+/* compose un paragraphe autour des zones interdites ; renvoie sa hauteur et son HTML */
+function composer(p, marqueur, def, y0, zones, largeur, mesure){
+  const base = p.rpr || (p.runs.find(r => (r.t || "").trim()) || p.runs[0] || {});
+  const inter = (p.li || def.li) * ratioLigne(familleCss(base.f || def.f));
+  const hLigne = st => (st.sz || def.sz) * PT * inter;
+  const { gauche, susp } = retraits(p, marqueur);
+  const posees = (p.tabs || []).map(t => t.pos);
+
+  // unités insécables : un mot peut s'étendre sur plusieurs passages de styles différents
+  const unites = [];
+  let cour = null;
+  const finir = () => { if(cour){ unites.push(cour); cour = null; } };
+  for(const r of p.runs){
+    if(r.obj){ finir(); unites.push({ obj: r.obj }); continue; }
+    if(r.t === "\t"){ finir(); unites.push({ tab: 1, st: r }); continue; }
+    if(r.t === "\n"){ finir(); unites.push({ br: 1 }); continue; }
+    for(const m of (r.t || "").match(/\S+\s*|\s+/g) || []){
+      if(!cour) cour = { bouts: [] };
+      cour.bouts.push({ t: m, st: r });
+      if(/\s$/.test(m)) finir();
+    }
+  }
+  finir();
+  for(const u of unites) if(u.bouts){
+    u.w = u.bouts.reduce((s, b) => s + mesure(b.t, b.st), 0);
+    const der = u.bouts[u.bouts.length - 1];
+    u.wPlein = u.w - mesure(der.t, der.st) + mesure(der.t.replace(/\s+$/, ""), der.st);
+    u.h = Math.max(...u.bouts.map(b => hLigne(b.st)));
+  } else if(u.obj){ u.w = u.wPlein = u.obj.w; u.h = u.obj.h; }
+
+  const hBase = hLigne(base);
+  let html = "", y = y0, k = 0, premiere = true;
+  const morceaux = [];
+  for(let garde = 0; garde < 400 && (k < unites.length || premiere); garde++){
+    const depart = premiere ? gauche - susp : gauche;
+    const segs = intervallesLibres(zones, y, hBase, 0, largeur)
+      .map(([s, e, m]) => [Math.max(s, depart), e, m]).filter(([s, e]) => e - s > 0.5);
+    const bloque = () => {
+      // aucune place sur cette ligne : Word la descend sous l'obstacle le plus proche
+      const bas = zones.filter(z => z.y < y + hBase - 0.01 && z.y + z.h > y + 0.01).map(z => z.y + z.h);
+      if(!bas.length) return false;
+      y = Math.max(y + 0.5, Math.min(...bas));
+      return true;
+    };
+    if(!segs.length){ if(bloque()) continue; segs.push([depart, largeur]); }
+    const ligne = [];
+    let si = 0, x = segs[0][0], hL = hBase;
+    if(premiere && marqueur){
+      const wm = mesure(marqueur.t, marqueur.st);
+      ligne.push({ x, t: marqueur.t, st: marqueur.st, mrq: 1, h: hLigne(marqueur.st) });
+      x = Math.max(x + wm, x + Math.max(0, susp));
+    }
+    let fin = false;
+    while(k < unites.length && !fin){
+      const u = unites[k];
+      if(u.br){ k++; fin = true; break; }
+      if(u.tab){
+        const cible = prochainTaquet(x, posees, def.tab);
+        // taquet tombé dans la marge d'habillage, avant l'objet : Word n'avance que
+        // d'un pas et le texte reste devant l'objet. Tombé dans l'objet ou au-delà,
+        // le texte passe de l'autre côté.
+        if(cible > segs[si][1] && cible < segs[si][1] + segs[si][2]){
+          x = Math.min(x + 1.3, segs[si][1]); k++;
+          continue;
+        }
+        let j = si;
+        while(j < segs.length && segs[j][1] <= cible) j++;
+        if(j >= segs.length){ if(ligne.length) { fin = true; break; } k++; continue; }
+        si = j; x = Math.max(cible, segs[j][0]); k++;
+        continue;
+      }
+      if(x + u.wPlein <= segs[si][1] + 0.1){
+        if(u.obj) ligne.push({ x, obj: u.obj, h: u.h });
+        else { let xx = x; for(const b of u.bouts){ ligne.push({ x: xx, t: b.t, st: b.st, h: hLigne(b.st) }); xx += mesure(b.t, b.st); } }
+        hL = Math.max(hL, u.h);
+        x += u.w; k++;
+        continue;
+      }
+      if(si + 1 < segs.length){ si++; x = Math.max(x, segs[si][0]); continue; }
+      if(!ligne.length){
+        // rien ne tient : sous l'obstacle si c'en est un, sinon on pose quand même
+        if(segs.length && bloque()){ fin = null; break; }
+        if(u.obj) ligne.push({ x, obj: u.obj, h: u.h });
+        else { let xx = x; for(const b of u.bouts){ ligne.push({ x: xx, t: b.t, st: b.st, h: hLigne(b.st) }); xx += mesure(b.t, b.st); } }
+        hL = Math.max(hL, u.h); k++;
+      }
+      fin = true;
+    }
+    if(fin === null) continue;                     // ligne descendue, à recomposer
+    // centrage ou alignement à droite, quand la ligne n'est pas coupée par un objet
+    if(segs.length === 1 && ligne.length && (p.jc === "center" || p.jc === "right")){
+      const der = ligne[ligne.length - 1];
+      const bout = der.obj ? der.x + der.obj.w : der.x + mesure(der.t.replace(/\s+$/, ""), der.st);
+      const libre = segs[0][1] - bout;
+      const dx = p.jc === "center" ? libre / 2 : libre;
+      for(const m of ligne) m.x += dx;
+    }
+    for(const m of ligne) morceaux.push(Object.assign(m, { y: y - y0 + hL - m.h, hl: m.h }));
+    y += hL;
+    premiere = false;
+  }
+  for(const m of morceaux){
+    const place = "position:absolute;left:" + m.x.toFixed(2) + "mm;top:" + m.y.toFixed(2) + "mm;";
+    if(m.obj){ html += htmlEnLigne(m.obj, def, place); continue; }
+    html += '<span' + (m.mrq ? ' class="mrq"' : "") + ' style="' + place + "white-space:pre;line-height:"
+          + m.hl.toFixed(2) + "mm;" + styleTexte(m.st, def) + '">' + echapper(m.t) + "</span>";
+  }
+  return { h: Math.max(y - y0, hBase), html: html || '<span style="' + styleTexte(base, def) + '">&#8203;</span>' };
+}
+
 /* renvoie les boîtes des objets et des lignes de texte, en millimètres */
 function dessiner(doc, hote){
   const def = doc.def || { f:"Arial", sz:11, ap:3.5, li:1.15, tab:12.7 };
@@ -917,6 +1261,13 @@ function dessiner(doc, hote){
   const compteurs = {};
   let compteurFond = 0;
   let html = "";
+  // espacement contextuel (« Paragraphe de liste ») : pas d'espace entre deux
+  // paragraphes du même style, comme les étapes d'une liste
+  doc.flux.forEach((p, i) => {
+    const q = doc.flux[i + 1];
+    if(q && p.style && p.style === q.style && p.ctxSp && q.ctxSp){ p.apCtx = 0; q.avCtx = 0; }
+  });
+  const marqueurs = [];
   for(const p of doc.flux){
     let marqueur = null;
     if(p.num){
@@ -926,6 +1277,7 @@ function dessiner(doc, hote){
       else { compteurs[p.numId] = (compteurs[p.numId] || 0) + 1;
              marqueur = { t: (p.num.txt || "%1.").replace(/%\d/, compteurs[p.numId]), st: stM }; }
     }
+    marqueurs.push(marqueur);
     html += htmlParagraphe(p, def, marqueur);
   }
   flux.innerHTML = html;
@@ -941,6 +1293,7 @@ function dessiner(doc, hote){
 
   poserTaquets(flux, def.tab, mmPx);
   figer(flux, mmPx, 1);
+  habiller(doc, flux, marqueurs, def, mmPx, (flux.getBoundingClientRect().top - page.getBoundingClientRect().top) / mmPx);
 
   const rPage = page.getBoundingClientRect();
   const enMm = r => ({ x:(r.left - rPage.left) / mmPx, y:(r.top - rPage.top) / mmPx,
@@ -959,17 +1312,7 @@ function dessiner(doc, hote){
         boites.push({ o, rect:null, el:null, para:i, ordre: boites.length });
         continue;
       }
-      const orgX = o.relX === "page" ? 0 : (o.relX === "rightMargin" ? doc.page.w - doc.page.mr : doc.page.ml);
-      const orgY = ({ page:0, margin:doc.page.mt, topMargin:doc.page.mt })[o.relY] !== undefined
-                 ? ({ page:0, margin:doc.page.mt, topMargin:doc.page.mt })[o.relY]
-                 : hautPara;
-      let x = orgX + (o.x || 0), y = orgY + (o.y || 0);
-      if(o.xal === "center") x = (doc.page.w - o.w) / 2;
-      if(o.xal === "right")  x = doc.page.w - doc.page.mr - o.w;
-      if(o.xal === "left")   x = doc.page.ml;
-      if(o.yal === "center") y = (doc.page.h - o.h) / 2;
-      if(o.yal === "top")    y = doc.page.mt;
-      if(o.yal === "bottom") y = doc.page.h - doc.page.mb - o.h;
+      const { x, y } = placeObjet(o, doc.page, hautPara);
 
       const d = document.createElement("div");
       d.className = "ap-obj " + (o.behind ? "arriere" : "avant");
@@ -1001,6 +1344,7 @@ function dessiner(doc, hote){
         if(o.paras && o.paras.length){
           const z = document.createElement("div");
           z.className = "ap-tx";
+          if(o.couleurTx) z.style.color = "#" + o.couleurTx;
           z.innerHTML = o.paras.map(q => htmlParagraphe(q, def, null)).join("");
           d.appendChild(z);
         }
@@ -1033,11 +1377,11 @@ function dessiner(doc, hote){
   const lignes = [];
   for(const el of page.querySelectorAll(".ap-p span")){
     if(el.classList.contains("taq")) continue;
-    const t = (el.textContent || "").trim();
+    const t = (el.textContent || "").replace(/\u200b/g, "").trim();
     if(!t) continue;
     for(const r of el.getClientRects()){
       if(r.width < 1 || r.height < 1) continue;
-      lignes.push(Object.assign(enMm(r), { texte: t, el, index: lignes.length }));
+      lignes.push(Object.assign(enMm(r), { texte: t, el, index: lignes.length, zone: !!el.closest(".ap-tx") }));
     }
   }
 
@@ -1403,7 +1747,9 @@ function analyser(doc, vue){
   if(bandes.length >= 2){
     const xs = bandes.map(b => b.rect.x), ws = bandes.map(b => b.rect.w), hs = bandes.map(b => b.rect.h);
     const etendue = t => Math.max(...t) - Math.min(...t);
-    if(etendue(xs) > 3){
+    // même taille donc mêmes bords : à gauche comme à droite
+    const ds = bandes.map(b => b.rect.x + b.rect.w);
+    if(etendue(xs) > 3 || etendue(ds) > 3){
       defautsFormes.push("formes décalées");
       const hautes = bandes.map(b => b.rect.y), basses = bandes.map(b => b.rect.y + b.rect.h);
       // le repère se trace sur les bords extérieurs, seuls visibles quand les formes
@@ -1411,9 +1757,13 @@ function analyser(doc, vue){
       const droits = bandes.map(b => b.rect.x + b.rect.w);
       let g1 = Math.min(...droits), g2 = Math.max(...droits);
       if(g2 - g1 < 1){ g1 = Math.max(0, Math.min(...xs)); g2 = Math.max(0, Math.max(...xs)); }
+      const ecarts = [];
+      if(etendue(xs) > 3) ecarts.push("leurs bords gauches diffèrent de " + etendue(xs).toFixed(0) + " mm");
+      if(etendue(ds) > 3) ecarts.push("leurs bords droits diffèrent de " + etendue(ds).toFixed(0) + " mm");
+      const phrase = ecarts.join(", ");
       noter("G", "Les formes bleues ne sont pas alignées",
-        "Leurs bords gauches diffèrent de " + etendue(xs).toFixed(0)
-        + " mm. Elles commencent au même endroit, au bord de la feuille.",
+        phrase.charAt(0).toUpperCase() + phrase.slice(1)
+        + ". Elles commencent au bord gauche de la feuille et s’arrêtent au même endroit.",
         bandes,
         { x1: g1, x2: g2, y1: Math.min(...hautes), y2: Math.max(...basses) });
     }
@@ -1503,7 +1853,10 @@ function analyser(doc, vue){
   };
   // une zone de texte transparente ne cache rien : seuls les objets qui peignent sont comparés
   const aTexte = b => (b.o.paras || []).some(q => q.runs.some(r => (r.t || "").trim()));
-  const peint = b => b.o.k === "img" || (b.o.k === "shp" && (b.o.fill || b.o.trait) && !aTexte(b));
+  // une forme colorée, elle, peint son fond même quand le titre est écrit dedans
+  const colore = b => { const c = b.o.fill && tsl(b.o.fill); return !!c && c.l < 0.9; };
+  const peint = b => b.o.k === "img"
+                  || (b.o.k === "shp" && (((b.o.fill || b.o.trait) && !aTexte(b)) || colore(b)));
   const solides = flottants.filter(peint);
   const paires = [];
   // une image posée sur une bande bleue efface le bleu sur tout son cadre, marge comprise
@@ -1537,8 +1890,11 @@ function analyser(doc, vue){
   }
   // le cadre blanc d'une image ne se voit pas sur du papier blanc : seul le dessin
   // lui-même peut gêner le texte. On mesure donc l'encre, jamais le cadre.
+  // un objet que le texte contourne (Carré, Rapproché…) ne peut pas le chevaucher : Word
+  // l'en écarte. Seul le texte d'une zone de texte, qui ne contourne rien, peut le croiser.
   const surTexte = (b, mini, part) =>
-    vue.lignes.some(l => { const c = croise(b.encre || b.rect, l); return c > mini && c > part * aire(l); });
+    vue.lignes.some(l => { if(HABILLANTS[b.o.wrap] && !l.zone) return false;
+                           const c = croise(b.encre || b.rect, l); return c > mini && c > part * aire(l); });
   const masques = solides.filter(b => b.o.k !== "shp" && !b.o.behind && surTexte(b, 6, 0.04));
   if(masques.length){
     perd("I", 1);
@@ -1825,7 +2181,8 @@ async function traiter(f){
       tab: (parseFloat(dts || "720")) / TW
     };
 
-    const doc = lireDoc(xml, { rels, accents, medias, def, numeros: lireNumeros(numxml, accents) });
+    const doc = lireDoc(xml, { rels, accents, medias, def, numeros: lireNumeros(numxml, accents),
+                               stylesP: lireStylesPara(styles) });
     if(!bonDocument(doc)) throw new Error("horssujet");
 
     // boîte du dessin de chaque image, mémorisée par source
