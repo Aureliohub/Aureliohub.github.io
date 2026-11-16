@@ -8,8 +8,18 @@ générant des exercices de mathématiques pour adultes (programme PAI, Suisse).
 Product owner : Aurelio (Onex/Genève). Répondre en FRANÇAIS.
 
 ───────────────────────────────────────────────────────────────────────────────
-0. OÙ ON EN EST (v547, 11.11.2026) — à lire en premier
+0. OÙ ON EN EST (v548, 16.11.2026) — à lire en premier
 ───────────────────────────────────────────────────────────────────────────────
+v548 — SÉRIE À LA CARTE D'UN SEUL SOUS-DOMAINE : elle passait par downloadPdf,
+dont les pages sont à hauteur FIXE ; tout ce qui dépassait était rogné sans
+erreur (4 droites graduées : exercice 4 coupé). Désormais l'atelier passe
+`fluxSiDeborde` ; downloadPdf mesure (textes, figures, traits) avant de
+photographier et, si ça déborde, renonce (`opts.deborde`) → downloadCartePdf.
+Vérifié dans un VRAI Chromium (Playwright, hasard à graine fixe) : séries qui
+tenaient identiques au pixel ; 14 bascules sur 29 sous-domaines × 3 séries,
+TOUTES rognées à l'origine (aucune fausse alerte). Droite N1/N2 : ajout de
+`_sansOutilsQuestion` (le ↻ d'une question tirait la valeur d'une autre droite).
+
 L'application est en ligne : https://aureliohub.github.io/eva_maths.html
 Les fichiers de série et de test (.json) sont déposés à côté d'elle, et s'ouvrent
 par l'adresse : `…/eva_maths.html?serie=mix-test.json`.
@@ -10338,7 +10348,13 @@ function buildDroiteSvg(start, end, step, subSteps, positions, labelEvery, place
     threeColsByColumn: placePositions.length > 0,
     // Métadonnées pour le placement (consommées par les handlers)
     svgId,
-    placePoints: placePositions.map((v, i) => ({ label: placeLabels[i], value: v }))
+    placePoints: placePositions.map((v, i) => ({ label: placeLabels[i], value: v })),
+    // (v548) Les flèches A–D et les points E, F sont dessinés sur UNE MÊME
+    // droite : comme pour les niveaux Fractions, renouveler, retirer ou
+    // déplacer une question seule n'a pas de sens dans l'atelier. Le ↻ d'une
+    // question y tirait la valeur d'une AUTRE droite — vu : « c) 0,29 » au
+    // corrigé pour une flèche à 1,95 sur une droite de 1,6 à 2,1.
+    _sansOutilsQuestion: true
   };
 }
 
@@ -24364,17 +24380,23 @@ async function atelierGenererPdfInterne(at, items) {
     return;
   }
   const savedSub = state.activeSubId, savedEx = state.exercises;
+  let o = null;
   try {
     state.activeSubId = ids[0];
     // downloadPdf compose à partir de state.exercises avant d'accepter la
     // liste imposée : les deux doivent décrire la même chose, sans quoi ses
     // cas particuliers travaillent sur des exercices d'un autre sous-domaine.
     state.exercises = items.map(it => it.ex);
-    await downloadPdf({ exercicesImposes: state.exercises });
+    o = { exercicesImposes: state.exercises, fluxSiDeborde: true };
+    await downloadPdf(o);
   } finally {
     state.activeSubId = savedSub;
     state.exercises = savedEx;
   }
+  // (v548) La page à hauteur fixe du sous-domaine ne contient pas la série
+  // (plus d'exercices que sa composition habituelle) : chaîne en flux, qui
+  // passe à la page suivante au lieu de rogner.
+  if (o && o.deborde) await downloadCartePdf(items);
 }
 
 // ----------------------------------------------------------------------------
@@ -36636,6 +36658,41 @@ async function downloadPdf(opts) {
       return;
     }
 
+    // (v548) Série « à la carte » d'UN SEUL sous-domaine : elle passe par cette
+    // chaîne, dont les conteneurs sont à HAUTEUR FIXE (une page, débordement
+    // masqué). Prévue pour la composition du sous-domaine (droite : 2
+    // exercices), elle rognait sans erreur ce qui ne tenait pas — vu sur une
+    // série de 4 droites graduées, l'exercice 4 coupé à mi-hauteur sur « 1 / 1 ».
+    // Avec `opts.fluxSiDeborde`, on mesure avant de photographier : si un texte,
+    // une figure ou un trait sort de la zone utile, on renonce (`opts.deborde`)
+    // et l'appelant passe par la chaîne en flux (downloadCartePdf). Sans
+    // l'option, rien ne change.
+    const deborde = (c) => {
+      const cr = c.getBoundingClientRect();
+      const lim = cr.top + c.clientHeight - parseFloat(getComputedStyle(c).paddingBottom || 0) + 2;
+      const sort = (r) => r && r.height > 0 && r.bottom > lim;
+      if (Array.from(c.querySelectorAll('svg, img, canvas')).some(e => sort(e.getBoundingClientRect()))) return true;
+      if (Array.from(c.querySelectorAll('*')).some(e => {
+        const s = getComputedStyle(e);
+        return (parseFloat(s.borderBottomWidth) > 0 && s.borderBottomStyle !== 'none')
+          && sort(e.getBoundingClientRect());
+      })) return true;
+      const w = document.createTreeWalker(c, 4 /* SHOW_TEXT */);
+      const rg = document.createRange();
+      while (w.nextNode()) {
+        if (!w.currentNode.nodeValue.trim()) continue;
+        rg.selectNodeContents(w.currentNode);
+        if (sort(rg.getBoundingClientRect())) return true;
+      }
+      return false;
+    };
+    const renoncerSiDeborde = (conts) => {
+      if (!opts.fluxSiDeborde || !conts.some(c => c && deborde(c))) return false;
+      opts.deborde = true;
+      conts.concat([cExo, cCor]).forEach(c => { if (c && c.parentNode) c.parentNode.removeChild(c); });
+      return true;
+    };
+
     // ============ Assemblage PDF ============
     const { jsPDF } = window.jspdf;
     // Document PARTAGÉ : une série « à la carte » enchaîne plusieurs
@@ -37042,6 +37099,7 @@ async function downloadPdf(opts) {
           }
         }
 
+        if (renoncerSiDeborde([cExo, ...extraContainers, cCor, ...extraCorr])) return;
         await addContainerPages(cExo, debutNeuf(true));                  // page 1 : N1
         for (const c of extraContainers) {
           await addContainerPages(c, false);                  // pages suivantes : N2, N3...
@@ -37069,6 +37127,7 @@ async function downloadPdf(opts) {
       }
     }
 
+    if (renoncerSiDeborde([cExo, cCor])) return;
     await addContainerPages(cExo, debutNeuf(true));   // énoncés (commence page 1)
     const corrigeStartPageStd = pdf.internal.getNumberOfPages() + 1;
     await poserCorrige(cCor, false);  // corrigé (nouvelle page)
