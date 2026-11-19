@@ -1,0 +1,526 @@
+<!doctype html>
+<!--
+  Note pour Claude : animation « pourcentages successifs » (fichier autonome, aucune dépendance).
+  Coquille commune aux activités (cf. soustraction_postit.html) : en-tête, plateau 900x560 mis à l'échelle, bouton plein écran.
+  Grille 10x10 = 100 carrés, chacun vaut 1/100 du montant saisi.
+  1er % : carrés pris COLONNE par COLONNE (haut → bas, depuis la DROITE), teinte bleue.
+  2e % : appliqué au RESTE ; carrés restants pris LIGNE par LIGNE (droite → gauche, haut → bas), teinte orange.
+         Si 2e % × reste n'est pas entier, le dernier carré est coupé verticalement (part de droite).
+  Sélection à la main : glisser sur la grille (rectangle ; départ sur un carré surligné = retrait). Au lâcher, le % s'inscrit
+  dans le champ de l'étape (2e % = carrés choisis / carrés restants, éventuellement décimal, affiché « ≈ »).
+  Élimination : bouton « Éliminer » ou Entrée. Le 1er % est entier (1–100) ; le 2e peut être décimal. Formats suisses : virgule décimale, apostrophe des milliers.
+  Bilan affiché après la 2e élimination : reste en % du départ, montant final, baisse totale, coefficients multipliés.
+-->
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proportionnalité - Pourcentages successifs</title>
+<style>
+:root{
+  --papier:#f5f5f1;--encre:#151a2e;--gris:#6d7382;--trait:#d9dbe1;--bleu-fonce:#1f4fa8;
+  --b-fond:#dce6f8;--b-bord:#1f4fa8;--b-texte:#163a7e;
+  --o-fond:#fbe1cc;--o-bord:#c9581b;--o-texte:#8a3a0e;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  background:var(--papier);color:var(--encre);
+  font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;font-size:16px;
+  padding:14px 18px;height:100vh;overflow:hidden;
+}
+.page{max-width:1320px;margin:0 auto;height:100%;display:flex;flex-direction:column}
+.entete{position:relative;display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;text-align:center;min-height:34px}
+.eyebrow{margin:0;font-size:13.5px;font-weight:700;letter-spacing:.16em;color:var(--gris);text-transform:uppercase}
+.rule{height:1px;background:var(--trait);margin:10px 0;flex:none}
+.nav{position:absolute;right:0;top:50%;transform:translateY(-50%);display:flex;gap:8px}
+button{
+  font:inherit;font-weight:700;font-size:14px;padding:9px 12px;border-radius:9px;cursor:pointer;
+  border:1px solid #b9bec9;background:#fff;color:var(--encre);
+}
+button:focus-visible{outline:2px solid var(--bleu-fonce);outline-offset:2px}
+button:disabled{opacity:.38;cursor:default}
+.plein{width:34px;height:34px;padding:0;display:flex;align-items:center;justify-content:center}
+.plein svg{width:19px;height:19px}
+.plein .sortir{display:none}
+body.pleinecran .plein .entrer{display:none}
+body.pleinecran .plein .sortir{display:block}
+
+.scene{flex:1;min-height:0;display:flex;justify-content:center;align-items:flex-start}
+.boite{position:relative}
+.plateau{position:absolute;left:0;top:0;width:900px;height:560px;transform-origin:top left}
+.feuille{
+  position:absolute;left:0;top:0;width:900px;height:560px;
+  background:#fdfdfb;border:1px solid var(--trait);border-radius:12px;overflow:hidden;
+}
+
+/* --- grille --- */
+.grille{position:absolute;left:38px;top:40px;width:478px;height:478px;touch-action:none;user-select:none;cursor:pointer}
+.fantome,.carre{position:absolute;width:44px;height:44px;border-radius:5px}
+.fantome{border:1.3px dashed #c9ccd4}
+.carre{
+  background:#fff;border:1px solid #c3c7d0;
+  display:flex;align-items:center;justify-content:center;
+  font-weight:700;color:#3b4152;letter-spacing:-.02em;white-space:nowrap;overflow:hidden;
+  box-shadow:0 1px 2px rgba(21,26,46,.10);
+  transition:background-color .28s ease,border-color .28s ease,color .28s ease,
+             transform .45s cubic-bezier(.5,-.3,.7,1),opacity .45s ease,left .45s ease,width .45s ease;
+}
+.carre.h1{background:var(--b-fond);border-color:var(--b-bord);color:var(--b-texte);cursor:pointer}
+.carre.h2{background:var(--o-fond);border-color:var(--o-bord);color:var(--o-texte);cursor:pointer}
+.carre .part{
+  position:absolute;right:0;top:0;bottom:0;width:0;
+  background:var(--o-fond);
+  transition:width .28s ease;pointer-events:none;
+}
+.carre.coupe .part{border-left:1.5px solid var(--o-bord)}
+.carre.coupe{cursor:pointer}
+.carre .val{position:relative}
+.carre.parti{transform:translateY(26px) scale(.25) rotate(-8deg);opacity:0;pointer-events:none}
+.carre.entame .val{visibility:hidden}
+
+/* --- panneau --- */
+.panneau{position:absolute;left:552px;top:30px;width:322px;display:flex;flex-direction:column;gap:14px}
+.bloc{position:relative}
+.etiq{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--gris);margin-bottom:6px}
+.pastille{width:14px;height:14px;border-radius:4px;border:1.3px solid}
+.pastille.b{background:var(--b-fond);border-color:var(--b-bord)}
+.pastille.o{background:var(--o-fond);border-color:var(--o-bord)}
+.ligne{display:flex;align-items:center;gap:8px}
+.champ{
+  font:inherit;font-size:24px;font-weight:700;color:var(--encre);text-align:right;
+  width:150px;padding:6px 10px;border:1px solid #b9bec9;border-radius:9px;background:#fff;
+}
+.champ.court{width:96px}
+.champ:focus{outline:2px solid var(--bleu-fonce);outline-offset:1px}
+.champ:disabled{background:#f1f2f4;color:#8a8f9b}
+.champ.faux{border-color:#c0392b;outline-color:#c0392b}
+.unite{font-size:20px;font-weight:700;color:var(--gris)}
+.ligne button{margin-left:auto}
+.info{font-size:15px;line-height:1.35;margin-top:6px;min-height:20px;color:#3b4152}
+.info b{color:var(--encre)}
+.info .b{color:var(--b-texte)}
+.info .o{color:var(--o-texte)}
+.info .err{color:#c0392b}
+.bilan{
+  border-top:1px solid var(--trait);padding-top:12px;font-size:15.5px;line-height:1.45;
+  opacity:0;transform:translateY(6px);transition:opacity .4s ease,transform .4s ease;
+}
+.bilan.vu{opacity:1;transform:none}
+.bilan .gros{font-size:19px;font-weight:800}
+
+.outils{position:absolute;right:26px;bottom:20px;display:flex;gap:10px;z-index:5}
+.outils button{width:44px;height:44px;padding:0;display:flex;align-items:center;justify-content:center}
+.outils button svg{width:24px;height:24px}
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <div class="entete">
+    <p class="eyebrow">Proportionnalité · pourcentages successifs</p>
+    <div class="nav">
+      <button id="btn-plein" class="plein" title="Plein écran" aria-label="Plein écran">
+        <svg class="entrer" viewBox="0 0 24 24" fill="none" stroke="#151a2e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 3H5.5A2.5 2.5 0 0 0 3 5.5V9"/><path d="M15 3h3.5A2.5 2.5 0 0 1 21 5.5V9"/>
+          <path d="M9 21H5.5A2.5 2.5 0 0 1 3 18.5V15"/><path d="M15 21h3.5a2.5 2.5 0 0 0 2.5-2.5V15"/>
+        </svg>
+        <svg class="sortir" viewBox="0 0 24 24" fill="none" stroke="#151a2e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3.5 9H9V3.5"/><path d="M20.5 9H15V3.5"/><path d="M3.5 15H9v5.5"/><path d="M20.5 15H15v5.5"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+  <div class="rule"></div>
+
+  <div class="scene" id="scene">
+    <div class="boite" id="boite">
+      <div class="plateau" id="stage">
+        <div class="feuille" id="feuille">
+
+          <div class="grille" id="grille"></div>
+
+          <div class="panneau">
+            <div class="bloc">
+              <div class="etiq">Montant de départ</div>
+              <div class="ligne">
+                <input class="champ" id="montant" inputmode="decimal" autocomplete="off" placeholder="0,00">
+                <span class="unite">CHF</span>
+              </div>
+              <div class="info" id="info-m"></div>
+            </div>
+
+            <div class="bloc">
+              <div class="etiq"><span class="pastille b"></span>Premier rabais</div>
+              <div class="ligne">
+                <input class="champ court" id="p1" inputmode="numeric" autocomplete="off" placeholder="0">
+                <span class="unite">%</span>
+                <button id="elim1" disabled>Éliminer</button>
+              </div>
+              <div class="info" id="info-1"></div>
+            </div>
+
+            <div class="bloc">
+              <div class="etiq"><span class="pastille o"></span>Deuxième rabais</div>
+              <div class="ligne">
+                <input class="champ court" id="p2" inputmode="numeric" autocomplete="off" placeholder="0" disabled>
+                <span class="unite">%</span>
+                <button id="elim2" disabled>Éliminer</button>
+              </div>
+              <div class="info" id="info-2"></div>
+            </div>
+
+            <div class="bilan" id="bilan"></div>
+          </div>
+
+          <div class="outils">
+            <button id="btn-reset" title="Recommencer (le montant est conservé)" aria-label="Réinitialiser">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#151a2e" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20 4v4.6h-4.6"/>
+              </svg>
+            </button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  const scene = document.getElementById("scene");
+  const boite = document.getElementById("boite");
+  const stage = document.getElementById("stage");
+  const grille = document.getElementById("grille");
+  const LARGE = 900, HAUT = 560, C = 44, G = 4.2;
+
+  const $ = id => document.getElementById(id);
+  const champM = $("montant"), champ1 = $("p1"), champ2 = $("p2");
+  const btn1 = $("elim1"), btn2 = $("elim2");
+  const infoM = $("info-m"), info1 = $("info-1"), info2 = $("info-2"), bilan = $("bilan");
+
+  /* ---------- formats suisses ---------- */
+  function milliers(s){ return s.replace(/\B(?=(\d{3})+(?!\d))/g, "'"); }
+  function chf(n){
+    const neg = n < 0; n = Math.abs(n);
+    const t = (Math.round(n * 100) / 100).toFixed(2).split(".");
+    return (neg ? "−" : "") + milliers(t[0]) + "," + t[1];
+  }
+  function nb(n, dec){            // nombre sans zéros inutiles
+    const r = +n.toFixed(dec == null ? 2 : dec);
+    const t = String(r).split(".");
+    return milliers(t[0]) + (t[1] ? "," + t[1] : "");
+  }
+  const PC = " %";
+  function lire(s){
+    s = String(s).replace(/['’\s ]/g, "").replace(",", ".");
+    if(s === "" || !/^\d*\.?\d*$/.test(s) || s === ".") return NaN;
+    return parseFloat(s);
+  }
+
+  /* ---------- état ---------- */
+  let montant = NaN, p1 = NaN, p2 = NaN, etape = 1;   // 1 : choix du 1er %, 2 : choix du 2e %, 3 : terminé
+  const carres = [];                                   // index = r*10 + c
+  const ordre1 = [], ordre2Base = [];
+  for(let c = 9; c >= 0; c--) for(let r = 0; r < 10; r++) ordre1.push(r*10 + c);       // colonne par colonne, depuis la droite
+  for(let r = 0; r < 10; r++) for(let c = 9; c >= 0; c--) ordre2Base.push(r*10 + c);   // ligne par ligne, depuis la droite
+
+  /* ---------- construction ---------- */
+  for(let k = 0; k < 100; k++){
+    const r = Math.floor(k/10), c = k % 10;
+    const x = c*(C+G), y = r*(C+G);
+    const f = document.createElement("div");
+    f.className = "fantome"; f.style.left = x + "px"; f.style.top = y + "px";
+    grille.appendChild(f);
+  }
+  for(let k = 0; k < 100; k++){
+    const r = Math.floor(k/10), c = k % 10;
+    const d = document.createElement("div");
+    d.className = "carre"; d.dataset.k = k;
+    d.style.left = c*(C+G) + "px"; d.style.top = r*(C+G) + "px";
+    d.innerHTML = '<span class="part"></span><span class="val"></span>';
+    grille.appendChild(d);
+    carres.push({el:d, part:d.firstChild, val:d.lastChild, etat:"", frac:0});
+  }
+
+  /* ---------- rendu des valeurs ---------- */
+  function majValeurs(){
+    const ok = montant > 0;
+    const txt = ok ? chf(montant/100) : "";
+    const taille = Math.max(7.5, Math.min(14, 40 / Math.max(1, txt.length) * 1.75));
+    carres.forEach(o => { o.val.textContent = txt; o.val.style.fontSize = taille + "px"; });
+    infoM.innerHTML = ok ? "1 carré = 1/100 du montant = <b>" + txt + " CHF</b>" : "";
+  }
+
+  function retard(el, ms){ el.style.transitionDelay = ms + "ms"; }
+
+  /* ---------- surlignage commun ----------
+     sel = carrés surlignés de l'étape en cours ; coupeK/coupeF = carré coupé (étape 2, saisie au clavier) */
+  let sel = new Set(), coupeK = -1, coupeF = 0, n2 = 0;
+  const dispo = k => carres[k].etat !== "parti" && carres[k].etat !== "entame";
+
+  function peindre(etale){
+    if(etape > 2) return;
+    const cls = etape === 1 ? "h1" : "h2", ordre = etape === 1 ? ordre1 : ordre2Base;
+    let i = 0;
+    ordre.forEach(function(k){
+      const o = carres[k];
+      if(!dispo(k)) return;
+      const on = sel.has(k), f = (k === coupeK && !on) ? coupeF : 0;
+      const etat = on ? cls : (f ? "coupe" : "");
+      if(etat !== o.etat || f !== o.frac){
+        retard(o.el, etale ? Math.min(i++, 40) * 9 : 0);
+        o.el.classList.toggle(cls, on);
+        o.el.classList.toggle("coupe", !!f);
+        o.part.style.transitionDelay = o.el.style.transitionDelay;
+        o.part.style.width = (f * 100) + "%";
+        o.etat = etat; o.frac = f;
+      }
+    });
+    if(etape === 1) btn1.disabled = !sel.size;
+    else btn2.disabled = !(n2 > 0);
+  }
+
+  /* ---------- étape 1 : colonnes (saisie) ---------- */
+  function surligner1(){
+    const n = (p1 >= 1 && p1 <= 100) ? p1 : 0;
+    sel = new Set(ordre1.slice(0, n));
+    peindre(true);
+  }
+
+  function eliminer1(){
+    if(etape !== 1 || !sel.size) return;
+    let i = 0;
+    ordre1.forEach(function(k){
+      const o = carres[k];
+      if(o.etat === "h1"){ retard(o.el, i++ * 14); o.el.classList.add("parti"); o.etat = "parti"; }
+    });
+    etape = 2; sel = new Set(); coupeK = -1; n2 = 0;
+    champ1.disabled = true; btn1.disabled = true;
+    if(p1 < 100){ champ2.disabled = false; setTimeout(() => champ2.focus(), 50); }
+    majTextes();
+  }
+
+  /* ---------- étape 2 : lignes (saisie) ---------- */
+  function surligner2(){
+    const reste = 100 - p1;
+    n2 = (p2 > 0 && p2 <= 100) ? Math.round(p2 * reste) / 100 : 0;
+    const plein = Math.floor(n2 + 1e-9), frac = +(n2 - plein).toFixed(4);
+    const libres = ordre2Base.filter(dispo);
+    sel = new Set(libres.slice(0, plein));
+    coupeK = frac > 0 ? libres[plein] : -1; coupeF = frac;
+    peindre(true);
+  }
+
+  function eliminer2(){
+    if(etape !== 2 || !(n2 > 0)) return;
+    let i = 0;
+    ordre2Base.forEach(function(k){
+      const o = carres[k];
+      if(o.etat === "h2"){ retard(o.el, i++ * 14); o.el.classList.add("parti"); o.etat = "parti"; }
+      else if(o.etat === "coupe"){
+        retard(o.el, i++ * 14);
+        o.el.style.width = ((1 - o.frac)*C) + "px";
+        o.el.classList.add("entame"); o.el.classList.remove("coupe");
+        o.part.style.width = "0";
+        o.etat = "entame";
+      }
+    });
+    etape = 3;
+    champ2.disabled = true; btn2.disabled = true;
+    majTextes();
+  }
+
+  /* ---------- sélection à la main (glisser sur la grille) ----------
+     Partir d'un carré non surligné = ajouter le rectangle balayé ; partir d'un carré surligné = l'enlever.
+     Au lâcher, le pourcentage correspondant s'inscrit dans le champ de l'étape en cours. */
+  let geste = null;
+  function caseSous(e){
+    const r = grille.getBoundingClientRect(), k = r.width / (10*C + 9*G);
+    const x = (e.clientX - r.left) / k, y = (e.clientY - r.top) / k;
+    const c = Math.max(0, Math.min(9, Math.floor(x / (C+G)))), l = Math.max(0, Math.min(9, Math.floor(y / (C+G))));
+    return {l, c};
+  }
+  function exact(v){ return Math.abs(v*100 - Math.round(v*100)) < 1e-7; }
+
+  grille.addEventListener("pointerdown", function(e){
+    if(etape > 2) return;
+    const p = caseSous(e), k0 = p.l*10 + p.c;
+    if(!dispo(k0)) return;
+    if(coupeK >= 0){ coupeK = -1; }                 // une sélection à la main remplace le carré coupé
+    geste = {l0:p.l, c0:p.c, ajout:!sel.has(k0), base:new Set(sel), id:e.pointerId};
+    grille.setPointerCapture(e.pointerId);
+    appliquerGeste(p);
+    e.preventDefault();
+  });
+  grille.addEventListener("pointermove", function(e){
+    if(geste && e.pointerId === geste.id) appliquerGeste(caseSous(e));
+  });
+  function appliquerGeste(p){
+    const s = new Set(geste.base);
+    for(let l = Math.min(geste.l0, p.l); l <= Math.max(geste.l0, p.l); l++)
+      for(let c = Math.min(geste.c0, p.c); c <= Math.max(geste.c0, p.c); c++){
+        const k = l*10 + c;
+        if(!dispo(k)) continue;
+        if(geste.ajout) s.add(k); else s.delete(k);
+      }
+    sel = s;
+    if(etape === 2) n2 = sel.size;
+    peindre(false);
+  }
+  function finGeste(e){
+    if(!geste || e.pointerId !== geste.id) return;
+    geste = null;
+    if(etape === 1){
+      p1 = sel.size;
+      champ1.value = p1 ? String(p1) : "";
+      champ1.classList.remove("faux");
+      if(!p1) p1 = NaN;
+    }else{
+      n2 = sel.size;
+      const reste = 100 - p1;
+      p2 = n2 ? n2 * 100 / reste : NaN;
+      champ2.value = n2 ? nb(p2, 2) : "";
+      champ2.classList.remove("faux");
+    }
+    peindre(false);
+    majTextes();
+  }
+  grille.addEventListener("pointerup", finGeste);
+  grille.addEventListener("pointercancel", finGeste);
+
+  /* ---------- textes ---------- */
+  const r2 = n => Math.round(n * 100) / 100;     // montants arrondis au centime, soustractions cohérentes
+  function majTextes(){
+    const reste1 = 100 - p1;
+    const M = r2(montant), A1 = r2(M * p1 / 100), R1 = r2(M - A1),
+          A2 = reste1 > 0 ? r2(R1 * n2 / reste1) : 0, R2 = r2(R1 - A2);
+    const okM = montant > 0;
+    const v1 = p1 >= 1 && p1 <= 100, v2 = p2 > 0 && p2 <= 100 && n2 > 0;
+    const p2txt = (exact(p2) ? "" : "≈ ") + nb(p2, 2) + PC;
+
+    // 1er rabais
+    if(champ1.value.trim() !== "" && !v1){
+      info1.innerHTML = '<span class="err">Nombre entier de 1 à 100</span>';
+    }else if(v1){
+      let t = '<span class="b"><b>' + p1 + ' carré' + (p1 > 1 ? "s" : "") + '</b></span>';
+      if(okM) t += ' · ' + p1 + PC + ' de ' + chf(montant) + ' = <b class="b">' + chf(A1) + '</b>';
+      if(etape >= 2){
+        t += '<br>Reste : <b>' + reste1 + ' carré' + (reste1 > 1 ? "s" : "") + '</b>' +
+             (okM ? ' = <b>' + chf(R1) + ' CHF</b>' : "");
+      }
+      info1.innerHTML = t;
+    }else info1.innerHTML = "";
+
+    // 2e rabais
+    if(etape === 1){ info2.innerHTML = ""; }
+    else if(champ2.value.trim() !== "" && !v2){
+      info2.innerHTML = '<span class="err">Nombre de 0 à 100</span>';
+    }else if(v2){
+      const reste2 = +(reste1 - n2).toFixed(4);
+      let t = p2txt + ' des ' + reste1 + ' carrés restants = <b class="o">' + nb(n2) + ' carré' + (n2 > 1 ? "s" : "") + '</b>';
+      if(okM) t += '<br>' + p2txt + ' de ' + chf(R1) + ' = <b class="o">' + chf(A2) + '</b>';
+      if(etape === 3){
+        t += '<br>Reste : <b>' + nb(reste2) + ' carré' + (reste2 > 1 ? "s" : "") + '</b>' +
+             (okM ? ' = <b>' + chf(R2) + ' CHF</b>' : "");
+      }
+      info2.innerHTML = t;
+    }else info2.innerHTML = "";
+
+    // bilan
+    if(etape === 3){
+      const reste = reste1 - n2, baisse = 100 - reste, somme = p1 + p2;
+      const egal = Math.abs(somme - baisse) < 1e-9;
+      bilan.innerHTML =
+        'Montant final : <b class="gros">' + (montant > 0 ? chf(R2) + ' CHF' : '—') + '</b><br>' +
+        'Baisse totale : <b>' + nb(baisse) + PC + '</b>' +
+        (egal ? "" : ', et non ' + (exact(somme) ? "" : "≈ ") + nb(somme, 2) + PC) + '<br>' +
+        '<span style="color:var(--gris)">' + nb((100-p1)/100) + ' × ' + nb((100-p2)/100, 4) +
+        (exact(p2) ? ' = ' : ' ≈ ') + nb(reste/100, 4) + '</span>';
+      requestAnimationFrame(() => bilan.classList.add("vu"));
+    }else{
+      bilan.classList.remove("vu"); bilan.innerHTML = "";
+    }
+  }
+
+  /* ---------- saisies ---------- */
+  function entier(s){ const v = lire(s); return (Number.isInteger(v)) ? v : NaN; }
+
+  champM.addEventListener("input", function(){
+    montant = lire(champM.value);
+    champM.classList.toggle("faux", champM.value.trim() !== "" && !(montant >= 0));
+    majValeurs(); majTextes();
+  });
+  champM.addEventListener("change", function(){
+    if(montant > 0) champM.value = chf(montant);
+  });
+  champ1.addEventListener("input", function(){
+    p1 = entier(champ1.value);
+    champ1.classList.toggle("faux", champ1.value.trim() !== "" && !(p1 >= 1 && p1 <= 100));
+    surligner1(); majTextes();
+  });
+  champ2.addEventListener("input", function(){
+    p2 = lire(champ2.value);
+    champ2.classList.toggle("faux", champ2.value.trim() !== "" && !(p2 > 0 && p2 <= 100));
+    surligner2(); majTextes();
+  });
+  champ1.addEventListener("keydown", e => { if(e.key === "Enter") eliminer1(); });
+  champ2.addEventListener("keydown", e => { if(e.key === "Enter") eliminer2(); });
+  btn1.addEventListener("click", eliminer1);
+  btn2.addEventListener("click", eliminer2);
+
+  function reinitialiser(){
+    carres.forEach(function(o){
+      o.el.style.transitionDelay = "0ms";
+      o.el.className = "carre"; o.el.style.width = "";
+      o.el.style.left = ((+o.el.dataset.k) % 10)*(C+G) + "px";
+      o.part.style.transitionDelay = "0ms"; o.part.style.width = "0";
+      o.etat = ""; o.frac = 0;
+    });
+    etape = 1; p1 = NaN; p2 = NaN; sel = new Set(); coupeK = -1; n2 = 0;
+    champ1.value = ""; champ2.value = "";
+    champ1.disabled = false; champ2.disabled = true;
+    champ1.classList.remove("faux"); champ2.classList.remove("faux");
+    btn1.disabled = true; btn2.disabled = true;
+    majTextes();
+    champ1.focus();
+  }
+  $("btn-reset").addEventListener("click", reinitialiser);
+
+  /* ---------- mise à l'échelle ---------- */
+  function enPleinEcran(){ return !!(document.fullscreenElement || document.webkitFullscreenElement); }
+  function ajuster(){
+    const dw = scene.clientWidth, dh = scene.clientHeight;
+    if(dw <= 0 || dh <= 0) return;
+    const echelle = Math.min(enPleinEcran() ? 2 : 1, dw / LARGE, dh / HAUT);
+    stage.style.transform = "scale(" + echelle + ")";
+    boite.style.width  = Math.round(LARGE * echelle) + "px";
+    boite.style.height = Math.round(HAUT * echelle) + "px";
+  }
+  window.addEventListener("resize", ajuster);
+
+  const btnPlein = $("btn-plein");
+  btnPlein.addEventListener("click", function(){
+    const el = document.documentElement;
+    if(enPleinEcran()) (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+    else (el.requestFullscreen || el.webkitRequestFullscreen).call(el);
+  });
+  function majPleinEcran(){
+    document.body.classList.toggle("pleinecran", enPleinEcran());
+    btnPlein.title = enPleinEcran() ? "Quitter le plein écran" : "Plein écran";
+    setTimeout(ajuster, 60);
+  }
+  document.addEventListener("fullscreenchange", majPleinEcran);
+  document.addEventListener("webkitfullscreenchange", majPleinEcran);
+
+  majValeurs();
+  ajuster();
+  champM.focus();
+})();
+</script>
+</body>
+</html>
