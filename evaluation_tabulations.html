@@ -356,7 +356,7 @@ kbd{
 <header class="tete">
   <span class="pil">Informatique · PAI · traitement de texte</span>
   <div class="tete-texte">
-    <h1 title="v9">Demande de stage : contrôle de vos tabulations</h1>
+    <h1 title="v10">Demande de stage : contrôle de vos tabulations</h1>
     <p><span class="insecable">Déposez votre fichier, il est analysé dans votre navigateur (rien n’est envoyé sur Internet).</span>
       <span class="insecable">Vous obtenez votre note ainsi que la liste des corrections à apporter.</span></p>
   </div>
@@ -571,13 +571,17 @@ function lireParagraphes(xml, defaultTab, reliureEnHaut){
     const styles = [];
     for(const el of p.getElementsByTagName("*")){
       const nom = el.localName;
-      if(nom !== "t" && nom !== "tab" && nom !== "br" && nom !== "cr" && nom !== "noBreakHyphen") continue;
+      if(nom !== "t" && nom !== "tab" && nom !== "br" && nom !== "cr" && nom !== "noBreakHyphen" && nom !== "sym") continue;
       const anc = ancetres(el, p);
       if(anc.includes("pPr") || anc.includes("rPr") || anc.includes("del") || anc.includes("instrText")) continue;
       let t;
       if(nom === "t") t = el.textContent;
       else if(nom === "tab") t = "\t";
       else if(nom === "noBreakHyphen") t = "-";
+      else if(nom === "sym"){                    // Insertion > Symbole : Wingdings F0A8 = case ☐
+        const c = parseInt(att(el, "char") || "", 16);
+        t = isNaN(c) ? "" : String.fromCharCode(c);
+      }
       else t = "\n";
       if(t){ s += t; styles.push({ fin: s.length, ...styleDuRun(el) }); }
     }
@@ -885,6 +889,37 @@ function espacesPourTab(p){
 const sansNum = s => (s || "").replace(/^\s*\d+\s*[.)]?[\s\t]*/, "");
 const refTexte = (m, t) => m.num ? sansNum(t) : t;
 
+/* refait le trajet de chaque tabulation comme Word : elle va au premier taquet situé
+   après la fin du texte qui la précède. Renvoie les taquets posés réellement atteints. */
+function taquetsUtilises(p, police){
+  const n = police.nomBase || police.nom || "Arial", b = n.toLowerCase();
+  const fam = /calibri|carlito/.test(b) ? `"${n}",Carlito,sans-serif`
+            : /times|garamond|georgia|cambria/.test(b) ? `"${n}",serif`
+            : `"${n}",Arial,"Liberation Sans",Helvetica,sans-serif`;
+  const cv = taquetsUtilises.cv || (taquetsUtilises.cv = document.createElement("canvas").getContext("2d"));
+  const gras = (p.styles || []).some(s => s.gras);
+  cv.font = (gras ? "bold " : "") + (police.tailleBase || 12) + "pt " + fam;
+  const w = t => cv.measureText(t).width / 3.7795 * MM;      // px → mm → twips
+  const stops = p.taquets.slice().sort((u, v) => u.pos - v.pos);
+  const segs = p.texte.split("\t"), atteints = [];
+  let x = (p.ind || 0) + (p.indP || 0) + w(segs[0]);
+  for(let i = 1; i < segs.length; i++){
+    const t = stops.find(c => c.pos > x + 8);           // 8 twips ≈ 0,15 mm
+    if(!t) break;                                      // au-delà : arrêts par défaut, jugés en F
+    atteints.push(t);
+    const l = w(segs[i]);
+    let d = t.pos;
+    if(t.type === "right") d = t.pos - l;
+    else if(t.type === "center") d = t.pos - l / 2;
+    else if(t.type === "decimal"){
+      const k = segs[i].search(/[.,]/);
+      d = t.pos - w(k < 0 ? segs[i] : segs[i].slice(0, k));
+    }
+    x = Math.max(d, x) + l;
+  }
+  return atteints;
+}
+
 function analyser(paras, page, police){
   const lignes = paras.filter(p => p.texte.replace(/[\s\t]/g,"") !== "");
 
@@ -947,6 +982,7 @@ function analyser(paras, page, police){
   for(const [nom, b] of Object.entries(blocs)){
     const bareme = BAREME.find(x => x.c === b.crit).pts;
     const presentes = b.lignes.filter(p => p && !espacesPourTab(p));
+    const incompletes = new Set();     // lignes où il manque un taquet attendu
     let acquis = 0;
     const phrases = [];
     const fautives = new Set();
@@ -956,6 +992,7 @@ function analyser(paras, page, police){
       for(const p of presentes){
         const r = chercher(p, a);
         if(r.etat !== "ok") fautives.add(p);
+        if(r.etat === "absent") incompletes.add(p);
         if(r.etat === "ok") ok++;
         else if(r.etat === "type") typeFaux = r.tr;
         else if(!decale){       // absent : un taquet du même type posé un peu à côté ?
@@ -984,6 +1021,26 @@ function analyser(paras, page, police){
     }
 
     res[b.crit] = Math.round(bareme * acquis / b.attendus.length * 2) / 2;
+    /* taquets en trop : une tabulation s'arrête au premier taquet rencontré, un taquet
+       en trop décale la colonne. Sur une ligne où un taquet attendu manque, le taquet
+       mal placé est déjà signalé : il n'est pas compté une seconde fois. */
+    const enTrop = new Map(), lignesTrop = [];
+    for(const p of presentes){
+      if(incompletes.has(p)) continue;
+      // seuls comptent les taquets où une tabulation de la ligne s'arrête réellement
+      const x = taquetsUtilises(p, police).filter(t => !b.attendus.some(a => Math.abs(a.p - t.pos) <= TOL));
+      if(x.length){ lignesTrop.push(p); p.taquetEnTrop = true; }
+      for(const t of x) enTrop.set(Math.round(t.pos / MM), t);
+    }
+    if(enTrop.size){
+      res[b.crit] = Math.max(0, res[b.crit] - 1.5);
+      const pos = [...enTrop.values()].sort((u, v) => u.pos - v.pos).map(t => libPos(t.pos));
+      corr.push({ t:"Taquets en trop : " + LIB_BLOC[nom].toLowerCase(), cible: lignesTrop[0],
+        d:"Retirez " + (pos.length > 1 ? "les taquets posés à " : "le taquet posé à ") + enumeration(pos) +
+          " : faites-" + (pos.length > 1 ? "les" : "le") + " glisser hors de la règle. Sur ces lignes, le modèle ne demande qu’" +
+          enumeration(b.attendus.map(a => "un taquet " + libTaquet(a))) +
+          ". La touche Tab s’arrête au premier taquet rencontré : un taquet en trop fait commencer la colonne au mauvais endroit." });
+    }
     if(acquis < b.attendus.length){
       const enCause = presentes.filter(p => fautives.has(p));      // dans l'ordre du document
       const noms = enCause.map(p => "« " + norm(p.texte.split(/[:\t]/)[0]).trim() + " »");
@@ -1023,6 +1080,7 @@ function analyser(paras, page, police){
   /* --- F : propreté de l’alignement --- */
   let espaces = 0, defaut = 0, pEsp = null, pDef = null;
   const aLaPlace = [];          // lignes où des espaces remplacent une tabulation
+  const tropTab = [];           // lignes avec une tabulation de plus que le modèle
   for(const p of lignes){
     const mot = espacesPourTab(p);
     if(mot){ aLaPlace.push([p, mot]); continue; }
@@ -1032,6 +1090,10 @@ function analyser(paras, page, police){
     if(p.modele && !p.modele.taquets) continue;
     if(n > 0 && p.taquets.length === 0){ defaut++; pDef = pDef || p; }
     else if(/\t{3,}/.test(p.texte)){ defaut++; pDef = pDef || p; }
+    else if(p.modele && n > p.modele.tabs && !p.taquetEnTrop){   // sinon : conséquence du taquet en trop
+      const m = p.texte.match(/\t\t+([^\t]+)/);
+      if(m) tropTab.push([p, norm(m[1]).replace(/^☐ /, "")]);
+    }
   }
   res.F = 2;
   for(const [p, mot] of aLaPlace)
@@ -1046,6 +1108,12 @@ function analyser(paras, page, police){
   if(defaut){
     res.F -= 1;
     corr.push({ t:"Tabulations par défaut", cible:pDef, d: (defaut > 1 ? defaut + " lignes utilisent" : "Une ligne utilise") + " des tabulations sans taquet posé. Posez un taquet à la position voulue : une seule tabulation suffit alors." });
+  }
+  if(tropTab.length){            // un seul défaut, même répété
+    res.F -= 1;
+    corr.push({ t:"Tabulation en trop", cible: tropTab[0][0],
+      d:"Vous avez appuyé deux fois sur Tab avant " + enumeration(tropTab.map(x => "« " + debutPhrase(x[1], 24) + " »")) +
+        ". Une seule tabulation suffit pour passer à la colonne suivante : effacez la seconde." });
   }
   if(res.F < 0) res.F = 0;
 
