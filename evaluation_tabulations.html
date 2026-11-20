@@ -356,7 +356,7 @@ kbd{
 <header class="tete">
   <span class="pil">Informatique · PAI · traitement de texte</span>
   <div class="tete-texte">
-    <h1 title="v8">Demande de stage : contrôle de vos tabulations</h1>
+    <h1 title="v9">Demande de stage : contrôle de vos tabulations</h1>
     <p><span class="insecable">Déposez votre fichier, il est analysé dans votre navigateur (rien n’est envoyé sur Internet).</span>
       <span class="insecable">Vous obtenez votre note ainsi que la liste des corrections à apporter.</span></p>
   </div>
@@ -965,7 +965,9 @@ function analyser(paras, page, police){
         }
         // les points de suite sont jugés à part : un taquet du bon rang suffit
         if(r.etat !== "absent") poses++;
-        if(r.etat !== "absent" && r.suite){
+        // seul un taquet qui doit porter des points de suite est jugé sur leur genre :
+        // un trait posé sur le taquet centré du titre imite le soulignement du modèle
+        if(r.etat !== "absent" && r.suite && a.d){
           avecSuite++;
           if(r.tr.points !== "dot") genresSuite.add(r.tr.points);
         }
