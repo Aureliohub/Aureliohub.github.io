@@ -356,7 +356,7 @@ kbd{
 <header class="tete">
   <span class="pil">Informatique · PAI · traitement de texte</span>
   <div class="tete-texte">
-    <h1 title="v7">Demande de stage : contrôle de vos tabulations</h1>
+    <h1 title="v8">Demande de stage : contrôle de vos tabulations</h1>
     <p><span class="insecable">Déposez votre fichier, il est analysé dans votre navigateur (rien n’est envoyé sur Internet).</span>
       <span class="insecable">Vous obtenez votre note ainsi que la liste des corrections à apporter.</span></p>
   </div>
@@ -536,7 +536,7 @@ function ancetres(el, racine){
 }
 
 /* Convertit chaque w:p en objet { texte, lignes, tabsDebut, dansTableau, ind, jc } */
-function lireParagraphes(xml, defaultTab){
+function lireParagraphes(xml, defaultTab, reliureEnHaut){
   const doc = new DOMParser().parseFromString(xml, "application/xml");
   if(doc.getElementsByTagName("parsererror").length) throw new Error("xml");
   const body = doc.getElementsByTagNameNS(W, "body")[0];
@@ -606,11 +606,22 @@ function lireParagraphes(xml, defaultTab){
         taquets.push({ pos: num(t, "pos", 0), type, points: (att(t, "leader") || "none") });
       }
     }
-    res.push({
-      texte: s, styles,
-      lignes: s.split("\n"),
-      dansTableau: ancetres(p, body).includes("tc"),
-      ind, indD, indP, jc, apres, avant, interligne, taquets
+    /* un retour à la ligne (Maj+Entrée) coupe la ligne : chaque morceau est jugé
+       comme une ligne à part, avec les taquets du paragraphe, comme dans Word */
+    const morceaux = s.split("\n");
+    let deb = 0;
+    morceaux.forEach((m, k) => {
+      const fin = deb + m.length;
+      const st = styles.filter(x => x.fin > deb && x.fin <= fin + 1)
+                       .map(x => ({ ...x, fin: Math.min(x.fin, fin) - deb }));
+      res.push({
+        texte: m, styles: st, lignes: [m],
+        dansTableau: ancetres(p, body).includes("tc"),
+        ind, indD, indP: k ? 0 : indP, jc,
+        apres: k < morceaux.length - 1 ? 0 : apres, avant: k ? 0 : avant,
+        interligne, taquets, saut: k < morceaux.length - 1
+      });
+      deb = fin + 1;
     });
   }
 
@@ -619,7 +630,8 @@ function lireParagraphes(xml, defaultTab){
   const mg = sect && sect.getElementsByTagNameNS(W, "pgMar")[0];
   const page = {
     pgW: num(sz, "w", 11906), pgH: num(sz, "h", 16838),
-    gauche: num(mg, "left", 1417), droite: num(mg, "right", 1417),
+    // la reliure s'ajoute à la marge de gauche (sauf reliure en haut)
+    gauche: num(mg, "left", 1417) + (reliureEnHaut ? 0 : num(mg, "gutter", 0)), droite: num(mg, "right", 1417),
     haut: num(mg, "top", 1417), bas: num(mg, "bottom", 1417),
     taquet: defaultTab || 708
   };
@@ -790,7 +802,8 @@ function lcs(a, b){
   return d;
 }
 function similitude(x, y){
-  const a = mots(x).map(m=>m.toLowerCase()), b = mots(y).map(m=>m.toLowerCase());
+  const sep = t => norm(t).replace(/ ?- ?/g, " - ");      // trait d'union collé ou non : même ligne
+  const a = mots(sep(x)).map(m=>m.toLowerCase()), b = mots(sep(y)).map(m=>m.toLowerCase());
   if(!a.length || !b.length) return 0;
   return 2 * lcs(a,b)[a.length][b.length] / (a.length + b.length);
 }
@@ -912,7 +925,13 @@ function analyser(paras, page, police){
     .filter(p => new RegExp(CASE.source + "(?![ \\u00A0\\t])").test(p.texte));
   if(sansEspace.length)
     corr.push({ t:"Espace après les cases à cocher", cible: sansEspace[0],
-      d:"Laissez une espace entre la case ☐ et le mot qui suit : « ☐ Administration », et non « ☐Administration »." });
+      d:(() => {
+        const fautifs = [];
+        for(const p of sansEspace)
+          for(const m of p.texte.matchAll(new RegExp(CASE.source + "(?![ \\u00A0\\t])(\\S+)", "gu"))) fautifs.push(m[1]);
+        return "Laissez une espace entre la case ☐ et le mot qui suit : " +
+          enumeration(fautifs.map(w => "« ☐ " + w + " », et non « ☐" + w + " »")) + ".";
+      })() });
   res.A = Math.max(0, 4 - (total - justes) - (sansEspace.length ? 1 : 0));   // une ligne fautive = un point de moins
 
   /* --- B à E : chaque taquet attendu est jugé une seule fois --- */
@@ -933,7 +952,7 @@ function analyser(paras, page, police){
     const fautives = new Set();
 
     for(const a of b.attendus){
-      let ok = 0, typeFaux = null, avecSuite = 0, decale = null;
+      let ok = 0, typeFaux = null, avecSuite = 0, poses = 0, decale = null;
       for(const p of presentes){
         const r = chercher(p, a);
         if(r.etat !== "ok") fautives.add(p);
@@ -945,6 +964,7 @@ function analyser(paras, page, police){
                    .sort((u, v) => Math.abs(u.pos - a.p) - Math.abs(v.pos - a.p))[0] || null;
         }
         // les points de suite sont jugés à part : un taquet du bon rang suffit
+        if(r.etat !== "absent") poses++;
         if(r.etat !== "absent" && r.suite){
           avecSuite++;
           if(r.tr.points !== "dot") genresSuite.add(r.tr.points);
@@ -958,7 +978,7 @@ function analyser(paras, page, police){
         else if(decale) phrases.push("Déplacez le taquet " + NOMS[a.t] + " de " + libPos(decale.pos) + " à " + libPos(a.p) + ".");
         else phrases.push("Posez un taquet " + NOMS[a.t] + " à " + libPos(a.p) + ".");
       }
-      if(a.d) suites.push({ bloc:nom, a, part, suite: presentes.length ? avecSuite / presentes.length : 0 });
+      if(a.d) suites.push({ bloc:nom, a, part, suite: poses ? avecSuite / poses : 0 });
     }
 
     res[b.crit] = Math.round(bareme * acquis / b.attendus.length * 2) / 2;
@@ -1111,15 +1131,16 @@ function apercu(r){
     if(segs.length === 1){                       // paragraphe sans tabulation : texte au fil
       const marge = apresDe(p), avant = avantDe(p);
       html += `<div class="apercu-ligne plein" style="margin-left:${mgG}mm;width:${zone}mm;`
+            + `padding-left:${(p.ind || 0) / TW}mm;text-indent:${(p.indP || 0) / TW}mm;`
             + `margin-top:${avant}mm;margin-bottom:${marge}mm;font-size:${corps}mm;line-height:${hauteurLigne}mm;`
             + `font-weight:${gras ? 600 : 400}">${num}${marquerBlancs(echapper(p.texte))}`
-            + `<span class="mk">\u00B6</span></div>`;
+            + `<span class="mk">${p.saut ? "\u21B5" : "\u00B6"}</span></div>`;
       y += hauteurLigne * Math.max(1, Math.ceil(mesure(p.texte, gras) / zone)) + marge + avant;
       continue;
     }
-    let x = 0, ligne = "", marques = "";
-    ligne += `<span class="seg" style="left:0">${marquerBlancs(echapper(segs[0]))}</span>`;
-    x = mesure(segs[0], gras);
+    let x = ((p.ind || 0) + (p.indP || 0)) / TW, ligne = "", marques = "";   // retrait du paragraphe
+    ligne += `<span class="seg" style="left:${x}mm">${marquerBlancs(echapper(segs[0]))}</span>`;
+    x += mesure(segs[0], gras);
 
     for(let i = 1; i < segs.length; i++){
       const s = segs[i];
@@ -1168,7 +1189,7 @@ function apercu(r){
       marques += `<i class="marque-taquet ${etatT}" style="left:${cible}mm"></i>`;
       x = debut + l;
     }
-    ligne += `<span class="mk mk-pos" style="left:${x}mm">\u00B6</span>`;
+    ligne += `<span class="mk mk-pos" style="left:${x}mm">${p.saut ? "\u21B5" : "\u00B6"}</span>`;
 
     const h = hauteurLigne + apresDe(p), avantL = avantDe(p);
     html += `<div class="apercu-ligne" style="margin-left:${mgG}mm;width:${zone}mm;height:${h}mm;margin-top:${avantL}mm;`
@@ -1184,7 +1205,7 @@ function apercu(r){
   if(aLibre) legende.push('<span><i style="color:#B9B9BE">▏</i> taquet non noté</span>');
   if(aSuite) legende.push('<span><i class="jn">points</i> points de suite manquants</span>');
   if(aGenre) legende.push('<span><i class="jn">- - -</i> points de suite à remplacer par des points</span>');
-  legende.push('<span><i style="color:var(--marque)">¶ · →</i> marques de mise en forme, toujours affichées</span>');
+  legende.push('<span><i style="color:var(--marque)">¶ ↵ · →</i> marques de mise en forme, toujours affichées</span>');
   return {
     legende: legende.join(""),
     html: `<div class="apercu-page" style="width:${largeur}mm;height:${hautPage}mm;padding-top:${mgH}mm;`
@@ -1284,8 +1305,11 @@ async function traiter(f){
     if(!xml) throw new Error("docx");
     const styles = await texteEntree(zip.get("word/styles.xml"));
     const theme  = await texteEntree(zip.get("word/theme/theme1.xml"));
-    const dt = styles && (styles.match(/<w:defaultTabStop w:val="(\d+)"/) || [])[1];
-    const { paragraphes, page } = lireParagraphes(xml, dt ? parseInt(dt, 10) : 708);
+    const reglages = await texteEntree(zip.get("word/settings.xml"));
+    const dt = ((reglages || "").match(/<w:defaultTabStop w:val="(\d+)"/) || [])[1]
+            || (styles && (styles.match(/<w:defaultTabStop w:val="(\d+)"/) || [])[1]);
+    const enHaut = /<w:gutterAtTop(?![^>]*w:val="(?:0|false)")/.test(reglages || "");
+    const { paragraphes, page } = lireParagraphes(xml, dt ? parseInt(dt, 10) : 708, enHaut);
     if(!bonDocument(paragraphes)) throw new Error("horssujet");
     const police = lirePolice(xml, styles, theme);
     policeDuTexte(paragraphes, police);
