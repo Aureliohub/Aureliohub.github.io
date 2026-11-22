@@ -2594,27 +2594,27 @@ const C = {
   det:{n:"déterminant",why:"Il est placé devant un nom et l'introduit.",a:"un",c:"#2d4a8a",p:"#dbe6fb",
     def:"Ils précèdent toujours les noms et déterminent leur genre (masculin ou féminin). Ils peuvent être définis, indéfinis, partitifs, possessifs, démonstratifs, interrogatifs, exclamatifs ou numéraux.",
     ex:"la, un, de la, mon, cet, quel, trois, etc.",
-    ast:"Il est toujours suivi d'un nom (parfois avec un adjectif entre les deux). Essaie de le remplacer par « le » ou « un »."},
+    ast:"Il se place toujours devant un nom, parfois avec un adjectif entre les deux (mon petit chat). Il indique le genre et le nombre du nom."},
   adj:{n:"adjectif",why:"Il qualifie un nom et s'accorde avec lui.",a:"un",c:"#9a3b12",p:"#fde3d3",
     def:"Ils qualifient (ajoutent une caractéristique, une qualité) un nom ou un pronom et s'accordent toujours avec eux.",
     ex:"petit, meilleur, animé, rapide, etc.",
-    ast:"Fais varier le nom : si le mot change (un pull bleu → des robes bleues), c'est un adjectif. On peut souvent ajouter « très » devant."},
-  pro:{n:"pronom",why:"Il remplace un nom ou une partie de phrase.",a:"un",c:"#5b3596",p:"#e9defb",
+    ast:"Il donne une qualité au nom et s'accorde avec lui (un pull bleu, des robes bleues). On peut souvent ajouter « très » devant."},
+  pro:{n:"pronom",why:"Il remplace un nom ou une partie de phrase, ou désigne une personne (je, tu, nous).",a:"un",c:"#5b3596",p:"#e9defb",
     def:"Ils remplacent, pour les rappeler, des noms ou des parties de phrases.",
     ex:"lui, leur, y, en, moi, qui, où, auquel, etc.",
-    ast:"Cherche ce qu'il remplace. Il n'est pas suivi d'un nom et se trouve souvent devant un verbe."},
+    ast:"Cherche ce qu'il remplace ou la personne qu'il désigne (je, tu, nous). Il n'est pas suivi d'un nom et se trouve souvent devant un verbe."},
   adv:{n:"adverbe",why:"Il est invariable et modifie le sens d'un verbe, d'un adjectif ou d'un autre mot.",a:"un",c:"#1d6b62",p:"#d4f1ec",
     def:"Invariables, ils modifient le sens d'un verbe, d'un nom ou d'un adjectif. Ils peuvent aussi servir à ordonner.",
     ex:"bien, rapidement, très ; ensuite, premièrement",
-    ast:"Il ne s'accorde jamais. Souvent, on peut le supprimer et la phrase reste correcte."},
+    ast:"Il ne s'accorde jamais (il chante bien, elles chantent bien). Souvent, on peut le supprimer et la phrase reste correcte (il fait très froid → il fait froid)."},
   prep:{n:"préposition",why:"Il est invariable et introduit un complément (un nom).",a:"une",c:"#855a0c",p:"#fbefc8",
     def:"Invariables et toujours suivies d'un nom, elles relient des compléments au noyau de la phrase.",
     ex:"sur, pendant, de, à côté de, etc.",
-    ast:"Elle est toujours suivie de son complément. Si on la supprime, la phrase devient incorrecte (Je vais … la piscine)."},
+    ast:"Elle est toujours suivie de son complément. Si on la supprime, la phrase devient incorrecte ou change de sens (Je vais … la piscine)."},
   conj:{n:"conjonction",why:"Il relie deux éléments ou deux phrases.",a:"une",c:"#8f2453",p:"#fadbe8",
     def:"De coordination, elles relient des éléments de la phrase. De subordination, elles relient une phrase subordonnée à la phrase principale. Elles sont invariables.",
-    ex:"coordination : et, ou, or, mais, etc. ; subordination : si, comme, quand, parce que, etc.",
-    ast:"Pour la coordination, retiens « Mais où est donc Ornicar ? » (mais, ou, et, donc, or, ni, car). Une conjonction de subordination est suivie d'un verbe conjugué."}
+    ex:"coordination : mais, ou, et, donc, or, ni, car ; subordination : si, comme, quand, parce que, etc.",
+    ast:"Pour la coordination, retiens « Mais où est donc Ornicar ? » (mais, ou, et, donc, or, ni, car). Une conjonction de subordination introduit une proposition, avec un sujet et un verbe conjugué."}
 };
 const ORDER = ["det","adj","pro","adv","prep","conj"];
 
@@ -2622,21 +2622,60 @@ const ORDER = ["det","adj","pro","adv","prep","conj"];
 const PAIR = {
  "adj|adv":"L'adjectif accompagne un nom et s'accorde (des voitures rapides). L'adverbe est invariable (elles roulent vite).",
  "adj|conj":"L'adjectif qualifie un nom. La conjonction relie deux éléments ou deux phrases (et, mais, que, quand…).",
- "adj|det":"Le déterminant ouvre le groupe du nom : on peut le remplacer par « le » ou « un ». L'adjectif qualifie le nom et accepte « très ». Les nombres (deux) sont des déterminants, les rangs (deuxième) des adjectifs.",
+ "adj|det":"Le déterminant ouvre le groupe du nom. L'adjectif qualifie le nom et accepte « très ». Les nombres (deux) sont des déterminants, les rangs (deuxième) des adjectifs.",
  "adj|pro":"L'adjectif accompagne un nom. Le pronom prend la place du nom : il est employé seul (le mien, celui, chacun).",
  "adj|prep":"L'adjectif qualifie un nom et s'accorde. La préposition est invariable et introduit un complément (sur la table).",
- "adv|conj":"La conjonction relie deux éléments ou deux phrases. L'adverbe modifie un verbe, un adjectif… ; on peut souvent le déplacer ou le supprimer. Dans une question (Quand pars-tu ?), « quand » et « où » sont des adverbes.",
+ "adv|conj":"La conjonction relie deux éléments ou deux phrases. L'adverbe modifie un verbe, un adjectif ou toute la phrase, et on peut souvent le supprimer ; certains servent de liaison (puis, alors, ensuite). Dans une question (Quand pars-tu ?), « quand » et « où » sont des adverbes.",
  "adv|det":"Le déterminant est suivi d'un nom (tous les élèves). L'adverbe modifie un verbe ou un adjectif (tout contents, travailler beaucoup).",
  "adv|prep":"La préposition est suivie d'un complément (avant midi, devant la gare). L'adverbe s'emploie seul (il est arrivé avant).",
  "adv|pro":"Le pronom remplace un nom ou un lieu (j'y vais = je vais à Genève ; la ville où je vis). L'adverbe ne remplace rien (Où vas-tu ?).",
  "conj|det":"Le déterminant est suivi d'un nom. La conjonction relie des éléments ou des phrases.",
- "conj|prep":"La préposition est suivie d'un nom (pendant le film). La conjonction de subordination est suivie d'un verbe conjugué (pendant que tu dors).",
- "conj|pro":"Le pronom relatif (qui, que, dont, où) suit un nom et le remplace (le film que j'ai vu = j'ai vu le film). La conjonction « que » ne remplace rien : elle suit souvent un verbe (je pense que…).",
+ "conj|prep":"La préposition introduit un nom ou un groupe nominal (pendant le film). La conjonction de subordination introduit une proposition, avec un sujet et un verbe conjugué (pendant que tu dors, parce que le bus n'est pas venu).",
+ "conj|pro":"Le pronom remplace un nom : le pronom relatif (qui, que, dont, où) suit le nom qu'il remplace (le film que j'ai vu = j'ai vu le film). La conjonction ne remplace rien : elle introduit une proposition (je pense que tu as raison).",
  "det|pro":"Le déterminant est suivi d'un nom (leur maison). Le pronom remplace le nom et se trouve souvent devant un verbe (je leur parle).",
  "det|prep":"Le déterminant est suivi d'un nom et en précise la quantité (du lait, des pommes). La préposition relie un complément (le vélo de Paul).",
- "pro|prep":"La préposition est suivie d'un nom (en Italie). Le pronom se place devant un verbe et remplace un groupe (j'en veux = je veux des pommes)."
+ "prep|pro":"La préposition est suivie d'un nom (en Italie). Le pronom se place souvent devant un verbe et remplace un groupe (j'en veux = je veux des pommes)."
 };
 
+/* ---------- Conjonctions : explications selon le type (coordination ou subordination) ---------- */
+const COORD = ["mais","ou","et","donc","or","ni","car"];
+const isCoord = m => COORD.includes(String(m).toLowerCase());
+const PAIR_COORD = {
+ "conj|prep":"La préposition introduit un complément (un café sans sucre). La conjonction de coordination relie deux éléments de même nature (du thé ou du café) : mais, ou, et, donc, or, ni, car.",
+ "conj|pro":"Le pronom remplace un nom (la ville où je vis). La conjonction de coordination ne remplace rien : elle relie deux éléments (du thé ou du café).",
+ "adv|conj":"La conjonction de coordination fait partie de la liste mais, ou, et, donc, or, ni, car : elle relie deux éléments. L'adverbe modifie un verbe ou un adjectif, ou sert de liaison (puis, alors, ensuite).",
+ "conj|det":"Le déterminant est suivi d'un nom (des pommes). La conjonction de coordination relie deux éléments (du pain et du fromage).",
+ "adj|conj":"L'adjectif qualifie un nom. La conjonction de coordination relie deux éléments (fatigué, mais content)."
+};
+/* Adverbes : négation et interrogation ont leur propre explication */
+const NEG = ["ne","pas","jamais","plus"], INTERRO = ["où","quand","comment","pourquoi","combien"];
+const advKind = mot => NEG.includes(String(mot).toLowerCase()) ? "neg" : INTERRO.includes(String(mot).toLowerCase()) ? "int" : "";
+function whyOf(cl, mot){
+  if(cl==="adv" && advKind(mot)==="neg") return "Il fait partie de la négation (ne… pas, ne… jamais, ne… plus) : il modifie le sens du verbe et ne s'accorde jamais.";
+  if(cl==="adv" && advKind(mot)==="int") return "Il pose une question sur le lieu, le moment, la manière, la cause ou la quantité : adverbe interrogatif.";
+  if(cl!=="conj") return C[cl].why;
+  return isCoord(mot) ? "Il relie deux éléments de même nature (deux mots, deux groupes ou deux phrases) : conjonction de coordination."
+    : "Il introduit une proposition, avec un sujet et un verbe conjugué, et la rattache à la phrase principale : conjonction de subordination.";
+}
+function astOf(cl, mot){
+  if(cl==="adv" && advKind(mot)==="neg") return "Les mots de la négation qui accompagnent le verbe (ne, pas, jamais, plus) sont des adverbes : je ne fume pas, je ne fume jamais, je ne fume plus.";
+  if(cl==="adv" && advKind(mot)==="int") return "Où, quand, comment, pourquoi et combien posent une question : ce sont des adverbes interrogatifs (Où vas-tu ? Comment t'appelles-tu ?).";
+  if(cl!=="conj") return C[cl].ast;
+  return isCoord(mot) ? "Les conjonctions de coordination sont : mais, ou, et, donc, or, ni, car. Pour les retenir : « Mais où est donc Ornicar ? »"
+    : "Regarde ce qui suit le mot : s'il y a un sujet et un verbe conjugué (… parce que le bus n'est pas venu, … quand j'arrive), c'est une conjonction de subordination.";
+}
+/* Paires : tant que l'autre emploi du même mot reste à faire plus loin dans la série,
+   on n'affiche pas ce qui le dévoilerait (2e partie de la remarque, après « | », et l'explication qui le cite). */
+function partnerAhead(k){
+  const m = deck[k][0].toLowerCase();
+  return deck.some((w,x)=>x>k && ans[x]===undefined && w[0].toLowerCase()===m && w[2]!==deck[k][2]);
+}
+function noteOf(w, spoil){ const n = w[4]||""; return spoil ? n.split(" | ")[0] : n.replace(" | "," "); }
+function mentions(t, mot){ return !!t && new RegExp("(^|[^\\p{L}])"+mot.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")+"([^\\p{L}]|$)","iu").test(t); }
+function pairOf(k, cl, mot){
+  const key=[k,cl].sort().join("|");
+  return (cl==="conj" && isCoord(mot) && PAIR_COORD[key]) || PAIR[key];
+}
 /* ---------- Banque de mots : [mot, phrase (*mot*), classe, -, remarque] ---------- */
 const W = [
 // Déterminants
@@ -2654,12 +2693,12 @@ const W = [
 ["son","Elle a oublié *son* parapluie.","det","pro,adj",""],
 ["notre","*Notre* classe est au deuxième étage.","det","pro,adj",""],
 ["votre","Montrez-moi *votre* carte d'identité.","det","pro,adj",""],
-["leur","*Leur* appartement est très lumineux.","det","pro,adv","Ici, « leur » est devant le nom « appartement » : déterminant possessif. Devant un verbe (je leur parle), ce serait un pronom."],
+["leur","*Leur* appartement est très lumineux.","det","pro,adv","Ici, « leur » est devant le nom « appartement » : déterminant possessif. | Devant un verbe (je leur parle), ce serait un pronom."],
 ["leurs","Les élèves ont pris *leurs* cahiers.","det","pro,adj","« Leurs » avec un s accompagne un nom pluriel : déterminant possessif."],
 ["mes","*Mes* clés sont dans la voiture.","det","pro,adj",""],
 ["ses","Il range *ses* affaires.","det","pro,adj",""],
 ["nos","*Nos* voisins sont partis en vacances.","det","pro,adj",""],
-["ce","*Ce* livre est passionnant.","det","pro,adj","Ici, « ce » est devant le nom « livre » : déterminant démonstratif. Dans « c'est », « ce » est un pronom."],
+["ce","*Ce* livre est passionnant.","det","pro,adj","Ici, « ce » est devant le nom « livre » : déterminant démonstratif. | Dans « c'est », « ce » est un pronom."],
 ["cet","*Cet* arbre a plus de cent ans.","det","pro,adj","« Cet » s'emploie devant un nom masculin qui commence par une voyelle ou un h muet."],
 ["cette","*Cette* semaine, je travaille le soir.","det","pro,adj",""],
 ["ces","*Ces* chaussures sont trop petites.","det","pro,adj",""],
@@ -2680,7 +2719,7 @@ const W = [
 ["rouge","Elle porte une veste *rouge*.","adj","det,adv",""],
 ["heureux","Les enfants sont *heureux*.","adj","adv,det",""],
 ["fatiguée","Après le travail, je suis *fatiguée*.","adj","adv,pro",""],
-["bon","Ce gâteau est très *bon*.","adj","adv,det","Ici, « bon » décrit le nom « gâteau » et s'accorde (cette tarte est bonne). Dans « ça sent bon », ce serait un adverbe."],
+["bon","Ce gâteau est très *bon*.","adj","adv,det","Ici, « bon » décrit le nom « gâteau » et s'accorde (cette tarte est bonne). | Dans « ça sent bon », ce serait un adverbe."],
 ["mauvais","Il fait *mauvais* temps.","adj","adv,det",""],
 ["vieux","Mon grand-père a un *vieux* vélo.","adj","adv,det",""],
 ["nouvelle","J'ai une *nouvelle* adresse.","adj","det,adv",""],
@@ -2694,9 +2733,9 @@ const W = [
 ["même","Nous avons la *même* voiture.","adj","adv,det","Entre « la » et le nom, « même » signifie « identique » : adjectif. Il s'accorde : les mêmes voitures."],
 ["autre","Prends l'*autre* chemise.","adj","det,pro","Après « l' » et devant le nom « chemise », « autre » est un adjectif."],
 ["seul","Il vit *seul* depuis un an.","adj","adv,pro","« Seul » s'accorde : elle vit seule. C'est un adjectif."],
-["fort","Mon collègue est très *fort* en maths.","adj","adv,det","Ici, « fort » décrit la personne et s'accorde (elle est forte). Dans « parle fort », ce serait un adverbe."],
+["fort","Mon collègue est très *fort* en maths.","adj","adv,det","Ici, « fort » décrit la personne et s'accorde (elle est forte). | Dans « parle fort », ce serait un adverbe."],
 ["juste","Ta réponse est *juste*.","adj","adv,prep","« Juste » décrit « réponse » ; on dit « ces réponses sont justes » : adjectif."],
-["cher","Ce téléphone est trop *cher*.","adj","adv,det","Ici, « cher » s'accorde : ces montres sont chères. Dans « coûter cher », il est adverbe (invariable)."],
+["cher","Ce téléphone est trop *cher*.","adj","adv,det","Ici, « cher » s'accorde : ces montres sont chères. | Dans « coûter cher », il est adverbe (invariable)."],
 ["chaud","Le café est *chaud*.","adj","adv,det",""],
 ["froide","L'eau du lac est *froide*.","adj","adv,det",""],
 ["triste","Ce film est *triste*.","adj","adv,det",""],
@@ -2722,19 +2761,19 @@ const W = [
 ["me","Il *me* téléphone tous les jours.","pro","det,adv",""],
 ["te","Je *te* remercie.","pro","det,adv",""],
 ["se","Il *se* lave les mains.","pro","det,adv","« Se » est un pronom réfléchi : il représente le sujet « il »."],
-["le","Ce livre ? Je *le* lis ce soir.","pro","det,adv","Ici, « le » est devant le verbe « lis » et remplace « ce livre » : pronom. Devant un nom, ce serait un déterminant."],
+["le","Ce livre ? Je *le* lis ce soir.","pro","det,adv","Ici, « le » est devant le verbe « lis » et remplace « ce livre » : pronom. | Devant un nom, ce serait un déterminant."],
 ["la","Ma sœur ? Je *la* vois demain.","pro","det,adv","« La » remplace « ma sœur » et se trouve devant le verbe : pronom personnel."],
 ["les","Mes clés ? Je *les* cherche partout.","pro","det,adv",""],
 ["leur","Je *leur* téléphone ce soir.","pro","det,adv","Ici, « leur » est devant le verbe et remplace « à eux » : pronom. Dans ce cas, il ne prend jamais de s."],
 ["lui","Je *lui* donne mon numéro.","pro","det,adv",""],
 ["eux","Je pars avec *eux*.","pro","det,adv",""],
 ["moi","Attends-*moi* !","pro","det,adv",""],
-["en","Des pommes ? J'*en* veux trois.","pro","prep,adv","Ici, « en » remplace « des pommes » : pronom. Devant un nom (en Italie), ce serait une préposition."],
+["en","Des pommes ? J'*en* veux trois.","pro","prep,adv","Ici, « en » remplace « des pommes » : pronom. | Devant un nom (en Italie), ce serait une préposition."],
 ["y","Genève ? J'*y* vais demain.","pro","adv,prep","« Y » remplace un lieu (« à Genève ») : pronom."],
 ["qui","La femme *qui* parle est ma voisine.","pro","conj,det","« Qui » remplace « la femme » : pronom relatif."],
 ["que","Le film *que* j'ai vu était long.","pro","conj,adv","« Que » remplace « le film » (j'ai vu le film) : pronom relatif. Il suit un nom."],
 ["dont","C'est le collègue *dont* je t'ai parlé.","pro","conj,prep",""],
-["où","La ville *où* je vis est calme.","pro","adv,conj","Après un nom (« la ville »), « où » est un pronom relatif : il remplace ce nom. Dans une question (Où vas-tu ?), il est adverbe."],
+["où","La ville *où* je vis est calme.","pro","adv,conj","Après un nom (« la ville »), « où » est un pronom relatif : il remplace ce nom. | Dans une question (Où vas-tu ?), il est adverbe."],
 ["celui","Ton stylo est rouge ; *celui* de Paul est bleu.","pro","det,adj",""],
 ["cela","*Cela* me fait plaisir.","pro","det,adv",""],
 ["ça","*Ça* va bien ?","pro","det,adv",""],
@@ -2787,7 +2826,7 @@ const W = [
 ["dehors","Les enfants jouent *dehors*.","adv","prep,adj",""],
 ["partout","J'ai cherché *partout*.","adv","pro,prep",""],
 ["où","*Où* habites-tu ?","adv","pro,conj","Dans une question, « où » est un adverbe interrogatif : il demande un lieu."],
-["quand","*Quand* pars-tu en vacances ?","adv","conj,pro","Dans une question, « quand » est un adverbe interrogatif. Dans « je t'appelle quand j'arrive », ce serait une conjonction."],
+["quand","*Quand* pars-tu en vacances ?","adv","conj,pro","Dans une question, « quand » est un adverbe interrogatif. | Dans « je t'appelle quand j'arrive », ce serait une conjonction."],
 ["comment","*Comment* t'appelles-tu ?","adv","conj,pro",""],
 ["pourquoi","*Pourquoi* ris-tu ?","adv","conj,pro",""],
 ["combien","*Combien* coûte ce billet ?","adv","det,pro",""],
@@ -2797,7 +2836,7 @@ const W = [
 ["longtemps","J'ai attendu *longtemps*.","adv","adj,prep",""],
 ["parfois","Il travaille *parfois* le samedi.","adv","conj,adj",""],
 ["ensemble","Nous mangeons *ensemble*.","adv","adj,prep",""],
-["avant","Il était là *avant*.","adv","prep,conj","Ici, « avant » n'est suivi d'aucun complément : adverbe. Dans « avant midi », ce serait une préposition."],
+["avant","Il était là *avant*.","adv","prep,conj","Ici, « avant » n'est suivi d'aucun complément : adverbe. | Dans « avant midi », ce serait une préposition."],
 ["après","On en parlera *après*.","adv","prep,conj",""],
 ["plus","Je ne fume *plus*.","adv","det,conj",""],
 ["moins","Il fait *moins* chaud qu'hier.","adv","adj,det",""],
@@ -2809,14 +2848,14 @@ const W = [
 ["sous","Le chat dort *sous* le lit.","prep","adv,conj",""],
 ["avec","Je viens *avec* ma sœur.","prep","adv,conj",""],
 ["sans","Un café *sans* sucre, s'il vous plaît.","prep","adv,conj",""],
-["pour","Ce cadeau est *pour* toi.","prep","conj,adv",""],
+["pour","Ce cadeau est *pour* ma mère.","prep","conj,adv",""],
 ["par","Je passe *par* la gare.","prep","adv,conj",""],
 ["chez","Je vais *chez* le dentiste.","prep","adv,det",""],
 ["entre","Le parc est *entre* l'école et la poste.","prep","adv,conj",""],
 ["vers","On se retrouve *vers* 18 h.","prep","adv,conj",""],
 ["contre","Le vélo est appuyé *contre* le mur.","prep","adv,conj",""],
 ["depuis","J'habite ici *depuis* trois ans.","prep","adv,conj",""],
-["pendant","J'ai dormi *pendant* le film.","prep","conj,adv","« Pendant » est suivi du nom « le film » : préposition. « Pendant que » + verbe serait une conjonction."],
+["pendant","J'ai dormi *pendant* le film.","prep","conj,adv","« Pendant » est suivi du nom « le film » : préposition. « Pendant que » suivi d'une proposition (pendant que tu dors) serait une conjonction."],
 ["avant","Rentre *avant* minuit.","prep","adv,conj","Ici, « avant » introduit le complément « minuit » : préposition."],
 ["après","On se voit *après* le cours.","prep","adv,conj",""],
 ["devant","Je t'attends *devant* la gare.","prep","adv,conj",""],
@@ -2825,30 +2864,30 @@ const W = [
 ["selon","*Selon* la météo, il va neiger.","prep","conj,adv",""],
 ["sauf","Tout le monde est là, *sauf* Ana.","prep","conj,adv",""],
 ["parmi","Il est *parmi* les meilleurs.","prep","adv,pro",""],
-["en","Je pars *en* Italie cet été.","prep","pro,adv","Ici, « en » est suivi du nom « Italie » : préposition. Devant un verbe (j'en veux), ce serait un pronom."],
+["en","Je pars *en* Italie cet été.","prep","pro,adv","Ici, « en » est suivi du nom « Italie » : préposition. | Devant un verbe (j'en veux), ce serait un pronom."],
 ["dès","Le magasin est ouvert *dès* 8 h.","prep","conj,adv",""],
 ["durant","Il a plu *durant* la nuit.","prep","conj,adv",""],
 ["jusqu'à","Je marche *jusqu'à* la gare.","prep","conj,adv",""],
-["à cause de","Le train est en retard *à cause de* la neige.","prep","conj,adv","« À cause de » est une locution prépositionnelle : elle est suivie d'un nom. « Parce que » + verbe serait une conjonction."],
+["à cause de","Le train est en retard *à cause de* la neige.","prep","conj,adv","« À cause de » est une locution prépositionnelle : elle est suivie d'un nom. « Parce que » suivi d'une proposition (parce qu'il neige) serait une conjonction."],
 ["grâce à","J'ai réussi *grâce à* ton aide.","prep","conj,adv",""],
 ["près de","J'habite *près de* la gare.","prep","adv,conj",""],
 // Conjonctions
 ["mais","Il est fatigué, *mais* content.","conj","adv,prep",""],
 ["ou","Tu prends du thé *ou* du café ?","conj","pro,adv","« Ou » sans accent signifie « ou bien » : conjonction de coordination. « Où » avec accent indique le lieu."],
 ["et","J'achète du pain *et* du fromage.","conj","prep,adv",""],
-["donc","Il pleut, *donc* je prends le bus.","conj","adv,prep",""],
+["donc","Il pleut, *donc* je prends le bus.","conj","adv,prep","« Donc » est classé ici parmi les conjonctions de coordination (« Mais où est donc Ornicar ? »). Certaines grammaires récentes le classent comme adverbe, car il peut se déplacer (il pleut, je prends donc le bus)."],
 ["or","Je voulais sortir, *or* il pleuvait.","conj","adv,prep",""],
 ["ni","Je ne bois *ni* thé *ni* café.","conj","adv,prep",""],
 ["car","Je reste à la maison, *car* je suis malade.","conj","prep,adv",""],
 ["que","Je pense *que* tu as raison.","conj","pro,adv","Ici, « que » ne remplace aucun nom : il relie « je pense » à « tu as raison ». C'est une conjonction de subordination."],
 ["quand","Je t'appelle *quand* j'arrive.","conj","adv,prep","Ici, « quand » relie deux propositions (verbes « appelle » et « arrive ») : conjonction de subordination."],
-["si","*Si* tu veux, on part tout de suite.","conj","adv,pro","Ici, « si » introduit une condition et est suivi d'un verbe conjugué : conjonction de subordination."],
+["si","*Si* tu veux, on part tout de suite.","conj","adv,pro","Ici, « si » introduit une condition, « tu veux », qui a un sujet et un verbe conjugué : conjonction de subordination."],
 ["comme","*Comme* il pleut, je reste ici.","conj","adv,prep","Ici, « comme » signifie « parce que » et introduit une proposition : conjonction."],
 ["parce que","Je suis en retard *parce que* le bus n'est pas venu.","conj","prep,adv",""],
 ["lorsque","*Lorsque* le cours commence, éteignez vos téléphones.","conj","adv,prep",""],
 ["puisque","*Puisque* tu es là, aide-moi.","conj","adv,prep",""],
 ["bien que","*Bien qu'*il soit malade, il travaille.","conj","adv,prep",""],
-["pendant que","Je cuisine *pendant que* tu fais la vaisselle.","conj","prep,adv","« Pendant que » est suivi d'un verbe conjugué : conjonction. « Pendant » seul + nom serait une préposition."],
+["pendant que","Je cuisine *pendant que* tu fais la vaisselle.","conj","prep,adv","« Pendant que » introduit une proposition, « tu fais la vaisselle », avec un sujet et un verbe conjugué : conjonction. « Pendant » seul suivi d'un nom serait une préposition."],
 ["avant que","Rentre *avant qu'*il fasse nuit.","conj","prep,adv",""],
 ["dès que","Appelle-moi *dès que* tu arrives.","conj","prep,adv",""],
 ["pour que","Je parle lentement *pour que* tu comprennes.","conj","prep,adv",""],
@@ -3024,7 +3063,7 @@ function updNav(){
 }
 
 function showAnswer(k, fresh){
-  const [mot, phr, cl, , note] = deck[i], ok = k===cl;
+  const [mot, phr, cl] = deck[i], ok = k===cl, spoil = partnerAhead(i), note = noteOf(deck[i], spoil);
   document.querySelectorAll(".choice").forEach(b=>{
     b.disabled = true;
     if(!fresh) b.classList.add("still");
@@ -3038,12 +3077,12 @@ function showAnswer(k, fresh){
     if(fresh){ const card=$("card"); card.classList.remove("okflash"); card.offsetWidth; card.classList.add("okflash"); confetti(); }
     h = `<div class="fb ok"><div class="h">Bravo ! C'est bien ${art(cl)}.</div>${note?`<div class="row">${typo(esc(note))}</div>`:""}</div>`;
   }else{
-    const pair = PAIR[[k,cl].sort().join("|")];
+    const pair = spoil && mentions(pairOf(k, cl, mot), mot) ? null : pairOf(k, cl, mot);
     h = `<div class="fb ko">
       <div class="h">Pas tout à fait. «${NB}${esc(mot)}${NB}» est ici <span class="cls" style="color:${C[cl].c}">${art(cl)}</span>.</div>
-      <div class="row"><span class="lab">Pourquoi${NB}?</span> ${typo(esc(note || C[cl].why))}</div>
+      <div class="row"><span class="lab">Pourquoi${NB}?</span> ${typo(esc(note || whyOf(cl,mot)))}</div>
       ${pair?`<div class="row"><span class="lab">${cap(C[k].n)} ou ${C[cl].n}${NB}?</span> ${typo(esc(pair))}</div>`:""}
-      <div class="tip"><b>Astuce${NB}:</b> ${typo(esc(C[cl].ast))}</div>
+      <div class="tip"><b>Astuce${NB}:</b> ${typo(esc(astOf(cl,mot)))}</div>
       <details><summary>Rappel${NB}: les ${C[cl].n}s</summary>${defBox}</details>
     </div>`;
   }
@@ -3222,12 +3261,12 @@ function hClick(e){
   else if(a==='pclose'){ H.pv=null; hRender(); }
 }
 function joinUrl(){ return location.origin + location.pathname + '?p=' + H.code + '&r=' + H.ri + (TEST_RELAY ? '&relais='+encodeURIComponent(TEST_RELAY) : ''); }
-function explain(cl, wrong, note){
-  const pair = wrong ? PAIR[[wrong,cl].sort().join('|')] : '';
+function explain(cl, wrong, note, mot){
+  const pair = wrong ? pairOf(wrong, cl, mot) : '';
   const defBox = `<div class="def" style="--p:${C[cl].p}"><b style="color:${C[cl].c}">${cap(C[cl].n)}s${NB}:</b> ${typo(esc(C[cl].def))}<br><i>ex.${NB}: ${typo(esc(C[cl].ex))}</i></div>`;
-  return `<div class="row"><span class="lab">Pourquoi${NB}?</span> ${typo(esc(note || C[cl].why))}</div>
+  return `<div class="row"><span class="lab">Pourquoi${NB}?</span> ${typo(esc(note || whyOf(cl,mot)))}</div>
     ${pair?`<div class="row"><span class="lab">${cap(C[wrong].n)} ou ${C[cl].n}${NB}?</span> ${typo(esc(pair))}</div>`:''}
-    <div class="tip"><b>Astuce${NB}:</b> ${typo(esc(C[cl].ast))}</div>
+    <div class="tip"><b>Astuce${NB}:</b> ${typo(esc(astOf(cl,mot)))}</div>
     <details><summary>Rappel${NB}: les ${C[cl].n}s</summary>${defBox}</details>`;
 }
 function hRender(){
@@ -3237,7 +3276,7 @@ function hRender(){
   if(H.err) h = `<div class="pwait"><h2>Version classe</h2><p class="warn">${esc(H.err)}</p><div class="hacts"><button class="big" data-a="retry">Réessayer</button><button class="big alt" data-a="solo">Version solo</button></div></div>`;
   else if(!H.ready) h = `<div class="pwait"><h2>Version classe</h2><p class="dots">Connexion au relais</p><button class="lnk" data-a="solo">Version solo</button></div>`;
   else if(H.pv){
-    const V=H.pv, k=V.list[V.j], w=W[g.deck[k]], [mot,phr,cl,,note]=w, s=wStats(k);
+    const V=H.pv, k=V.list[V.j], w=W[g.deck[k]], [mot,phr,cl]=w, note=noteOf(w,false), s=wStats(k);
     const max = Math.max(1, ...ORDER.map(c=>s.dist[c]));
     let wrong=null, wn=0; ORDER.forEach(c=>{ if(c!==cl && s.dist[c]>wn){ wn=s.dist[c]; wrong=c; } });
     h = `${net}<div class="hbar">${title}<span class="tag">${V.list.length<g.deck.length?'Revoir les erreurs':'Revoir les mots'}</span><span class="sp"></span><button class="lnk" data-a="pclose">Résultats</button></div>
@@ -3247,7 +3286,7 @@ function hRender(){
       <p class="phrase" style="opacity:1;animation:none">${marked(phr)}</p>
       <div class="dist">${(g.sel||ORDER).map(c=>`<div class="drow${V.rev?(c===cl?' good':(s.dist[c]?' bad':'')):''}" style="--c:${C[c].c};--p:${C[c].p}"><span class="lab">${cap(C[c].n)}</span><span class="bar2"><i style="width:${s.dist[c]/max*100}%"></i></span><span class="n">${s.dist[c]}</span></div>`).join('')}</div>
       <p style="color:var(--mut);margin:6px 0 0">${s.a ? plural(s.a,'réponse','réponses') : 'Pas encore de réponse'}${V.rev && s.a ? ' · '+plural(s.o,'juste','justes') : ''}</p>
-      ${V.rev ? `<div class="fb ko" style="border-color:#cfe9d8"><div class="h" style="color:#237a48">«${NB}${esc(mot)}${NB}» est ici <span style="color:${C[cl].c}">${art(cl)}</span>.</div>${explain(cl, wrong, note)}</div>` : ''}
+      ${V.rev ? `<div class="fb ko" style="border-color:#cfe9d8"><div class="h" style="color:#237a48">«${NB}${esc(mot)}${NB}» est ici <span style="color:${C[cl].c}">${art(cl)}</span>.</div>${explain(cl, wrong, note, mot)}</div>` : ''}
       <div class="hacts" style="margin-top:16px"><button class="big${V.rev?' alt':''}" data-a="rev">${V.rev?'Masquer la réponse':'Montrer la réponse'}</button></div>
     </div>`;
   }
