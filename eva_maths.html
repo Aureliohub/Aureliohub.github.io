@@ -8,8 +8,11 @@ générant des exercices de mathématiques pour adultes (programme PAI, Suisse).
 Product owner : Aurelio (Onex/Genève). Répondre en FRANÇAIS.
 
 ───────────────────────────────────────────────────────────────────────────────
-0. OÙ ON EN EST (v549, 25.11.2026) — à lire en premier
+0. OÙ ON EN EST (v550, 25.11.2026) — à lire en premier
 ───────────────────────────────────────────────────────────────────────────────
+v550 — CITERNE, VERSION EN LITRES (25.11, demande d'Aurelio) : « en tout »
+retiré aussi (`faitsN` et l'énoncé de secours). Question `qN` inchangée.
+
 v549 — « FRACTIONS », CITERNE, VERSION FRACTION (25.11, texte d'Aurelio).
 « Le matin, la citerne d'eau de pluie est remplie aux 2/5. Le soir, après la
 pluie, elle est remplie aux 5/6. Quelle fraction de la citerne correspond à
@@ -12300,7 +12303,7 @@ function genPropConcretFractions() {
     { monte: true,
       faits: (p) => `Le matin, la citerne d'eau de pluie est remplie aux ${p.a}/${p.b}. Le soir, après la pluie, elle est remplie aux ${p.c}/${p.d}.`,
       plein: (C) => `Pleine, la citerne d'eau de pluie contient ${C} litres.`,
-      faitsN: (p) => `Le matin, elle est remplie aux ${p.a}/${p.b}. Le soir, après la pluie, elle est remplie en tout aux ${p.c}/${p.d}.`,
+      faitsN: (p) => `Le matin, elle est remplie aux ${p.a}/${p.b}. Le soir, après la pluie, elle est remplie aux ${p.c}/${p.d}.`,
       qF: "Quelle fraction de la citerne correspond à l'eau ajoutée par la pluie ?",   // v549 (texte d'Aurelio) ; v538 : les apprenants prenaient les c/d pour l'apport de la pluie
       qN: "Combien de litres d'eau sont arrivés dans la citerne entre le matin et le soir ?", min: 300, max: 999 },
     { monte: false, dens: [6, 8, 12],
@@ -12335,7 +12338,7 @@ function genPropConcretFractions() {
         solutionDetail: `${niveauCalcul(p)} de ${ctx.monte ? 'la citerne' : 'du réservoir'}. ${p.n}/${p.dn} de ${C} = ${C} ÷ ${p.dn} × ${p.n} = ${rep} litres.`
       };
     }
-    return { text: "Pleine, la citerne d'eau de pluie contient 408 litres. Le matin, elle est remplie aux 1/6. Le soir, après la pluie, elle est remplie en tout aux 5/8. Combien de litres d'eau sont arrivés dans la citerne entre le matin et le soir ?",
+    return { text: "Pleine, la citerne d'eau de pluie contient 408 litres. Le matin, elle est remplie aux 1/6. Le soir, après la pluie, elle est remplie aux 5/8. Combien de litres d'eau sont arrivés dans la citerne entre le matin et le soir ?",
              answer: '187 litres', solutionDetail: '5/8 − 1/6 = 15/24 − 4/24 = 11/24 de la citerne. 11/24 de 408 = 408 ÷ 24 × 11 = 187 litres.' };
   }
 
@@ -20701,7 +20704,7 @@ const ICONE_ENSEIGNANT = '<svg viewBox="0 0 24 24" width="21" height="21" fill="
 const ICONE_PDF = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJkAAACUCAMAAAC3HHtWAAAAk1BMVEXi5ef////xVkKwt73K0dji6OrxW0jyUDnG2eHlzczmgnrV2t/x8/T19vbxUTzwTDX4u7Xnvr28wsf+8/L84N3yYlD1jID1hXf1kYb4q6L4t7D96ujwQib1mY7++Pf70c3zcWHxSC/zeGn3pJv6ysX72dXy2Nbj1dXtgnfyaFf3sKj6w73UubvV4ebco6HkioPitLFLhhsqAAAElUlEQVR4nO3ca5eaOhQG4ICOtHUa7AAqIgiIbdVezv//dUcS7tlAXIYkq4v308xCzeNOCAEVZAzmKxKWj8Xi4324tVbQyGahsqdow7J3wbLFgp82LHsTLuOv2rBMIKyQ8dMGZQLHfyXjpsmX8dIUyDhpKmR8NCUyLpoa2eLjq64yjqqpko1XTZlstGrqZGM0hbIRmkrZME2pbJCmVjZEUywboKmW9dOUy3qnXPWyvqppIOupmg4yuGpayMCq6SGDqiZPthySAVWTJ1sPytiqyZMNdydbNYmykaJ1aRJlY0Xr0GTKnqNJlY3sn22aXBlaL4fr1qBJlpEsB/KmVDZEUywboKmW9dOUy3pp6mV9NA1kPTQdZDBNCxlI00MG0TSRATRdZCxNGxlD00fWpWkkQ/rKkL4ypK8M6StD+sqQvjKkrwzpK0P6ypC+MqSvDOkrQ/rKkL6ytbYyVF+tnWWiZW8T5jlZ4Lby/fN0+YFAGyxzw9hbyUoc/oBooOxi2tiUFmybEA2SRaklz5XH/slZs5PEgtGsPrNFg2R3W7YMf+OTbWbZLJtls2yWzbJWrORYJklaaxFs2WUsiznm1htpoIPySzK8PQVl3Oyc1gQrDX3/nMc/h/t0lbTb3vqthDGwkHlFhneO0YyTXYtHWdvWFsc9xA3b6m504nhs1V6R2QemhT192OrS3WJs4rLx7hvKcz8KlVkbpoWI9ovnMlsMN4ULSnJIJpA5gUNStL+qZRFN+RLBDvfJgpXY3qSy2zXOs/MpIbRLWeT/3OYJb0UFL7R9KnMOdXzRewCV+TYmsa8BKdqxku3oFsvGu4C+SFLL3MakwU4rgmTlv/u8ak5emEJWVcKOadmuuJYBmKlkmHpiQGZaMenrg61EZppknso9jMw8khnG9fSTWWletCjF9TizHnmMwsdInFqG6S4A9mY5keR7LpUFYRX4JFugLPHzf6OK0ZatTuWDmfnM2UO012XnI931zTMZ5KfGrNFsEGdkF0igmdaJgQ59XZaFZE1xO9GZlrx/QGYS2Q2UGdtJZO3c6+NmZ5yRg/wZ6k3j4rEvLlrm0h2NlRW7R17R4uh0qnIA1kCCZVF2pW2wMjvMH+BcG7MGmTbywBfmBMqcU2gWbQDzGSnZhfwpa6Y9nWn2qVm9d0ZGZxQyzOTJzkfaJc0+6cjwMSQ7bmRLrZkPbClkCSZoHG+iumQayIzs9lgV3g73YqYzsuJp6mWdXK7N1baMccYpy7xi2EmQ2ed8C3Q4Zs/qorA6CcFpLhu9WP7a1YNNFB3AdULqRjXKcU/bY+P5OHQiN51UhnG6gz/AsLxdndSz2s+249119IOPF68F9axHyZY6TzxNmGzCzLJZNstm2TSyTPpnwh7nZ8KBbBiOGVfPdw9u7DXeSWHHX785ZVGYJNV52ORJ8J/lmlP2WOv54b6VL5Pl73/LT0/Iunn/NF3yLzXyjjNAxvzkQWy0lQEwPWTAKOOXrScM5PoXvrM3y2bZLJtls+zfk3He90Do3TnFykTe0ZQr9Q8XRmTSi9a4zcyITOQNap+Djckk92fzbin/A8PQxx30Ei25AAAAAElFTkSuQmCC';
 
 // Numéro de version, affiché en pied de menu.
-const APP_VERSION = '549';
+const APP_VERSION = '550';
 
 const DOMAINS = [
   {
