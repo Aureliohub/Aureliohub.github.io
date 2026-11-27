@@ -1,0 +1,455 @@
+<!doctype html>
+<!--
+  Note pour Claude : jeu « Black Jack sur 93 » (fichier autonome, aucune dépendance).
+  Coquille commune aux activités : en-tête, plateau 900x560 mis à l'échelle, bouton plein écran.
+  Règle : on part de DEPART ; à tour de rôle, l'apprenant et l'ordinateur prennent une carte de CARTES
+  (chaque carte ne sert qu'une fois) et l'ajoutent au total. Exactement CIBLE = gagné ; plus de CIBLE = perdu.
+  L'apprenant calcule lui-même le nouveau total (2 essais, puis la réponse est donnée).
+  Niveaux : « Facile » = carte au hasard sans dépasser (prend CIBLE si possible) ;
+  « Expert » = jeu parfait (minimax mémorisé sur le masque des cartes jouées, 2^16 états).
+  Le joueur qui commence alterne à chaque nouvelle partie (l'apprenant commence la première).
+-->
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Black Jack sur 93 - défi</title>
+<style>
+:root{
+  --papier:#f5f5f1;--encre:#151a2e;--gris:#6d7382;--trait:#d9dbe1;--bleu-fonce:#1f4fa8;
+  --vert:#1d7a46;--rouge:#b3261e;--postit:#f6e7a1;--postit-ombre:#c9ced8;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  background:var(--papier);color:var(--encre);
+  font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;font-size:16px;
+  padding:14px 18px;height:100vh;overflow:hidden;
+}
+.page{max-width:1320px;margin:0 auto;height:100%;display:flex;flex-direction:column}
+.entete{position:relative;display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;text-align:center;min-height:34px}
+.eyebrow{margin:0;font-size:13.5px;font-weight:700;letter-spacing:.16em;color:var(--gris);text-transform:uppercase}
+.rule{height:1px;background:var(--trait);margin:10px 0;flex:none}
+.nav{position:absolute;right:0;top:50%;transform:translateY(-50%);display:flex;gap:8px}
+button{
+  font:inherit;font-weight:700;font-size:14px;padding:9px 12px;border-radius:9px;cursor:pointer;
+  border:1px solid #b9bec9;background:#fff;color:var(--encre);
+}
+button:focus-visible{outline:2px solid var(--bleu-fonce);outline-offset:2px}
+.plein{width:34px;height:34px;padding:0;display:flex;align-items:center;justify-content:center}
+.plein svg{width:19px;height:19px}
+.plein .sortir{display:none}
+body.pleinecran .plein .entrer{display:none}
+body.pleinecran .plein .sortir{display:block}
+
+.scene{flex:1;min-height:0;display:flex;justify-content:center;align-items:flex-start}
+.boite{position:relative}
+.plateau{position:absolute;left:0;top:0;width:900px;height:560px;transform-origin:top left}
+.feuille{
+  position:absolute;left:0;top:0;width:900px;height:560px;
+  background:#fdfdfb;border:1px solid var(--trait);border-radius:12px;overflow:hidden;user-select:none;
+}
+
+/* --- bandeau du haut : total, piste, score --- */
+.regle{position:absolute;left:0;right:0;top:18px;text-align:center;font-size:16px;font-weight:600;color:var(--gris)}
+.total{position:absolute;left:40px;top:50px;width:190px}
+.total .lbl,.score .lbl{font-size:14px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--gris)}
+.total .val{font-size:74px;font-weight:700;line-height:1;letter-spacing:-.02em;font-variant-numeric:tabular-nums;margin-top:4px}
+.total .val.change{animation:pop .5s cubic-bezier(.2,.8,.3,1)}
+@keyframes pop{from{transform:scale(1.18);color:var(--bleu-fonce)}to{transform:scale(1)}}
+
+.piste{position:absolute;left:250px;top:110px;width:410px;height:10px;border-radius:5px;background:#e6e8ee}
+.piste .rempli{position:absolute;left:0;top:0;height:100%;border-radius:5px;background:var(--bleu-fonce);transition:width .5s}
+.piste .repere{
+  position:absolute;top:-32px;transform:translateX(-50%);font-size:15px;font-weight:700;color:var(--bleu-fonce);
+  transition:left .5s;font-variant-numeric:tabular-nums;white-space:nowrap;
+}
+.piste .borne{position:absolute;top:18px;font-size:14px;font-weight:700;color:var(--gris)}
+.piste .borne.fin{right:0;transform:translateX(50%);color:var(--encre)}
+.piste .drapeau{position:absolute;right:-1px;top:-8px;width:3px;height:26px;background:var(--encre);border-radius:2px}
+
+.score{position:absolute;right:40px;top:50px;width:170px;text-align:right}
+.score .val{font-size:30px;font-weight:700;margin-top:10px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.score .noms{font-size:13.5px;font-weight:600;color:var(--gris);margin-top:4px}
+
+/* --- cartes --- */
+.cartes{
+  position:absolute;left:40px;top:172px;width:820px;
+  display:grid;grid-template-columns:repeat(8,1fr);gap:16px 14px;
+}
+.c{
+  position:relative;height:64px;border:none;border-radius:3px;padding:0;
+  background:var(--postit);box-shadow:4px 5px 0 var(--postit-ombre);
+  font-size:27px;font-weight:700;color:var(--encre);font-variant-numeric:tabular-nums;
+  transition:transform .15s, box-shadow .15s, opacity .3s;
+}
+.c:nth-child(3n){transform:rotate(-1.6deg)}
+.c:nth-child(3n+1){transform:rotate(1.2deg)}
+.c:nth-child(5n+2){transform:rotate(-.6deg)}
+.jouable .c.libre:hover{transform:translateY(-3px) rotate(0);box-shadow:5px 8px 0 var(--postit-ombre)}
+.c.choisie{transform:translateY(-5px) rotate(0)!important;outline:3px solid var(--bleu-fonce);outline-offset:2px}
+.c.ordi{outline:3px solid var(--gris);outline-offset:2px;transform:translateY(-5px) rotate(0)!important}
+.c.jouee{opacity:.28;box-shadow:none;cursor:default}
+.c .qui{position:absolute;left:0;right:0;bottom:3px;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--encre)}
+.feuille:not(.jouable) .c.libre{cursor:default}
+
+/* --- zone de calcul --- */
+.calcul{
+  position:absolute;left:40px;top:340px;width:820px;height:110px;
+  display:flex;align-items:center;justify-content:center;gap:16px;
+  font-size:56px;font-weight:700;white-space:nowrap;font-variant-numeric:tabular-nums;
+}
+.calcul.entre{animation:entre .4s cubic-bezier(.2,.8,.3,1)}
+@keyframes entre{from{opacity:0;translate:40px 0}to{opacity:1;translate:0 0}}
+.calcul .invite{font-size:30px;font-weight:600;color:var(--gris)}
+.calcul .juste{color:var(--bleu-fonce)}
+.calcul input{
+  width:150px;height:76px;font:inherit;font-size:52px;text-align:center;color:var(--bleu-fonce);
+  border:2px solid #b9bec9;border-radius:10px;background:#fff;padding:0;
+}
+.calcul input:focus{outline:none;border-color:var(--bleu-fonce)}
+.calcul input.faux{border-color:var(--rouge);animation:secoue .35s}
+@keyframes secoue{25%{translate:-7px 0}50%{translate:7px 0}75%{translate:-4px 0}}
+.calcul .valider{font-size:22px;padding:14px 22px}
+.calcul .fin{font-size:44px}
+.calcul .fin.gagne{color:var(--vert)}
+.calcul .fin.perdu{color:var(--rouge)}
+.calcul .nouvelle{font-size:22px;padding:14px 24px}
+
+.message{position:absolute;left:40px;top:458px;width:820px;text-align:center;font-size:21px;font-weight:600;color:var(--gris);min-height:28px}
+.message b{color:var(--encre)}
+.message .ok{color:var(--vert)}
+.message .non{color:var(--rouge)}
+
+.outils{position:absolute;left:26px;bottom:20px;display:flex;gap:10px;z-index:5}
+.outils button{width:44px;height:44px;padding:0;display:flex;align-items:center;justify-content:center}
+.outils button svg{width:24px;height:24px}
+.niveau{position:absolute;right:26px;bottom:20px;display:flex;align-items:center;gap:0}
+.niveau span{font-size:14px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--gris);margin-right:10px}
+.niveau button{height:44px;border-radius:0;font-size:15px;padding:0 16px}
+.niveau button:first-of-type{border-radius:9px 0 0 9px}
+.niveau button:last-of-type{border-radius:0 9px 9px 0;border-left:none}
+.niveau button.actif{background:var(--bleu-fonce);border-color:var(--bleu-fonce);color:#fff}
+@media (prefers-reduced-motion:reduce){.calcul.entre,.total .val.change,.calcul input.faux{animation:none}}
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <div class="entete">
+    <p class="eyebrow">Nombres et opérations · défi Black Jack sur 93</p>
+    <div class="nav">
+      <button id="btn-plein" class="plein" title="Plein écran" aria-label="Plein écran">
+        <svg class="entrer" viewBox="0 0 24 24" fill="none" stroke="#151a2e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 3H5.5A2.5 2.5 0 0 0 3 5.5V9"/><path d="M15 3h3.5A2.5 2.5 0 0 1 21 5.5V9"/>
+          <path d="M9 21H5.5A2.5 2.5 0 0 1 3 18.5V15"/><path d="M15 21h3.5a2.5 2.5 0 0 0 2.5-2.5V15"/>
+        </svg>
+        <svg class="sortir" viewBox="0 0 24 24" fill="none" stroke="#151a2e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3.5 9H9V3.5"/><path d="M20.5 9H15V3.5"/><path d="M3.5 15H9v5.5"/><path d="M20.5 15H15v5.5"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+  <div class="rule"></div>
+
+  <div class="scene" id="scene">
+    <div class="boite" id="boite">
+      <div class="plateau" id="stage">
+        <div class="feuille" id="feuille">
+          <div class="regle">Départ : 4 · Exactement 93 : gagné · Plus de 93 : perdu · Chaque carte ne sert qu'une fois</div>
+
+          <div class="total"><div class="lbl">Total</div><div class="val" id="total">4</div></div>
+
+          <div class="piste" id="piste">
+            <div class="rempli" id="rempli"></div>
+            <div class="repere" id="repere">4</div>
+            <div class="drapeau"></div>
+            <div class="borne" style="left:0">0</div>
+            <div class="borne fin">93</div>
+          </div>
+
+          <div class="score">
+            <div class="lbl">Score</div>
+            <div class="val" id="score">0 – 0</div>
+            <div class="noms">Vous – Ordinateur</div>
+          </div>
+
+          <div class="cartes" id="cartes"></div>
+          <div class="calcul" id="calcul" aria-live="polite"></div>
+          <div class="message" id="message" aria-live="polite"></div>
+
+          <div class="outils">
+            <button id="btn-reset" title="Nouvelle partie" aria-label="Nouvelle partie">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#151a2e" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20 4v4.6h-4.6"/>
+              </svg>
+            </button>
+          </div>
+          <div class="niveau" id="niveau">
+            <span>Ordinateur</span>
+            <button type="button" data-niv="facile" class="actif">Facile</button>
+            <button type="button" data-niv="expert">Expert</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  const scene   = document.getElementById("scene");
+  const boite   = document.getElementById("boite");
+  const stage   = document.getElementById("stage");
+  const feuille = document.getElementById("feuille");
+  const zCartes = document.getElementById("cartes");
+  const calcul  = document.getElementById("calcul");
+  const message = document.getElementById("message");
+  const elTotal = document.getElementById("total");
+  const elScore = document.getElementById("score");
+  const rempli  = document.getElementById("rempli");
+  const repere  = document.getElementById("repere");
+  const LARGE = 900, HAUT = 560;
+
+  /* ---------- contenu ---------- */
+  const DEPART = 4, CIBLE = 93;
+  const CARTES = [-17, -9, -2, 1, 2, 3, 5, 6, 7, 8, 11, 13, 15, 19, 22, 31];
+  const ESSAIS = 2;                               // essais de l'apprenant avant que la réponse soit donnée
+
+  let masque = 0, total = DEPART, tour = "joueur", choix = -1, essais = 0, fini = true;
+  let premier = "joueur", niveau = "facile", pts = {joueur:0, ordi:0}, minuteurs = [];
+  const qui = new Array(CARTES.length).fill("");
+
+  const MOINS = "−", INSEC = " ";
+  function signe(v){ return (v < 0 ? MOINS : "+") + INSEC + Math.abs(v); }
+  function nb(v){ return v < 0 ? MOINS + Math.abs(v) : String(v); }
+  function operation(t, v){ return nb(t) + INSEC + (v < 0 ? MOINS : "+") + INSEC + Math.abs(v) + INSEC + "="; }
+
+  /* ---------- jeu parfait : gagne(m) = le joueur au trait gagne-t-il ? ---------- */
+  const memo = new Int8Array(1 << CARTES.length);    // 0 inconnu, 1 gagnant, 2 perdant
+  function somme(m){ let s = DEPART; for(let i = 0; i < CARTES.length; i++) if(m & (1 << i)) s += CARTES[i]; return s; }
+  function gagne(m){
+    if(memo[m]) return memo[m] === 1;
+    const t = somme(m); let r = false;
+    for(let i = 0; i < CARTES.length && !r; i++){
+      if(m & (1 << i)) continue;
+      const v = t + CARTES[i];
+      if(v === CIBLE || (v < CIBLE && !gagne(m | (1 << i)))) r = true;
+    }
+    memo[m] = r ? 1 : 2;
+    return r;
+  }
+  function auHasard(l){ return l[Math.floor(Math.random() * l.length)]; }
+  function coupOrdi(){
+    const libres = [], surs = [], exacts = [], gagnants = [];
+    for(let i = 0; i < CARTES.length; i++){
+      if(masque & (1 << i)) continue;
+      libres.push(i);
+      const v = total + CARTES[i];
+      if(v === CIBLE) exacts.push(i);
+      else if(v < CIBLE){ surs.push(i); if(!gagne(masque | (1 << i))) gagnants.push(i); }
+    }
+    if(exacts.length) return exacts[0];
+    if(niveau === "expert" && gagnants.length) return auHasard(gagnants);
+    if(surs.length) return auHasard(surs);
+    return auHasard(libres);                          // toutes les cartes dépassent : perdu
+  }
+
+  /* ---------- affichage ---------- */
+  function dessinerCartes(){
+    zCartes.innerHTML = "";
+    CARTES.forEach(function(v, i){
+      const b = document.createElement("button");
+      b.type = "button"; b.className = "c"; b.dataset.i = i;
+      const joue = masque & (1 << i);
+      b.classList.add(joue ? "jouee" : "libre");
+      if(i === choix) b.classList.add(tour === "ordi" ? "ordi" : "choisie");
+      b.innerHTML = signe(v) + (joue ? '<span class="qui">' + (qui[i] === "ordi" ? "ordi" : "vous") + '</span>' : "");
+      b.setAttribute("aria-label", "Carte " + (v < 0 ? "moins " : "plus ") + Math.abs(v) + (joue ? ", déjà jouée" : ""));
+      if(joue) b.disabled = true;
+      zCartes.appendChild(b);
+    });
+    feuille.classList.toggle("jouable", tour === "joueur" && !fini);
+  }
+  function majTotal(anim){
+    elTotal.textContent = nb(total);
+    if(anim){ elTotal.classList.remove("change"); void elTotal.offsetWidth; elTotal.classList.add("change"); }
+    const p = Math.max(0, Math.min(1, total / CIBLE)) * 100;
+    rempli.style.width = p + "%";
+    repere.style.left = p + "%";
+    repere.textContent = nb(total);
+    repere.style.visibility = (total >= CIBLE || total <= 0) ? "hidden" : "visible";
+    elScore.textContent = pts.joueur + " – " + pts.ordi;
+  }
+  function zone(html){
+    calcul.innerHTML = html;
+    calcul.classList.remove("entre"); void calcul.offsetWidth; calcul.classList.add("entre");
+  }
+  function dire(html){ message.innerHTML = html; }
+
+  function plus_tard(f, ms){ minuteurs.push(setTimeout(f, ms)); }
+  function annulerMinuteurs(){ minuteurs.forEach(clearTimeout); minuteurs = []; }
+
+  /* ---------- déroulement ---------- */
+  function nouvellePartie(){
+    annulerMinuteurs();
+    masque = 0; total = DEPART; choix = -1; essais = 0; fini = false;
+    qui.fill("");
+    tour = premier;
+    premier = premier === "joueur" ? "ordi" : "joueur";   // alternance pour la partie suivante
+    majTotal(false);
+    if(tour === "joueur") tourJoueur("<b>Vous commencez.</b> Choisissez une carte.");
+    else tourOrdi("<b>L'ordinateur commence.</b>");
+  }
+
+  function tourJoueur(texte){
+    tour = "joueur"; choix = -1; essais = 0;
+    dessinerCartes();
+    zone('<span class="invite">À vous : choisissez une carte.</span>');
+    dire(texte || "");
+  }
+
+  function choisir(i){
+    if(fini || tour !== "joueur" || (masque & (1 << i))) return;
+    choix = i; essais = 0;
+    dessinerCartes();
+    zone('<span>' + operation(total, CARTES[i]) + '</span>' +
+         '<input id="rep" type="text" inputmode="numeric" autocomplete="off" aria-label="Nouveau total">' +
+         '<button type="button" class="valider" id="btn-valider">Valider</button>');
+    dire("Calculez le nouveau total, puis validez (touche Entrée).");
+    const rep = document.getElementById("rep");
+    rep.focus();
+  }
+
+  function valider(){
+    if(fini || tour !== "joueur" || choix < 0) return;
+    const rep = document.getElementById("rep");
+    const brut = rep.value.trim().replace(/[−–]/g, "-").replace(/\s/g, "");
+    if(!/^-?\d+$/.test(brut)){ rep.focus(); dire("Écrivez un nombre entier."); return; }
+    const juste = total + CARTES[choix];
+    if(parseInt(brut, 10) === juste){
+      jouer(choix, "joueur", '<span class="ok">Juste !</span>');
+      return;
+    }
+    essais++;
+    if(essais < ESSAIS){
+      rep.classList.remove("faux"); void rep.offsetWidth; rep.classList.add("faux");
+      rep.select();
+      dire('<span class="non">Ce n\'est pas juste.</span> Recalculez.');
+    } else {
+      jouer(choix, "joueur", '<span class="non">Pas tout à fait :</span> le bon résultat est <b>' + nb(juste) + '</b>.');
+    }
+  }
+
+  /* applique la carte i pour l'auteur, puis enchaîne */
+  function jouer(i, auteur, commentaire){
+    const v = CARTES[i], avant = total;
+    total += v; masque |= (1 << i); qui[i] = auteur;
+    zone('<span>' + operation(avant, v) + INSEC + '</span><span class="juste">' + nb(total) + '</span>');
+    majTotal(true);
+    choix = -1;
+    if(total >= CIBLE){ finPartie(auteur); dessinerCartes(); return; }
+    dessinerCartes();
+    if(auteur === "joueur"){
+      tour = "ordi"; dessinerCartes();
+      dire(commentaire + " Au tour de l'ordinateur…");
+      plus_tard(function(){ tourOrdi(""); }, 1600);
+    } else {
+      plus_tard(function(){
+        tourJoueur("L'ordinateur a joué <b>" + signe(v) + "</b> : " + nb(avant) + " " + (v < 0 ? MOINS : "+") + " " + Math.abs(v) + " = <b>" + nb(total) + "</b>. À vous.");
+      }, 1500);
+    }
+  }
+
+  function tourOrdi(texte){
+    tour = "ordi"; choix = -1;
+    dessinerCartes();
+    zone('<span class="invite">L\'ordinateur réfléchit…</span>');
+    dire(texte);
+    plus_tard(function(){
+      const i = coupOrdi();
+      choix = i; dessinerCartes();
+      zone('<span>' + operation(total, CARTES[i]) + INSEC + '</span><span class="invite">…</span>');
+      plus_tard(function(){ jouer(i, "ordi", ""); }, 1100);
+    }, 900);
+  }
+
+  function finPartie(auteur){
+    fini = true;
+    const exact = total === CIBLE;
+    const joueurGagne = (auteur === "joueur") === exact;
+    pts[joueurGagne ? "joueur" : "ordi"]++;
+    majTotal(false);
+    const fin = joueurGagne ? "Vous gagnez !" : "L'ordinateur gagne.";
+    plus_tard(function(){
+      zone('<span class="fin ' + (joueurGagne ? "gagne" : "perdu") + '">' + fin + '</span>' +
+           '<button type="button" class="nouvelle" id="btn-nouvelle">Nouvelle partie</button>');
+      const qui_ = auteur === "joueur" ? "Vous arrivez" : "L'ordinateur arrive";
+      dire(exact
+        ? qui_ + " <b>exactement à 93</b>."
+        : qui_ + " à <b>" + nb(total) + "</b> : c'est plus que 93.");
+      const b = document.getElementById("btn-nouvelle"); if(b) b.focus();
+    }, 1300);
+    dire(exact ? "<b>93 !</b>" : "<b>" + nb(total) + " &gt; 93</b>");
+  }
+
+  /* ---------- événements ---------- */
+  zCartes.addEventListener("click", function(e){
+    const b = e.target.closest(".c"); if(!b) return;
+    choisir(parseInt(b.dataset.i, 10));
+  });
+  calcul.addEventListener("click", function(e){
+    if(e.target.closest("#btn-valider")) valider();
+    else if(e.target.closest("#btn-nouvelle")) nouvellePartie();
+  });
+  calcul.addEventListener("keydown", function(e){
+    if(e.key === "Enter" && e.target.id === "rep"){ e.preventDefault(); valider(); }
+    else if(e.key === "Escape" && e.target.id === "rep"){ e.preventDefault(); tourJoueur(""); }
+  });
+  document.getElementById("btn-reset").addEventListener("click", function(){
+    if(!fini) premier = premier === "joueur" ? "ordi" : "joueur";   // une partie interrompue ne fait pas avancer l'alternance
+    nouvellePartie();
+  });
+  document.getElementById("niveau").addEventListener("click", function(e){
+    const b = e.target.closest("button[data-niv]"); if(!b) return;
+    niveau = b.dataset.niv;
+    this.querySelectorAll("button").forEach(function(x){ x.classList.toggle("actif", x === b); });
+    b.blur();
+  });
+
+  /* ---------- mise à l'échelle ---------- */
+  function enPleinEcran(){ return !!(document.fullscreenElement || document.webkitFullscreenElement); }
+  function ajuster(){
+    const dw = scene.clientWidth, dh = scene.clientHeight;
+    if(dw <= 0 || dh <= 0) return;
+    const echelle = Math.min(enPleinEcran() ? 2 : 1, dw / LARGE, dh / HAUT);
+    stage.style.transform = "scale(" + echelle + ")";
+    boite.style.width  = Math.round(LARGE * echelle) + "px";
+    boite.style.height = Math.round(HAUT * echelle) + "px";
+  }
+  window.addEventListener("resize", ajuster);
+
+  const btnPlein = document.getElementById("btn-plein");
+  btnPlein.addEventListener("click", function(){
+    const el = document.documentElement;
+    if(enPleinEcran()) (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+    else (el.requestFullscreen || el.webkitRequestFullscreen).call(el);
+    btnPlein.blur();
+  });
+  function majPleinEcran(){
+    document.body.classList.toggle("pleinecran", enPleinEcran());
+    btnPlein.title = enPleinEcran() ? "Quitter le plein écran" : "Plein écran";
+    setTimeout(ajuster, 60);
+  }
+  document.addEventListener("fullscreenchange", majPleinEcran);
+  document.addEventListener("webkitfullscreenchange", majPleinEcran);
+
+  ajuster();
+  nouvellePartie();
+})();
+</script>
+</body>
+</html>
