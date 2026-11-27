@@ -2,12 +2,18 @@
 <!--
   Note pour Claude : jeu « Black Jack sur 93 » (fichier autonome, aucune dépendance).
   Coquille commune aux activités : en-tête, plateau 900x560 mis à l'échelle, bouton plein écran.
-  Règle : on part de DEPART ; à tour de rôle, l'apprenant et l'ordinateur prennent une carte de CARTES
-  (chaque carte ne sert qu'une fois) et l'ajoutent au total. Exactement CIBLE = gagné ; plus de CIBLE = perdu.
-  L'apprenant calcule lui-même le nouveau total (2 essais, puis la réponse est donnée).
-  Niveaux : « Facile » = carte au hasard sans dépasser (prend CIBLE si possible) ;
-  « Expert » = jeu parfait (minimax mémorisé sur le masque des cartes jouées, 2^16 états).
-  Le joueur qui commence alterne à chaque nouvelle partie (l'apprenant commence la première).
+  Règle : on part de DEPART ; à tour de rôle, chaque joueur prend une carte de CARTES (chaque carte
+  ne sert qu'une fois) et l'ajoute au total. Exactement CIBLE = gagné ; plus de CIBLE = perdu.
+  Un joueur humain calcule lui-même le nouveau total (ESSAIS essais, puis la réponse est donnée).
+  Trois modes, choisis sur l'écran d'accueil :
+   - « Contre l'ordinateur » : niveaux Facile (carte au hasard sans dépasser, prend CIBLE si possible)
+     et Expert (jeu parfait : minimax mémorisé sur le masque des cartes jouées, 2^16 états) ;
+   - « À deux » : deux prénoms, même écran, celui qui commence alterne à chaque partie ;
+   - « Tournoi » sur un seul ordinateur : 2 à 16 participants (l'ordinateur peut en être un),
+     format Championnat (chacun contre chacun, méthode du cercle) ou Élimination directe
+     (exemptions tirées au sort au 1er tour). Le joueur qui commence une partie est tiré au sort.
+     Le tournoi est sauvegardé dans localStorage (CLE) après chaque partie : « Reprendre » à l'accueil.
+  Fait connu : avec un jeu parfait des deux côtés, le joueur qui commence perd.
 -->
 <html lang="fr">
 <head>
@@ -36,6 +42,8 @@ button{
   border:1px solid #b9bec9;background:#fff;color:var(--encre);
 }
 button:focus-visible{outline:2px solid var(--bleu-fonce);outline-offset:2px}
+button.primaire{background:var(--bleu-fonce);border-color:var(--bleu-fonce);color:#fff}
+button:disabled{opacity:.4;cursor:default}
 .plein{width:34px;height:34px;padding:0;display:flex;align-items:center;justify-content:center}
 .plein svg{width:19px;height:19px}
 .plein .sortir{display:none}
@@ -50,15 +58,15 @@ body.pleinecran .plein .sortir{display:block}
   background:#fdfdfb;border:1px solid var(--trait);border-radius:12px;overflow:hidden;user-select:none;
 }
 
-/* --- bandeau du haut : total, piste, score --- */
+/* --- bandeau du haut : total, piste, joueurs --- */
 .regle{position:absolute;left:0;right:0;top:18px;text-align:center;font-size:16px;font-weight:600;color:var(--gris)}
 .total{position:absolute;left:40px;top:50px;width:190px}
-.total .lbl,.score .lbl{font-size:14px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--gris)}
+.lbl{font-size:14px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--gris)}
 .total .val{font-size:74px;font-weight:700;line-height:1;letter-spacing:-.02em;font-variant-numeric:tabular-nums;margin-top:4px}
 .total .val.change{animation:pop .5s cubic-bezier(.2,.8,.3,1)}
 @keyframes pop{from{transform:scale(1.18);color:var(--bleu-fonce)}to{transform:scale(1)}}
 
-.piste{position:absolute;left:250px;top:110px;width:410px;height:10px;border-radius:5px;background:#e6e8ee}
+.piste{position:absolute;left:250px;top:110px;width:390px;height:10px;border-radius:5px;background:#e6e8ee}
 .piste .rempli{position:absolute;left:0;top:0;height:100%;border-radius:5px;background:var(--bleu-fonce);transition:width .5s}
 .piste .repere{
   position:absolute;top:-32px;transform:translateX(-50%);font-size:15px;font-weight:700;color:var(--bleu-fonce);
@@ -68,9 +76,17 @@ body.pleinecran .plein .sortir{display:block}
 .piste .borne.fin{right:0;transform:translateX(50%);color:var(--encre)}
 .piste .drapeau{position:absolute;right:-1px;top:-8px;width:3px;height:26px;background:var(--encre);border-radius:2px}
 
-.score{position:absolute;right:40px;top:50px;width:170px;text-align:right}
-.score .val{font-size:30px;font-weight:700;margin-top:10px;font-variant-numeric:tabular-nums;white-space:nowrap}
-.score .noms{font-size:13.5px;font-weight:600;color:var(--gris);margin-top:4px}
+.joueurs{position:absolute;right:36px;top:50px;width:200px}
+.joueurs .lbl{text-align:right}
+.ligne-j{
+  display:flex;align-items:center;gap:8px;margin-top:6px;padding:4px 8px;border-radius:8px;
+  font-size:19px;font-weight:700;color:var(--gris);
+}
+.ligne-j .nom{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ligne-j .pts{font-variant-numeric:tabular-nums;font-size:22px}
+.ligne-j .point{width:9px;height:9px;border-radius:50%;flex:none;background:transparent}
+.ligne-j.actif{color:var(--encre);background:#eef2fa}
+.ligne-j.actif .point{background:var(--bleu-fonce)}
 
 /* --- cartes --- */
 .cartes{
@@ -90,7 +106,7 @@ body.pleinecran .plein .sortir{display:block}
 .c.choisie{transform:translateY(-5px) rotate(0)!important;outline:3px solid var(--bleu-fonce);outline-offset:2px}
 .c.ordi{outline:3px solid var(--gris);outline-offset:2px;transform:translateY(-5px) rotate(0)!important}
 .c.jouee{opacity:.28;box-shadow:none;cursor:default}
-.c .qui{position:absolute;left:0;right:0;bottom:3px;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--encre)}
+.c .qui{position:absolute;left:2px;right:2px;bottom:3px;font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--encre);overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
 .feuille:not(.jouable) .c.libre{cursor:default}
 
 /* --- zone de calcul --- */
@@ -102,6 +118,7 @@ body.pleinecran .plein .sortir{display:block}
 .calcul.entre{animation:entre .4s cubic-bezier(.2,.8,.3,1)}
 @keyframes entre{from{opacity:0;translate:40px 0}to{opacity:1;translate:0 0}}
 .calcul .invite{font-size:30px;font-weight:600;color:var(--gris)}
+.calcul .invite b{color:var(--encre)}
 .calcul .juste{color:var(--bleu-fonce)}
 .calcul input{
   width:150px;height:76px;font:inherit;font-size:52px;text-align:center;color:var(--bleu-fonce);
@@ -111,7 +128,7 @@ body.pleinecran .plein .sortir{display:block}
 .calcul input.faux{border-color:var(--rouge);animation:secoue .35s}
 @keyframes secoue{25%{translate:-7px 0}50%{translate:7px 0}75%{translate:-4px 0}}
 .calcul .valider{font-size:22px;padding:14px 22px}
-.calcul .fin{font-size:44px}
+.calcul .fin{font-size:44px;max-width:520px;overflow:hidden;text-overflow:ellipsis}
 .calcul .fin.gagne{color:var(--vert)}
 .calcul .fin.perdu{color:var(--rouge)}
 .calcul .nouvelle{font-size:22px;padding:14px 24px}
@@ -130,6 +147,79 @@ body.pleinecran .plein .sortir{display:block}
 .niveau button:first-of-type{border-radius:9px 0 0 9px}
 .niveau button:last-of-type{border-radius:0 9px 9px 0;border-left:none}
 .niveau button.actif{background:var(--bleu-fonce);border-color:var(--bleu-fonce);color:#fff}
+.etiquette{position:absolute;right:30px;bottom:32px;font-size:15px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--gris)}
+
+/* --- écrans (accueil, inscription, tableau) par-dessus la feuille --- */
+.ecran{position:absolute;inset:0;background:#fdfdfb;z-index:20;padding:34px 46px;display:none}
+.ecran.visible{display:block}
+.ecran h1{margin:0;font-size:40px;letter-spacing:-.01em;text-align:center}
+.ecran h2{margin:0;font-size:30px;letter-spacing:-.01em}
+.ecran .sous{margin:8px 0 0;text-align:center;font-size:18px;font-weight:600;color:var(--gris)}
+.modes{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;margin-top:40px}
+.mode{
+  height:220px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;
+  font-size:26px;border-radius:14px;padding:18px;text-align:center;
+}
+.mode svg{width:56px;height:56px}
+.mode small{font-size:16px;font-weight:600;color:var(--gris);line-height:1.35}
+.mode:hover{border-color:var(--bleu-fonce)}
+.reprendre{display:block;margin:28px auto 0;font-size:18px;padding:12px 22px}
+
+.formulaire{margin-top:26px;display:flex;flex-direction:column;gap:18px}
+.champ{display:flex;align-items:center;gap:14px;font-size:20px;font-weight:700}
+.champ label{width:120px;color:var(--gris)}
+.ecran input[type=text]{
+  font:inherit;font-size:22px;font-weight:600;padding:10px 14px;border:2px solid #b9bec9;border-radius:10px;width:340px;
+}
+.ecran input[type=text]:focus{outline:none;border-color:var(--bleu-fonce)}
+.bas{position:absolute;left:46px;right:46px;bottom:28px;display:flex;justify-content:space-between;align-items:center;gap:12px}
+.bas button{font-size:18px;padding:12px 22px}
+.bas .info{flex:1;text-align:center;font-size:17px;font-weight:600;color:var(--gris)}
+
+.ajout{display:flex;gap:10px;align-items:center}
+.ajout input[type=text]{width:460px}
+.ajout button{font-size:18px;padding:12px 18px}
+.liste{display:flex;flex-wrap:wrap;gap:8px;min-height:96px;align-content:flex-start;max-height:150px;overflow:auto}
+.puce{display:flex;align-items:center;gap:6px;background:#eef2fa;border-radius:20px;padding:6px 6px 6px 14px;font-size:17px;font-weight:700}
+.puce.ordi{background:#eceef2;color:var(--gris)}
+.puce button{width:26px;height:26px;padding:0;border-radius:50%;font-size:15px;line-height:1;border:none;background:transparent;color:var(--gris)}
+.options{display:flex;gap:34px;align-items:flex-start}
+.groupe{display:flex;flex-direction:column;gap:8px}
+.groupe .lbl{margin-bottom:2px}
+.radio{display:flex;align-items:center;gap:10px;font-size:18px;font-weight:600;cursor:pointer}
+.radio input{width:20px;height:20px;accent-color:var(--bleu-fonce);margin:0}
+.radio small{color:var(--gris);font-weight:600}
+
+/* tableau du tournoi */
+.tab-haut{display:flex;align-items:baseline;justify-content:space-between}
+.tab-haut .sous{text-align:left;margin:0}
+.tab-corps{display:flex;gap:26px;margin-top:18px;height:390px}
+.tab-gauche{flex:1;min-width:0;overflow:auto}
+.tab-droite{width:250px;flex:none;display:flex;flex-direction:column;gap:12px}
+table.classement{width:100%;border-collapse:collapse;font-size:16px;font-variant-numeric:tabular-nums}
+.classement th{text-align:left;font-size:12.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--gris);padding:4px 8px;border-bottom:1px solid var(--trait)}
+.classement td{padding:4px 8px;border-bottom:1px solid #eef0f3;font-weight:600}
+.classement td.n,.classement th.n{text-align:center;width:44px}
+.classement td.rang{width:36px;color:var(--gris)}
+.classement tr.tete td{color:var(--bleu-fonce)}
+.carte-match{border:1px solid var(--trait);border-radius:12px;padding:16px;background:#fff}
+.carte-match .vs{font-size:21px;font-weight:700;margin-top:8px;line-height:1.35;word-break:break-word}
+.carte-match .vs span{display:block;font-size:14px;color:var(--gris);font-weight:700;letter-spacing:.1em;text-transform:uppercase}
+.carte-match button{margin-top:14px;width:100%;font-size:20px;padding:13px}
+.champion{font-size:26px;font-weight:700;color:var(--vert);line-height:1.3}
+.avancement{font-size:16px;font-weight:600;color:var(--gris)}
+.arbre{display:flex;gap:14px;height:100%}
+.colonne{flex:1;min-width:0;display:flex;flex-direction:column}
+.colonne .lbl{text-align:center;margin-bottom:6px;font-size:12px}
+.colonne .matchs{flex:1;display:flex;flex-direction:column;justify-content:space-around;gap:3px}
+.m{border:1px solid var(--trait);border-radius:6px;background:#fff;font-size:13px;font-weight:600;overflow:hidden}
+.m div{padding:1px 7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;height:19px;line-height:17px}
+.m div+div{border-top:1px solid #eef0f3}
+.m .g{color:var(--vert);font-weight:800}
+.m .p{color:#a6abb6;text-decoration:line-through}
+.m .vide{color:#b9bec9}
+.m.suivant{border-color:var(--bleu-fonce);box-shadow:0 0 0 2px #dbe4f5}
+
 @media (prefers-reduced-motion:reduce){.calcul.entre,.total .val.change,.calcul input.faux{animation:none}}
 </style>
 </head>
@@ -161,7 +251,7 @@ body.pleinecran .plein .sortir{display:block}
 
           <div class="total"><div class="lbl">Total</div><div class="val" id="total">4</div></div>
 
-          <div class="piste" id="piste">
+          <div class="piste">
             <div class="rempli" id="rempli"></div>
             <div class="repere" id="repere">4</div>
             <div class="drapeau"></div>
@@ -169,10 +259,10 @@ body.pleinecran .plein .sortir{display:block}
             <div class="borne fin">93</div>
           </div>
 
-          <div class="score">
-            <div class="lbl">Score</div>
-            <div class="val" id="score">0 – 0</div>
-            <div class="noms">Vous – Ordinateur</div>
+          <div class="joueurs">
+            <div class="lbl" id="lbl-joueurs">Score</div>
+            <div class="ligne-j" id="j0"><span class="point"></span><span class="nom"></span><span class="pts"></span></div>
+            <div class="ligne-j" id="j1"><span class="point"></span><span class="nom"></span><span class="pts"></span></div>
           </div>
 
           <div class="cartes" id="cartes"></div>
@@ -180,7 +270,12 @@ body.pleinecran .plein .sortir{display:block}
           <div class="message" id="message" aria-live="polite"></div>
 
           <div class="outils">
-            <button id="btn-reset" title="Nouvelle partie" aria-label="Nouvelle partie">
+            <button id="btn-menu" title="Menu" aria-label="Menu">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#151a2e" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 11.5 12 5l8 6.5"/><path d="M6.5 10v9h11v-9"/>
+              </svg>
+            </button>
+            <button id="btn-reset" title="Recommencer la partie" aria-label="Recommencer la partie">
               <svg viewBox="0 0 24 24" fill="none" stroke="#151a2e" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20 4v4.6h-4.6"/>
               </svg>
@@ -190,6 +285,86 @@ body.pleinecran .plein .sortir{display:block}
             <span>Ordinateur</span>
             <button type="button" data-niv="facile" class="actif">Facile</button>
             <button type="button" data-niv="expert">Expert</button>
+          </div>
+          <div class="etiquette" id="etiquette"></div>
+
+          <!-- accueil -->
+          <div class="ecran" id="e-accueil">
+            <h1>Black Jack sur 93</h1>
+            <p class="sous">Choisissez une façon de jouer.</p>
+            <div class="modes">
+              <button type="button" class="mode" data-mode="solo">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#1f4fa8" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg>
+                Contre l'ordinateur<small>Un joueur, deux niveaux</small>
+              </button>
+              <button type="button" class="mode" data-mode="duo">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#1f4fa8" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="3.2"/><circle cx="16.5" cy="8" r="3.2"/><path d="M2.5 20c0-3.3 2.5-5.5 5.5-5.5s5.5 2.2 5.5 5.5M11 20c0-3.3 2.5-5.5 5.5-5.5S22 16.7 22 20"/></svg>
+                À deux<small>Deux joueurs sur le même écran</small>
+              </button>
+              <button type="button" class="mode" data-mode="tournoi">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#1f4fa8" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M7 6H4v1.5A3.5 3.5 0 0 0 7.5 11M17 6h3v1.5a3.5 3.5 0 0 1-3.5 3.5M12 14v3M8.5 20h7l-.8-3H9.3z"/></svg>
+                Tournoi<small>Toute la classe, sur cet ordinateur</small>
+              </button>
+            </div>
+            <button type="button" class="reprendre primaire" id="btn-reprendre">Reprendre le tournoi en cours</button>
+          </div>
+
+          <!-- inscription à deux -->
+          <div class="ecran" id="e-duo">
+            <h2>À deux</h2>
+            <div class="formulaire">
+              <div class="champ"><label for="duo1">Joueur 1</label><input type="text" id="duo1" maxlength="18" autocomplete="off"></div>
+              <div class="champ"><label for="duo2">Joueur 2</label><input type="text" id="duo2" maxlength="18" autocomplete="off"></div>
+            </div>
+            <div class="bas">
+              <button type="button" data-aller="accueil">Retour</button>
+              <span class="info">Le joueur 1 commence ; ensuite, on alterne à chaque partie.</span>
+              <button type="button" class="primaire" id="btn-duo">Commencer</button>
+            </div>
+          </div>
+
+          <!-- inscription au tournoi -->
+          <div class="ecran" id="e-inscription">
+            <h2>Tournoi · inscription</h2>
+            <div class="formulaire">
+              <div class="ajout">
+                <input type="text" id="nom-ajout" placeholder="Prénom (ou liste séparée par des virgules)" autocomplete="off">
+                <button type="button" id="btn-ajout">Ajouter</button>
+              </div>
+              <div class="liste" id="liste"></div>
+              <div class="options">
+                <div class="groupe">
+                  <div class="lbl">Format</div>
+                  <label class="radio"><input type="radio" name="format" value="champ" checked> Championnat <small>chacun contre chacun</small></label>
+                  <label class="radio"><input type="radio" name="format" value="elim"> Élimination directe</label>
+                </div>
+                <div class="groupe">
+                  <div class="lbl">Ordinateur</div>
+                  <label class="radio"><input type="checkbox" id="avec-ordi"> Il participe aussi</label>
+                  <label class="radio"><input type="radio" name="tniv" value="facile" checked> Facile</label>
+                  <label class="radio"><input type="radio" name="tniv" value="expert"> Expert</label>
+                </div>
+              </div>
+            </div>
+            <div class="bas">
+              <button type="button" data-aller="accueil">Retour</button>
+              <span class="info" id="info-inscr"></span>
+              <button type="button" class="primaire" id="btn-lancer">Lancer le tournoi</button>
+            </div>
+          </div>
+
+          <!-- tableau du tournoi -->
+          <div class="ecran" id="e-tableau">
+            <div class="tab-haut"><h2 id="tab-titre">Tournoi</h2><p class="sous" id="tab-sous"></p></div>
+            <div class="tab-corps">
+              <div class="tab-gauche" id="tab-gauche"></div>
+              <div class="tab-droite" id="tab-droite"></div>
+            </div>
+            <div class="bas">
+              <button type="button" data-aller="accueil">Menu</button>
+              <span class="info"></span>
+              <button type="button" id="btn-arreter">Arrêter le tournoi</button>
+            </div>
           </div>
         </div>
       </div>
@@ -201,32 +376,37 @@ body.pleinecran .plein .sortir{display:block}
 (function(){
   "use strict";
 
-  const scene   = document.getElementById("scene");
-  const boite   = document.getElementById("boite");
-  const stage   = document.getElementById("stage");
-  const feuille = document.getElementById("feuille");
-  const zCartes = document.getElementById("cartes");
-  const calcul  = document.getElementById("calcul");
-  const message = document.getElementById("message");
-  const elTotal = document.getElementById("total");
-  const elScore = document.getElementById("score");
-  const rempli  = document.getElementById("rempli");
-  const repere  = document.getElementById("repere");
+  const $ = id => document.getElementById(id);
+  const scene = $("scene"), boite = $("boite"), stage = $("stage"), feuille = $("feuille");
+  const zCartes = $("cartes"), calcul = $("calcul"), message = $("message");
+  const elTotal = $("total"), rempli = $("rempli"), repere = $("repere");
   const LARGE = 900, HAUT = 560;
 
   /* ---------- contenu ---------- */
   const DEPART = 4, CIBLE = 93;
   const CARTES = [-17, -9, -2, 1, 2, 3, 5, 6, 7, 8, 11, 13, 15, 19, 22, 31];
-  const ESSAIS = 2;                               // essais de l'apprenant avant que la réponse soit donnée
+  const ESSAIS = 2;                               // essais d'un joueur humain avant que la réponse soit donnée
+  const MAX_JOUEURS = 16;
+  const CLE = "bj93_tournoi";
 
-  let masque = 0, total = DEPART, tour = "joueur", choix = -1, essais = 0, fini = true;
-  let premier = "joueur", niveau = "facile", pts = {joueur:0, ordi:0}, minuteurs = [];
-  const qui = new Array(CARTES.length).fill("");
+  /* ---------- état ---------- */
+  let mode = "solo";                              // solo | duo | tournoi
+  let J = [];                                     // joueurs de la partie : {nom, ordi}
+  let pts = [0, 0];                               // score affiché (solo, duo)
+  let premier = 0;                                // qui commence la prochaine partie (solo, duo)
+  let niveau = "facile";                          // niveau en mode solo
+  let masque = 0, total = DEPART, tour = 0, choix = -1, essais = 0, fini = true, minuteurs = [];
+  const qui = new Array(CARTES.length).fill(-1);
+  let T = null;                                   // tournoi en cours
+  let partieT = null;                             // index de la partie du tournoi jouée
 
   const MOINS = "−", INSEC = " ";
   function signe(v){ return (v < 0 ? MOINS : "+") + INSEC + Math.abs(v); }
   function nb(v){ return v < 0 ? MOINS + Math.abs(v) : String(v); }
   function operation(t, v){ return nb(t) + INSEC + (v < 0 ? MOINS : "+") + INSEC + Math.abs(v) + INSEC + "="; }
+  function esc(s){ return String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+  function auHasard(l){ return l[Math.floor(Math.random() * l.length)]; }
+  function melanger(l){ for(let i = l.length - 1; i > 0; i--){ const k = Math.floor(Math.random() * (i + 1)); [l[i], l[k]] = [l[k], l[i]]; } return l; }
 
   /* ---------- jeu parfait : gagne(m) = le joueur au trait gagne-t-il ? ---------- */
   const memo = new Int8Array(1 << CARTES.length);    // 0 inconnu, 1 gagnant, 2 perdant
@@ -242,7 +422,7 @@ body.pleinecran .plein .sortir{display:block}
     memo[m] = r ? 1 : 2;
     return r;
   }
-  function auHasard(l){ return l[Math.floor(Math.random() * l.length)]; }
+  function niveauOrdi(){ return mode === "tournoi" && T ? T.niveau : niveau; }
   function coupOrdi(){
     const libres = [], surs = [], exacts = [], gagnants = [];
     for(let i = 0; i < CARTES.length; i++){
@@ -253,12 +433,19 @@ body.pleinecran .plein .sortir{display:block}
       else if(v < CIBLE){ surs.push(i); if(!gagne(masque | (1 << i))) gagnants.push(i); }
     }
     if(exacts.length) return exacts[0];
-    if(niveau === "expert" && gagnants.length) return auHasard(gagnants);
+    if(niveauOrdi() === "expert" && gagnants.length) return auHasard(gagnants);
     if(surs.length) return auHasard(surs);
     return auHasard(libres);                          // toutes les cartes dépassent : perdu
   }
 
-  /* ---------- affichage ---------- */
+  /* ---------- formulations ---------- */
+  const vous = k => mode === "solo" && !J[k].ordi;   // en solo, l'humain est « vous »
+  function sujet(k){ return vous(k) ? "Vous" : J[k].ordi ? "L'ordinateur" : esc(J[k].nom); }
+  function aQui(k){ return vous(k) ? "À vous" : J[k].ordi ? "À l'ordinateur" : "À " + esc(J[k].nom); }
+  function auTourDe(k){ return J[k].ordi ? "Au tour de l'ordinateur…" : vous(k) ? "À vous." : "Au tour de <b>" + esc(J[k].nom) + "</b>."; }
+  function etiquetteCarte(k){ return vous(k) ? "vous" : J[k].ordi ? "ordi" : J[k].nom; }
+
+  /* ---------- affichage du jeu ---------- */
   function dessinerCartes(){
     zCartes.innerHTML = "";
     CARTES.forEach(function(v, i){
@@ -266,13 +453,22 @@ body.pleinecran .plein .sortir{display:block}
       b.type = "button"; b.className = "c"; b.dataset.i = i;
       const joue = masque & (1 << i);
       b.classList.add(joue ? "jouee" : "libre");
-      if(i === choix) b.classList.add(tour === "ordi" ? "ordi" : "choisie");
-      b.innerHTML = signe(v) + (joue ? '<span class="qui">' + (qui[i] === "ordi" ? "ordi" : "vous") + '</span>' : "");
+      if(i === choix) b.classList.add(J[tour].ordi ? "ordi" : "choisie");
+      b.innerHTML = signe(v) + (joue ? '<span class="qui">' + esc(etiquetteCarte(qui[i])) + '</span>' : "");
       b.setAttribute("aria-label", "Carte " + (v < 0 ? "moins " : "plus ") + Math.abs(v) + (joue ? ", déjà jouée" : ""));
       if(joue) b.disabled = true;
       zCartes.appendChild(b);
     });
-    feuille.classList.toggle("jouable", tour === "joueur" && !fini);
+    feuille.classList.toggle("jouable", !fini && !J[tour].ordi);
+  }
+  function majJoueurs(){
+    $("lbl-joueurs").textContent = mode === "tournoi" ? "Victoires" : "Score";
+    [0, 1].forEach(function(k){
+      const l = $("j" + k);
+      l.querySelector(".nom").textContent = vous(k) ? "Vous" : J[k].nom;
+      l.querySelector(".pts").textContent = mode === "tournoi" ? victoires(J[k].id) : pts[k];
+      l.classList.toggle("actif", !fini && tour === k);
+    });
   }
   function majTotal(anim){
     elTotal.textContent = nb(total);
@@ -282,119 +478,323 @@ body.pleinecran .plein .sortir{display:block}
     repere.style.left = p + "%";
     repere.textContent = nb(total);
     repere.style.visibility = (total >= CIBLE || total <= 0) ? "hidden" : "visible";
-    elScore.textContent = pts.joueur + " – " + pts.ordi;
+    majJoueurs();
   }
   function zone(html){
     calcul.innerHTML = html;
     calcul.classList.remove("entre"); void calcul.offsetWidth; calcul.classList.add("entre");
   }
   function dire(html){ message.innerHTML = html; }
-
-  function plus_tard(f, ms){ minuteurs.push(setTimeout(f, ms)); }
+  function plusTard(f, ms){ minuteurs.push(setTimeout(f, ms)); }
   function annulerMinuteurs(){ minuteurs.forEach(clearTimeout); minuteurs = []; }
 
-  /* ---------- déroulement ---------- */
-  function nouvellePartie(){
+  /* ---------- déroulement d'une partie ---------- */
+  function demarrerPartie(qCommence){
     annulerMinuteurs();
     masque = 0; total = DEPART; choix = -1; essais = 0; fini = false;
-    qui.fill("");
-    tour = premier;
-    premier = premier === "joueur" ? "ordi" : "joueur";   // alternance pour la partie suivante
+    qui.fill(-1);
+    tour = qCommence;
+    $("niveau").style.display = (mode === "solo") ? "" : "none";
+    $("etiquette").textContent = mode === "tournoi" ? etiquetteTournoi() : "";
     majTotal(false);
-    if(tour === "joueur") tourJoueur("<b>Vous commencez.</b> Choisissez une carte.");
-    else tourOrdi("<b>L'ordinateur commence.</b>");
+    const deb = sujet(tour) + (vous(tour) ? " commencez." : " commence.");
+    if(J[tour].ordi) tourOrdi("<b>" + deb + "</b>");
+    else tourHumain("<b>" + deb + "</b> Choisissez une carte.");
   }
 
-  function tourJoueur(texte){
-    tour = "joueur"; choix = -1; essais = 0;
-    dessinerCartes();
-    zone('<span class="invite">À vous : choisissez une carte.</span>');
+  function tourHumain(texte){
+    choix = -1; essais = 0;
+    dessinerCartes(); majJoueurs();
+    zone('<span class="invite"><b>' + aQui(tour) + '</b> : choisissez une carte.</span>');
     dire(texte || "");
   }
 
   function choisir(i){
-    if(fini || tour !== "joueur" || (masque & (1 << i))) return;
+    if(fini || J[tour].ordi || (masque & (1 << i))) return;
     choix = i; essais = 0;
     dessinerCartes();
     zone('<span>' + operation(total, CARTES[i]) + '</span>' +
          '<input id="rep" type="text" inputmode="numeric" autocomplete="off" aria-label="Nouveau total">' +
          '<button type="button" class="valider" id="btn-valider">Valider</button>');
-    dire("Calculez le nouveau total, puis validez (touche Entrée).");
-    const rep = document.getElementById("rep");
-    rep.focus();
+    dire((mode === "solo" ? "Calculez" : "<b>" + esc(J[tour].nom) + "</b>, calculez") +
+         " le nouveau total, puis validez (touche Entrée).");
+    $("rep").focus();
   }
 
   function valider(){
-    if(fini || tour !== "joueur" || choix < 0) return;
-    const rep = document.getElementById("rep");
+    if(fini || J[tour].ordi || choix < 0) return;
+    const rep = $("rep");
     const brut = rep.value.trim().replace(/[−–]/g, "-").replace(/\s/g, "");
     if(!/^-?\d+$/.test(brut)){ rep.focus(); dire("Écrivez un nombre entier."); return; }
     const juste = total + CARTES[choix];
-    if(parseInt(brut, 10) === juste){
-      jouer(choix, "joueur", '<span class="ok">Juste !</span>');
-      return;
-    }
+    if(parseInt(brut, 10) === juste){ jouer(choix, '<span class="ok">Juste !</span>'); return; }
     essais++;
     if(essais < ESSAIS){
       rep.classList.remove("faux"); void rep.offsetWidth; rep.classList.add("faux");
       rep.select();
       dire('<span class="non">Ce n\'est pas juste.</span> Recalculez.');
     } else {
-      jouer(choix, "joueur", '<span class="non">Pas tout à fait :</span> le bon résultat est <b>' + nb(juste) + '</b>.');
+      jouer(choix, '<span class="non">Pas tout à fait :</span> le bon résultat est <b>' + nb(juste) + '</b>.');
     }
   }
 
-  /* applique la carte i pour l'auteur, puis enchaîne */
-  function jouer(i, auteur, commentaire){
-    const v = CARTES[i], avant = total;
+  /* applique la carte i pour le joueur au trait, puis passe la main */
+  function jouer(i, commentaire){
+    const v = CARTES[i], avant = total, auteur = tour;
     total += v; masque |= (1 << i); qui[i] = auteur;
     zone('<span>' + operation(avant, v) + INSEC + '</span><span class="juste">' + nb(total) + '</span>');
-    majTotal(true);
     choix = -1;
-    if(total >= CIBLE){ finPartie(auteur); dessinerCartes(); return; }
-    dessinerCartes();
-    if(auteur === "joueur"){
-      tour = "ordi"; dessinerCartes();
-      dire(commentaire + " Au tour de l'ordinateur…");
-      plus_tard(function(){ tourOrdi(""); }, 1600);
-    } else {
-      plus_tard(function(){
-        tourJoueur("L'ordinateur a joué <b>" + signe(v) + "</b> : " + nb(avant) + " " + (v < 0 ? MOINS : "+") + " " + Math.abs(v) + " = <b>" + nb(total) + "</b>. À vous.");
+    if(total >= CIBLE){ fini = true; majTotal(true); dessinerCartes(); finPartie(auteur); return; }
+    tour = 1 - auteur;
+    majTotal(true); dessinerCartes();
+    if(J[auteur].ordi){
+      plusTard(function(){
+        tourHumain("L'ordinateur a joué <b>" + signe(v) + "</b> : " + nb(avant) + " " + (v < 0 ? MOINS : "+") + " " +
+                   Math.abs(v) + " = <b>" + nb(total) + "</b>. " + auTourDe(tour));
       }, 1500);
+    } else {
+      dire(commentaire + " " + auTourDe(tour));
+      plusTard(function(){ if(J[tour].ordi) tourOrdi(""); else tourHumain(commentaire + " " + auTourDe(tour)); }, 1600);
     }
   }
 
   function tourOrdi(texte){
-    tour = "ordi"; choix = -1;
-    dessinerCartes();
+    choix = -1;
+    dessinerCartes(); majJoueurs();
     zone('<span class="invite">L\'ordinateur réfléchit…</span>');
     dire(texte);
-    plus_tard(function(){
+    plusTard(function(){
       const i = coupOrdi();
       choix = i; dessinerCartes();
       zone('<span>' + operation(total, CARTES[i]) + INSEC + '</span><span class="invite">…</span>');
-      plus_tard(function(){ jouer(i, "ordi", ""); }, 1100);
+      plusTard(function(){ jouer(i, ""); }, 1100);
     }, 900);
   }
 
   function finPartie(auteur){
-    fini = true;
     const exact = total === CIBLE;
-    const joueurGagne = (auteur === "joueur") === exact;
-    pts[joueurGagne ? "joueur" : "ordi"]++;
-    majTotal(false);
-    const fin = joueurGagne ? "Vous gagnez !" : "L'ordinateur gagne.";
-    plus_tard(function(){
-      zone('<span class="fin ' + (joueurGagne ? "gagne" : "perdu") + '">' + fin + '</span>' +
-           '<button type="button" class="nouvelle" id="btn-nouvelle">Nouvelle partie</button>');
-      const qui_ = auteur === "joueur" ? "Vous arrivez" : "L'ordinateur arrive";
-      dire(exact
-        ? qui_ + " <b>exactement à 93</b>."
-        : qui_ + " à <b>" + nb(total) + "</b> : c'est plus que 93.");
-      const b = document.getElementById("btn-nouvelle"); if(b) b.focus();
-    }, 1300);
+    const g = exact ? auteur : 1 - auteur;
+    if(mode === "tournoi") enregistrerResultat(J[g].id);
+    else pts[g]++;
+    majJoueurs();
+    const humainPerd = mode === "solo" && J[g].ordi;
+    const titre = vous(g) ? "Vous gagnez !" : sujet(g) + " gagne" + (J[g].ordi ? "." : " !");
     dire(exact ? "<b>93 !</b>" : "<b>" + nb(total) + " &gt; 93</b>");
+    plusTard(function(){
+      const bouton = mode === "tournoi"
+        ? (T.fin ? "Voir le classement" : "Retour au tableau")
+        : "Nouvelle partie";
+      zone('<span class="fin ' + (humainPerd ? "perdu" : "gagne") + '">' + titre + '</span>' +
+           '<button type="button" class="nouvelle" id="btn-nouvelle">' + bouton + '</button>');
+      const s = sujet(auteur), arrive = vous(auteur) ? " arrivez" : " arrive";
+      dire(exact ? s + arrive + " <b>exactement à 93</b>." : s + arrive + " à <b>" + nb(total) + "</b> : c'est plus que 93.");
+      const b = $("btn-nouvelle"); if(b) b.focus();
+    }, 1300);
   }
+
+  function nouvellePartie(){
+    if(mode === "tournoi"){ montrer("tableau"); return; }
+    const q = premier; premier = 1 - premier;
+    demarrerPartie(q);
+  }
+
+  /* ---------- écrans ---------- */
+  function montrer(nom){
+    document.querySelectorAll(".ecran").forEach(e => e.classList.toggle("visible", e.id === "e-" + nom));
+    if(nom !== "jeu") annulerMinuteurs();
+    if(nom === "accueil"){ $("btn-reprendre").style.display = T && !T.fin ? "" : "none"; }
+    if(nom === "inscription"){ majInscription(); $("nom-ajout").focus(); }
+    if(nom === "duo") $("duo1").focus();
+    if(nom === "tableau") dessinerTableau();
+  }
+
+  function lancerSolo(){
+    mode = "solo";
+    J = [{nom:"Vous", ordi:false}, {nom:"Ordinateur", ordi:true}];
+    pts = [0, 0]; premier = 0;
+    montrer("jeu"); nouvellePartie();
+  }
+  function lancerDuo(){
+    const a = $("duo1").value.trim() || "Joueur 1", b = $("duo2").value.trim() || "Joueur 2";
+    mode = "duo";
+    J = [{nom:a, ordi:false}, {nom:b === a ? b + " (2)" : b, ordi:false}];
+    pts = [0, 0]; premier = 0;
+    montrer("jeu"); nouvellePartie();
+  }
+
+  /* ---------- tournoi ---------- */
+  let inscrits = [];
+  function ajouterNoms(texte){
+    texte.split(/[,;\n]+/).map(s => s.trim()).filter(Boolean).forEach(function(n){
+      n = n.slice(0, 18);
+      if(inscrits.length + ($("avec-ordi").checked ? 1 : 0) >= MAX_JOUEURS) return;
+      if(n.toLowerCase() === "ordinateur") return;
+      if(inscrits.some(x => x.toLowerCase() === n.toLowerCase())) return;
+      inscrits.push(n);
+    });
+    majInscription();
+  }
+  function participants(){ return inscrits.length + ($("avec-ordi").checked ? 1 : 0); }
+  function nbParties(n, f){ return f === "champ" ? n * (n - 1) / 2 : Math.max(0, n - 1); }
+  function majInscription(){
+    $("liste").innerHTML = inscrits.map((n, i) =>
+      '<span class="puce">' + esc(n) + '<button type="button" data-suppr="' + i + '" aria-label="Retirer ' + esc(n) + '">✕</button></span>').join("") +
+      ($("avec-ordi").checked ? '<span class="puce ordi">Ordinateur</span>' : "");
+    const n = participants(), f = document.querySelector("input[name=format]:checked").value;
+    $("info-inscr").textContent = n < 2 ? "Inscrivez au moins 2 participants."
+      : n + " participants · " + nbParties(n, f) + " parties" + (n >= MAX_JOUEURS ? " (maximum atteint)" : "");
+    $("btn-lancer").disabled = n < 2;
+    $("btn-ajout").disabled = n >= MAX_JOUEURS;
+  }
+
+  /* championnat : méthode du cercle (une ronde = chacun joue au plus une fois) */
+  function calendrier(n){
+    const ids = [...Array(n).keys()]; if(n % 2) ids.push(-1);
+    const m = ids.length, res = [];
+    let rot = ids.slice();
+    for(let r = 0; r < m - 1; r++){
+      for(let i = 0; i < m / 2; i++){
+        const a = rot[i], b = rot[m - 1 - i];
+        if(a >= 0 && b >= 0) res.push({a:(r % 2 ? b : a), b:(r % 2 ? a : b), g:null, r:r});
+      }
+      rot = [rot[0], rot[m - 1]].concat(rot.slice(1, m - 1));
+    }
+    return res;
+  }
+  /* élimination : tableau à 2^k places, exemptions au 1er tour */
+  function arbre(n){
+    let taille = 1; while(taille < n) taille *= 2;
+    const ordre = melanger([...Array(n).keys()]);
+    while(ordre.length < taille) ordre.push(-1);          // -1 = exempt
+    const tours = [[]];
+    for(let i = 0; i < taille / 2; i++) tours[0].push({a:ordre[i], b:ordre[taille - 1 - i], g:null});
+    for(let t = taille / 4; t >= 1; t /= 2) tours.push(Array.from({length:t}, () => ({a:null, b:null, g:null})));
+    tours[0].forEach(function(mt, i){ if(mt.b === -1){ mt.g = mt.a; avancer(tours, 0, i); } });
+    return tours;
+  }
+  function avancer(tours, t, i){
+    if(t + 1 >= tours.length) return;
+    const suiv = tours[t + 1][Math.floor(i / 2)];
+    if(i % 2 === 0) suiv.a = tours[t][i].g; else suiv.b = tours[t][i].g;
+  }
+
+  function lancerTournoi(){
+    const noms = inscrits.slice();
+    const joueurs = noms.map(n => ({nom:n, ordi:false}));
+    if($("avec-ordi").checked) joueurs.push({nom:"Ordinateur", ordi:true});
+    melanger(joueurs);
+    const format = document.querySelector("input[name=format]:checked").value;
+    T = {format, joueurs, niveau:document.querySelector("input[name=tniv]:checked").value, fin:false};
+    if(format === "champ") T.matchs = calendrier(joueurs.length);
+    else T.tours = arbre(joueurs.length);
+    verifierFin(); sauver();
+    mode = "tournoi";
+    montrer("tableau");
+  }
+
+  function toutesParties(){ return T.format === "champ" ? T.matchs : [].concat(...T.tours); }
+  function partiesReelles(){ return toutesParties().filter(m => m.a !== null && m.b !== null && m.a >= 0 && m.b >= 0); }
+  function prochaine(){
+    if(T.format === "champ") return T.matchs.find(m => m.g === null) || null;
+    for(const tr of T.tours) for(const m of tr) if(m.g === null && m.a !== null && m.b !== null && m.a >= 0 && m.b >= 0) return m;
+    return null;
+  }
+  function victoires(id){ return T ? toutesParties().filter(m => m.g === id && m.a >= 0 && m.b >= 0).length : 0; }
+  function jouees(id){ return toutesParties().filter(m => m.g !== null && m.a >= 0 && m.b >= 0 && (m.a === id || m.b === id)).length; }
+  function verifierFin(){ T.fin = !prochaine(); }
+  function nomDe(id){ return id === null ? "" : id < 0 ? "exempt" : T.joueurs[id].nom; }
+  function nomTour(t, n){
+    const reste = n - t;
+    return reste === 1 ? "Finale" : reste === 2 ? "Demi-finales" : reste === 3 ? "Quarts" : reste === 4 ? "Huitièmes" : (t + 1) + "e tour";
+  }
+  function etiquetteTournoi(){
+    if(T.format === "champ"){ const n = T.matchs.indexOf(partieT) + 1; return "Tournoi · partie " + n + " / " + T.matchs.length; }
+    for(let t = 0; t < T.tours.length; t++) if(T.tours[t].includes(partieT)) return "Tournoi · " + nomTour(t, T.tours.length);
+    return "Tournoi";
+  }
+
+  function jouerProchaine(){
+    const m = prochaine(); if(!m) return;
+    partieT = m;
+    J = [Object.assign({id:m.a}, T.joueurs[m.a]), Object.assign({id:m.b}, T.joueurs[m.b])];
+    mode = "tournoi";
+    montrer("jeu");
+    demarrerPartie(Math.random() < .5 ? 0 : 1);             // tirage au sort de celui qui commence
+  }
+  function enregistrerResultat(idGagnant){
+    if(!partieT || partieT.g !== null) return;
+    partieT.g = idGagnant;
+    if(T.format === "elim"){
+      for(let t = 0; t < T.tours.length; t++){ const i = T.tours[t].indexOf(partieT); if(i >= 0){ avancer(T.tours, t, i); break; } }
+    }
+    verifierFin(); sauver();
+  }
+
+  function classement(){
+    return T.joueurs.map((j, id) => ({id, nom:j.nom, ordi:j.ordi, j:jouees(id), g:victoires(id)}))
+      .map(x => Object.assign(x, {p:x.j - x.g}))
+      .sort((x, y) => y.g - x.g || x.p - y.p || x.nom.localeCompare(y.nom, "fr"));
+  }
+
+  function dessinerTableau(){
+    if(!T) return;
+    const reelles = partiesReelles(), faites = reelles.filter(m => m.g !== null).length;
+    const prevues = T.format === "champ" ? T.matchs.length : T.joueurs.length - 1;
+    $("tab-titre").textContent = "Tournoi · " + (T.format === "champ" ? "championnat" : "élimination directe");
+    $("tab-sous").textContent = T.joueurs.length + " participants" +
+      (T.joueurs.some(j => j.ordi) ? " · ordinateur " + (T.niveau === "expert" ? "expert" : "facile") : "");
+    const m = prochaine();
+    let droite = "";
+    if(T.fin){
+      let vainqueur;
+      if(T.format === "champ"){
+        const c = classement(), top = c.filter(x => x.g === c[0].g);
+        vainqueur = top.map(x => esc(x.nom)).join(" et ") + (top.length > 1 ? " (ex aequo)" : "");
+      } else vainqueur = esc(nomDe(T.tours[T.tours.length - 1][0].g));
+      droite = '<div class="carte-match"><div class="lbl">Tournoi terminé</div><div class="champion">🏆 ' + vainqueur + '</div></div>';
+    } else if(m){
+      droite = '<div class="carte-match"><div class="lbl">Prochaine partie</div>' +
+        '<div class="vs">' + esc(nomDe(m.a)) + '<span>contre</span>' + esc(nomDe(m.b)) + '</div>' +
+        '<button type="button" class="primaire" id="btn-jouer">Jouer</button></div>';
+    }
+    droite += '<div class="avancement">Parties jouées : ' + faites + ' / ' + prevues + '</div>';
+    $("tab-droite").innerHTML = droite;
+
+    if(T.format === "champ"){
+      const c = classement();
+      $("tab-gauche").innerHTML = '<table class="classement"><thead><tr><th></th><th>Nom</th>' +
+        '<th class="n">J</th><th class="n">G</th><th class="n">P</th></tr></thead><tbody>' +
+        c.map((x, k) => {
+          const rang = k > 0 && x.g === c[k - 1].g && x.p === c[k - 1].p ? "" : (k + 1) + ".";
+          return '<tr class="' + (x.g === c[0].g && x.g > 0 ? "tete" : "") + '"><td class="rang">' + rang + '</td><td>' + esc(x.nom) +
+            '</td><td class="n">' + x.j + '</td><td class="n">' + x.g + '</td><td class="n">' + x.p + '</td></tr>';
+        }).join("") + '</tbody></table>';
+    } else {
+      const n = T.tours.length;
+      $("tab-gauche").innerHTML = '<div class="arbre">' + T.tours.map(function(tr, t){
+        return '<div class="colonne"><div class="lbl">' + nomTour(t, n) + '</div><div class="matchs">' +
+          tr.map(function(mt){
+            const ligne = function(id){
+              if(id === null) return '<div class="vide">…</div>';
+              if(id < 0) return '<div class="vide">exempt</div>';
+              const cl = mt.g === null || mt.a < 0 || mt.b < 0 ? "" : mt.g === id ? "g" : "p";
+              return '<div class="' + cl + '">' + esc(nomDe(id)) + '</div>';
+            };
+            return '<div class="m' + (mt === m ? " suivant" : "") + '">' + ligne(mt.a) + ligne(mt.b) + '</div>';
+          }).join("") + '</div></div>';
+      }).join("") + '</div>';
+    }
+    $("btn-arreter").textContent = T.fin ? "Effacer le tournoi" : "Arrêter le tournoi";
+    $("btn-arreter").dataset.confirmer = "";
+    const bj = $("btn-jouer"); if(bj) bj.focus();
+  }
+
+  /* sauvegarde : les parties de l'élimination sont référencées par position */
+  function sauver(){ try{ localStorage.setItem(CLE, JSON.stringify(T)); }catch(e){} }
+  function charger(){
+    try{ const t = JSON.parse(localStorage.getItem(CLE) || "null"); if(t && t.joueurs && !t.fin) T = t; }catch(e){}
+  }
+  function effacer(){ T = null; try{ localStorage.removeItem(CLE); }catch(e){} }
 
   /* ---------- événements ---------- */
   zCartes.addEventListener("click", function(e){
@@ -407,17 +807,61 @@ body.pleinecran .plein .sortir{display:block}
   });
   calcul.addEventListener("keydown", function(e){
     if(e.key === "Enter" && e.target.id === "rep"){ e.preventDefault(); valider(); }
-    else if(e.key === "Escape" && e.target.id === "rep"){ e.preventDefault(); tourJoueur(""); }
+    else if(e.key === "Escape" && e.target.id === "rep"){ e.preventDefault(); tourHumain(""); }
   });
-  document.getElementById("btn-reset").addEventListener("click", function(){
-    if(!fini) premier = premier === "joueur" ? "ordi" : "joueur";   // une partie interrompue ne fait pas avancer l'alternance
+  $("btn-reset").addEventListener("click", function(){
+    if(mode === "tournoi"){ if(partieT && partieT.g === null) demarrerPartie(Math.random() < .5 ? 0 : 1); else montrer("tableau"); return; }
+    if(!fini) premier = 1 - premier;                   // une partie interrompue ne fait pas avancer l'alternance
     nouvellePartie();
   });
-  document.getElementById("niveau").addEventListener("click", function(e){
+  $("btn-menu").addEventListener("click", function(){ montrer(mode === "tournoi" && T ? "tableau" : "accueil"); });
+  $("niveau").addEventListener("click", function(e){
     const b = e.target.closest("button[data-niv]"); if(!b) return;
     niveau = b.dataset.niv;
-    this.querySelectorAll("button").forEach(function(x){ x.classList.toggle("actif", x === b); });
+    this.querySelectorAll("button").forEach(x => x.classList.toggle("actif", x === b));
     b.blur();
+  });
+
+  document.querySelectorAll("[data-aller]").forEach(b => b.addEventListener("click", () => montrer(b.dataset.aller)));
+  document.querySelectorAll(".mode").forEach(b => b.addEventListener("click", function(){
+    const m = b.dataset.mode;
+    if(m === "solo") lancerSolo();
+    else if(m === "duo") montrer("duo");
+    else{
+      if(T && !T.fin){ mode = "tournoi"; montrer("tableau"); }
+      else { effacer(); montrer("inscription"); }
+    }
+  }));
+  $("btn-reprendre").addEventListener("click", function(){ mode = "tournoi"; montrer("tableau"); });
+  $("btn-duo").addEventListener("click", lancerDuo);
+  ["duo1", "duo2"].forEach(id => $(id).addEventListener("keydown", function(e){
+    if(e.key !== "Enter") return; e.preventDefault();
+    if(id === "duo1") $("duo2").focus(); else lancerDuo();
+  }));
+
+  $("btn-ajout").addEventListener("click", function(){ ajouterNoms($("nom-ajout").value); $("nom-ajout").value = ""; $("nom-ajout").focus(); });
+  $("nom-ajout").addEventListener("keydown", function(e){
+    if(e.key === "Enter"){ e.preventDefault(); ajouterNoms(this.value); this.value = ""; }
+  });
+  $("nom-ajout").addEventListener("paste", function(e){
+    const t = (e.clipboardData || window.clipboardData).getData("text");
+    if(/[,;\n]/.test(t)){ e.preventDefault(); ajouterNoms(t); }
+  });
+  $("liste").addEventListener("click", function(e){
+    const b = e.target.closest("[data-suppr]"); if(!b) return;
+    inscrits.splice(parseInt(b.dataset.suppr, 10), 1); majInscription();
+  });
+  document.querySelectorAll("input[name=format], #avec-ordi").forEach(x => x.addEventListener("change", function(){
+    if(participants() > MAX_JOUEURS) inscrits.pop();
+    majInscription();
+  }));
+  $("btn-lancer").addEventListener("click", lancerTournoi);
+  $("tab-droite").addEventListener("click", function(e){ if(e.target.closest("#btn-jouer")) jouerProchaine(); });
+  $("btn-arreter").addEventListener("click", function(){
+    const b = this;
+    if(T && T.fin){ effacer(); montrer("accueil"); return; }
+    if(!b.dataset.confirmer){ b.dataset.confirmer = "1"; b.textContent = "Confirmer l'arrêt ?"; return; }
+    effacer(); montrer("accueil");
   });
 
   /* ---------- mise à l'échelle ---------- */
@@ -432,7 +876,7 @@ body.pleinecran .plein .sortir{display:block}
   }
   window.addEventListener("resize", ajuster);
 
-  const btnPlein = document.getElementById("btn-plein");
+  const btnPlein = $("btn-plein");
   btnPlein.addEventListener("click", function(){
     const el = document.documentElement;
     if(enPleinEcran()) (document.exitFullscreen || document.webkitExitFullscreen).call(document);
@@ -447,8 +891,10 @@ body.pleinecran .plein .sortir{display:block}
   document.addEventListener("fullscreenchange", majPleinEcran);
   document.addEventListener("webkitfullscreenchange", majPleinEcran);
 
+  J = [{nom:"Vous", ordi:false}, {nom:"Ordinateur", ordi:true}];
+  charger();
   ajuster();
-  nouvellePartie();
+  montrer("accueil");
 })();
 </script>
 </body>
